@@ -21,7 +21,7 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
-[res_currency_rate_provider_BCV](res_currency_rate_provider_BCV/) | 16.0.1.1.2 | [![lapinzon](https://github.com/lapinzon.png?size=30px)](https://github.com/lapinzon) | OCA version for BCV scrapping rates
+[res_currency_rate_provider_BCV](res_currency_rate_provider_BCV/) | 16.0.1.1.2 | <a href='https://github.com/lapinzon'><img src='https://github.com/lapinzon.png' width='32' height='32' style='border-radius:50%;' alt='lapinzon'/></a> | OCA version for BCV scrapping rates
 
 [//]: # (end addons)
 
