@@ -1,0 +1,218 @@
+<odoo>
+    <record id="view_move_form" model="ir.ui.view">
+        <field name="name">account.move.ve.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='invoice_date']" position="before">
+                <field
+                    name="reception_date"
+                    invisible="country_code != 'VE' or (country_code == 'VE' and (state == 'draft' or move_type == 'entry'))"
+                    readonly="state != 'posted'"
+                />
+            </xpath>
+            <xpath expr="//label[@for='invoice_date']" position="before">
+                <field
+                    name="l10n_ve_invoice_date"
+                    invisible="country_code != 'VE' or (country_code == 'VE' and state == 'draft')"
+                />
+            </xpath>
+            <xpath expr="//label[@for='invoice_date']" position="attributes">
+                <attribute name="invisible">country_code == 'VE' and state == 'posted'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_date']" position="attributes">
+                <attribute name="invisible">country_code == 'VE' and state == 'posted'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_draft']" position="attributes">
+                <attribute name="invisible">move_type != 'entry'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_cancel']" position="attributes">
+                <attribute name="invisible">country_code == 'VE'</attribute>
+            </xpath>
+
+            <xpath expr="//header//button[@name='action_reverse']" position="after">
+                <button
+                    name="action_debit_note"
+                    string="Nota de Debito"
+                    icon="fa-plus"
+                    type="object"
+                    class="btn-secondary"
+                    groups="account.group_account_invoice"
+                    invisible="country_code != 'VE' or move_type != 'out_invoice' or state != 'posted' or debit_origin_id"
+                />
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button
+                    name="button_cancel"
+                    string="Cancel"
+                    type="object"
+                    groups="account.group_account_invoice"
+                    data-hotkey="x"
+                    invisible="move_type == 'out_invoice'"
+                    confirm="This action will cancel the document. Are you sure you want to proceed?"
+                />
+            </xpath>
+            <xpath expr="//field[@name='country_code']" position="after">
+                <field name="l10n_ve_on_behalf_of_third_party_enabled" invisible="1" />
+            </xpath>
+            <!-- Hacer los impuestos readonly en las líneas de factura para Venezuela -->
+            <xpath expr="//group[@id='header_left_group']/*[1]" position="before">
+                <label
+                    for="l10n_ve_control_number"
+                    class="text-danger"
+                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice')"
+                >N° Control:</label>
+                <field
+                    class="text-danger"
+                    name="l10n_ve_control_number"
+                    placeholder="00-00000000-0"
+                    nolabel="1"
+                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice')"
+                    readonly="move_type in ('out_invoice', 'out_refund')"
+                />
+            </xpath>
+            <xpath expr="//div[@class='oe_title']" position="before">
+                <widget
+                    name="web_ribbon"
+                    title="Canceled"
+                    invisible="state != 'cancel'"
+                    bg_color="text-bg-danger"
+                />
+            </xpath>
+            <xpath expr="//field[@name='delivery_date']" position="after">
+                <field
+                    name="l10n_ve_invoice_original_printed"
+                    string="Factura Original Impresa"
+                />
+            </xpath>
+            <xpath
+                expr="//div[@name='currency_conversion_div']//field[@name='invoice_currency_rate']"
+                position="attributes"
+            >
+                <attribute name="readonly">True</attribute>
+            </xpath>
+            <xpath expr="//div[@name='currency_conversion_div']" position="after">
+                <div
+                    class="d-flex gap-1 text-muted mt-1"
+                    invisible="currency_id == company_currency_id or not l10n_ve_inverse_rate"
+                >
+                    <span>1</span>
+                    <field
+                        name="currency_id"
+                        readonly="True"
+                        options="{'no_open': True}"
+                        class="w-auto"
+                    />
+                    <span>=</span>
+                    <field
+                        name="l10n_ve_inverse_rate"
+                        digits="[12,6]"
+                        readonly="True"
+                    />
+                    <field
+                        name="company_currency_id"
+                        readonly="True"
+                        options="{'no_open': True}"
+                        class="w-auto"
+                    />
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='other_info']" position="inside">
+                <div
+                    class="row w-100 m-0"
+                    invisible="not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
+                >
+                    <div class="col-6 p-0 pe-3">
+                        <group string="Por cuenta de terceros">
+                            <field name="l10n_ve_certified_copy_deadline" readonly="1" />
+                            <field name="l10n_ve_certified_copy_delivered" />
+                            <field
+                                name="l10n_ve_certified_copy"
+                                filename="l10n_ve_certified_copy_filename"
+                            />
+                            <field name="l10n_ve_certified_copy_filename" invisible="1" />
+                        </group>
+                    </div>
+                </div>
+                <group
+                    string="Máquina Fiscal"
+                    invisible="move_type not in ('out_invoice', 'out_refund') or l10n_ve_on_behalf_of_third_party"
+                >
+                    <field name="l10n_ve_serial_number" placeholder="Serial" />
+                    <field name="l10n_ve_invoice_number" placeholder="N° Factura" />
+                    <field name="l10n_ve_report_z" placeholder="Reporte Z" />
+                </group>
+            </xpath>
+            <xpath
+                expr="//field[@name='invoice_line_ids']//list//field[@name='product_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="options"
+                >{'no_create': True, 'no_create_edit': True}</attribute>
+            </xpath>
+
+            <xpath
+                expr="//group[@id='header_left_group']/div[contains(@class, 'o_col')]/field[@name='partner_id'][@widget='res_partner_many2one']"
+                position="attributes"
+            >
+                <attribute name="context">{
+                    'res_partner_search_mode': (move_type in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (move_type in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
+                    'show_address': 1,
+                    'default_is_company': True,
+                    'show_vat': True,
+                }</attribute>
+                <attribute name="options">{"no_quick_create": True, "no_create": False, "no_create_edit": False}</attribute>
+            </xpath>
+            <xpath
+                expr="//group[@id='header_left_group']/div[contains(@class, 'o_col')][.//field[@name='partner_id'][@widget='res_partner_many2one']]"
+                position="after"
+            >
+                <label
+                    for="l10n_ve_third_party_partner_id"
+                    style="font-weight:bold;"
+                    invisible="not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
+                />
+                <field
+                    name="l10n_ve_third_party_partner_id"
+                    widget="res_partner_many2one"
+                    nolabel="1"
+                    context="{'show_address': 1, 'default_is_company': True, 'show_vat': True}"
+                    options='{"no_quick_create": True, "no_create": False, "no_create_edit": False}'
+                    placeholder="Buscar nombre o RIF..."
+                    readonly="state != 'draft'"
+                    invisible="not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
+                />
+            </xpath>
+            <xpath
+                expr="//group[@class='oe_invoice_lines_tab overflow-hidden']//field[@name='narration']"
+                position="after"
+            >
+                <field
+                    name="seniat_invoice_tag"
+                    widget="html"
+                    nolabel="1"
+                    colspan="2"
+                    invisible="move_type not in ('out_invoice', 'out_refund') or country_code != 'VE' or not seniat_invoice_tag"
+                    readonly="1"
+                    class="mb-3 text-muted"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_invoice_tree" model="ir.ui.view">
+        <field name="name">account.invoice.list</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field
+                    name="l10n_ve_control_number"
+                    decoration-danger="1"
+                    readonly="move_type in ('out_invoice', 'out_refund')"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

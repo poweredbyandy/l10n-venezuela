@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Sub-menu categories under SENIAT -->
+    <menuitem
+        id="menu_seniat_localization"
+        name="Localización"
+        parent="l10n_ve_seniat.menu_seniat_root"
+        sequence="20"
+    />
+    <menuitem
+        id="menu_seniat_account_book"
+        name="Talonarios"
+        parent="l10n_ve_seniat.menu_seniat_root"
+        action="action_account_book"
+        sequence="30"
+    />
+    <menuitem
+        id="menu_seniat_reports"
+        name="Reports"
+        parent="l10n_ve_seniat.menu_seniat_root"
+        sequence="50"
+    />
+
+    <menuitem
+        id="menu_config_invoicing_account_book"
+        name="Talonarios (N° control)"
+        parent="account.account_invoicing_menu"
+        action="action_account_book"
+        sequence="15"
+        groups="account.group_account_invoice,account.group_account_readonly"
+    />
+    <menuitem
+        id="menu_config_accounting_account_book"
+        name="Talonarios (N° control)"
+        parent="account.account_account_menu"
+        action="action_account_book"
+        sequence="25"
+        groups="account.group_account_manager"
+    />
+</odoo>
