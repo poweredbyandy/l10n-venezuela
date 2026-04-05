@@ -23,3 +23,17 @@ class TestAccountTax(L10nVeSeniatCommon):
             tax.write({"amount": 8.0})
         self.assertIn("Venezuela", str(cm.exception))
         self.assertIn("alícuota", str(cm.exception))
+
+    def test_ve_tax_write_without_amount_allowed(self):
+        tax = self.env["account.tax"].create(
+            {
+                "name": "Test VE Tax meta",
+                "amount": 16.0,
+                "amount_type": "percent",
+                "type_tax_use": "sale",
+                "company_id": self.env.company.id,
+            }
+        )
+        self.assertEqual(tax.country_code, "VE")
+        tax.write({"name": "Test VE Tax meta renamed"})
+        self.assertEqual(tax.name, "Test VE Tax meta renamed")

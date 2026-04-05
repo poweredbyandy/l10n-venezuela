@@ -574,3 +574,112 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         move.with_context(force_draft=True).button_draft()
         self.assertEqual(move.state, "draft")
+
+    def test_contingency_journal_posts_with_manual_control_without_book(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.write({"l10n_ve_control_number": "99-00000055"})
+        move.action_post()
+        self.assertEqual(move.l10n_ve_control_number, "99-00000055")
+        self.assertFalse(
+            self.env["account.book.document"].search(
+                [("res_model", "=", "account.move"), ("res_id", "=", move.id)]
+            )
+        )
+
+    def test_contingency_requires_control_before_post(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        with self.assertRaises(ValidationError) as cm:
+            move.action_post()
+        self.assertIn("N° de control", str(cm.exception))
+        self.assertIn("contingencia", str(cm.exception).lower())
+
+    def test_non_free_emission_requires_control_before_post(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "digital",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        with self.assertRaises(ValidationError) as cm:
+            move.action_post()
+        self.assertIn("N° de control", str(cm.exception))
+
+    def test_fiscal_machine_posts_without_machine_fields_or_control(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "fiscal_machine",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+        self.assertFalse((move.l10n_ve_control_number or "").strip())
+        self.assertFalse((move.l10n_ve_serial_number or "").strip())
+        move.write(
+            {
+                "l10n_ve_serial_number": "SN-1",
+                "l10n_ve_invoice_number": "FM-99",
+                "l10n_ve_report_z": "Z-1",
+            }
+        )
+        self.assertEqual(move.l10n_ve_serial_number, "SN-1")
+
+    def test_fiscal_machine_posts_without_control_with_machine_fields_before_post(
+        self,
+    ):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "fiscal_machine",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.write(
+            {
+                "l10n_ve_serial_number": "SN-1",
+                "l10n_ve_invoice_number": "FM-99",
+                "l10n_ve_report_z": "Z-1",
+            }
+        )
+        move.action_post()
+        self.assertFalse((move.l10n_ve_control_number or "").strip())
+        self.assertEqual(move.l10n_ve_serial_number, "SN-1")

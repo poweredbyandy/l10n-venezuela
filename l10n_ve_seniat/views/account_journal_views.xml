@@ -6,25 +6,29 @@
         <field name="inherit_id" ref="account.view_account_journal_form" />
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="SENIAT Talonario" invisible="type != 'sale'">
-                    <div class="row g-0">
-                        <div class="col-12 col-lg-6 pe-lg-3">
-                            <group string="Tramos (correlativos)">
-                                <field
-                                    name="l10n_ve_invoice_section_id"
-                                    options="{'no_create': False, 'no_quick_create': True}"
-                                />
-                                <field
-                                    name="l10n_ve_debit_note_section_id"
-                                    options="{'no_create': False, 'no_quick_create': True}"
-                                />
-                                <field
-                                    name="l10n_ve_credit_note_section_id"
-                                    options="{'no_create': False, 'no_quick_create': True}"
-                                />
-                            </group>
-                        </div>
-                    </div>
+                <page string="SENIAT" invisible="type != 'sale'">
+                    <group string="Configuración">
+                        <field name="l10n_ve_emission_medium" />
+                    </group>
+                    <group
+                        string="Tramos (talonario)"
+                        invisible="l10n_ve_emission_medium in ('contingency', 'fiscal_machine', 'digital')"
+                    >
+                        <field
+                            name="l10n_ve_invoice_section_id"
+                            required="l10n_ve_emission_medium == 'free'"
+                            options="{'no_create': False, 'no_quick_create': True}"
+                        />
+                        <field
+                            name="l10n_ve_debit_note_section_id"
+                            options="{'no_create': False, 'no_quick_create': True}"
+                        />
+                        <field
+                            name="l10n_ve_credit_note_section_id"
+                            required="l10n_ve_emission_medium == 'free'"
+                            options="{'no_create': False, 'no_quick_create': True}"
+                        />
+                    </group>
                 </page>
             </xpath>
         </field>

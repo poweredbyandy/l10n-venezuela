@@ -145,7 +145,13 @@
                         <div class="col-3">
                             <br />
                             <div class="d-block text-uppercase">
-                                <strong>Factura:</strong>
+                                <strong
+                                    t-if="o.move_type == 'out_refund'"
+                                >Nota de Crédito:</strong>
+                                <strong
+                                    t-elif="o.move_type == 'out_invoice' and o.debit_origin_id"
+                                >Nota de Débito:</strong>
+                                <strong t-else="">Factura:</strong>
                                 <span t-field="o.name" />
                             </div>
                             <div class="d-block text-uppercase">

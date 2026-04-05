@@ -1,4 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from . import test_account_book
+from . import test_chart_template_ve
+from . import test_coverage_extra
+from . import test_http
 from . import test_product_template
 from . import test_res_partner
 from . import test_account_tax

@@ -58,22 +58,53 @@
             </xpath>
             <xpath expr="//field[@name='country_code']" position="after">
                 <field name="l10n_ve_on_behalf_of_third_party_enabled" invisible="1" />
+                <field name="l10n_ve_journal_emission_medium" invisible="1" />
             </xpath>
             <!-- Hacer los impuestos readonly en las líneas de factura para Venezuela -->
             <xpath expr="//group[@id='header_left_group']/*[1]" position="before">
                 <label
                     for="l10n_ve_control_number"
                     class="text-danger"
-                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice')"
+                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice') or (move_type in ('out_invoice', 'out_refund') and l10n_ve_journal_emission_medium == 'fiscal_machine' and not l10n_ve_on_behalf_of_third_party)"
                 >N° Control:</label>
                 <field
                     class="text-danger"
                     name="l10n_ve_control_number"
                     placeholder="00-00000000-0"
                     nolabel="1"
-                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice')"
-                    readonly="move_type in ('out_invoice', 'out_refund')"
+                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice') or (move_type in ('out_invoice', 'out_refund') and l10n_ve_journal_emission_medium == 'fiscal_machine' and not l10n_ve_on_behalf_of_third_party)"
+                    readonly="move_type in ('out_invoice', 'out_refund') and (state == 'posted' or not l10n_ve_journal_emission_medium or l10n_ve_journal_emission_medium == 'free')"
+                    required="country_code == 'VE' and state == 'draft' and move_type in ('out_invoice', 'out_refund') and l10n_ve_journal_emission_medium and l10n_ve_journal_emission_medium != 'free' and (l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party)"
                 />
+                <label
+                    for="l10n_ve_serial_number"
+                    string="Máquina Fiscal"
+                    style="font-weight:bold;"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
+                />
+                <div
+                    class="o_col"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
+                >
+                    <field
+                        name="l10n_ve_serial_number"
+                        nolabel="1"
+                        placeholder="Serial"
+                        readonly="state != 'posted'"
+                    />
+                    <field
+                        name="l10n_ve_invoice_number"
+                        nolabel="1"
+                        placeholder="N° Factura"
+                        readonly="state != 'posted'"
+                    />
+                    <field
+                        name="l10n_ve_report_z"
+                        nolabel="1"
+                        placeholder="Reporte Z"
+                        readonly="state != 'posted'"
+                    />
+                </div>
             </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <widget
@@ -127,7 +158,7 @@
                     invisible="not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
                 >
                     <div class="col-6 p-0 pe-3">
-                        <group string="Por cuenta de terceros">
+                        <group string="Por cuenta de Terceros">
                             <field
                                 name="l10n_ve_certified_copy_deadline"
                                 readonly="1"
@@ -144,14 +175,6 @@
                         </group>
                     </div>
                 </div>
-                <group
-                    string="Máquina Fiscal"
-                    invisible="move_type not in ('out_invoice', 'out_refund') or l10n_ve_on_behalf_of_third_party"
-                >
-                    <field name="l10n_ve_serial_number" placeholder="Serial" />
-                    <field name="l10n_ve_invoice_number" placeholder="N° Factura" />
-                    <field name="l10n_ve_report_z" placeholder="Reporte Z" />
-                </group>
             </xpath>
             <xpath
                 expr="//field[@name='invoice_line_ids']//list//field[@name='product_id']"
@@ -219,10 +242,12 @@
         <field name="inherit_id" ref="account.view_invoice_tree" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
+                <field name="l10n_ve_journal_emission_medium" column_invisible="True" />
                 <field
                     name="l10n_ve_control_number"
                     decoration-danger="1"
-                    readonly="move_type in ('out_invoice', 'out_refund')"
+                    readonly="move_type in ('out_invoice', 'out_refund') and (state == 'posted' or not l10n_ve_journal_emission_medium or l10n_ve_journal_emission_medium == 'free')"
+                    invisible="move_type in ('out_invoice', 'out_refund') and l10n_ve_journal_emission_medium == 'fiscal_machine' and not l10n_ve_on_behalf_of_third_party"
                 />
             </xpath>
         </field>

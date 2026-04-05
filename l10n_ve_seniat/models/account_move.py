@@ -87,6 +87,11 @@ class AccountMove(models.Model):
         store=True,
         tracking=True,
     )
+    l10n_ve_journal_emission_medium = fields.Selection(
+        related="journal_id.l10n_ve_emission_medium",
+        string="Medio de emisión (diario)",
+        readonly=True,
+    )
     l10n_ve_serial_number = fields.Char(
         string="Fiscal Machine Serial",
         copy=False,
@@ -110,18 +115,18 @@ class AccountMove(models.Model):
         readonly=True,
     )
     l10n_ve_on_behalf_of_third_party = fields.Boolean(
-        string="Por cuenta de terceros",
+        string="Indicador por cuenta de terceros",
         compute="_compute_l10n_ve_on_behalf_of_third_party",
         store=True,
         copy=False,
-        help=(
-            "Según Art. 11 PA00071: operaciones por cuenta de terceros deben "
-            "emitirse en forma libre."
+        help=_(
+            "Verdadero si hay un contacto en Por cuenta de Terceros. "
+            "Según Art. 11 PA00071, esas operaciones deben emitirse en forma libre."
         ),
     )
     l10n_ve_third_party_partner_id = fields.Many2one(
         "res.partner",
-        string="Tercero (factura libre)",
+        string="Por cuenta de Terceros",
         copy=False,
         ondelete="restrict",
     )
@@ -203,26 +208,68 @@ class AccountMove(models.Model):
             total = company_cur.round(total + self._l10n_ve_to_company_abs_amount())
         return total
 
+    def _l10n_ve_validate_customer_invoice_emission_for_post(self):
+        self.ensure_one()
+        if self.country_code != self.env.ref("base.ve").code:
+            return
+        if self.move_type not in ("out_invoice", "out_refund"):
+            return
+        journal = self.journal_id
+        if not journal or journal.type != "sale":
+            return
+        medium = journal.l10n_ve_emission_medium or "free"
+        if medium == "free":
+            if not self._l10n_ve_journal_fiscal_book_section():
+                raise ValidationError(
+                    _(
+                        "No se puede confirmar el documento “%(doc)s”. "
+                        "Configure los tramos del talonario (SENIAT) en el "
+                        "diario de ventas “%(journal)s”."
+                    )
+                    % {
+                        "doc": self.name or _("Borrador"),
+                        "journal": journal.display_name,
+                    }
+                )
+        elif medium == "fiscal_machine":
+            if self.l10n_ve_on_behalf_of_third_party:
+                if not (self.l10n_ve_control_number or "").strip():
+                    raise ValidationError(
+                        _(
+                            "No se puede confirmar el documento “%(doc)s”. "
+                            "Indique el N° de control SENIAT (este diario no usa "
+                            "correlativo automático del talonario)."
+                        )
+                        % {"doc": self.name or _("Borrador")}
+                    )
+        elif medium != "fiscal_machine" and not (
+            self.l10n_ve_control_number or ""
+        ).strip():
+            if medium == "contingency":
+                raise ValidationError(
+                    _(
+                        "No se puede confirmar el documento “%(doc)s”. "
+                        "En contingencia el N° de control SENIAT es obligatorio."
+                    )
+                    % {"doc": self.name or _("Borrador")}
+                )
+            raise ValidationError(
+                _(
+                    "No se puede confirmar el documento “%(doc)s”. "
+                    "Indique el N° de control SENIAT (este diario no usa "
+                    "correlativo automático del talonario)."
+                )
+                % {"doc": self.name or _("Borrador")}
+            )
+
     def action_post(self):  # noqa: C901
+        if self.env.context.get("install_mode"):
+            return super().action_post()
         for move_id in self:
             if move_id.country_code != self.env.ref("base.ve").code:
                 continue
 
-            if move_id.move_type in ("out_invoice", "out_refund"):
-                journal = move_id.journal_id
-                if journal and journal.type == "sale":
-                    if not move_id._l10n_ve_journal_fiscal_book_section():
-                        raise ValidationError(
-                            _(
-                                "No se puede confirmar el documento “%(doc)s”. "
-                                "Configure los tramos del talonario (SENIAT) en el "
-                                "diario de ventas “%(journal)s”."
-                            )
-                            % {
-                                "doc": move_id.name or _("Borrador"),
-                                "journal": journal.display_name,
-                            }
-                        )
+            move_id._l10n_ve_validate_customer_invoice_emission_for_post()
 
             if move_id.move_type in (
                 "out_invoice",
@@ -404,7 +451,12 @@ Please create a credit note instead.
         )
 
     def _post(self, soft=True):
+        if not self.env.context.get("install_mode"):
+            for move in self:
+                move._l10n_ve_validate_customer_invoice_emission_for_post()
         res = super()._post(soft=soft)
+        if self.env.context.get("install_mode"):
+            return res
         for rec in self:
             if rec.state == "posted":
                 rec.l10n_ve_invoice_date = fields.Datetime.now()
@@ -436,6 +488,8 @@ Please create a credit note instead.
 
         journal = self.journal_id
         if not journal or journal.type != "sale":
+            return
+        if (journal.l10n_ve_emission_medium or "free") != "free":
             return
 
         section = self._l10n_ve_journal_fiscal_book_section()

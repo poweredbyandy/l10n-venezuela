@@ -146,3 +146,76 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         move.action_post()
         line = move.line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertGreater(line.subtotal_company_currency, 0)
+
+    def test_subtotal_company_currency_entry_is_zero(self):
+        move = self.env["account.move"].create(
+            {
+                "move_type": "entry",
+                "line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "d",
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "debit": 5.0,
+                            "credit": 0.0,
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "c",
+                            "account_id": self.company_data[
+                                "default_account_expense"
+                            ].id,
+                            "debit": 0.0,
+                            "credit": 5.0,
+                        },
+                    ),
+                ],
+            }
+        )
+        move.action_post()
+        line = move.line_ids.filtered(lambda aml: aml.debit > 0)
+        self.assertEqual(len(line), 1)
+        self.assertEqual(line.subtotal_company_currency, 0.0)
+
+    def test_entry_lines_skip_ve_validations_on_write(self):
+        move = self.env["account.move"].create(
+            {
+                "move_type": "entry",
+                "line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "d",
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "debit": 1.0,
+                            "credit": 0.0,
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "c",
+                            "account_id": self.company_data[
+                                "default_account_expense"
+                            ].id,
+                            "debit": 0.0,
+                            "credit": 1.0,
+                        },
+                    ),
+                ],
+            }
+        )
+        line = move.line_ids.filtered(lambda aml: aml.debit > 0)
+        line.write({"name": "asiento ok"})
+        self.assertEqual(line.name, "asiento ok")

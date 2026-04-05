@@ -880,9 +880,15 @@ msgstr ""
 #. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_on_behalf_of_third_party
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
-msgid "Por cuenta de terceros"
+msgid "Indicador por cuenta de terceros"
 msgstr ""
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_third_party_partner_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_third_party_partner_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Por cuenta de Terceros"
+msgstr "Por cuenta de Terceros"
 
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
@@ -1010,8 +1016,8 @@ msgstr ""
 #: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party
 #: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_on_behalf_of_third_party
 msgid ""
-"Según Art. 11 PA00071: operaciones por cuenta de terceros deben emitirse en "
-"forma libre."
+"Verdadero si hay un contacto en Por cuenta de Terceros. Según Art. 11 "
+"PA00071, esas operaciones deben emitirse en forma libre."
 msgstr ""
 
 #. module: l10n_ve_seniat
@@ -1121,12 +1127,6 @@ msgstr "Tipo de contribuyente"
 msgid ""
 "Technical flag used by the VE invoice report to determine if a printed copy "
 "should display a 'faithful copy' label."
-msgstr ""
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_third_party_partner_id
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_third_party_partner_id
-msgid "Tercero (a favor de quien se actúa)"
 msgstr ""
 
 #. module: l10n_ve_seniat

@@ -654,9 +654,9 @@ class AccountBookDocument(models.Model):
             )
         return super().write(vals)
 
-    def unlink(self):
+    @api.ondelete(at_uninstall=False)
+    def _unlink_if_not_internal_book_cleanup(self):
         if not self.env.context.get("l10n_ve_allow_book_document_unlink"):
             raise ValidationError(
                 _("No se pueden eliminar correlativos asignados en el talonario.")
             )
-        return super().unlink()

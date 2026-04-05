@@ -5,6 +5,37 @@ from odoo.exceptions import ValidationError
 class AccountJournal(models.Model):
     _inherit = "account.journal"
 
+    l10n_ve_emission_medium = fields.Selection(
+        selection=[
+            (
+                "free",
+                _("Forma libre (correlativo de talonario)"),
+            ),
+            (
+                "contingency",
+                _("Contingencia"),
+            ),
+            (
+                "fiscal_machine",
+                _("Máquina fiscal"),
+            ),
+            (
+                "digital",
+                _("Facturación digital"),
+            ),
+        ],
+        string=_("Medio de emisión"),
+        default="free",
+        copy=False,
+        help=_(
+            "Forma libre: asigna correlativo desde el talonario interno. "
+            "Contingencia: no usa el talonario; el N° de control se indica en la "
+            "factura antes de confirmar. Máquina fiscal y facturación digital: "
+            "tampoco generan correlativo automático del talonario; el N° de control "
+            "debe consignarse manualmente antes de confirmar."
+        ),
+    )
+
     l10n_ve_invoice_section_id = fields.Many2one(
         "account.book.section",
         string="SENIAT fiscal book section (invoices)",

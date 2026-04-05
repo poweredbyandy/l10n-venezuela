@@ -78,3 +78,23 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
         p = self.env["product.template"].create(self._create_product_vals())
         self.assertEqual(len(p.taxes_id), 1)
         self.assertEqual(len(p.supplier_taxes_id), 1)
+
+    def test_non_ve_fiscal_company_skips_tax_count_constraint(self):
+        us = self.env.ref("base.us")
+        company = self.env["res.company"].create(
+            {
+                "name": "US Co template test",
+                "country_id": us.id,
+            }
+        )
+        company.account_fiscal_country_id = us
+        p = self.env["product.template"].create(
+            {
+                "name": "Sin impuestos US",
+                "company_id": company.id,
+                "list_price": 10.0,
+                "taxes_id": [],
+                "supplier_taxes_id": [],
+            }
+        )
+        self.assertEqual(len(p.taxes_id), 0)
