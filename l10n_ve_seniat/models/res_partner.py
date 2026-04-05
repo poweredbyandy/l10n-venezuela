@@ -48,11 +48,12 @@ class ResPartner(models.Model):
                 if partner._l10n_ve_has_posted_accounting_activity():
                     raise UserError(
                         _(
-                            "Cannot change the name or VAT of contact “%s” because it "
-                            "already has posted accounting entries, invoices or related "
-                            "records. Ask a settings administrator to apply the change."
+                            "Cannot change the name or VAT of contact “%(name)s” "
+                            "because it already has posted accounting entries, "
+                            "invoices or related records. Ask a settings administrator "
+                            "to apply the change."
                         )
-                        % (partner.display_name,)
+                        % {"name": partner.display_name}
                     )
 
     def _l10n_ve_effective_country_for_write(self, vals):
@@ -161,13 +162,21 @@ class ResPartner(models.Model):
     def _default_vat(self):
         return False
 
-    # @api.depends('complete_name', 'email', 'vat', 'state_id', 'country_id', 'commercial_company_name')
+    # @api.depends(
+    #     "complete_name",
+    #     "email",
+    #     "vat",
+    #     "state_id",
+    #     "country_id",
+    #     "commercial_company_name",
+    # )
     # def _compute_display_name(self):
     #     super(ResPartner, self)._compute_display_name()
-
     #     for partner in self:
     #         if partner.vat:
-    #             partner.display_name = f"{partner.vat or ""} - {partner.display_name or ""}"
+    #             v = partner.vat or ""
+    #             d = partner.display_name or ""
+    #             partner.display_name = f"{v} - {d}"
     #             continue
     #         partner.display_name = partner.display_name
 

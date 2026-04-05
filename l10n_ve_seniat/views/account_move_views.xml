@@ -18,10 +18,14 @@
                 />
             </xpath>
             <xpath expr="//label[@for='invoice_date']" position="attributes">
-                <attribute name="invisible">country_code == 'VE' and state == 'posted'</attribute>
+                <attribute
+                    name="invisible"
+                >country_code == 'VE' and state == 'posted'</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_date']" position="attributes">
-                <attribute name="invisible">country_code == 'VE' and state == 'posted'</attribute>
+                <attribute
+                    name="invisible"
+                >country_code == 'VE' and state == 'posted'</attribute>
             </xpath>
             <xpath expr="//button[@name='button_draft']" position="attributes">
                 <attribute name="invisible">move_type != 'entry'</attribute>
@@ -124,13 +128,19 @@
                 >
                     <div class="col-6 p-0 pe-3">
                         <group string="Por cuenta de terceros">
-                            <field name="l10n_ve_certified_copy_deadline" readonly="1" />
+                            <field
+                                name="l10n_ve_certified_copy_deadline"
+                                readonly="1"
+                            />
                             <field name="l10n_ve_certified_copy_delivered" />
                             <field
                                 name="l10n_ve_certified_copy"
                                 filename="l10n_ve_certified_copy_filename"
                             />
-                            <field name="l10n_ve_certified_copy_filename" invisible="1" />
+                            <field
+                                name="l10n_ve_certified_copy_filename"
+                                invisible="1"
+                            />
                         </group>
                     </div>
                 </div>
@@ -162,7 +172,9 @@
                     'default_is_company': True,
                     'show_vat': True,
                 }</attribute>
-                <attribute name="options">{"no_quick_create": True, "no_create": False, "no_create_edit": False}</attribute>
+                <attribute
+                    name="options"
+                >{"no_quick_create": True, "no_create": False, "no_create_edit": False}</attribute>
             </xpath>
             <xpath
                 expr="//group[@id='header_left_group']/div[contains(@class, 'o_col')][.//field[@name='partner_id'][@widget='res_partner_many2one']]"

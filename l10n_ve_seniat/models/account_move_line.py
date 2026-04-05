@@ -66,9 +66,10 @@ class AccountMoveLine(models.Model):
         if abs(self.price_unit or 0.0) < 0.01:
             raise ValidationError(
                 _(
-                    "No se permiten líneas con precio en 0. La línea '%s' tiene un precio de 0."
+                    "No se permiten líneas con precio en 0. La línea '%(line)s' tiene "
+                    "un precio de 0."
                 )
-                % (self.name or _("Sin nombre"))
+                % {"line": self.name or _("Sin nombre")}
             )
 
     def _put_unique_tax_per_line(self):

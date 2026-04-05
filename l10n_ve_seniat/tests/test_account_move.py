@@ -378,7 +378,9 @@ class TestAccountMove(L10nVeSeniatCommon):
 
     def test_on_behalf_of_third_party_computed_without_tercero_posts(self):
         self.env.company.l10n_ve_on_behalf_of_third_party_enabled = True
-        move = self.env["account.move"].create(self._create_invoice_vals(self.partner_ve))
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
         self.assertFalse(move.l10n_ve_on_behalf_of_third_party)
         move.action_post()
         self.assertFalse(move.l10n_ve_on_behalf_of_third_party)
@@ -572,4 +574,3 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         move.with_context(force_draft=True).button_draft()
         self.assertEqual(move.state, "draft")
-

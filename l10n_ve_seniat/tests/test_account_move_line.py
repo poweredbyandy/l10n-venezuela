@@ -75,7 +75,7 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
             }
         )
         move.action_post()
-        line = move.line_ids.filtered(lambda l: l.display_type == "product")
+        line = move.line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertEqual(len(line), 1)
         self.assertGreater(line.subtotal_company_currency, 0)
 
@@ -109,7 +109,7 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                 ],
             }
         )
-        line = move.invoice_line_ids.filtered(lambda l: l.display_type == "product")
+        line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertEqual(len(line.tax_ids), 1)
         self.assertEqual(line.tax_ids, self.company_data["default_tax_purchase"])
 
@@ -144,5 +144,5 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         invoice.action_post()
         move = invoice._reverse_moves()
         move.action_post()
-        line = move.line_ids.filtered(lambda l: l.display_type == "product")
+        line = move.line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertGreater(line.subtotal_company_currency, 0)

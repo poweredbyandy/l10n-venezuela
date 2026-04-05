@@ -43,7 +43,7 @@
             "l10n_ve_seniat/static/src/css/report_invoice_ve.css",
         ],
         "web.assets_backend": [
-            "l10n_ve_seniat/static/src/js/version_watermark.js",
+            "l10n_ve_seniat/static/src/js/version_watermark.esm.js",
             "l10n_ve_seniat/static/src/xml/version_watermark.xml",
             "l10n_ve_seniat/static/src/scss/version_watermark.scss",
             "l10n_ve_seniat/static/src/scss/seniat_kanban.scss",

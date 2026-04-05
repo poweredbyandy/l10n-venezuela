@@ -23,8 +23,10 @@ class AccountBook(models.Model):
     l10n_ve_series_prefix = fields.Char(
         string="Prefijo/Serie",
         default="00",
-        help="Prefijo de establecimiento o serie SENIAT. Se aplica al número de control "
-        "y al prefijo de las secuencias de todos los tramos.",
+        help=(
+            "Prefijo de establecimiento o serie SENIAT. Se aplica al número de control "
+            "y al prefijo de las secuencias de todos los tramos."
+        ),
     )
     number_from = fields.Integer(string="Start number", required=True)
     number_to = fields.Integer(string="End number", required=True)
@@ -86,7 +88,7 @@ class AccountBook(models.Model):
         return Markup(
             '<div class="alert alert-info" role="alert">'
             '<p class="fw-bold mb-2">%s</p>'
-            "<ul class=\"mb-0\">"
+            '<ul class="mb-0">'
             "<li>%s</li>"
             "<li>%s</li>"
             "<li>%s</li>"
@@ -101,27 +103,31 @@ class AccountBook(models.Model):
                 "Todos los números de control deben quedar dentro de ese intervalo."
             ),
             _(
-                "En la pestaña «Tramos», divida el rango en segmentos contiguos sin solaparse. "
-                "Cada tramo recibe una secuencia interna enlazada automáticamente."
+                "En la pestaña «Tramos», divida el rango en segmentos contiguos "
+                "sin solaparse. Cada tramo recibe una secuencia interna enlazada "
+                "automáticamente."
             ),
             _(
-                "«Prefijo/Serie» (por defecto 00) forma parte del número de control y del "
-                "prefijo de las secuencias de los tramos. Si lo modifica tras crear tramos, "
-                "pulse «Sincronizar secuencias de tramos»."
+                "«Prefijo/Serie» (por defecto 00) forma parte del número de control "
+                "y del prefijo de las secuencias de los tramos. Si lo modifica tras "
+                "crear tramos, pulse «Sincronizar secuencias de tramos»."
             ),
             _(
-                "En el diario de ventas (Contabilidad → Diarios → pestaña SENIAT Talonario) "
-                "asigne el tramo de facturas, el de notas de crédito y, si lo usa, el de "
-                "notas de débito. Sin tramo no se asignará correlativo al publicar."
+                "En el diario de ventas (Contabilidad → Diarios → pestaña SENIAT "
+                "Talonario) asigne el tramo de facturas, el de notas de crédito y, "
+                "si lo usa, el de notas de débito. Sin tramo no se asignará "
+                "correlativo al publicar."
             ),
             _(
-                "La pestaña «Correlatives» es solo consulta: dentro de cada tramo los "
-                "números son consecutivos sin saltos; cada tipo de documento usa el tramo "
-                "configurado en el diario. No borre ni altere correlativos manualmente."
+                "La pestaña «Correlatives» es solo consulta: dentro de cada tramo "
+                "los números son consecutivos sin saltos; cada tipo de documento "
+                "usa el tramo configurado en el diario. No borre ni altere "
+                "correlativos manualmente."
             ),
             _(
-                "«Sincronizar secuencias de tramos» alinea prefijos y el siguiente número "
-                "de cada secuencia con los correlativos ya registrados en el talonario."
+                "«Sincronizar secuencias de tramos» alinea prefijos y el siguiente "
+                "número de cada secuencia con los correlativos ya registrados en el "
+                "talonario."
             ),
         )
 
@@ -218,10 +224,7 @@ class AccountBook(models.Model):
         for book in self:
             sections = book.section_ids
             for sec in sections:
-                if (
-                    sec.number_from < book.number_from
-                    or sec.number_to > book.number_to
-                ):
+                if sec.number_from < book.number_from or sec.number_to > book.number_to:
                     raise ValidationError(
                         _(
                             "Section “%(sec)s” (from %(sf)s to %(st)s) must fall "
@@ -264,9 +267,7 @@ class AccountBook(models.Model):
     def _check_documents_within_book(self):
         for book in self:
             for doc in book.document_ids:
-                if not (
-                    book.number_from <= doc.number <= book.number_to
-                ):
+                if not (book.number_from <= doc.number <= book.number_to):
                     raise ValidationError(
                         _(
                             "Correlative %(num)s is outside the book range "
@@ -423,9 +424,9 @@ class AccountBookSection(models.Model):
                 }
             )
         )
-        self.with_context(
-            skip_l10n_ve_section_sequence_patch=True
-        ).write({"l10n_ve_sequence_id": seq.id})
+        self.with_context(skip_l10n_ve_section_sequence_patch=True).write(
+            {"l10n_ve_sequence_id": seq.id}
+        )
 
     def _l10n_ve_refresh_sequence_number_next(self):
         Document = self.env["account.book.document"]
@@ -442,9 +443,7 @@ class AccountBookSection(models.Model):
                 order="number desc",
                 limit=1,
             )
-            number_next = (
-                last_doc.number + 1 if last_doc else section.number_from
-            )
+            number_next = last_doc.number + 1 if last_doc else section.number_from
             seq.sudo().write({"number_next": number_next})
 
     def name_get(self):
@@ -613,9 +612,7 @@ class AccountBookDocument(models.Model):
             if line.section_id:
                 sec = line.section_id
                 if sec.book_id != book:
-                    raise ValidationError(
-                        _("The section belongs to another book.")
-                    )
+                    raise ValidationError(_("The section belongs to another book."))
                 if not (sec.number_from <= line.number <= sec.number_to):
                     raise ValidationError(
                         _(
@@ -646,9 +643,7 @@ class AccountBookDocument(models.Model):
                 doc_company = ref.company_id
             if doc_company and doc_company != book_company:
                 raise ValidationError(
-                    _(
-                        "The document company must match the book company (%(c)s)."
-                    )
+                    _("The document company must match the book company (%(c)s).")
                     % {"c": book_company.display_name}
                 )
 

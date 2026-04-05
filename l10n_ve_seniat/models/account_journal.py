@@ -48,8 +48,8 @@ class AccountJournal(models.Model):
                 if sec and sec.company_id != journal.company_id:
                     raise ValidationError(
                         _(
-                            "The fiscal book section “%(sec)s” belongs to another company "
-                            "than journal “%(journal)s”."
+                            "The fiscal book section “%(sec)s” belongs to another "
+                            "company than journal “%(journal)s”."
                         )
                         % {
                             "sec": sec.display_name,

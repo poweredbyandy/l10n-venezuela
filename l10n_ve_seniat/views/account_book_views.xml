@@ -31,17 +31,28 @@
                     />
                 </header>
                 <sheet>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active" />
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
                     <div class="oe_title">
                         <label for="name" />
                         <h1>
-                            <field name="name" placeholder="e.g. Talonario facturas 2025" />
+                            <field
+                                name="name"
+                                placeholder="e.g. Talonario facturas 2025"
+                            />
                         </h1>
                     </div>
                     <group>
                         <group>
                             <field name="active" />
-                            <field name="company_id" groups="base.group_multi_company" />
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                            />
                             <field name="l10n_ve_series_prefix" />
                         </group>
                         <group>
@@ -84,7 +95,12 @@
                             </field>
                         </page>
                     </notebook>
-                    <field name="l10n_ve_setup_guide" colspan="2" nolabel="1" readonly="1" />
+                    <field
+                        name="l10n_ve_setup_guide"
+                        colspan="2"
+                        nolabel="1"
+                        readonly="1"
+                    />
                 </sheet>
             </form>
         </field>

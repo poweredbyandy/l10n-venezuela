@@ -26,9 +26,12 @@ class AccountMove(models.Model):
                 "out_refund",
             ):
                 texts = []
-                # Primer texto sobre IGTF
                 texts.append(
-                    "<span>Este pago estará sujeto al cobro adicional del 3% del Impuesto a las Grandes Transacciones Financieras (IGTF), de conformidad con la Providencia Administrativa SNAT/2022/000013 publicada en la G.O N 42.339 del 17-03-2022, en caso de ser cancelado en divisas. No aplica en pago en Bs.</span> "
+                    "<span>Este pago estará sujeto al cobro adicional del 3% del "
+                    "Impuesto a las Grandes Transacciones Financieras (IGTF), de "
+                    "conformidad con la Providencia Administrativa SNAT/2022/000013 "
+                    "publicada en la G.O N 42.339 del 17-03-2022, en caso de ser "
+                    "cancelado en divisas. No aplica en pago en Bs.</span> "
                 )
                 # Segundo texto sobre tipo de cambio (solo si hay tasa inversa)
                 if move.company_currency_id != move.currency_id:
@@ -37,7 +40,16 @@ class AccountMove(models.Model):
                         move.l10n_ve_inverse_rate
                     )
                     texts.append(
-                        f"<span>Este documento se expresa en Bolívares con su equivalente en Divisas, al tipo de cambio corriente del mercado a la fecha de su emisión, según lo establecido en el articulo 13 numeral 14 de la providencia administrativa SNAT/2011/0071 ({rate_formatted}) en concordancia con el articulo 128 de la Ley del Banco Central de Venezuela (BCV); articulo 15 de la Ley que establece el impuesto al valor agregado (IVA) y 38 del Reglamento General de la Ley que establece el Impuesto de Valor agregado (RLIVA)</span>"
+                        "<span>Este documento se expresa en Bolívares con su "
+                        "equivalente en Divisas, al tipo de cambio corriente del "
+                        "mercado a la fecha de su emisión, según lo establecido en "
+                        "el articulo 13 numeral 14 de la providencia administrativa "
+                        "SNAT/2011/0071 "
+                        f"({rate_formatted}) en concordancia con el articulo 128 "
+                        "de la Ley del Banco Central de Venezuela (BCV); articulo 15 "
+                        "de la Ley que establece el impuesto al valor agregado (IVA) "
+                        "y 38 del Reglamento General de la Ley que establece el "
+                        "Impuesto de Valor agregado (RLIVA)</span>"
                     )
                 move.seniat_invoice_tag = "".join(texts) if texts else False
             else:
@@ -58,7 +70,10 @@ class AccountMove(models.Model):
         string="VE Invoice Original Printed",
         copy=False,
         readonly=True,
-        help="Technical flag used by the VE invoice report to determine if a printed copy should display a 'faithful copy' label.",
+        help=(
+            "Technical flag used by the VE invoice report to determine if a printed "
+            "copy should display a 'faithful copy' label."
+        ),
     )
 
     reception_date = fields.Date(
@@ -99,7 +114,10 @@ class AccountMove(models.Model):
         compute="_compute_l10n_ve_on_behalf_of_third_party",
         store=True,
         copy=False,
-        help="Según Art. 11 PA00071: operaciones por cuenta de terceros deben emitirse en forma libre.",
+        help=(
+            "Según Art. 11 PA00071: operaciones por cuenta de terceros deben "
+            "emitirse en forma libre."
+        ),
     )
     l10n_ve_third_party_partner_id = fields.Many2one(
         "res.partner",
@@ -111,7 +129,9 @@ class AccountMove(models.Model):
     @api.depends("l10n_ve_third_party_partner_id")
     def _compute_l10n_ve_on_behalf_of_third_party(self):
         for move in self:
-            move.l10n_ve_on_behalf_of_third_party = bool(move.l10n_ve_third_party_partner_id)
+            move.l10n_ve_on_behalf_of_third_party = bool(
+                move.l10n_ve_third_party_partner_id
+            )
 
     l10n_ve_certified_copy_deadline = fields.Date(
         string="Plazo entrega copia certificada",
@@ -183,7 +203,7 @@ class AccountMove(models.Model):
             total = company_cur.round(total + self._l10n_ve_to_company_abs_amount())
         return total
 
-    def action_post(self):
+    def action_post(self):  # noqa: C901
         for move_id in self:
             if move_id.country_code != self.env.ref("base.ve").code:
                 continue
@@ -195,8 +215,8 @@ class AccountMove(models.Model):
                         raise ValidationError(
                             _(
                                 "No se puede confirmar el documento “%(doc)s”. "
-                                "Configure los tramos del talonario (SENIAT) en el diario "
-                                "de ventas “%(journal)s”."
+                                "Configure los tramos del talonario (SENIAT) en el "
+                                "diario de ventas “%(journal)s”."
                             )
                             % {
                                 "doc": move_id.name or _("Borrador"),
@@ -214,30 +234,37 @@ class AccountMove(models.Model):
                 if not partner.vat:
                     raise ValidationError(
                         _(
-                            "No se puede confirmar la factura '%s'. "
-                            "El contacto '%s' no tiene el RIF (VAT) configurado.",
-                            move_id.name or _("Borrador"),
-                            partner.name,
+                            "No se puede confirmar la factura '%(move)s'. "
+                            "El contacto '%(partner)s' no tiene el RIF (VAT) "
+                            "configurado."
                         )
+                        % {
+                            "move": move_id.name or _("Borrador"),
+                            "partner": partner.name,
+                        }
                     )
                 if not partner.check_vat_ve(partner.vat):
                     raise ValidationError(
                         _(
-                            "No se puede confirmar la factura '%s'. "
-                            "El RIF '%s' del contacto '%s' no tiene un formato válido. "
-                            "El formato correcto es: [V/E/J/C/P/G] seguido del número "
-                            "de identificación (ej: V12345678, J-12.345.678-9).",
-                            move_id.name or _("Borrador"),
-                            partner.vat,
-                            partner.name,
+                            "No se puede confirmar la factura '%(move)s'. "
+                            "El RIF '%(vat)s' del contacto '%(partner)s' no tiene un "
+                            "formato válido. El formato correcto es: [V/E/J/C/P/G] "
+                            "seguido del número de identificación (ej: V12345678, "
+                            "J-12.345.678-9)."
                         )
+                        % {
+                            "move": move_id.name or _("Borrador"),
+                            "vat": partner.vat,
+                            "partner": partner.name,
+                        }
                     )
 
                 # Validar que el total de la factura no sea 0
                 if abs(move_id.amount_total) < 0.01:
                     raise ValidationError(
                         _(
-                            "No se puede facturar con un total de 0. Por favor, verifique las líneas de la factura."
+                            "No se puede facturar con un total de 0. Por favor, "
+                            "verifique las líneas de la factura."
                         )
                     )
 
@@ -247,10 +274,10 @@ class AccountMove(models.Model):
                 ):
                     raise ValidationError(
                         _(
-                            "No se puede confirmar la nota de crédito '%s'. "
-                            "Debe indicar el documento origen (factura afectada).",
-                            move_id.name or _("Borrador"),
+                            "No se puede confirmar la nota de crédito '%(move)s'. "
+                            "Debe indicar el documento origen (factura afectada)."
                         )
+                        % {"move": move_id.name or _("Borrador")}
                     )
 
                 if move_id.move_type == "out_refund" and move_id.reversed_entry_id:
@@ -267,7 +294,8 @@ class AccountMove(models.Model):
                         raise ValidationError(
                             _(
                                 "No se puede confirmar la nota de crédito '%(move)s'. "
-                                "El monto máximo acumulado permitido es %(limit)s y con esta nota se alcanzan %(acc)s."
+                                "El monto máximo acumulado permitido es %(limit)s y "
+                                "con esta nota se alcanzan %(acc)s."
                             )
                             % {
                                 "move": move_id.name or _("Borrador"),
@@ -276,42 +304,45 @@ class AccountMove(models.Model):
                             }
                         )
 
-                if (
-                    move_id.l10n_ve_third_party_partner_id
-                    and move_id.move_type
-                    in (
-                        "out_invoice",
-                        "out_refund",
-                    )
+                if move_id.l10n_ve_third_party_partner_id and move_id.move_type in (
+                    "out_invoice",
+                    "out_refund",
                 ):
                     if not move_id.l10n_ve_on_behalf_of_third_party_enabled:
                         raise ValidationError(
                             _(
-                                "No se puede confirmar la factura por cuenta de terceros '%s'. "
-                                "Debe habilitar la opción 'Facturación por cuenta de terceros' en "
-                                "Configuración > Contabilidad.",
-                                move_id.name or _("Borrador"),
+                                "No se puede confirmar la factura por cuenta de "
+                                "terceros '%(move)s'. Debe habilitar la opción "
+                                "'Facturación por cuenta de terceros' en "
+                                "Configuración > Contabilidad."
                             )
+                            % {"move": move_id.name or _("Borrador")}
                         )
                     third = move_id.l10n_ve_third_party_partner_id
                     if not third.vat:
                         raise ValidationError(
                             _(
-                                "No se puede confirmar la factura por cuenta de terceros '%s'. "
-                                "El tercero '%s' no tiene el RIF configurado.",
-                                move_id.name or _("Borrador"),
-                                third.name,
+                                "No se puede confirmar la factura por cuenta de "
+                                "terceros '%(move)s'. El tercero '%(third)s' no tiene "
+                                "el RIF configurado."
                             )
+                            % {
+                                "move": move_id.name or _("Borrador"),
+                                "third": third.name,
+                            }
                         )
                     if not third.check_vat_ve(third.vat):
                         raise ValidationError(
                             _(
-                                "No se puede confirmar la factura por cuenta de terceros '%s'. "
-                                "El RIF '%s' del tercero '%s' no tiene un formato válido.",
-                                move_id.name or _("Borrador"),
-                                third.vat,
-                                third.name,
+                                "No se puede confirmar la factura por cuenta de "
+                                "terceros '%(move)s'. El RIF '%(vat)s' del tercero "
+                                "'%(third)s' no tiene un formato válido."
                             )
+                            % {
+                                "move": move_id.name or _("Borrador"),
+                                "vat": third.vat,
+                                "third": third.name,
+                            }
                         )
 
             lines = []
@@ -341,13 +372,15 @@ class AccountMove(models.Model):
                 if move.move_type == "out_invoice":
                     raise ValidationError(
                         _(
-                            "No se pueden cancelar las facturas de clientes. Por favor, cree una nota de crédito en su lugar."
+                            "No se pueden cancelar las facturas de clientes. "
+                            "Por favor, cree una nota de crédito en su lugar."
                         )
                     )
                 elif move.move_type == "out_refund":
                     raise ValidationError(
                         _(
-                            "No se pueden cancelar las notas de crédito. Por favor, cree una nueva nota de crédito o factura en su lugar."
+                            "No se pueden cancelar las notas de crédito. Por favor, "
+                            "cree una nueva nota de crédito o factura en su lugar."
                         )
                     )
         self = self.with_context(force_draft=True)
@@ -389,10 +422,7 @@ Please create a credit note instead.
         if not journal or journal.type != "sale":
             return self.env["account.book.section"]
         if self.move_type == "out_invoice":
-            if (
-                self.debit_origin_id
-                and journal.l10n_ve_debit_note_section_id
-            ):
+            if self.debit_origin_id and journal.l10n_ve_debit_note_section_id:
                 return journal.l10n_ve_debit_note_section_id
             return journal.l10n_ve_invoice_section_id
         if self.move_type == "out_refund":
@@ -426,7 +456,7 @@ Please create a credit note instead.
         )
 
     def _check_control_number_unique(self):
-        """Valida que el número de control sea único y no inferior al último asignado por compañía"""
+        """Unicidad del número de control por compañía."""
         self.ensure_one()
         if not self.l10n_ve_control_number:
             return
@@ -446,10 +476,14 @@ Please create a credit note instead.
         if existing:
             raise ValidationError(
                 _(
-                    "El número de control '%s' ya existe en la compañía '%s'. "
-                    "Por favor, verifique la secuencia o corrija el número manualmente."
+                    "El número de control '%(num)s' ya existe en la compañía "
+                    "'%(company)s'. Por favor, verifique la secuencia o corrija el "
+                    "número manualmente."
                 )
-                % (self.l10n_ve_control_number, self.company_id.name)
+                % {
+                    "num": self.l10n_ve_control_number,
+                    "company": self.company_id.name,
+                }
             )
 
         # Validar que el número de control no sea inferior al último asignado
@@ -497,32 +531,40 @@ Please create a credit note instead.
         # if current_seq < max_seq:
         #     raise ValidationError(
         #         _(
-        #             "El número de control '%s' es inferior al último número de control asignado '%s' "
-        #             "en la compañía '%s'. No se permite asignar un número de control anterior al último utilizado."
+        #             "El número de control '%(cur)s' es inferior al último número de "
+        #             "control asignado '%(ref)s' en la compañía '%(company)s'. No se "
+        #             "permite asignar un número de control anterior al último "
+        #             "utilizado."
         #         )
-        #         % (
-        #             self.l10n_ve_control_number,
-        #             reference.l10n_ve_control_number,
-        #             self.company_id.name,
-        #         )
+        #         % {
+        #             "cur": self.l10n_ve_control_number,
+        #             "ref": reference.l10n_ve_control_number,
+        #             "company": self.company_id.name,
+        #         }
         #     )
 
     sale_tax_data = fields.Json(
         string="Datos de Impuestos para Libro de Ventas",
         compute="_compute_sale_tax_data",
         store=True,
-        help="Estructura: {tax_group_id: {'base': X, 'amount': Y, 'tax_type': 'exempt|reduced|general|extend'}}",
+        help=(
+            "Estructura: {tax_group_id: {'base': X, 'amount': Y, "
+            "'tax_type': 'exempt|reduced|general|extend'}}"
+        ),
     )
 
     purchase_tax_data = fields.Json(
         string="Datos de Impuestos para Libro de Compras",
         compute="_compute_purchase_tax_data",
         store=True,
-        help="Estructura: {tax_group_id: {'base': X, 'amount': Y, 'tax_type': 'exempt|reduced|general|extend'}}",
+        help=(
+            "Estructura: {tax_group_id: {'base': X, 'amount': Y, "
+            "'tax_type': 'exempt|reduced|general|extend'}}"
+        ),
     )
 
     @api.depends("tax_totals", "move_type", "state", "company_id")
-    def _compute_sale_tax_data(self):
+    def _compute_sale_tax_data(self):  # noqa: C901
         for move in self:
             if move.state != "posted" or move.move_type not in [
                 "out_invoice",
@@ -649,7 +691,7 @@ Please create a credit note instead.
         return self.sale_tax_data.get(tax_group_id, {"base": 0.0, "amount": 0.0})
 
     @api.depends("tax_totals", "move_type", "state", "company_id")
-    def _compute_purchase_tax_data(self):
+    def _compute_purchase_tax_data(self):  # noqa: C901
         for move in self:
             if move.state != "posted" or move.move_type not in [
                 "in_invoice",
@@ -754,7 +796,10 @@ Please create a credit note instead.
         string="Tasa de Cambio Inversa",
         compute="_compute_l10n_ve_inverse_rate",
         store=True,
-        help="Tasa de cambio inversa (inverse_rate) de la moneda de la factura para la fecha de la factura",
+        help=(
+            "Tasa de cambio inversa (inverse_rate) de la moneda de la factura "
+            "para la fecha de la factura"
+        ),
     )
 
     @api.depends("currency_id", "date", "company_id")
@@ -800,7 +845,7 @@ Please create a credit note instead.
         "currency_id",
     )
     def _compute_tax_totals(self):
-        super()._compute_tax_totals()
+        res = super()._compute_tax_totals()
         for move in self:
             if move.country_code != "VE" or not move.tax_totals:
                 continue
@@ -815,6 +860,7 @@ Please create a credit note instead.
                         tax_group["display_base_amount"] = tax_group.get(
                             "base_amount", 0.0
                         )
+        return res
 
     def action_print_pdf(self):
         return super(
