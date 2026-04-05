@@ -121,7 +121,7 @@ class AccountMove(models.Model):
     )
     l10n_ve_third_party_partner_id = fields.Many2one(
         "res.partner",
-        string="Por cuenta de terceros",
+        string="Tercero (factura libre)",
         copy=False,
         ondelete="restrict",
     )

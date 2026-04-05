@@ -16,7 +16,7 @@
                 <attribute name="invisible">country_code == 'VE'</attribute>
             </xpath>
             <xpath
-                expr="//sheet/group/group/div[@class='o_address_format']/field[@name='state_id']"
+                expr="//sheet/group/group/div[hasclass('o_address_format')]/field[@name='state_id']"
                 position="after"
             >
                 <field

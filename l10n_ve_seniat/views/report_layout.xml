@@ -370,7 +370,6 @@
                                                     <t
                                                         t-foreach="tax_totals.get('subtotals', [])"
                                                         t-as="subtotal"
-                                                        t-key="subtotal_index"
                                                     >
                                                         <tr class="border-bottom">
                                                             <td
@@ -406,7 +405,6 @@
                                                         <t
                                                             t-foreach="subtotal.get('tax_groups', [])"
                                                             t-as="tax_group"
-                                                            t-key="tax_group_index"
                                                         >
                                                             <tr>
                                                                 <td
