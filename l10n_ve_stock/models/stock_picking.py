@@ -1,0 +1,420 @@
+import re
+
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
+from odoo.tools import float_compare, float_is_zero
+
+
+class StockPicking(models.Model):
+    _inherit = "stock.picking"
+
+    invoice_ids = fields.Many2many(
+        comodel_name="account.move",
+        compute="_compute_invoice_ids",
+        string="Invoices",
+        copy=False,
+    )
+
+    l10n_ve_is_ve_country = fields.Boolean(
+        compute="_compute_l10n_ve_is_ve_country",
+    )
+    l10n_ve_internal_transfer_reason_id = fields.Many2one(
+        "l10n_ve.stock.transfer.reason",
+        string="Motivo de traslado",
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+        help="Motivo del traslado de los bienes muebles en albaranes internos, "
+        "según el Artículo 10, numeral 4, de la Providencia Administrativa del SENIAT.",
+    )
+    l10n_ve_dispatch_pricelist_id = fields.Many2one(
+        "product.pricelist",
+        string="Lista de precios (guía)",
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+        help="Obligatoria en la guía cuando el albarán no proviene de un pedido de venta.",
+    )
+    l10n_ve_dispatch_currency_id = fields.Many2one(
+        "res.currency",
+        string="Moneda total (guía)",
+        default=lambda self: self.env.company.currency_id,
+    )
+    l10n_ve_dispatch_amount_total = fields.Monetary(
+        string="Total con impuestos (guía)",
+        currency_field="l10n_ve_dispatch_currency_id",
+        help="Total documental con impuestos cuando no hay pedido de venta (multimoneda).",
+    )
+    l10n_ve_dispatch_display_currency_id = fields.Many2one(
+        comodel_name="res.currency",
+        compute="_compute_l10n_ve_dispatch_display_prices",
+    )
+    l10n_ve_dispatch_display_subtotal = fields.Monetary(
+        string="Subtotal",
+        currency_field="l10n_ve_dispatch_display_currency_id",
+        compute="_compute_l10n_ve_dispatch_display_prices",
+    )
+    l10n_ve_dispatch_display_total = fields.Monetary(
+        string="Total",
+        currency_field="l10n_ve_dispatch_display_currency_id",
+        compute="_compute_l10n_ve_dispatch_display_prices",
+    )
+    l10n_ve_dispatch_guide_original_printed = fields.Boolean(
+        copy=False,
+    )
+    l10n_ve_control_number = fields.Char(
+        string="N° de control",
+        copy=False,
+        tracking=True,
+    )
+    l10n_ve_transport_partner_id = fields.Many2one(
+        "res.partner",
+        string="Transportista",
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+    )
+    l10n_ve_fleet_vehicle_id = fields.Many2one(
+        "fleet.vehicle",
+        string="Vehículo",
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+    )
+    l10n_ve_sales_user_id = fields.Many2one(
+        "res.users",
+        string="Vendedor",
+        related="sale_id.user_id",
+        readonly=True,
+    )
+    l10n_ve_partner_contact_phone_display = fields.Char(
+        string="Teléfono (contacto)",
+        compute="_compute_l10n_ve_partner_contact_phone_display",
+    )
+
+    @api.depends("partner_id", "partner_id.phone", "partner_id.mobile")
+    def _compute_l10n_ve_partner_contact_phone_display(self):
+        for picking in self:
+            p = picking.partner_id
+            if not p:
+                picking.l10n_ve_partner_contact_phone_display = False
+            else:
+                picking.l10n_ve_partner_contact_phone_display = (
+                    p.phone or p.mobile or False
+                )
+
+    @api.depends(
+        "move_ids",
+        "move_ids.invoice_line_ids",
+        "move_ids.invoice_line_ids.move_id",
+    )
+    def _compute_invoice_ids(self):
+        for picking in self:
+            amls = picking.move_ids.invoice_line_ids
+            picking.invoice_ids = amls.move_id
+
+    @api.depends("company_id.account_fiscal_country_id")
+    def _compute_l10n_ve_is_ve_country(self):
+        for record in self:
+            record.l10n_ve_is_ve_country = (
+                record.company_id.account_fiscal_country_id
+                and record.company_id.account_fiscal_country_id.code == "VE"
+            )
+
+    @api.depends(
+        "picking_type_id",
+        "company_id",
+        "company_id.account_fiscal_country_id",
+        "move_ids",
+        "move_ids.product_id",
+        "move_ids.l10n_ve_dispatch_subtotal",
+        "move_ids.l10n_ve_dispatch_price_total",
+        "move_ids.l10n_ve_dispatch_currency_id",
+        "sale_id",
+        "sale_id.amount_total",
+        "sale_id.currency_id",
+        "l10n_ve_dispatch_amount_total",
+        "l10n_ve_dispatch_currency_id",
+        "scheduled_date",
+    )
+    def _compute_l10n_ve_dispatch_display_prices(self):
+        for picking in self:
+            picking.l10n_ve_dispatch_display_currency_id = (
+                picking.company_id.currency_id
+            )
+            picking.l10n_ve_dispatch_display_subtotal = 0.0
+            picking.l10n_ve_dispatch_display_total = 0.0
+            if picking.picking_type_id.code != "outgoing":
+                continue
+            if not picking.l10n_ve_is_ve_country:
+                continue
+            company = picking.company_id
+            date = picking.scheduled_date or fields.Date.context_today(picking)
+            moves = picking.move_ids.filtered("product_id")
+            if picking.sale_id:
+                total_cur = picking.sale_id.currency_id
+                picking.l10n_ve_dispatch_display_currency_id = total_cur
+                picking.l10n_ve_dispatch_display_total = (
+                    picking.sale_id.amount_total
+                )
+                subtotal_sum = 0.0
+                for move in moves:
+                    cur = move.l10n_ve_dispatch_currency_id
+                    subtotal_sum += cur._convert(
+                        move.l10n_ve_dispatch_subtotal,
+                        total_cur,
+                        company,
+                        date,
+                    )
+                picking.l10n_ve_dispatch_display_subtotal = subtotal_sum
+            else:
+                total_cur = (
+                    picking.l10n_ve_dispatch_currency_id or company.currency_id
+                )
+                picking.l10n_ve_dispatch_display_currency_id = total_cur
+                subtotal_sum = 0.0
+                total_lines = 0.0
+                for move in moves:
+                    cur = move.l10n_ve_dispatch_currency_id
+                    subtotal_sum += cur._convert(
+                        move.l10n_ve_dispatch_subtotal,
+                        total_cur,
+                        company,
+                        date,
+                    )
+                    total_lines += cur._convert(
+                        move.l10n_ve_dispatch_price_total,
+                        total_cur,
+                        company,
+                        date,
+                    )
+                manual = picking.l10n_ve_dispatch_amount_total
+                picking.l10n_ve_dispatch_display_subtotal = subtotal_sum
+                picking.l10n_ve_dispatch_display_total = (
+                    manual if manual else total_lines
+                )
+
+    @api.constrains(
+        "company_id",
+        "picking_type_id",
+        "l10n_ve_internal_transfer_reason_id",
+        "state",
+    )
+    def _check_l10n_ve_internal_transfer_reason(self):
+        for picking in self:
+            if picking.state == "draft":
+                continue
+            if picking.company_id.account_fiscal_country_id.code != "VE":
+                continue
+            if picking.picking_type_id.code != "internal":
+                continue
+            if not picking.l10n_ve_internal_transfer_reason_id:
+                raise ValidationError(
+                    _(
+                        "En albaranes internos venezolanos debe indicar el motivo de "
+                        "traslado."
+                    )
+                )
+
+    def _l10n_ve_dispatch_needs_manual_pricing(self):
+        self.ensure_one()
+        if self.sale_id:
+            return False
+        if any(m.sale_line_id for m in self.move_ids if m.product_id):
+            return False
+        return bool(self.move_ids.filtered("product_id"))
+
+    def l10n_ve_dispatch_guide_report_check(self):
+        for picking in self:
+            if picking.company_id.account_fiscal_country_id.code != "VE":
+                continue
+            if picking.picking_type_id.code == "internal":
+                if not picking.l10n_ve_internal_transfer_reason_id:
+                    raise UserError(
+                        _(
+                            "Indique el motivo de traslado interno antes de imprimir la "
+                            "guía."
+                        )
+                    )
+            if not picking._l10n_ve_dispatch_needs_manual_pricing():
+                continue
+            if not picking.l10n_ve_dispatch_pricelist_id:
+                raise UserError(
+                    _(
+                        "Seleccione la lista de precios para la guía (albarán sin pedido "
+                        "de venta vinculado)."
+                    )
+                )
+            if not picking.l10n_ve_dispatch_currency_id:
+                raise UserError(
+                    _(
+                        "Indique la moneda del total con impuestos para la guía."
+                    )
+                )
+
+    def _l10n_ve_dispatch_origin_partner(self):
+        self.ensure_one()
+        wh = self.picking_type_id.warehouse_id or self.location_id.warehouse_id
+        if wh and wh.partner_id:
+            return wh.partner_id
+        return self.company_id.partner_id
+
+    def _l10n_ve_dispatch_dest_partner(self):
+        self.ensure_one()
+        if self.picking_type_code == "outgoing" and self.partner_id:
+            return self.partner_id.commercial_partner_id
+        wh = self.location_dest_id.warehouse_id
+        if wh and wh.partner_id:
+            return wh.partner_id
+        if self.partner_id:
+            return self.partner_id.commercial_partner_id
+        return self.company_id.partner_id
+
+    def _l10n_ve_dispatch_address_inline(self, partner):
+        if not partner:
+            return ""
+        text = partner.sudo()._display_address(without_company=True)
+        return re.sub(r"\n(\s|\n)*", ", ", text).strip().strip(",")
+
+    def _l10n_ve_dispatch_partner_contact_phone(self):
+        self.ensure_one()
+        p = self.partner_id
+        if not p:
+            return ""
+        return p.phone or p.mobile or ""
+
+    def _l10n_ve_dispatch_fleet_vehicle_model_name(self):
+        self.ensure_one()
+        vehicle = self.l10n_ve_fleet_vehicle_id
+        if not vehicle or not vehicle.model_id:
+            return ""
+        return vehicle.model_id.display_name or vehicle.model_id.name or ""
+
+    def _l10n_ve_dispatch_delivery_address_partner(self):
+        self.ensure_one()
+        if self.picking_type_code == "outgoing" and self.partner_id:
+            return self.partner_id
+        return self._l10n_ve_dispatch_dest_partner()
+
+    def _l10n_ve_dispatch_guide_lines(self):
+        self.ensure_one()
+        lines = []
+        for move in self.move_ids:
+            if not move.product_id:
+                continue
+            qty = move.quantity if move.state == "done" else move.product_uom_qty
+            product = move.product_id
+            wt = qty * product.weight if product.weight else 0.0
+            vol = qty * product.volume if product.volume else 0.0
+            weight_line = (
+                f"{wt:.2f} {product.weight_uom_name}"
+                if product.weight
+                else "—"
+            )
+            volume_line = (
+                f"{vol:.4f} {product.volume_uom_name}"
+                if product.volume
+                else "—"
+            )
+            pv = move._l10n_ve_dispatch_line_pricing_values()
+            price_unit = pv["price_unit"]
+            price_currency = pv["currency"]
+            subtotal = pv["subtotal"]
+            lines.append(
+                {
+                    "default_code": product.default_code or "",
+                    "name": product.with_context(
+                        display_default_code=False
+                    ).display_name,
+                    "weight_line": weight_line,
+                    "volume_line": volume_line,
+                    "quantity": qty,
+                    "uom_name": move.product_uom.name,
+                    "price_unit": price_unit,
+                    "currency": price_currency,
+                    "subtotal": subtotal,
+                }
+            )
+        return lines
+
+    def _l10n_ve_dispatch_guide_total_display(self):
+        self.ensure_one()
+        if self.sale_id:
+            return self.sale_id.amount_total, self.sale_id.currency_id
+        return (
+            self.l10n_ve_dispatch_amount_total,
+            self.l10n_ve_dispatch_currency_id or self.company_id.currency_id,
+        )
+
+    def _l10n_ve_dispatch_outgoing_moves_fully_invoiced(self):
+        self.ensure_one()
+        Move = self.env["stock.move"]
+        if "invoice_line_ids" not in Move._fields:
+            return bool(self.invoice_ids)
+        saw_delivered_product = False
+        for move in self.move_ids:
+            if move.state != "done" or move.scrapped:
+                continue
+            if not move.product_id or move.product_id.type == "service":
+                continue
+            qty_done = move.quantity
+            if float_is_zero(qty_done, precision_rounding=move.product_uom.rounding):
+                continue
+            saw_delivered_product = True
+            inv_lines = move.invoice_line_ids.filtered(
+                lambda l: l.display_type == "product"
+                and l.move_id.state == "posted"
+                and l.move_id.move_type in ("out_invoice", "out_refund")
+            )
+            invoiced = 0.0
+            for line in inv_lines:
+                qty_signed = line.move_id.direction_sign * line.quantity
+                invoiced += line.product_uom_id._compute_quantity(
+                    qty_signed,
+                    move.product_uom,
+                    round=False,
+                )
+            if float_compare(
+                invoiced,
+                qty_done,
+                precision_rounding=move.product_uom.rounding,
+            ) < 0:
+                return False
+        if not saw_delivered_product:
+            return False
+        return True
+
+    def _l10n_ve_dispatch_requires_control_number(self):
+        self.ensure_one()
+        if not self.l10n_ve_is_ve_country:
+            return False
+        if self.picking_type_id.code != "outgoing":
+            return False
+        if not self.sale_id:
+            return False
+        if self._l10n_ve_dispatch_outgoing_moves_fully_invoiced():
+            return False
+        return True
+
+    def _l10n_ve_assign_dispatch_control_number(self):
+        self.ensure_one()
+        section = self.company_id.l10n_ve_dispatch_guide_section_id
+        book = section.book_id
+        if section.company_id != self.company_id or book.company_id != self.company_id:
+            raise ValidationError(
+                _(
+                    "El tramo de guía de despacho debe pertenecer a la misma compañía "
+                    "que el albarán “%(picking)s”."
+                )
+                % {"picking": self.display_name}
+            )
+        with self.env.cr.savepoint():
+            formatted = book.l10n_ve_allocate_correlative(section, self)
+            self.write({"l10n_ve_control_number": formatted})
+
+    def _action_done(self):
+        res = super()._action_done()
+        if self.env.context.get("install_mode"):
+            return res
+        for picking in self:
+            if not picking._l10n_ve_dispatch_requires_control_number():
+                continue
+            if picking.l10n_ve_control_number:
+                continue
+            section = picking.company_id.l10n_ve_dispatch_guide_section_id
+            if not section:
+                continue
+            picking._l10n_ve_assign_dispatch_control_number()
+        return res

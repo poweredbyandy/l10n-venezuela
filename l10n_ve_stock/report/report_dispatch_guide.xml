@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_dispatch_guide_document">
+        <t t-call="web.basic_layout">
+            <t t-set="origin_p" t-value="o._l10n_ve_dispatch_origin_partner()" />
+            <t
+                t-set="delivery_addr_p"
+                t-value="o._l10n_ve_dispatch_delivery_address_partner()"
+            />
+            <t t-set="guide_lines" t-value="o._l10n_ve_dispatch_guide_lines()" />
+            <t
+                t-set="total_amt"
+                t-value="o._l10n_ve_dispatch_guide_total_display()[0]"
+            />
+            <t
+                t-set="total_cur"
+                t-value="o._l10n_ve_dispatch_guide_total_display()[1]"
+            />
+            <t
+                t-set="subtotal_amt"
+                t-value="o.l10n_ve_dispatch_display_subtotal"
+            />
+            <t
+                t-set="subtotal_cur"
+                t-value="o.l10n_ve_dispatch_display_currency_id"
+            />
+            <style>
+            .l10n_ve_dispatch_main_title {
+                font-size: 16pt !important;
+                line-height: 1.2 !important;
+            }
+            .l10n_ve_dispatch_meta {
+                font-size: 10pt !important;
+                line-height: 1.35 !important;
+            }
+            .l10n_ve_dispatch_coletilla {
+                font-size: 11pt !important;
+                font-weight: bold !important;
+            }
+            .l10n_ve_dispatch_header_col {
+                padding-right: 0.75rem !important;
+            }
+            .l10n_ve_dispatch_header_wrap {
+                min-height: 0 !important;
+            }
+            .l10n_ve_dispatch_table_wrap {
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+            }
+            table.l10n_ve_dispatch_line_table {
+                width: 100% !important;
+                table-layout: fixed !important;
+                border: 0 !important;
+                border-collapse: collapse !important;
+                font-size: 11pt !important;
+            }
+            table.l10n_ve_dispatch_line_table th,
+            table.l10n_ve_dispatch_line_table td {
+                border: 0 !important;
+                border-width: 0 !important;
+                box-shadow: none !important;
+                padding: 0.45rem 0.5rem !important;
+                vertical-align: top !important;
+                word-wrap: break-word !important;
+            }
+            table.l10n_ve_dispatch_line_table thead tr {
+                border-bottom: 1px solid #212529 !important;
+            }
+            table.l10n_ve_dispatch_line_table thead th {
+                font-size: 10pt !important;
+            }
+            table.l10n_ve_dispatch_line_table td.l10n_ve_dispatch_cell_num,
+            table.l10n_ve_dispatch_line_table th.l10n_ve_dispatch_cell_num {
+                text-align: right !important;
+                white-space: nowrap !important;
+            }
+            .l10n_ve_dispatch_total_row {
+                font-size: 11pt !important;
+            }
+            </style>
+            <div
+                class="l10n_ve_dispatch_preprinted_spacer mb-2"
+                style="min-height: 28mm;"
+            />
+            <div class="row">
+                <p
+                    class="l10n_ve_dispatch_main_title text-center fw-bold text-danger w-100 mb-2"
+                >
+                    GUÍA DE DESPACHO
+                </p>
+            </div>
+            <div class="clearfix position-relative l10n_ve_dispatch_header_wrap">
+                <div
+                    t-if="o.company_id.account_fiscal_country_id.code == 'VE' and o.l10n_ve_dispatch_guide_original_printed"
+                    class="position-absolute w-100 text-center text-bold"
+                    style="top: 35%; left: 0; right: 0; pointer-events: none;"
+                >
+                    <span
+                        class="text-uppercase opacity-25 text-danger"
+                        style="font-size: 36px !important;"
+                    >Copia fiel su original</span>
+                </div>
+                <div class="row mb-1 position-relative l10n_ve_dispatch_meta">
+                    <div
+                        t-if="o.picking_type_code == 'internal' and o.l10n_ve_internal_transfer_reason_id"
+                        class="col-12 mb-2"
+                    >
+                        <strong>Motivo de traslado: </strong>
+                        <span t-field="o.l10n_ve_internal_transfer_reason_id.name" />
+                    </div>
+                    <div class="col-4 l10n_ve_dispatch_header_col">
+                        <div class="mb-1">
+                            <strong>Razón social: </strong>
+                            <span
+                                t-if="o.partner_id"
+                                class="text-uppercase"
+                                t-out="o.partner_id.commercial_partner_id.name"
+                            />
+                            <span t-else="">—</span>
+                        </div>
+                        <div class="mb-1">
+                            <strong>RIF: </strong>
+                            <span
+                                class="text-uppercase"
+                                t-out="(o.partner_id.commercial_partner_id.vat or '—') if o.partner_id else '—'"
+                            />
+                        </div>
+                        <div class="mb-1">
+                            <strong>Dirección de entrega: </strong>
+                            <span t-out="o._l10n_ve_dispatch_address_inline(delivery_addr_p)" />
+                        </div>
+                        <div class="mb-1" t-if="o._l10n_ve_dispatch_partner_contact_phone()">
+                            <strong>Teléfono: </strong>
+                            <span t-out="o._l10n_ve_dispatch_partner_contact_phone()" />
+                        </div>
+                    </div>
+                    <div class="col-4 l10n_ve_dispatch_header_col">
+                        <div class="mb-1">
+                            <strong>Dirección de salida: </strong>
+                            <span t-out="o._l10n_ve_dispatch_address_inline(origin_p)" />
+                        </div>
+                        <div class="mb-1" t-if="o.l10n_ve_transport_partner_id">
+                            <strong>Transportista: </strong>
+                            <t
+                                t-set="l10n_ve_tp"
+                                t-value="o.l10n_ve_transport_partner_id"
+                            />
+                            <span>
+                                <t t-out="l10n_ve_tp.name" />
+                                <t t-if="l10n_ve_tp.vat"> - <span
+                                        class="text-uppercase"
+                                        t-out="l10n_ve_tp.vat"
+                                    /></t>
+                            </span>
+                        </div>
+                        <div class="mb-1" t-if="o.l10n_ve_fleet_vehicle_id">
+                            <strong>Modelo vehículo: </strong>
+                            <span t-out="o._l10n_ve_dispatch_fleet_vehicle_model_name() or '—'" />
+                        </div>
+                        <div class="mb-1" t-if="o.l10n_ve_fleet_vehicle_id">
+                            <strong>Placa: </strong>
+                            <span t-field="o.l10n_ve_fleet_vehicle_id.license_plate" />
+                        </div>
+                    </div>
+                    <div class="col-4 l10n_ve_dispatch_header_col">
+                        <div class="mb-1 text-danger l10n_ve_dispatch_coletilla">
+                            Sin derecho a crédito fiscal
+                        </div>
+                        <div
+                            t-if="o.company_id.taxpayer_type == 'formal'"
+                            class="mb-1 fw-bold"
+                        >
+                            Contribuyente Formal
+                        </div>
+                        <div class="mb-1">
+                            <strong>Albarán: </strong>
+                            <span t-field="o.name" />
+                        </div>
+                        <div class="mb-1">
+                            <strong>Fecha: </strong>
+                            <span t-field="o.scheduled_date" />
+                        </div>
+                        <div class="mb-1" t-if="o.sale_id and o.l10n_ve_sales_user_id">
+                            <strong>Vendedor: </strong>
+                            <span t-field="o.l10n_ve_sales_user_id" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="page mb-1 l10n_ve_dispatch_table_wrap">
+                <table
+                    class="l10n_ve_dispatch_line_table table table-striped table-borderless mt-0"
+                >
+                    <colgroup>
+                        <col style="width: 9%;" />
+                        <col style="width: 32%;" />
+                        <col style="width: 11%;" />
+                        <col style="width: 11%;" />
+                        <col style="width: 11%;" />
+                        <col style="width: 12%;" />
+                        <col style="width: 14%;" />
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th class="text-uppercase fw-bold">Código</th>
+                            <th class="text-uppercase fw-bold">Descripción</th>
+                            <th
+                                class="l10n_ve_dispatch_cell_num text-uppercase fw-bold"
+                            >Peso</th>
+                            <th
+                                class="l10n_ve_dispatch_cell_num text-uppercase fw-bold"
+                            >Volumen</th>
+                            <th
+                                class="l10n_ve_dispatch_cell_num text-uppercase fw-bold"
+                            >Cant.</th>
+                            <th
+                                class="l10n_ve_dispatch_cell_num text-uppercase fw-bold"
+                            >Precio U.</th>
+                            <th
+                                class="l10n_ve_dispatch_cell_num text-uppercase fw-bold"
+                            >Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="guide_lines" t-as="line">
+                            <td>
+                                <span t-out="line['default_code']" />
+                            </td>
+                            <td>
+                                <span t-out="line['name']" />
+                            </td>
+                            <td class="l10n_ve_dispatch_cell_num">
+                                <span t-out="line['weight_line']" />
+                            </td>
+                            <td class="l10n_ve_dispatch_cell_num">
+                                <span t-out="line['volume_line']" />
+                            </td>
+                            <td class="l10n_ve_dispatch_cell_num">
+                                <span t-out="'%.2f' % line['quantity']" />
+                                <span t-out="' ' + line['uom_name']" />
+                            </td>
+                            <td class="l10n_ve_dispatch_cell_num">
+                                <span t-out="line['currency'].symbol or ''" />
+                                <span t-out="'%.2f' % line['price_unit']" />
+                            </td>
+                            <td class="l10n_ve_dispatch_cell_num">
+                                <span t-out="line['currency'].symbol or ''" />
+                                <span t-out="'%.2f' % line['subtotal']" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="row mt-2 l10n_ve_dispatch_total_row">
+                <div class="col-6 offset-6 text-end">
+                    <div class="mb-1">
+                        <strong>Subtotal:</strong>
+                        <span t-out="subtotal_cur.symbol or ''" />
+                        <span t-out="'%.2f' % subtotal_amt" />
+                    </div>
+                    <div>
+                        <strong>Total (con impuestos, documento):</strong>
+                        <span t-out="total_cur.symbol or ''" />
+                        <span t-out="'%.2f' % total_amt" />
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_dispatch_guide">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t
+                    t-set="lang"
+                    t-value="o.partner_id.lang if o.partner_id else o.env.lang"
+                />
+                <t t-set="o" t-value="o.with_context(lang=lang)" />
+                <t t-call="l10n_ve_stock.report_dispatch_guide_document" />
+            </t>
+        </t>
+    </template>
+</odoo>

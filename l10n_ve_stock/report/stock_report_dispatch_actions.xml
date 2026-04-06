@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_l10n_ve_dispatch_guide" model="report.paperformat">
+        <field name="name">Guía despacho VE</field>
+        <field name="default" eval="False" />
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">32</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="header_line" eval="False" />
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_l10n_ve_dispatch_guide" model="ir.actions.report">
+        <field name="name">Guía de despacho (VE)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_ve_stock.report_dispatch_guide</field>
+        <field name="report_file">l10n_ve_stock.report_dispatch_guide</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking" />
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="l10n_ve_stock.paperformat_l10n_ve_dispatch_guide" />
+    </record>
+</odoo>

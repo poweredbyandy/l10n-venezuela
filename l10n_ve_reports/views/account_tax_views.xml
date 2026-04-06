@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_tax_unit_tree" model="ir.ui.view">
+        <field name="name">account.tax.unit.list</field>
+        <field name="model">account.tax.unit</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="country_id" />
+            </list>
+        </field>
+    </record>
+
+    <record id="action_view_tax_units" model="ir.actions.act_window">
+        <field name="name">Tax Units</field>
+        <field name="res_model">account.tax.unit</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_tax_unit_tree" />
+    </record>
+
+    <menuitem
+        id="menu_view_tax_units"
+        action="action_view_tax_units"
+        parent="account.account_account_menu"
+        sequence="8"
+        groups="base.group_no_one"
+    />
+</odoo>

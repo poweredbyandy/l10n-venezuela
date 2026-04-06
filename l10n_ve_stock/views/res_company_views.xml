@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_company_form_l10n_ve_stock_dispatch" model="ir.ui.view">
+        <field name="name">res.company.form.l10n.ve.stock.dispatch</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="l10n_ve_seniat.res_company_form_view_seniat" />
+        <field name="arch" type="xml">
+            <field name="taxpayer_type" position="after">
+                <field
+                    name="l10n_ve_dispatch_guide_section_id"
+                    options="{'no_create': True}"
+                    domain="[('company_id', '=', id)]"
+                    groups="account.group_account_manager"
+                />
+            </field>
+        </field>
+    </record>
+</odoo>
