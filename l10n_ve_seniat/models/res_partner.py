@@ -334,10 +334,24 @@ class ResPartner(models.Model):
             args = [("supplier_rank", ">=", 1)] + args
         return super().name_search(name, args=args, operator=operator, limit=limit)
 
-    @api.constrains("vat", "country_id")
+    def _l10n_ve_must_check_rif_vat_format(self):
+        self.ensure_one()
+        if self.env.context.get("skip_l10n_ve_vat_rif_format_check"):
+            return False
+        commercial = self.commercial_partner_id
+        return (
+            self.customer_rank > 0
+            or self.supplier_rank > 0
+            or commercial.customer_rank > 0
+            or commercial.supplier_rank > 0
+        )
+
+    @api.constrains("vat", "country_id", "customer_rank", "supplier_rank")
     def _check_l10n_ve_vat_format(self):
         for partner in self:
             if not partner.country_id or partner.country_id.code != VE_CODE:
+                continue
+            if not partner._l10n_ve_must_check_rif_vat_format():
                 continue
             vat = (partner.vat or "").strip()
             if not vat or vat == "/":

@@ -34,12 +34,36 @@ class TestResPartner(L10nVeSeniatCommon):
         for vat in invalid_vats:
             self.assertFalse(partner.check_vat_ve(vat), f"VAT {vat} should be invalid")
 
-    def test_ve_vat_constraint_rejects_invalid_on_write(self):
+    def test_ve_vat_constraint_allows_invalid_when_not_customer_nor_supplier(self):
         partner = self.env["res.partner"].create(
             {"name": "Test Partner", "country_id": self.env.ref("base.ve").id}
         )
+        partner.write({"vat": "V123"})
+        self.assertEqual(partner.vat, "V123")
+
+    def test_ve_vat_constraint_rejects_invalid_on_write_when_customer(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Test Partner",
+                "country_id": self.env.ref("base.ve").id,
+                "customer_rank": 1,
+            }
+        )
         with self.assertRaises(ValidationError):
             partner.write({"vat": "V123"})
+
+    def test_ve_vat_constraint_skipped_with_context(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Sync partner",
+                "country_id": self.env.ref("base.ve").id,
+                "customer_rank": 1,
+            }
+        )
+        partner.with_context(skip_l10n_ve_vat_rif_format_check=True).write(
+            {"vat": "no-rif"}
+        )
+        self.assertEqual(partner.vat, "Vno-rif")
 
     def test_compute_vat_prefix(self):
         partner = self.env["res.partner"].create(
