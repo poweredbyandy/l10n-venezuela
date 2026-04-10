@@ -170,6 +170,22 @@ class TestAccountMove(L10nVeSeniatCommon):
             move.action_post()
         self.assertIn("talonario", str(cm.exception).lower())
 
+    def test_out_invoice_post_with_control_number_skips_book_sections(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        vals = self._create_invoice_vals(self.partner_ve)
+        vals["l10n_ve_control_number"] = "99-00009901"
+        move = self.env["account.move"].create(vals)
+        move.action_post()
+        self.assertEqual(move.l10n_ve_control_number, "99-00009901")
+        self.assertEqual(move.state, "posted")
+
     def test_out_invoice_post_success_generates_control_number(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)

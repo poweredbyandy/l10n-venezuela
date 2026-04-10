@@ -219,6 +219,8 @@ class AccountMove(models.Model):
             return
         medium = journal.l10n_ve_emission_medium or "free"
         if medium == "free":
+            if (self.l10n_ve_control_number or "").strip():
+                return
             if not self._l10n_ve_journal_fiscal_book_section():
                 raise ValidationError(
                     _(
