@@ -8,6 +8,15 @@ from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
+_L10N_VE_CANCEL_REASON_MOVE_TYPES = (
+    "out_invoice",
+    "out_refund",
+    "in_invoice",
+    "in_refund",
+    "out_receipt",
+    "in_receipt",
+)
+
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -87,6 +96,14 @@ class AccountMove(models.Model):
         store=True,
         tracking=True,
     )
+    l10n_ve_control_number_placeholder = fields.Char(
+        string="Próximo N° de control (previsto)",
+        compute="_compute_l10n_ve_control_number_placeholder",
+        readonly=True,
+    )
+    l10n_ve_show_control_number_ui = fields.Boolean(
+        compute="_compute_l10n_ve_show_control_number_ui",
+    )
     l10n_ve_journal_emission_medium = fields.Selection(
         related="journal_id.l10n_ve_emission_medium",
         string="Medio de emisión (diario)",
@@ -129,6 +146,13 @@ class AccountMove(models.Model):
         string="Por cuenta de Terceros",
         copy=False,
         ondelete="restrict",
+    )
+    l10n_ve_cancel_reason_id = fields.Many2one(
+        "l10n_ve.invoice.cancel.reason",
+        string="Motivo de anulación",
+        copy=False,
+        readonly=True,
+        tracking=True,
     )
 
     @api.depends("l10n_ve_third_party_partner_id")
@@ -217,7 +241,9 @@ class AccountMove(models.Model):
         journal = self.journal_id
         if not journal or journal.type != "sale":
             return
-        medium = journal.l10n_ve_emission_medium or "free"
+        medium = journal.l10n_ve_emission_medium
+        if not medium:
+            return
         if medium == "free":
             if (self.l10n_ve_control_number or "").strip():
                 return
@@ -411,27 +437,31 @@ class AccountMove(models.Model):
                 )
         return super().action_post()
 
+    def action_l10n_ve_open_cancel_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Anular documento"),
+            "res_model": "l10n_ve.account.move.cancel.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_move_id": self.id},
+        }
+
     def button_cancel(self):
-        # No permitir cancelar facturas de clientes ni notas de crédito en Venezuela
+        ve_code = self.env.ref("base.ve").code
         for move in self:
-            if move.country_code == self.env.ref("base.ve").code and move.move_type in (
-                "out_invoice",
-                "out_refund",
+            if (
+                move.country_code == ve_code
+                and move.move_type in _L10N_VE_CANCEL_REASON_MOVE_TYPES
+                and not move.l10n_ve_cancel_reason_id
             ):
-                if move.move_type == "out_invoice":
-                    raise ValidationError(
-                        _(
-                            "No se pueden cancelar las facturas de clientes. "
-                            "Por favor, cree una nota de crédito en su lugar."
-                        )
+                raise ValidationError(
+                    _(
+                        "Para anular este documento debe indicar el motivo mediante el "
+                        "asistente (botón «Cancelar» en el encabezado)."
                     )
-                elif move.move_type == "out_refund":
-                    raise ValidationError(
-                        _(
-                            "No se pueden cancelar las notas de crédito. Por favor, "
-                            "cree una nueva nota de crédito o factura en su lugar."
-                        )
-                    )
+                )
         self = self.with_context(force_draft=True)
         return super().button_cancel()
 
@@ -483,6 +513,85 @@ Please create a credit note instead.
             return journal.l10n_ve_credit_note_section_id
         return self.env["account.book.section"]
 
+    @api.depends(
+        "l10n_ve_control_number",
+        "country_code",
+        "move_type",
+        "journal_id",
+        "journal_id.l10n_ve_emission_medium",
+        "journal_id.l10n_ve_invoice_section_id",
+        "journal_id.l10n_ve_credit_note_section_id",
+        "journal_id.l10n_ve_debit_note_section_id",
+        "debit_origin_id",
+    )
+    def _compute_l10n_ve_control_number_placeholder(self):
+        ve = self.env.ref("base.ve").code
+        for move in self:
+            move.l10n_ve_control_number_placeholder = False
+            if move.country_code != ve:
+                continue
+            if (move.l10n_ve_control_number or "").strip():
+                continue
+            if move.move_type not in ("out_invoice", "out_refund"):
+                continue
+            journal = move.journal_id
+            if not journal or journal.type != "sale":
+                continue
+            if journal.l10n_ve_emission_medium != "free":
+                continue
+            section = move._l10n_ve_journal_fiscal_book_section()
+            if not section:
+                continue
+            book = section.book_id
+            move.l10n_ve_control_number_placeholder = (
+                book.l10n_ve_peek_next_formatted(section) or False
+            )
+
+    @api.depends(
+        "l10n_ve_control_number",
+        "l10n_ve_control_number_placeholder",
+        "country_code",
+        "state",
+        "move_type",
+        "l10n_ve_journal_emission_medium",
+        "l10n_ve_on_behalf_of_third_party",
+    )
+    def _compute_l10n_ve_show_control_number_ui(self):
+        for move in self:
+            move.l10n_ve_show_control_number_ui = move._l10n_ve_should_show_control_number_ui()
+
+    def _l10n_ve_should_show_control_number_ui(self):
+        self.ensure_one()
+        ve = self.env.ref("base.ve").code
+        if self.country_code != ve:
+            return False
+        if self.move_type not in ("out_invoice", "out_refund", "in_invoice"):
+            return False
+        if self.move_type in ("out_invoice", "out_refund"):
+            if (
+                self.l10n_ve_journal_emission_medium == "fiscal_machine"
+                and not self.l10n_ve_on_behalf_of_third_party
+            ):
+                return False
+        if (self.l10n_ve_control_number or "").strip():
+            return True
+        if self.l10n_ve_control_number_placeholder:
+            return True
+        if self.move_type == "in_invoice" and self.state == "draft":
+            return True
+        if (
+            self.state == "draft"
+            and self.move_type in ("out_invoice", "out_refund")
+            and self.l10n_ve_journal_emission_medium
+            and self.l10n_ve_journal_emission_medium != "free"
+            and (
+                self.l10n_ve_journal_emission_medium != "fiscal_machine"
+                or self.l10n_ve_on_behalf_of_third_party
+            )
+        ):
+            return True
+        return False
+
     def _generate_control_number(self):
         self.ensure_one()
         if self.l10n_ve_control_number:
@@ -491,7 +600,7 @@ Please create a credit note instead.
         journal = self.journal_id
         if not journal or journal.type != "sale":
             return
-        if (journal.l10n_ve_emission_medium or "free") != "free":
+        if journal.l10n_ve_emission_medium != "free":
             return
 
         section = self._l10n_ve_journal_fiscal_book_section()

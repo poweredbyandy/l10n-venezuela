@@ -72,44 +72,43 @@ class TestAccountMove(L10nVeSeniatCommon):
 
     def test_out_invoice_post_rejects_zero_total(self):
         tax = self.company_data["default_tax_sale"]
-        move = self.env["account.move"].create(
-            {
-                "move_type": "out_invoice",
-                "partner_id": self.partner_ve.id,
-                "invoice_date": fields.Date.today(),
-                "invoice_line_ids": [
-                    (
-                        0,
-                        0,
-                        {
-                            "name": "Product",
-                            "quantity": 1.0,
-                            "price_unit": 100.0,
-                            "account_id": self.company_data[
-                                "default_account_revenue"
-                            ].id,
-                            "tax_ids": [(6, 0, [tax.id])],
-                        },
-                    ),
-                    (
-                        0,
-                        0,
-                        {
-                            "name": "Credit",
-                            "quantity": 1.0,
-                            "price_unit": -100.0,
-                            "account_id": self.company_data[
-                                "default_account_revenue"
-                            ].id,
-                            "tax_ids": [(6, 0, [tax.id])],
-                        },
-                    ),
-                ],
-            }
-        )
         with self.assertRaises(ValidationError) as cm:
-            move.action_post()
-        self.assertIn("total de 0", str(cm.exception))
+            self.env["account.move"].create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": self.partner_ve.id,
+                    "invoice_date": fields.Date.today(),
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Product",
+                                "quantity": 1.0,
+                                "price_unit": 100.0,
+                                "account_id": self.company_data[
+                                    "default_account_revenue"
+                                ].id,
+                                "tax_ids": [(6, 0, [tax.id])],
+                            },
+                        ),
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Credit",
+                                "quantity": 1.0,
+                                "price_unit": -100.0,
+                                "account_id": self.company_data[
+                                    "default_account_revenue"
+                                ].id,
+                                "tax_ids": [(6, 0, [tax.id])],
+                            },
+                        ),
+                    ],
+                }
+            )
+        self.assertIn("precio", str(cm.exception).lower())
 
     def test_out_invoice_post_rejects_multiple_taxes_per_line(self):
         tax_b = self.env["account.tax"].create(
@@ -200,6 +199,13 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertEqual(doc.number, 1)
         self.assertEqual(move.l10n_ve_control_number, "00-00000001")
 
+    def test_draft_invoice_control_placeholder_preview(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        self.assertFalse((move.l10n_ve_control_number or "").strip())
+        self.assertEqual(move.l10n_ve_control_number_placeholder, "00-00000001")
+
     def test_book_correlative_forbids_unlink(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
@@ -235,14 +241,32 @@ class TestAccountMove(L10nVeSeniatCommon):
                 }
             )
 
-    def test_button_cancel_out_invoice_raises(self):
+    def test_button_cancel_out_invoice_requires_reason(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )
         move.action_post()
         with self.assertRaises(ValidationError) as cm:
             move.button_cancel()
-        self.assertIn("No se pueden cancelar", str(cm.exception))
+        self.assertIn("motivo", str(cm.exception).lower())
+
+    def test_ve_cancel_out_invoice_with_reason(self):
+        reason = self.env.ref(
+            "l10n_ve_seniat.l10n_ve_cancel_reason_print_fail",
+            raise_if_not_found=False,
+        )
+        if not reason:
+            reason = self.env["l10n_ve.invoice.cancel.reason"].search(
+                [], limit=1
+            )
+        self.assertTrue(reason)
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.write({"l10n_ve_cancel_reason_id": reason.id})
+        move.button_cancel()
+        self.assertEqual(move.state, "cancel")
+        self.assertEqual(move.l10n_ve_cancel_reason_id, reason)
 
     def test_out_refund_post_without_reversed_entry_raises(self):
         move = self.env["account.move"].create(
@@ -456,7 +480,16 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         move.action_print_pdf()
 
-    def test_button_cancel_out_refund_raises(self):
+    def test_button_cancel_out_refund_requires_reason(self):
+        reason = self.env.ref(
+            "l10n_ve_seniat.l10n_ve_cancel_reason_paper_fail",
+            raise_if_not_found=False,
+        )
+        if not reason:
+            reason = self.env["l10n_ve.invoice.cancel.reason"].search(
+                [], limit=1
+            )
+        self.assertTrue(reason)
         invoice = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )
@@ -465,7 +498,10 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         with self.assertRaises(ValidationError) as cm:
             move.button_cancel()
-        self.assertIn("notas de crédito", str(cm.exception))
+        self.assertIn("motivo", str(cm.exception).lower())
+        move.write({"l10n_ve_cancel_reason_id": reason.id})
+        move.button_cancel()
+        self.assertEqual(move.state, "cancel")
 
     def test_button_draft_out_invoice_raises(self):
         move = self.env["account.move"].create(

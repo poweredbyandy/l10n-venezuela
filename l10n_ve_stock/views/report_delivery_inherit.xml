@@ -64,7 +64,7 @@
                 </div>
                 <!-- Art. 10 Num. 4: Motivo del traslado -->
                 <div
-                    t-if="o.picking_type_id.code == 'internal' and o.l10n_ve_internal_transfer_reason_id"
+                    t-if="o.l10n_ve_internal_transfer_reason_id and (o.picking_type_id.code == 'internal' or (o.picking_type_id.code == 'outgoing' and not o.sale_id))"
                     class="col col-6 mw-100 mb-2"
                     name="div_transfer_reason"
                 >

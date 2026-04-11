@@ -46,15 +46,15 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
 
     def test_ve_product_requires_one_sale_tax(self):
         with self.assertRaises(ValidationError):
-            self.env["product.template"].create(
-                self._create_product_vals(taxes_id=[(6, 0, [])])
-            )
+            self.env["product.template"].with_context(
+                l10n_ve_skip_auto_exent_taxes=True
+            ).create(self._create_product_vals(taxes_id=[(6, 0, [])]))
 
     def test_ve_product_requires_one_purchase_tax(self):
         with self.assertRaises(ValidationError):
-            self.env["product.template"].create(
-                self._create_product_vals(supplier_taxes_id=[(6, 0, [])])
-            )
+            self.env["product.template"].with_context(
+                l10n_ve_skip_auto_exent_taxes=True
+            ).create(self._create_product_vals(supplier_taxes_id=[(6, 0, [])]))
 
     def test_ve_product_rejects_multiple_sale_taxes(self):
         with self.assertRaises(ValidationError):
@@ -79,6 +79,38 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
         self.assertEqual(len(p.taxes_id), 1)
         self.assertEqual(len(p.supplier_taxes_id), 1)
 
+    def test_ve_product_auto_exent_when_created_without_taxes(self):
+        p = self.env["product.template"].create(
+            {
+                "name": "Producto sin impuestos en vals",
+                "company_id": self.env.company.id,
+                "list_price": 100.0,
+                "standard_price": 50.0,
+            }
+        )
+        self.assertEqual(len(p.taxes_id), 1)
+        self.assertEqual(len(p.supplier_taxes_id), 1)
+        self.assertEqual(p.taxes_id.amount, 0.0)
+        self.assertEqual(p.supplier_taxes_id.amount, 0.0)
+
+    def test_ve_product_rejects_non_positive_list_price(self):
+        with self.assertRaises(ValidationError):
+            self.env["product.template"].create(
+                self._create_product_vals(list_price=0.0)
+            )
+
+    def test_ve_product_rejects_list_price_below_cost(self):
+        with self.assertRaises(ValidationError):
+            self.env["product.template"].create(
+                self._create_product_vals(list_price=40.0, standard_price=50.0)
+            )
+
+    def test_ve_product_allows_list_price_equal_to_cost(self):
+        p = self.env["product.template"].create(
+            self._create_product_vals(list_price=50.0, standard_price=50.0)
+        )
+        self.assertEqual(p.list_price, 50.0)
+
     def test_non_ve_fiscal_company_skips_tax_count_constraint(self):
         us = self.env.ref("base.us")
         company = self.env["res.company"].create(
@@ -98,3 +130,24 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
             }
         )
         self.assertEqual(len(p.taxes_id), 0)
+
+    def test_non_ve_fiscal_company_skips_price_constraint(self):
+        us = self.env.ref("base.us")
+        company = self.env["res.company"].create(
+            {
+                "name": "US Co price test",
+                "country_id": us.id,
+            }
+        )
+        company.account_fiscal_country_id = us
+        p = self.env["product.template"].create(
+            {
+                "name": "Precio cero US",
+                "company_id": company.id,
+                "list_price": 0.0,
+                "standard_price": 0.0,
+                "taxes_id": [],
+                "supplier_taxes_id": [],
+            }
+        )
+        self.assertEqual(p.list_price, 0.0)

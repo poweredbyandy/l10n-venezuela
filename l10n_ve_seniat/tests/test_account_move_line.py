@@ -41,7 +41,42 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                     ],
                 }
             )
-        self.assertIn("precio en 0", str(cm.exception))
+        self.assertIn("precio menor o igual a cero", str(cm.exception))
+
+    def test_ve_invoice_line_rejects_100_percent_discount(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Partner desc",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345678",
+            }
+        )
+        with self.assertRaises(ValidationError) as cm:
+            self.env["account.move"].create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": partner.id,
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Línea con descuento total",
+                                "quantity": 1.0,
+                                "price_unit": 100.0,
+                                "discount": 100.0,
+                                "account_id": self.company_data[
+                                    "default_account_revenue"
+                                ].id,
+                                "tax_ids": [
+                                    (6, 0, [self.company_data["default_tax_sale"].id])
+                                ],
+                            },
+                        )
+                    ],
+                }
+            )
+        self.assertIn("100%", str(cm.exception))
 
     def test_subtotal_company_currency_invoice(self):
         partner = self.env["res.partner"].create(

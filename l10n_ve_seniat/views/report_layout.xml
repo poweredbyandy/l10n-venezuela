@@ -192,6 +192,9 @@
                                 <thead>
                                     <tr class="bg-secundary text-white border-bottom">
                                         <th
+                                            class="col text-uppercase fw-bold text-nowrap text-center"
+                                        >#</th>
+                                        <th
                                             class="col text-uppercase fw-bold text-nowrap"
                                         >Codigo</th>
                                         <th
@@ -220,18 +223,28 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <t t-set="l10n_ve_line_item" t-value="0" />
                                     <t t-foreach="o.invoice_line_ids" t-as="line">
                                         <tr
                                             t-att-class="'fw-bold o_line_section' if line.display_type == 'line_section' else 'fst-italic o_line_note' if line.display_type == 'line_note' else ''"
                                         >
                                             <t t-if="line.display_type == 'product'">
+                                                <t
+                                                    t-set="l10n_ve_line_item"
+                                                    t-value="l10n_ve_line_item + 1"
+                                                />
+                                                <td class="text-center text-nowrap">
+                                                    <span t-out="l10n_ve_line_item" />
+                                                </td>
                                                 <td>
                                                     <span
                                                         t-field="line.product_id.default_code"
                                                     />
                                                 </td>
                                                 <td>
-                                                    <span t-field="line.name" />
+                                                    <span
+                                                        t-out="line.l10n_ve_report_line_description()"
+                                                    />
                                                     <t
                                                         t-if="line.tax_ids.amount == 0"
                                                     >(E)</t>
@@ -268,7 +281,7 @@
                                                 t-elif="line.display_type == 'line_section'"
                                             >
                                                 <td
-                                                    colspan="99"
+                                                    colspan="100"
                                                     class="text-muted bg-light ps-4"
                                                 >
                                                     <span
@@ -281,10 +294,9 @@
                                             <t
                                                 t-elif="line.display_type == 'line_note'"
                                             >
-                                                <td class="bg-light" />
                                                 <td
-                                                    colspan="99"
-                                                    class="text-muted ps-4"
+                                                    colspan="100"
+                                                    class="text-muted bg-light ps-4"
                                                 >
                                                     <span
                                                         t-if="line.name"

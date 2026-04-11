@@ -162,23 +162,45 @@ class ResPartner(models.Model):
     def _default_vat(self):
         return False
 
-    # @api.depends(
-    #     "complete_name",
-    #     "email",
-    #     "vat",
-    #     "state_id",
-    #     "country_id",
-    #     "commercial_company_name",
-    # )
-    # def _compute_display_name(self):
-    #     super(ResPartner, self)._compute_display_name()
-    #     for partner in self:
-    #         if partner.vat:
-    #             v = partner.vat or ""
-    #             d = partner.display_name or ""
-    #             partner.display_name = f"{v} - {d}"
-    #             continue
-    #         partner.display_name = partner.display_name
+    @api.depends(
+        "complete_name",
+        "email",
+        "vat",
+        "state_id",
+        "country_id",
+        "commercial_company_name",
+    )
+    @api.depends_context(
+        "show_address",
+        "partner_show_db_id",
+        "address_inline",
+        "show_email",
+        "show_vat",
+        "lang",
+        "l10n_ve_display_name_vat_first",
+    )
+    def _compute_display_name(self):
+        if not self.env.context.get(
+            "l10n_ve_display_name_vat_first"
+        ) or not self._l10n_ve_fiscal_locks_apply():
+            return super()._compute_display_name()
+        for partner in self:
+            name = partner.with_context(lang=self.env.lang)._get_complete_name()
+            if partner._context.get("show_address"):
+                name = name + "\n" + partner._display_address(without_company=True)
+            name = re.sub(r"\s+\n", "\n", name)
+            if partner._context.get("partner_show_db_id"):
+                name = f"{name} ({partner.id})"
+            if partner._context.get("address_inline"):
+                splitted_names = name.split("\n")
+                name = ", ".join([n for n in splitted_names if n.strip()])
+            if partner._context.get("show_email") and partner.email:
+                name = f"{name} <{partner.email}>"
+            vat = (partner.vat or "").strip()
+            if vat and vat != "/":
+                partner.display_name = f"{vat} - {name.strip()}"
+            else:
+                partner.display_name = name.strip()
 
     taxpayer_type = fields.Selection(
         [
@@ -285,6 +307,16 @@ class ResPartner(models.Model):
         return False
 
     @api.model
+    def _l10n_ve_name_search_should_query_vat_first(self, term):
+        if not term or not self._l10n_ve_fiscal_locks_apply():
+            return False
+        t = term.strip()
+        if self._l10n_ve_create_search_term_is_rif_like(t):
+            return True
+        digits = re.sub(r"\D", "", t)
+        return len(digits) >= 5
+
+    @api.model
     def _search_display_name(self, operator, value):
         domain = super()._search_display_name(operator, value)
         if not self._l10n_ve_fiscal_locks_apply():
@@ -328,11 +360,45 @@ class ResPartner(models.Model):
     def name_search(self, name="", args=None, operator="ilike", limit=100):
         args = list(args or [])
         search_mode = self.env.context.get("res_partner_search_mode")
-        if search_mode == "customer":
-            args = [("customer_rank", ">=", 1)] + args
-        elif search_mode == "supplier":
-            args = [("supplier_rank", ">=", 1)] + args
-        return super().name_search(name, args=args, operator=operator, limit=limit)
+        if not self._l10n_ve_fiscal_locks_apply():
+            if search_mode == "customer":
+                args = [("customer_rank", ">=", 1)] + args
+            elif search_mode == "supplier":
+                args = [("supplier_rank", ">=", 1)] + args
+
+        name_stripped = (name or "").strip()
+        if not limit:
+            limit = 100
+
+        if not name_stripped or not self._l10n_ve_name_search_should_query_vat_first(
+            name_stripped
+        ):
+            return super().name_search(name, args=args, operator=operator, limit=limit)
+
+        vat_terms = self._l10n_ve_vat_search_variants(name_stripped)
+        vat_domain = expression.OR([[("vat", "ilike", v)] for v in vat_terms])
+        domain = expression.AND([vat_domain, args]) if args else vat_domain
+        vat_ids = self.search(domain, limit=limit).ids
+
+        standard = super().name_search(name, args=args, operator=operator, limit=limit)
+
+        if not vat_ids:
+            return standard
+
+        seen = set()
+        out = []
+        for partner in self.browse(vat_ids):
+            out.append((partner.id, partner.sudo().display_name))
+            seen.add(partner.id)
+            if len(out) >= limit:
+                return out
+        for pair in standard:
+            if pair[0] not in seen:
+                out.append(pair)
+                seen.add(pair[0])
+                if len(out) >= limit:
+                    break
+        return out
 
     def _l10n_ve_must_check_rif_vat_format(self):
         self.ensure_one()

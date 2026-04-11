@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -22,8 +23,9 @@ class StockPicking(models.Model):
         "l10n_ve.stock.transfer.reason",
         string="Motivo de traslado",
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
-        help="Motivo del traslado de los bienes muebles en albaranes internos, "
-        "según el Artículo 10, numeral 4, de la Providencia Administrativa del SENIAT.",
+        help="Motivo del traslado de los bienes muebles en albaranes internos o en "
+        "entregas sin pedido de venta, según el Artículo 10, numeral 4, de la "
+        "Providencia Administrativa del SENIAT.",
     )
     l10n_ve_dispatch_pricelist_id = fields.Many2one(
         "product.pricelist",
@@ -62,6 +64,14 @@ class StockPicking(models.Model):
         string="N° de control",
         copy=False,
         tracking=True,
+    )
+    l10n_ve_control_number_placeholder = fields.Char(
+        string="Próximo N° de control (previsto)",
+        compute="_compute_l10n_ve_control_number_placeholder",
+        readonly=True,
+    )
+    l10n_ve_show_control_number_ui = fields.Boolean(
+        compute="_compute_l10n_ve_show_control_number_ui",
     )
     l10n_ve_transport_partner_id = fields.Many2one(
         "res.partner",
@@ -191,6 +201,7 @@ class StockPicking(models.Model):
         "picking_type_id",
         "l10n_ve_internal_transfer_reason_id",
         "state",
+        "sale_id",
     )
     def _check_l10n_ve_internal_transfer_reason(self):
         for picking in self:
@@ -198,13 +209,16 @@ class StockPicking(models.Model):
                 continue
             if picking.company_id.account_fiscal_country_id.code != "VE":
                 continue
-            if picking.picking_type_id.code != "internal":
+            needs_reason = picking.picking_type_id.code == "internal" or (
+                picking.picking_type_id.code == "outgoing" and not picking.sale_id
+            )
+            if not needs_reason:
                 continue
             if not picking.l10n_ve_internal_transfer_reason_id:
                 raise ValidationError(
                     _(
-                        "En albaranes internos venezolanos debe indicar el motivo de "
-                        "traslado."
+                        "En albaranes internos o en entregas sin pedido de venta "
+                        "venezolanos debe indicar el motivo de traslado."
                     )
                 )
 
@@ -220,12 +234,13 @@ class StockPicking(models.Model):
         for picking in self:
             if picking.company_id.account_fiscal_country_id.code != "VE":
                 continue
-            if picking.picking_type_id.code == "internal":
+            if picking.picking_type_id.code == "internal" or (
+                picking.picking_type_id.code == "outgoing" and not picking.sale_id
+            ):
                 if not picking.l10n_ve_internal_transfer_reason_id:
                     raise UserError(
                         _(
-                            "Indique el motivo de traslado interno antes de imprimir la "
-                            "guía."
+                            "Indique el motivo de traslado antes de imprimir la guía."
                         )
                     )
             if not picking._l10n_ve_dispatch_needs_manual_pricing():
@@ -339,41 +354,43 @@ class StockPicking(models.Model):
         )
 
     def _l10n_ve_dispatch_outgoing_moves_fully_invoiced(self):
+        """True si las cantidades del albarán ya están cubiertas por facturas publicadas."""
         self.ensure_one()
         Move = self.env["stock.move"]
         if "invoice_line_ids" not in Move._fields:
             return bool(self.invoice_ids)
-        saw_delivered_product = False
+        saw_product = False
+        per_soline_qty = defaultdict(float)
         for move in self.move_ids:
-            if move.state != "done" or move.scrapped:
+            if move.scrapped or not move.product_id or move.product_id.type == "service":
                 continue
-            if not move.product_id or move.product_id.type == "service":
+            qty_uom = move.quantity if move.state == "done" else move.product_uom_qty
+            if float_is_zero(qty_uom, precision_rounding=move.product_uom.rounding):
                 continue
-            qty_done = move.quantity
-            if float_is_zero(qty_done, precision_rounding=move.product_uom.rounding):
-                continue
-            saw_delivered_product = True
-            inv_lines = move.invoice_line_ids.filtered(
-                lambda l: l.display_type == "product"
-                and l.move_id.state == "posted"
-                and l.move_id.move_type in ("out_invoice", "out_refund")
+            saw_product = True
+            if not move.sale_line_id:
+                return False
+            sol = move.sale_line_id
+            per_soline_qty[sol] += move.product_uom._compute_quantity(
+                qty_uom,
+                sol.product_uom,
+                round=False,
             )
-            invoiced = 0.0
-            for line in inv_lines:
-                qty_signed = line.move_id.direction_sign * line.quantity
-                invoiced += line.product_uom_id._compute_quantity(
-                    qty_signed,
-                    move.product_uom,
-                    round=False,
-                )
+
+        if not saw_product:
+            return False
+
+        for sol, qty_pick in per_soline_qty.items():
+            if self.state == "done":
+                threshold = sol.qty_delivered
+            else:
+                threshold = sol.qty_delivered + qty_pick
             if float_compare(
-                invoiced,
-                qty_done,
-                precision_rounding=move.product_uom.rounding,
+                sol.qty_invoiced_posted,
+                threshold,
+                precision_rounding=sol.product_uom.rounding,
             ) < 0:
                 return False
-        if not saw_delivered_product:
-            return False
         return True
 
     def _l10n_ve_dispatch_requires_control_number(self):
@@ -388,9 +405,27 @@ class StockPicking(models.Model):
             return False
         return True
 
+    def _l10n_ve_dispatch_guide_section(self):
+        self.ensure_one()
+        wh = self.picking_type_id.warehouse_id
+        if not wh:
+            return False
+        return wh.l10n_ve_dispatch_guide_section_id
+
     def _l10n_ve_assign_dispatch_control_number(self):
         self.ensure_one()
-        section = self.company_id.l10n_ve_dispatch_guide_section_id
+        wh = self.picking_type_id.warehouse_id
+        if wh and wh.company_id != self.company_id:
+            raise ValidationError(
+                _(
+                    "El almacén del tipo de operación debe pertenecer a la misma "
+                    "compañía que el albarán “%(picking)s”."
+                )
+                % {"picking": self.display_name}
+            )
+        section = self._l10n_ve_dispatch_guide_section()
+        if not section:
+            return
         book = section.book_id
         if section.company_id != self.company_id or book.company_id != self.company_id:
             raise ValidationError(
@@ -404,6 +439,70 @@ class StockPicking(models.Model):
             formatted = book.l10n_ve_allocate_correlative(section, self)
             self.write({"l10n_ve_control_number": formatted})
 
+    @api.depends(
+        "l10n_ve_control_number",
+        "l10n_ve_is_ve_country",
+        "picking_type_id",
+        "sale_id",
+        "state",
+        "move_ids",
+        "move_ids.state",
+        "move_ids.quantity",
+        "move_ids.product_uom_qty",
+        "move_ids.sale_line_id",
+        "move_ids.product_id",
+        "invoice_ids",
+        "company_id",
+        "picking_type_id.warehouse_id.l10n_ve_dispatch_guide_section_id",
+        "sale_id.order_line.qty_invoiced_posted",
+        "sale_id.order_line.qty_delivered",
+    )
+    def _compute_l10n_ve_control_number_placeholder(self):
+        for picking in self:
+            picking.l10n_ve_control_number_placeholder = False
+            if (picking.l10n_ve_control_number or "").strip():
+                continue
+            if not picking._l10n_ve_dispatch_requires_control_number():
+                continue
+            section = picking._l10n_ve_dispatch_guide_section()
+            if not section:
+                continue
+            book = section.book_id
+            picking.l10n_ve_control_number_placeholder = (
+                book.l10n_ve_peek_next_formatted(section) or False
+            )
+
+    @api.depends(
+        "l10n_ve_control_number",
+        "l10n_ve_control_number_placeholder",
+        "l10n_ve_is_ve_country",
+        "picking_type_id",
+        "state",
+        "sale_id",
+        "move_ids",
+        "move_ids.state",
+        "picking_type_id.warehouse_id.l10n_ve_dispatch_guide_section_id",
+        "sale_id.order_line.qty_invoiced_posted",
+        "sale_id.order_line.qty_delivered",
+    )
+    def _compute_l10n_ve_show_control_number_ui(self):
+        for picking in self:
+            picking.l10n_ve_show_control_number_ui = (
+                picking._l10n_ve_should_show_control_number_ui()
+            )
+
+    def _l10n_ve_should_show_control_number_ui(self):
+        self.ensure_one()
+        if not self.l10n_ve_is_ve_country:
+            return False
+        if self.picking_type_id.code == "internal":
+            return False
+        if (self.l10n_ve_control_number or "").strip():
+            return True
+        if self.l10n_ve_control_number_placeholder:
+            return True
+        return False
+
     def _action_done(self):
         res = super()._action_done()
         if self.env.context.get("install_mode"):
@@ -413,7 +512,7 @@ class StockPicking(models.Model):
                 continue
             if picking.l10n_ve_control_number:
                 continue
-            section = picking.company_id.l10n_ve_dispatch_guide_section_id
+            section = picking._l10n_ve_dispatch_guide_section()
             if not section:
                 continue
             picking._l10n_ve_assign_dispatch_control_number()
