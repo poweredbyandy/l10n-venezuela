@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools.mail import html2plaintext
 
 _logger = logging.getLogger(__name__)
 
@@ -65,6 +66,17 @@ class AccountMove(models.Model):
                 move.seniat_invoice_tag = False
 
     def write(self, vals):
+        if not self.env.context.get("l10n_ve_skip_credit_debit_journal_lock") and (
+            "journal_id" in vals or "partner_id" in vals
+        ):
+            for move in self:
+                if move.l10n_ve_lock_credit_debit_journal:
+                    raise UserError(
+                        _(
+                            "No puede modificar el diario ni el contacto en notas de "
+                            "crédito o débito para empresas con fiscalidad venezolana."
+                        )
+                    )
         res = super().write(vals)
         if "l10n_ve_control_number" in vals:
             for rec in self:
@@ -74,6 +86,12 @@ class AccountMove(models.Model):
                 ):
                     rec._check_control_number_unique()
         return res
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._l10n_ve_sync_journal_with_origin_from_create()
+        return records
 
     l10n_ve_invoice_original_printed = fields.Boolean(
         string="VE Invoice Original Printed",
@@ -483,6 +501,8 @@ Please create a credit note instead.
         )
 
     def _post(self, soft=True):
+        self._l10n_ve_check_credit_debit_journal_matches_origin()
+        self._l10n_ve_check_credit_note_products_and_labels()
         if not self.env.context.get("install_mode"):
             for move in self:
                 move._l10n_ve_validate_customer_invoice_emission_for_post()
@@ -1031,3 +1051,119 @@ Please create a credit note instead.
         return super(
             AccountMove, self.with_context(l10n_ve_invoice=True)
         ).action_print_pdf()
+
+    l10n_ve_lock_credit_debit_journal = fields.Boolean(
+        compute="_compute_l10n_ve_lock_credit_debit_journal",
+    )
+
+    @api.depends(
+        "move_type",
+        "debit_origin_id",
+        "company_id.account_fiscal_country_id",
+    )
+    def _compute_l10n_ve_lock_credit_debit_journal(self):
+        for move in self:
+            move.l10n_ve_lock_credit_debit_journal = (
+                move.company_id.account_fiscal_country_id.code == "VE"
+                and (
+                    move.move_type in ("out_refund", "in_refund")
+                    or bool(move.debit_origin_id)
+                )
+            )
+
+    def _l10n_ve_sync_journal_with_origin_from_create(self):
+        for move in self:
+            if move.company_id.account_fiscal_country_id.code != "VE":
+                continue
+            origin = move.reversed_entry_id or move.debit_origin_id
+            if not origin:
+                continue
+            updates = {}
+            if move.journal_id != origin.journal_id:
+                updates["journal_id"] = origin.journal_id.id
+            if move.partner_id != origin.partner_id:
+                updates["partner_id"] = origin.partner_id.id
+            if updates:
+                move.with_context(
+                    l10n_ve_skip_credit_debit_journal_lock=True
+                ).write(updates)
+
+    def _l10n_ve_check_credit_debit_journal_matches_origin(self):
+        for move in self:
+            if move.company_id.account_fiscal_country_id.code != "VE":
+                continue
+            origin = move.reversed_entry_id or move.debit_origin_id
+            if not origin:
+                continue
+            if move.journal_id != origin.journal_id:
+                raise UserError(
+                    _(
+                        "No puede confirmar esta nota de crédito o débito: el diario "
+                        "(%(journal)s) debe ser el mismo que el de la factura de origen "
+                        "(%(origin_journal)s).",
+                        journal=move.journal_id.display_name,
+                        origin_journal=origin.journal_id.display_name,
+                    )
+                )
+            if move.partner_id != origin.partner_id:
+                raise UserError(
+                    _(
+                        "No puede confirmar esta nota de crédito o débito: el contacto "
+                        "debe ser el mismo que el de la factura de origen "
+                        "(%(partner)s).",
+                        partner=origin.partner_id.display_name,
+                    )
+                )
+
+    def _l10n_ve_check_credit_note_products_and_labels(self):
+        Product = self.env["product.product"].sudo()
+        for move in self:
+            if move.company_id.account_fiscal_country_id.code != "VE":
+                continue
+            if move.move_type not in ("out_refund", "in_refund"):
+                continue
+            origin = move.reversed_entry_id
+            if not origin:
+                continue
+            origin_product_ids = set(
+                origin.invoice_line_ids.filtered(
+                    lambda l: l.display_type == "product" and l.product_id
+                ).mapped("product_id").ids
+            )
+            for line in move.invoice_line_ids:
+                if line.display_type == "line_section":
+                    continue
+                if line.display_type == "line_note":
+                    move._l10n_ve_credit_note_line_check_description_not_product_name(
+                        line, Product
+                    )
+                    continue
+                if line.product_id:
+                    if line.product_id.id not in origin_product_ids:
+                        raise UserError(
+                            _(
+                                "En una nota de crédito (VE) no puede incluirse el "
+                                "producto «%(product)s» porque no está en la factura "
+                                "original %(origin)s.",
+                                product=line.product_id.display_name,
+                                origin=origin.display_name,
+                            )
+                        )
+                else:
+                    move._l10n_ve_credit_note_line_check_description_not_product_name(
+                        line, Product
+                    )
+
+    def _l10n_ve_credit_note_line_check_description_not_product_name(self, line, product_model):
+        text = html2plaintext(line.name or "").strip()
+        if not text:
+            return
+        if product_model.search([("name", "=", text)], limit=1):
+            raise UserError(
+                _(
+                    "En una nota de crédito (VE), una línea sin producto no puede usar "
+                    "la descripción «%(text)s» porque coincide con el nombre de un "
+                    "producto existente.",
+                    text=text,
+                )
+            )

@@ -29,6 +29,8 @@ class AccountMoveLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         res = super().create(vals_list)
+        if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
+            return res
         for record in res:
             if record.move_id.move_type == "entry":
                 continue
@@ -37,11 +39,14 @@ class AccountMoveLine(models.Model):
                 continue
 
             record._validate_line_unit_price_ve()
+            record._l10n_ve_apply_exempt_tax_no_product_line()
             record._put_unique_tax_per_line()
         return res
 
     def write(self, vals):
         res = super().write(vals)
+        if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
+            return res
         for record in self:
             if record.move_id.move_type == "entry":
                 continue
@@ -50,6 +55,7 @@ class AccountMoveLine(models.Model):
 
             if "price_unit" in vals or "quantity" in vals:
                 record._validate_line_unit_price_ve()
+            record._l10n_ve_apply_exempt_tax_no_product_line()
             record._put_unique_tax_per_line()
         return res
 
@@ -114,6 +120,78 @@ class AccountMoveLine(models.Model):
             rest = name[len(prefix) :].strip()
             return rest or (product.name or "")
         return name
+
+    def _l10n_ve_must_use_exempt_tax(self):
+        self.ensure_one()
+        if self.move_id.country_code != "VE":
+            return False
+        if self.move_id.move_type not in (
+            "out_invoice",
+            "out_refund",
+            "out_receipt",
+            "in_invoice",
+            "in_refund",
+            "in_receipt",
+        ):
+            return False
+        if self.display_type == "line_section":
+            return False
+        if self.display_type == "line_note":
+            return True
+        if self.display_type == "product" and not self.product_id:
+            return True
+        return False
+
+    @api.depends(
+        "product_id",
+        "product_uom_id",
+        "display_type",
+        "move_id.move_type",
+        "move_id.country_code",
+        "move_id.company_id",
+        "move_id.fiscal_position_id",
+    )
+    def _compute_tax_ids(self):
+        super()._compute_tax_ids()
+        for line in self:
+            if not line.move_id:
+                continue
+            if not line._l10n_ve_must_use_exempt_tax():
+                continue
+            tax = line._l10n_ve_get_exempt_tax_for_line()
+            if not tax:
+                continue
+            if line.move_id.fiscal_position_id:
+                tax = line.move_id.fiscal_position_id.map_tax(tax)
+            if tax:
+                line.tax_ids = tax
+
+    def _l10n_ve_get_exempt_tax_for_line(self):
+        self.ensure_one()
+        company = self.move_id.company_id
+        ProductTemplate = self.env["product.template"]
+        if self.move_id.is_sale_document(include_receipts=True):
+            return ProductTemplate._l10n_ve_get_exent_sale_tax(company)
+        return ProductTemplate._l10n_ve_get_exent_purchase_tax(company)
+
+    def _l10n_ve_apply_exempt_tax_no_product_line(self):
+        self.ensure_one()
+        if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
+            return
+        if not self._l10n_ve_must_use_exempt_tax():
+            return
+        tax = self._l10n_ve_get_exempt_tax_for_line()
+        if not tax:
+            return
+        if self.move_id.fiscal_position_id:
+            tax = self.move_id.fiscal_position_id.map_tax(tax)
+        if not tax:
+            return
+        if set(self.tax_ids.ids) == set(tax.ids):
+            return
+        self.with_context(l10n_ve_skip_exempt_tax_line=True).write(
+            {"tax_ids": [Command.set(tax.ids)]}
+        )
 
     def _put_unique_tax_per_line(self):
         self.ensure_one()
