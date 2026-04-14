@@ -342,23 +342,42 @@
                             </t>
                         </tbody>
                     </table>
-                    <div t-if="show_totals_block" class="clearfix" name="so_total_summary">
-                        <div id="total" class="row mt-3 justify-content-end" name="total">
-                            <div
-                                t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'}"
-                            >
-                                <div class="o_l10n_ve_quote_totals_wrap p-3">
-                                    <table class="o_total_table table table-sm table-borderless mb-0">
-                                        <t t-call="sale.document_tax_totals">
-                                            <t t-set="tax_totals" t-value="o.tax_totals" />
-                                            <t t-set="currency" t-value="o.currency_id" />
-                                        </t>
-                                    </table>
-                                </div>
+                    <div
+                        t-if="show_totals_block"
+                        class="row mt-3 align-items-start"
+                        name="l10n_ve_quote_terms_and_totals"
+                    >
+                        <div class="col-6" t-if="o.note" name="l10n_ve_terms_col">
+                            <div class="text-uppercase fw-bold mb-1">
+                                Términos y condiciones
+                            </div>
+                            <div class="justify-text">
+                                <span t-field="o.note" />
+                            </div>
+                        </div>
+                        <div
+                            t-attf-class="col-6#{' ms-auto' if not o.note else ''}"
+                            id="total"
+                            name="total"
+                        >
+                            <div class="o_l10n_ve_quote_totals_wrap p-3">
+                                <table class="o_total_table table table-sm table-borderless mb-0">
+                                    <t t-call="sale.document_tax_totals">
+                                        <t t-set="tax_totals" t-value="o.tax_totals" />
+                                        <t t-set="currency" t-value="o.currency_id" />
+                                    </t>
+                                </table>
                             </div>
                         </div>
                     </div>
-                    <div t-if="show_totals_block and o.note" class="clearfix mt-3">
+                    <div
+                        t-if="not show_totals_block and o.note"
+                        class="clearfix mt-3"
+                        name="l10n_ve_terms_conditions"
+                    >
+                        <div class="text-uppercase fw-bold mb-1">
+                            Términos y condiciones
+                        </div>
                         <div class="justify-text">
                             <span t-field="o.note" />
                         </div>

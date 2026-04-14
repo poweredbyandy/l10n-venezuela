@@ -2,6 +2,8 @@
 from . import template_ve
 from . import product_template
 from . import product_template_attribute_value
+from . import res_currency
+from . import res_currency_rate
 from . import res_partner
 from . import res_country_parish
 from . import res_country_municipality
@@ -10,6 +12,8 @@ from . import res_company
 from . import res_config_settings
 from . import account_book
 from . import account_move
+from . import account_move_reversal
+from . import account_debit_note
 from . import l10n_ve_invoice_cancel_reason
 from . import account_move_line
 from . import account_journal

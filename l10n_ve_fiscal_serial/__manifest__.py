@@ -1,0 +1,28 @@
+{
+    "name": "Venezuela Fiscal Serial (TFHKA Web Serial)",
+    "summary": "Cliente Web Serial para impresoras fiscales TFHKA en el navegador",
+    "version": "18.0.1.0.0",
+    "category": "Accounting/Localizations",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "website": "https://github.com/OCA/l10n-venezuela",
+    "license": "LGPL-3",
+    "depends": ["web", "l10n_ve_seniat"],
+    "data": [
+        "data/fiscal_machines_action.xml",
+        "views/fiscal_machines_menu.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_transport_webserial.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_protocol.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_serial.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_invoice_samples.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/fiscal_serial_service.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml",
+            "l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.js",
+        ],
+    },
+    "installable": True,
+    "application": False,
+}
