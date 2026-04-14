@@ -7,7 +7,7 @@
     "author": "andyengit, Anderson Armeya, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "category": "Inventory/Localizations",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.0.2",
     "depends": [
         "base",
         "web",

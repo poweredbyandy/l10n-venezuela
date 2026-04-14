@@ -105,6 +105,17 @@ class StockPicking(models.Model):
                     p.phone or p.mobile or False
                 )
 
+    def _l10n_ve_requires_internal_transfer_reason(self):
+        """Motivo SENIAT: internos siempre; salidas sin pedido de venta (ni POS)."""
+        self.ensure_one()
+        if self.picking_type_id.code == "internal":
+            return True
+        if self.picking_type_id.code != "outgoing" or self.sale_id:
+            return False
+        if "pos_order_id" in self._fields and self.pos_order_id:
+            return False
+        return True
+
     @api.depends(
         "move_ids",
         "move_ids.invoice_line_ids",
@@ -209,10 +220,7 @@ class StockPicking(models.Model):
                 continue
             if picking.company_id.account_fiscal_country_id.code != "VE":
                 continue
-            needs_reason = picking.picking_type_id.code == "internal" or (
-                picking.picking_type_id.code == "outgoing" and not picking.sale_id
-            )
-            if not needs_reason:
+            if not picking._l10n_ve_requires_internal_transfer_reason():
                 continue
             if not picking.l10n_ve_internal_transfer_reason_id:
                 raise ValidationError(
@@ -234,9 +242,7 @@ class StockPicking(models.Model):
         for picking in self:
             if picking.company_id.account_fiscal_country_id.code != "VE":
                 continue
-            if picking.picking_type_id.code == "internal" or (
-                picking.picking_type_id.code == "outgoing" and not picking.sale_id
-            ):
+            if picking._l10n_ve_requires_internal_transfer_reason():
                 if not picking.l10n_ve_internal_transfer_reason_id:
                     raise UserError(
                         _(
