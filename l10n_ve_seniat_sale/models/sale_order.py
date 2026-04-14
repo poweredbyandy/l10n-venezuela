@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import Command, _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_is_zero
 
 
@@ -42,6 +42,163 @@ class SaleOrder(models.Model):
             else:
                 order.invoicing_date = False
 
+    @api.depends("company_id")
+    def _compute_journal_id(self):
+        non_ve = self.filtered(lambda o: o.country_code != "VE")
+        super(SaleOrder, non_ve)._compute_journal_id()
+        for order in self - non_ve:
+            if not order.journal_id:
+                order.journal_id = order._l10n_ve_default_sale_journal()
+
+    def _l10n_ve_default_sale_journal(self):
+        self.ensure_one()
+        return self.env["account.journal"].search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("type", "=", "sale"),
+            ],
+            order="sequence asc, id asc",
+            limit=1,
+        )
+
+    def _l10n_ve_get_max_invoice_lines_from_book(self):
+        self.ensure_one()
+        book = self.journal_id.l10n_ve_invoice_section_id.book_id
+        if not book:
+            return 0
+        return max(book.l10n_ve_max_invoice_lines or 10, 1)
+
+    def _l10n_ve_product_line_count_invoiceable(self, invoiceable_lines):
+        return len(
+            invoiceable_lines.filtered(
+                lambda line: not line.display_type and not line.is_downpayment
+            )
+        )
+
+    def _l10n_ve_split_invoiceable_lines(self, invoiceable_lines, max_lines):
+        self.ensure_one()
+        lines = invoiceable_lines.sorted(key=lambda line: (line.sequence, line.id))
+        chunks = []
+        buf_ids = []
+        prod_in_buf = 0
+        pending_header_ids = []
+        down_ids = []
+        for line in lines:
+            if line.is_downpayment:
+                down_ids.append(line.id)
+                continue
+            if line.display_type in ("line_section", "line_note"):
+                pending_header_ids.append(line.id)
+                continue
+            if prod_in_buf >= max_lines and buf_ids:
+                chunks.append(buf_ids)
+                buf_ids = []
+                prod_in_buf = 0
+            if pending_header_ids:
+                buf_ids.extend(pending_header_ids)
+                pending_header_ids = []
+            buf_ids.append(line.id)
+            prod_in_buf += 1
+        if pending_header_ids:
+            buf_ids.extend(pending_header_ids)
+        if buf_ids:
+            chunks.append(buf_ids)
+        if down_ids:
+            if chunks:
+                chunks[-1].extend(down_ids)
+            else:
+                chunks.append(down_ids)
+        return [invoiceable_lines.browse(ids) for ids in chunks]
+
+    def _l10n_ve_invoiceable_line_chunks(self, final):
+        self.ensure_one()
+        invoiceable_lines = super()._get_invoiceable_lines(final)
+        max_lines = self._l10n_ve_get_max_invoice_lines_from_book()
+        if (
+            max_lines <= 0
+            or self._l10n_ve_product_line_count_invoiceable(invoiceable_lines) <= max_lines
+        ):
+            return [invoiceable_lines]
+        return self._l10n_ve_split_invoiceable_lines(invoiceable_lines, max_lines)
+
+    def _get_invoiceable_lines(self, final=False):
+        lines = super()._get_invoiceable_lines(final)
+        ids_ctx = self.env.context.get("l10n_ve_invoiceable_line_ids")
+        if ids_ctx is not None:
+            id_set = set(ids_ctx)
+            lines = lines.filtered(lambda line: line.id in id_set)
+        return lines
+
+    def _create_invoices(self, grouped=False, final=False, date=None):
+        if not self.env["account.move"].has_access("create"):
+            try:
+                self.check_access("write")
+            except AccessError:
+                return self.env["account.move"]
+        ve = self.filtered(lambda o: o.country_code == "VE")
+        non_ve = self - ve
+        moves = (
+            non_ve._create_invoices(grouped=grouped, final=final, date=date)
+            if non_ve
+            else self.env["account.move"]
+        )
+        for order in ve:
+            chunks = order._l10n_ve_invoiceable_line_chunks(final)
+            if len(chunks) <= 1:
+                moves |= super(SaleOrder, order)._create_invoices(
+                    grouped=False, final=final, date=date
+                )
+            else:
+                for chunk in chunks:
+                    moves |= super(
+                        SaleOrder,
+                        order.with_context(
+                            l10n_ve_invoiceable_line_ids=tuple(chunk.ids)
+                        ),
+                    )._create_invoices(grouped=False, final=final, date=date)
+        return moves
+
+    def _l10n_ve_check_free_emission_correlatives(self):
+        self.ensure_one()
+        journal = self.journal_id
+        if not journal:
+            return
+        if journal.l10n_ve_emission_medium != "free":
+            return
+        if not journal.l10n_ve_invoice_section_id:
+            raise UserError(
+                _(
+                    "No se puede confirmar el pedido: el diario de ventas «%(journal)s» "
+                    "está en «forma libre» (correlativo de talonario) y debe tener "
+                    "configurado el tramo SENIAT de facturas de cliente."
+                )
+                % {"journal": journal.display_name}
+            )
+        if "warehouse_id" not in self._fields:
+            return
+        if "stock.warehouse" not in self.env:
+            return
+        Warehouse = self.env["stock.warehouse"]
+        if "l10n_ve_dispatch_guide_section_id" not in Warehouse._fields:
+            return
+        warehouse = self.warehouse_id
+        if not warehouse:
+            raise UserError(
+                _(
+                    "No se puede confirmar el pedido: indique el almacén para validar "
+                    "el correlativo de guía de despacho (SENIAT)."
+                )
+            )
+        if not warehouse.l10n_ve_dispatch_guide_section_id:
+            raise UserError(
+                _(
+                    "No se puede confirmar el pedido: con diario en «forma libre» debe "
+                    "configurar en el almacén «%(warehouse)s» el tramo del talonario "
+                    "para guías de despacho (SENIAT)."
+                )
+                % {"warehouse": warehouse.display_name}
+            )
+
     def action_confirm(self):
         precision = self.env["decimal.precision"].precision_get("Product Price")
         for order in self:
@@ -64,6 +221,11 @@ class SaleOrder(models.Model):
                     % ", ".join(products)
                 )
             if order.country_code == "VE":
+                if not order.journal_id:
+                    raise UserError(
+                        _("Debe indicar el diario de ventas antes de confirmar el pedido.")
+                    )
+                order._l10n_ve_check_free_emission_correlatives()
                 default_tax = order.company_id.account_sale_tax_id
                 for line in order.order_line.filtered(lambda line: not line.display_type):
                     if len(line.tax_id) == 0:
@@ -95,6 +257,34 @@ class SaleOrder(models.Model):
                         % "\n".join(lines_with_multi_tax)
                     )
         return super().action_confirm()
+
+    @api.depends_context("lang")
+    @api.depends(
+        "order_line.price_subtotal",
+        "currency_id",
+        "company_id",
+        "payment_term_id",
+    )
+    def _compute_tax_totals(self):
+        res = super()._compute_tax_totals()
+        for order in self:
+            if (
+                order.company_id.account_fiscal_country_id.code != "VE"
+                or not order.tax_totals
+            ):
+                continue
+            order.tax_totals["same_tax_base"] = False
+            for subtotal in order.tax_totals.get("subtotals", []):
+                for tax_group in subtotal.get("tax_groups", []):
+                    if tax_group.get("display_base_amount_currency") is False:
+                        tax_group["display_base_amount_currency"] = tax_group.get(
+                            "base_amount_currency", 0.0
+                        )
+                    if tax_group.get("display_base_amount") in (False, None):
+                        tax_group["display_base_amount"] = tax_group.get(
+                            "base_amount", 0.0
+                        )
+        return res
 
     @api.model
     def _cron_create_uninvoiced_orders_announcement(self):

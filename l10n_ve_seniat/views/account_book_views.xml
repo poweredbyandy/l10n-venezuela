@@ -12,6 +12,8 @@
                 <field name="number_to" />
                 <field name="section_count" string="Sections" />
                 <field name="document_count" string="Correlatives" />
+                <field name="l10n_ve_max_invoice_lines" optional="hide" />
+                <field name="l10n_ve_max_picking_lines" optional="hide" />
                 <field name="active" column_invisible="True" />
             </list>
         </field>
@@ -62,6 +64,8 @@
                                 <span class="mx-1">–</span>
                                 <field name="number_to" class="oe_inline" />
                             </div>
+                            <field name="l10n_ve_max_invoice_lines" />
+                            <field name="l10n_ve_max_picking_lines" />
                         </group>
                     </group>
                     <notebook>

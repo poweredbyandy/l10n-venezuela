@@ -7,12 +7,14 @@
     "author": "andyengit, Anderson Armeya, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "category": "Inventory/Localizations",
+    "version": "18.0.1.0.1",
     "depends": [
         "base",
         "web",
         "stock",
         "fleet",
         "l10n_ve_seniat",
+        "l10n_ve_seniat_sale",
         "account",
         "sale",
         "sale_stock",
@@ -22,7 +24,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/l10n_ve_stock_transfer_reason_views.xml",
-        "views/res_company_views.xml",
+        "views/stock_warehouse_views.xml",
         "views/account_move_views.xml",
         "views/report_invoice_inherit.xml",
         "views/stock_picking_views.xml",

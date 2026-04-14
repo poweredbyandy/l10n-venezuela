@@ -7,14 +7,15 @@
         <field name="arch" type="xml">
             <xpath expr="//div[@class='oe_title']" position="after">
                 <field name="l10n_ve_is_ve_country" invisible="1" />
+                <field name="l10n_ve_show_control_number_ui" invisible="1" />
             </xpath>
             <xpath expr="//field[@name='picking_type_id']" position="after">
                 <field
                     name="l10n_ve_internal_transfer_reason_id"
                     string="Motivo de traslado"
                     context="{'default_company_id': company_id}"
-                    invisible="not l10n_ve_is_ve_country or picking_type_code != 'internal'"
-                    required="l10n_ve_is_ve_country and picking_type_code == 'internal' and state != 'draft'"
+                    invisible="not l10n_ve_is_ve_country or (picking_type_code not in ('internal', 'outgoing')) or (picking_type_code == 'outgoing' and sale_id)"
+                    required="l10n_ve_is_ve_country and state != 'draft' and (picking_type_code == 'internal' or (picking_type_code == 'outgoing' and not sale_id))"
                 />
             </xpath>
             <xpath
@@ -48,11 +49,17 @@
             >
                 <div
                     class="o_td_label"
-                    invisible="not l10n_ve_is_ve_country or picking_type_code == 'internal'"
+                    invisible="not l10n_ve_show_control_number_ui"
                 >
                     <label
                         for="l10n_ve_control_number"
                         class="text-danger"
+                        invisible="l10n_ve_control_number_placeholder and not l10n_ve_control_number"
+                    >N° Control:</label>
+                    <label
+                        for="l10n_ve_control_number_placeholder"
+                        class="text-danger"
+                        invisible="not l10n_ve_control_number_placeholder or l10n_ve_control_number"
                     >N° Control:</label>
                 </div>
                 <field
@@ -60,8 +67,15 @@
                     class="text-danger"
                     placeholder="00-00000000-0"
                     nolabel="1"
-                    invisible="not l10n_ve_is_ve_country or picking_type_code == 'internal'"
+                    invisible="not l10n_ve_show_control_number_ui or (l10n_ve_control_number_placeholder and not l10n_ve_control_number)"
                     readonly="picking_type_code == 'outgoing' or state in ('done', 'cancel')"
+                />
+                <field
+                    name="l10n_ve_control_number_placeholder"
+                    class="text-danger fst-italic opacity-75"
+                    nolabel="1"
+                    readonly="1"
+                    invisible="not l10n_ve_show_control_number_ui or l10n_ve_control_number or not l10n_ve_control_number_placeholder"
                 />
             </xpath>
             <xpath expr="//field[@name='picking_properties']" position="before">
@@ -71,35 +85,7 @@
                 >
                     <field name="l10n_ve_dispatch_pricelist_id" />
                     <field name="l10n_ve_dispatch_currency_id" />
-                    <field name="l10n_ve_dispatch_amount_total" />
                 </group>
-            </xpath>
-            <xpath expr="//sheet/notebook" position="after">
-                <div
-                    class="d-flex justify-content-end pt-3 mt-2 w-100"
-                    invisible="not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
-                >
-                    <field name="l10n_ve_dispatch_display_currency_id" invisible="1" />
-                    <div
-                        class="fs-2 fw-bold"
-                        style="display: grid; grid-template-columns: max-content max-content; column-gap: 0.75rem; row-gap: 0.15rem; justify-items: end;"
-                    >
-                        <span>Subtotal:</span>
-                        <field
-                            name="l10n_ve_dispatch_display_subtotal"
-                            nolabel="1"
-                            readonly="1"
-                            class="text-end m-0"
-                        />
-                        <span>Total:</span>
-                        <field
-                            name="l10n_ve_dispatch_display_total"
-                            nolabel="1"
-                            readonly="1"
-                            class="text-end m-0"
-                        />
-                    </div>
-                </div>
             </xpath>
             <xpath
                 expr="//field[@name='move_ids_without_package']/list/field[@name='quantity']"
@@ -108,25 +94,6 @@
                 <field name="l10n_ve_dispatch_currency_id" column_invisible="1" />
                 <field
                     name="l10n_ve_dispatch_price_unit"
-                    readonly="1"
-                    optional="show"
-                    column_invisible="parent.picking_type_code != 'outgoing' or not parent.l10n_ve_is_ve_country"
-                />
-                <field
-                    name="l10n_ve_dispatch_subtotal"
-                    readonly="1"
-                    optional="show"
-                    column_invisible="parent.picking_type_code != 'outgoing' or not parent.l10n_ve_is_ve_country"
-                />
-                <field
-                    name="l10n_ve_dispatch_tax_ids"
-                    widget="many2many_tags"
-                    readonly="1"
-                    optional="show"
-                    column_invisible="parent.picking_type_code != 'outgoing' or not parent.l10n_ve_is_ve_country"
-                />
-                <field
-                    name="l10n_ve_dispatch_price_total"
                     readonly="1"
                     optional="show"
                     column_invisible="parent.picking_type_code != 'outgoing' or not parent.l10n_ve_is_ve_country"
@@ -141,10 +108,12 @@
         <field name="inherit_id" ref="stock.vpicktree" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
+                <field name="l10n_ve_show_control_number_ui" column_invisible="True" />
                 <field
                     name="l10n_ve_control_number"
                     string="N° control"
                     optional="show"
+                    invisible="not l10n_ve_show_control_number_ui"
                 />
             </xpath>
         </field>

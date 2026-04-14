@@ -2,6 +2,7 @@ import logging
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools import float_compare
 
 _logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class AccountMoveLine(models.Model):
             if record.move_id.country_code != self.env.ref("base.ve").code:
                 continue
 
-            record._validate_price_not_zero()
+            record._validate_line_unit_price_ve()
             record._put_unique_tax_per_line()
         return res
 
@@ -47,30 +48,72 @@ class AccountMoveLine(models.Model):
             if record.move_id.country_code != self.env.ref("base.ve").code:
                 continue
 
-            # Validar precio si se está modificando price_unit o quantity
             if "price_unit" in vals or "quantity" in vals:
-                record._validate_price_not_zero()
+                record._validate_line_unit_price_ve()
             record._put_unique_tax_per_line()
         return res
 
-    def _validate_price_not_zero(self):
-        """Valida que las líneas de factura no tengan precio en 0"""
+    def _validate_line_unit_price_ve(self):
         self.ensure_one()
-        if self.display_type not in ("product", "discount"):
-            return
-
         if self.move_id.move_type == "entry":
             return
-
-        # Validar que el precio unitario no sea 0
-        if abs(self.price_unit or 0.0) < 0.01:
+        if self.move_id.country_code != "VE":
+            return
+        if self.display_type != "product":
+            return
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+        price = self.price_unit or 0.0
+        if float_compare(price, 0.0, precision_digits=prec) <= 0:
+            tmpl = self.product_id.product_tmpl_id if self.product_id else False
+            if tmpl and tmpl._l10n_ve_is_sale_discount_template():
+                return
             raise ValidationError(
                 _(
-                    "No se permiten líneas con precio en 0. La línea '%(line)s' tiene "
-                    "un precio de 0."
+                    "No se permiten líneas con precio menor o igual a cero. "
+                    'La línea "%(line)s" tiene precio %(price)s. Use el producto de '
+                    "descuento de la compañía (asistente Descuento en pedidos) o corrija "
+                    "el importe."
                 )
-                % {"line": self.name or _("Sin nombre")}
+                % {"line": self.name or _("Sin nombre"), "price": price}
             )
+
+    @api.constrains("discount", "move_id")
+    def _l10n_ve_check_line_discount(self):
+        prec = self.env["decimal.precision"].precision_get("Discount")
+        for line in self:
+            if line.display_type != "product":
+                continue
+            if line.move_id.move_type == "entry":
+                continue
+            if line.move_id.country_code != "VE":
+                continue
+            disc = line.discount or 0.0
+            if float_compare(disc, 100.0, precision_digits=prec) >= 0:
+                raise ValidationError(
+                    _(
+                        "No se permite un descuento del 100%% en la línea de factura. "
+                        'La línea "%(line)s" tiene %(discount)s%%.'
+                    )
+                    % {
+                        "line": line.name or _("Sin nombre"),
+                        "discount": disc,
+                    }
+                )
+
+    def l10n_ve_report_line_description(self):
+        self.ensure_one()
+        name = (self.name or "").strip()
+        product = self.product_id
+        if not product:
+            return name
+        code = (product.default_code or "").strip()
+        if not code:
+            return name
+        prefix = f"[{code}]"
+        if name.startswith(prefix):
+            rest = name[len(prefix) :].strip()
+            return rest or (product.name or "")
+        return name
 
     def _put_unique_tax_per_line(self):
         self.ensure_one()
