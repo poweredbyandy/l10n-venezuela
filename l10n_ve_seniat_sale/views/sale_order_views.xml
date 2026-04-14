@@ -7,11 +7,68 @@
             <xpath expr="//field[@name='order_line']//list//field[@name='product_template_id']" position="attributes">
                 <attribute name="options">{'no_create': True, 'no_create_edit': True}</attribute>
             </xpath>
-            <xpath expr="//field[@name='partner_id']" position="attributes">
-                <attribute name="context">{'show_vat': True}</attribute>
+            <xpath
+                expr="//group[@name='partner_details']/field[@name='partner_id'][@widget='res_partner_many2one']"
+                position="attributes"
+            >
+                <attribute name="context">{
+                    'res_partner_search_mode': 'customer',
+                    'show_address': 1,
+                    'default_is_company': True,
+                    'show_vat': True,
+                    'l10n_ve_display_name_vat_first': True,
+                }</attribute>
+                <attribute
+                    name="options"
+                >{"no_quick_create": True, "no_create": False, "no_create_edit": False}</attribute>
+                <attribute name="placeholder">Buscar nombre o RIF...</attribute>
             </xpath>
             <xpath expr="//field[@name='payment_term_id']" position="after">
                 <field name="invoicing_date"/>
+                <field
+                    name="journal_id"
+                    string="Diario de ventas"
+                    domain="[('type', '=', 'sale'), ('company_id', '=', company_id)]"
+                    options="{'no_create': True}"
+                    required="country_code == 'VE' and state in ('draft', 'sent')"
+                    readonly="invoice_count != 0 and state == 'sale'"
+                />
+            </xpath>
+            <xpath
+                expr="//field[@name='order_line']//list//field[@name='tax_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="readonly"
+                >parent.country_code == 'VE' or qty_invoiced &gt; 0 or is_downpayment</attribute>
+            </xpath>
+            <xpath
+                expr="//field[@name='order_line']//form//field[@name='tax_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="readonly"
+                >parent.country_code == 'VE' or qty_invoiced &gt; 0</attribute>
+            </xpath>
+            <xpath expr="//button[@id='send_proforma_primary']" position="attributes">
+                <attribute
+                    name="invisible"
+                >state != 'draft' or invoice_count &gt;= 1 or country_code == 'VE'</attribute>
+            </xpath>
+            <xpath expr="//button[@id='send_proforma']" position="attributes">
+                <attribute
+                    name="invisible"
+                >state == 'draft' or invoice_count &gt;= 1 or country_code == 'VE'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_preview_sale_order']" position="before">
+                <button
+                    name="%(sale.action_report_saleorder)d"
+                    type="action"
+                    string="Imprimir"
+                    class="btn-secondary"
+                    data-hotkey="p"
+                    invisible="country_code != 'VE'"
+                />
             </xpath>
         </field>
     </record>

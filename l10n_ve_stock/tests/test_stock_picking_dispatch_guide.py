@@ -35,7 +35,10 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
                 "number_to": 49_999_999,
             }
         )
-        company.l10n_ve_dispatch_guide_section_id = sec
+        warehouse = cls.env["stock.warehouse"].search(
+            [("company_id", "=", company.id)], limit=1
+        )
+        warehouse.l10n_ve_dispatch_guide_section_id = sec
 
     def _create_ve_sale_and_validate_delivery(self):
         product = self._create_product(
@@ -82,7 +85,10 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
         self.assertEqual(len(doc), 1)
 
     def test_no_control_number_without_dispatch_section(self):
-        self.env.company.l10n_ve_dispatch_guide_section_id = False
+        wh = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.env.company.id)], limit=1
+        )
+        wh.l10n_ve_dispatch_guide_section_id = False
         picking = self._create_ve_sale_and_validate_delivery()
         self.assertFalse((picking.l10n_ve_control_number or "").strip())
 
@@ -104,7 +110,10 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
                 "number_to": 9_999_999,
             }
         )
-        self.env.company.l10n_ve_dispatch_guide_section_id = sec_b
+        wh = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.env.company.id)], limit=1
+        )
+        wh.l10n_ve_dispatch_guide_section_id = sec_b
         with self.assertRaises(ValidationError):
             self._create_ve_sale_and_validate_delivery()
 
@@ -172,3 +181,36 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
             pick2.l10n_ve_control_number,
             pick1.l10n_ve_control_number,
         )
+
+    def test_no_control_number_when_fully_invoiced_before_delivery(self):
+        product = self._create_product(
+            name="Prod factura antes entrega",
+            is_storable=True,
+            taxes_id=[Command.set(self.tax_sale_a.ids)],
+        )
+        product.invoice_policy = "order"
+        so = self.env["sale.order"].create(
+            {
+                "partner_id": self.partner_a.id,
+                "order_line": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": 1,
+                        }
+                    )
+                ],
+            }
+        )
+        so.action_confirm()
+        invoice = so._create_invoices()
+        invoice.action_post()
+        picking = so.picking_ids.filtered(
+            lambda p: p.picking_type_id.code == "outgoing" and p.state != "done"
+        )[:1]
+        self.assertTrue(picking)
+        picking.action_assign()
+        picking.move_ids.quantity = picking.move_ids.product_uom_qty
+        picking.move_ids.picked = True
+        picking._action_done()
+        self.assertFalse((picking.l10n_ve_control_number or "").strip())

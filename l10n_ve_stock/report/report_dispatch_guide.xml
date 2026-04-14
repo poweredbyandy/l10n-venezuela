@@ -102,7 +102,7 @@
                 </div>
                 <div class="row mb-1 position-relative l10n_ve_dispatch_meta">
                     <div
-                        t-if="o.picking_type_code == 'internal' and o.l10n_ve_internal_transfer_reason_id"
+                        t-if="o.l10n_ve_internal_transfer_reason_id and (o.picking_type_code == 'internal' or (o.picking_type_code == 'outgoing' and not o.sale_id))"
                         class="col-12 mb-2"
                     >
                         <strong>Motivo de traslado: </strong>

@@ -48,6 +48,18 @@ class AccountBook(models.Model):
         string="Documents count",
         compute="_compute_document_count",
     )
+    l10n_ve_max_invoice_lines = fields.Integer(
+        string="Máximo de líneas por factura",
+        default=10,
+        help="Al facturar desde ventas, si el pedido supera este número de líneas de "
+        "producto, se generarán varias facturas respetando el límite.",
+    )
+    l10n_ve_max_picking_lines = fields.Integer(
+        string="Máximo de líneas por guía de despacho",
+        default=10,
+        help="Al confirmar un pedido, si un albarán supera este número de movimientos "
+        "de producto, se dividirá en varias guías de despacho.",
+    )
     l10n_ve_setup_guide = fields.Html(
         string="Guía de configuración del talonario",
         compute="_compute_l10n_ve_setup_guide",
@@ -76,6 +88,18 @@ class AccountBook(models.Model):
     def _compute_document_count(self):
         for book in self:
             book.document_count = len(book.document_ids)
+
+    @api.constrains("l10n_ve_max_invoice_lines", "l10n_ve_max_picking_lines")
+    def _check_l10n_ve_max_lines_positive(self):
+        for book in self:
+            if book.l10n_ve_max_invoice_lines is not None and book.l10n_ve_max_invoice_lines < 1:
+                raise ValidationError(
+                    _("El máximo de líneas por factura debe ser al menos 1.")
+                )
+            if book.l10n_ve_max_picking_lines is not None and book.l10n_ve_max_picking_lines < 1:
+                raise ValidationError(
+                    _("El máximo de líneas por guía de despacho debe ser al menos 1.")
+                )
 
     @api.depends("active")
     def _compute_l10n_ve_setup_guide(self):
@@ -142,6 +166,17 @@ class AccountBook(models.Model):
         p = (self.l10n_ve_series_prefix or "00").strip() or "00"
         p = p.rstrip("-")
         return f"{p}-{int(number):08d}"
+
+    def l10n_ve_peek_next_formatted(self, section):
+        """Vista previa del próximo N° de control sin consumir correlativo."""
+        self.ensure_one()
+        if not section or section.book_id != self:
+            return False
+        try:
+            number = self._l10n_ve_next_correlative_number_for_section(section)
+        except ValidationError:
+            return False
+        return self._l10n_ve_format_control_number(number)
 
     def write(self, vals):
         res = super().write(vals)
