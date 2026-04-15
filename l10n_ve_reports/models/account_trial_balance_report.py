@@ -56,7 +56,7 @@ class TrialBalanceCustomHandler(models.AbstractModel):
         lines = [
             line[1]
             for line in self.env[
-                "account.general.ledger.report.handler"
+                "account.general.ledger.report.handler.oca"
             ]._dynamic_lines_generator(
                 report, options, all_column_groups_expression_totals, warnings=warnings
             )
@@ -296,7 +296,7 @@ class TrialBalanceCustomHandler(models.AbstractModel):
         self, report, options, previous_options, default_group_vals, side_to_append
     ):
         initial_balance_options = self.env[
-            "account.general.ledger.report.handler"
+            "account.general.ledger.report.handler.oca"
         ]._get_options_initial_balance(options)
         initial_forced_options = {
             "date": initial_balance_options["date"],
