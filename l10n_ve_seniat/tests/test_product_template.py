@@ -105,6 +105,17 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
         )
         self.assertEqual(p.list_price, 45.0)
 
+    def test_ve_product_product_create_coerces_zero_list_price(self):
+        p = self.env["product.product"].create(
+            {
+                "name": "Variant zero price VE",
+                "type": "service",
+                "list_price": 0.0,
+                "standard_price": 0.0,
+            }
+        )
+        self.assertEqual(p.list_price, 1.0)
+
     def test_ve_product_rejects_list_price_below_cost(self):
         with self.assertRaises(ValidationError):
             self.env["product.template"].create(

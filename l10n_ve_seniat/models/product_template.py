@@ -293,3 +293,27 @@ class ProductProduct(models.Model):
     l10n_ve_sale_taxes_readonly = fields.Boolean(
         related="product_tmpl_id.l10n_ve_sale_taxes_readonly",
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        Template = self.env["product.template"]
+        for vals in vals_list:
+            Template._l10n_ve_normalize_list_price_in_vals(vals)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        vals = dict(vals)
+        if "list_price" in vals:
+            ve_country = self.env.ref("base.ve", raise_if_not_found=False)
+            if ve_country:
+                ve_products = self.filtered(
+                    lambda p: (
+                        p.product_tmpl_id.company_id or self.env.company
+                    ).account_fiscal_country_id
+                    == ve_country
+                )
+                if ve_products:
+                    self.env["product.template"]._l10n_ve_normalize_list_price_in_vals(
+                        vals, templates=ve_products.product_tmpl_id
+                    )
+        return super().write(vals)
