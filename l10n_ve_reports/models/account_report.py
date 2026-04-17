@@ -661,7 +661,7 @@ class AccountReport(models.Model):
                 period_type = "quarter"
             elif match(*date_utils.get_fiscal_year(date)):
                 period_type = "year"
-            elif match(date_utils.get_month(date)[0], fields.Date.today()):
+            elif match(date_utils.get_month(date)[0], fields.Date.context_today(self)):
                 period_type = "today"
             else:
                 period_type = "custom"
@@ -742,16 +742,29 @@ class AccountReport(models.Model):
         """
         period_type = period_vals["period_type"]
         mode = period_vals["mode"]
-        date_from = fields.Date.from_string(period_vals["date_from"])
         date_to = fields.Date.from_string(period_vals["date_to"])
+        date_from = (
+            fields.Date.from_string(period_vals["date_from"])
+            if period_vals.get("date_from")
+            else date_to
+        )
         if period_type == "month":
             date_to = date_from + relativedelta(months=periods)
         elif period_type == "quarter":
             date_to = date_from + relativedelta(months=3 * periods)
         elif period_type == "year":
             date_to = date_from + relativedelta(years=periods)
-        elif period_type in {"custom", "today"}:
+        elif period_type == "custom":
             date_to = date_from + relativedelta(days=periods)
+        elif period_type == "today":
+            anchor = fields.Date.from_string(period_vals["date_to"])
+            new_date = anchor + relativedelta(days=periods)
+            if mode == "single":
+                return self._get_dates_period(new_date, new_date, mode, period_type="today")
+            date_from = self.env.company.compute_fiscalyear_dates(new_date)["date_from"]
+            return self._get_dates_period(
+                date_from, new_date, mode, period_type="today"
+            )
 
         if tax_period or "tax_period" in period_type:
             month_per_period = self.env.company._get_tax_periodicity_months_delay(self)
@@ -761,7 +774,7 @@ class AccountReport(models.Model):
             return self._get_dates_period(
                 date_from, date_to, mode, period_type="tax_period"
             )
-        if period_type in ("fiscalyear", "today"):
+        if period_type == "fiscalyear":
             company_fiscalyear_dates = {}
             # This loop is needed because a fiscal year can be a month, quarter, etc
             for _ in range(abs(periods)):
@@ -872,11 +885,16 @@ class AccountReport(models.Model):
 
         # Compute 'date_from' / 'date_to'.
         if not date_from or not date_to:
-            if options_filter == "today":
+            if options_filter in ("today", "this_today") or (
+                isinstance(options_filter, str) and options_filter.endswith("_today")
+            ):
                 date_to = fields.Date.context_today(self)
-                date_from = self.env.company.compute_fiscalyear_dates(date_to)[
-                    "date_from"
-                ]
+                if options_mode == "single":
+                    date_from = date_to
+                else:
+                    date_from = self.env.company.compute_fiscalyear_dates(date_to)[
+                        "date_from"
+                    ]
                 period_type = "today"
             elif "month" in options_filter:
                 date_from, date_to = date_utils.get_month(
@@ -920,15 +938,50 @@ class AccountReport(models.Model):
         )
 
         if any(option in options_filter for option in ["previous", "next"]):
-            new_period = date.get("period", -1 if "previous" in options_filter else 1)
+            anchor_day = fields.Date.context_today(self)
+            if (
+                options["date"].get("period_type") == "today"
+                and isinstance(options_filter, str)
+                and options_filter.endswith("_today")
+            ):
+                if "period" in date and date.get("period") is not None:
+                    shift_periods = int(date["period"])
+                elif period_date_to:
+                    shift_periods = (
+                        fields.Date.from_string(period_date_to) - anchor_day
+                    ).days
+                else:
+                    shift_periods = (
+                        -1 if "previous" in options_filter else 1
+                    )
+            else:
+                new_period = date.get(
+                    "period", -1 if "previous" in options_filter else 1
+                )
+                shift_periods = new_period
+                if (
+                    options["date"].get("period_type") == "today"
+                    and not options_filter.endswith("_today")
+                ):
+                    if "previous" in options_filter:
+                        shift_periods = -1
+                    elif "next" in options_filter:
+                        shift_periods = 1
+                    else:
+                        shift_periods = 0
             options["date"] = self._get_shifted_dates_period(
                 options,
                 options["date"],
-                new_period,
+                shift_periods,
                 tax_period="tax_period" in options_filter,
             )
-            # This line is useful for the export and tax closing so that the period is set in the options.
-            options["date"]["period"] = new_period
+
+        if options.get("date", {}).get("period_type") == "today" and options[
+            "date"
+        ].get("date_to"):
+            anchor_day = fields.Date.context_today(self)
+            dt_to = fields.Date.from_string(options["date"]["date_to"])
+            options["date"]["period"] = (dt_to - anchor_day).days
 
         options["date"]["filter"] = options_filter
 

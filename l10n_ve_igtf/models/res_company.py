@@ -12,7 +12,6 @@ class ResCompany(models.Model):
         column2="currency_id",
         string="IGTF Currencies",
         help="Currencies for which IGTF should apply (for example, USD).",
-        default=lambda self: self.env.ref("base.USD", raise_if_not_found=False),
     )
 
     l10n_ve_igtf_account_id = fields.Many2one(

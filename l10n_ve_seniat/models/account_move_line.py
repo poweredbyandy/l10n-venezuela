@@ -112,14 +112,7 @@ class AccountMoveLine(models.Model):
         product = self.product_id
         if not product:
             return name
-        code = (product.default_code or "").strip()
-        if not code:
-            return name
-        prefix = f"[{code}]"
-        if name.startswith(prefix):
-            rest = name[len(prefix) :].strip()
-            return rest or (product.name or "")
-        return name
+        return (product.name or "").strip() or name
 
     def _l10n_ve_must_use_exempt_tax(self):
         self.ensure_one()

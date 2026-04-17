@@ -97,11 +97,7 @@ class AccountPaymentRegister(models.TransientModel):
 
     def _l10n_ve_get_allowed_currencies(self):
         self.ensure_one()
-        currencies = self.company_id.l10n_ve_igtf_currency_ids
-        if currencies:
-            return currencies
-        usd = self.env.ref("base.USD", raise_if_not_found=False)
-        return usd if usd else self.env["res.currency"]
+        return self.company_id.l10n_ve_igtf_currency_ids
 
     def _l10n_ve_currency_applies_igtf(self):
         self.ensure_one()

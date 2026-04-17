@@ -60,10 +60,7 @@ export class AccountReportAnnotationsPopover extends Component {
     }
 
     _getNewAnnotation() {
-        const date =
-            this.props.controller.options.date.filter === "today"
-                ? new Date().toISOString().split("T")[0]
-                : this.props.controller.options.date.date_to;
+        const date = this.props.controller.options.date.date_to;
         return {
             date: DateTime.fromISO(date),
             text: "",

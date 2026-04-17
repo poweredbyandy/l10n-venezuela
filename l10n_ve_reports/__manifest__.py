@@ -10,7 +10,7 @@
 Accounting Reports
 ==================
     """,
-    "depends": ["account", "l10n_ve_seniat"],
+    "depends": ["account", "l10n_ve_seniat", "web"],
     "data": [
         "security/ir.model.access.csv",
         "data/pdf_export_templates.xml",
@@ -22,6 +22,8 @@ Accounting Reports
         "data/aged_partner_balance.xml",
         "data/general_ledger.xml",
         "data/diary_book_report.xml",
+        "data/daily_payments_report.xml",
+        "data/report_x.xml",
         "data/sales_book_report.xml",
         "data/sales_book_fiscal_machine_report.xml",
         "data/purchases_book_report.xml",

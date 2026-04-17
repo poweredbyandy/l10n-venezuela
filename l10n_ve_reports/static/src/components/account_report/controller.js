@@ -6,6 +6,8 @@ import {useService} from "@web/core/utils/hooks";
 
 import {removeTaxGroupingFromLineId} from "@l10n_ve_reports/js/util";
 
+import {logAccountReportDate} from "./account_report_date_debug";
+
 export class AccountReportController {
     constructor(action) {
         this.action = action;
@@ -39,6 +41,11 @@ export class AccountReportController {
             this.action.params?.ignore_session,
             isOpeningReport
         );
+        logAccountReportDate("load:afterFirstGetOptions", {
+            isOpeningReport,
+            report_id: mainReportOptions.report_id,
+            date: mainReportOptions.date,
+        });
         const cacheKey = this.getCacheKey(
             mainReportOptions["sections_source_id"],
             mainReportOptions["report_id"]
@@ -120,6 +127,12 @@ export class AccountReportController {
             }
         }
 
+        logAccountReportDate("reload:beforeSaveSession", {
+            optionPath,
+            date: newOptions.date,
+            loading_call_number: newOptions.loading_call_number,
+        });
+
         this.saveSessionOptions(newOptions); // The new options will be loaded from the session. Saving them now ensures the new filter is taken into account.
         await this.displayReport(newOptions["report_id"]);
     }
@@ -188,10 +201,19 @@ export class AccountReportController {
         ignore_session = false,
         isOpeningReport = false
     ) {
-        const loadOptions =
+        let loadOptions =
             ignore_session || !this.hasSessionOptions()
-                ? this.action.params?.options || {}
-                : this.sessionOptions();
+                ? {...(this.action.params?.options || {})}
+                : {...this.sessionOptions()};
+        let openingStrippedDate = false;
+        if (
+            isOpeningReport &&
+            !ignore_session &&
+            this.hasSessionOptions()
+        ) {
+            delete loadOptions.date;
+            openingStrippedDate = true;
+        }
         const cacheKey = this.getCacheKey(
             loadOptions["sections_source_id"] || reportId,
             reportId
@@ -203,6 +225,17 @@ export class AccountReportController {
         loadOptions["loading_call_number"] = this.loadingCallNumberByCacheKey[cacheKey];
 
         loadOptions["is_opening_report"] = isOpeningReport;
+
+        logAccountReportDate("loadReportOptions:request", {
+            reportId,
+            preloading,
+            ignore_session,
+            isOpeningReport,
+            optionsSource: ignore_session || !this.hasSessionOptions() ? "action_or_empty" : "sessionStorage",
+            openingStrippedDate,
+            loadOptionsDate: loadOptions.date,
+            loading_call_number: loadOptions.loading_call_number,
+        });
 
         if (!this.reportOptionsMap[cacheKey]) {
             // The options for this section are not loaded nor loading. Let's load them !
@@ -241,11 +274,19 @@ export class AccountReportController {
 
                 this.loadingCallNumberByCacheKey[loadedOptionsCacheKey] = 1;
                 delete this.loadingCallNumberByCacheKey[cacheKey];
+                logAccountReportDate("loadReportOptions:response(reroute)", {
+                    date: reportOptions.date,
+                });
                 return reportOptions;
             }
         }
 
-        return this.reportOptionsMap[cacheKey];
+        const resolved = await this.reportOptionsMap[cacheKey];
+        logAccountReportDate("loadReportOptions:response", {
+            cacheKey,
+            date: resolved.date,
+        });
+        return resolved;
     }
 
     //------------------------------------------------------------------------------------------------------------------

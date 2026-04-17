@@ -71,11 +71,22 @@ class ProductTemplate(models.Model):
                         "confirmadas."
                     )
                 )
+        vals = dict(vals)
+        if "list_price" in vals:
+            ve_country = self.env.ref("base.ve", raise_if_not_found=False)
+            if ve_country:
+                ve_templates = self.filtered(
+                    lambda t: (t.company_id or self.env.company).account_fiscal_country_id
+                    == ve_country
+                )
+                if ve_templates:
+                    self._l10n_ve_normalize_list_price_in_vals(vals, templates=ve_templates)
         return super().write(vals)
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            self._l10n_ve_normalize_list_price_in_vals(vals)
             self._l10n_ve_inject_default_exent_taxes_in_vals(vals)
         return super().create(vals_list)
 
@@ -140,6 +151,33 @@ class ProductTemplate(models.Model):
             ],
             limit=1,
         )
+
+    @api.model
+    def _l10n_ve_normalize_list_price_in_vals(self, vals, templates=None):
+        ve_country = self.env.ref("base.ve", raise_if_not_found=False)
+        if not ve_country:
+            return
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+
+        if templates is not None:
+            costs = [float(c or 0.0) for c in templates.mapped("standard_price")]
+            if "standard_price" in vals:
+                costs.append(float(vals.get("standard_price") or 0.0))
+            cost_max = max(costs) if costs else 0.0
+            if "list_price" in vals and float_compare(
+                vals["list_price"], 0.0, precision_digits=prec
+            ) <= 0:
+                vals["list_price"] = max(1.0, cost_max)
+            return
+
+        company = self._l10n_ve_vals_get_company(vals)
+        if company.account_fiscal_country_id != ve_country:
+            return
+        cost = float(vals.get("standard_price", 0.0) or 0.0)
+        if "list_price" in vals and float_compare(
+            vals["list_price"], 0.0, precision_digits=prec
+        ) <= 0:
+            vals["list_price"] = max(1.0, cost)
 
     @api.model
     def _l10n_ve_inject_default_exent_taxes_in_vals(self, vals):
@@ -255,3 +293,27 @@ class ProductProduct(models.Model):
     l10n_ve_sale_taxes_readonly = fields.Boolean(
         related="product_tmpl_id.l10n_ve_sale_taxes_readonly",
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        Template = self.env["product.template"]
+        for vals in vals_list:
+            Template._l10n_ve_normalize_list_price_in_vals(vals)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        vals = dict(vals)
+        if "list_price" in vals:
+            ve_country = self.env.ref("base.ve", raise_if_not_found=False)
+            if ve_country:
+                ve_products = self.filtered(
+                    lambda p: (
+                        p.product_tmpl_id.company_id or self.env.company
+                    ).account_fiscal_country_id
+                    == ve_country
+                )
+                if ve_products:
+                    self.env["product.template"]._l10n_ve_normalize_list_price_in_vals(
+                        vals, templates=ve_products.product_tmpl_id
+                    )
+        return super().write(vals)

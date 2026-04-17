@@ -17,6 +17,22 @@
         groups="account.group_account_readonly"
     />
     <menuitem
+        id="menu_seniat_report_daily_payments"
+        name="Pagos por diario"
+        action="action_account_report_daily_payments"
+        parent="l10n_ve_seniat.menu_seniat_reports"
+        sequence="65"
+        groups="account.group_account_readonly"
+    />
+    <menuitem
+        id="menu_seniat_report_ve_report_x"
+        name="Reporte X"
+        action="action_account_report_ve_report_x"
+        parent="l10n_ve_seniat.menu_seniat_reports"
+        sequence="66"
+        groups="account.group_account_readonly"
+    />
+    <menuitem
         id="menu_seniat_report_sales_book"
         name="Libro de Ventas"
         action="action_account_report_sales_book"
