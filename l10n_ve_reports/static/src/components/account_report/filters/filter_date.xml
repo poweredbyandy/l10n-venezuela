@@ -18,14 +18,14 @@
                 <div class="d-flex justify-content-between">
                     <button
                         class="btn_previous_date fa fa-caret-left"
-                        t-on-click="() => this.selectPreviousPeriod(dateFilter.period)"
+                        t-on-click="(ev) => { ev.stopPropagation(); this.selectPreviousPeriod(dateFilter.period); }"
                     />
                     <time class="d-flex justify-content-center time_text">
                         <t t-out="this.displayPeriod(dateFilter.period)" />
                     </time>
                     <button
                         class="btn_next_date fa fa-caret-right"
-                        t-on-click="() => this.selectNextPeriod(dateFilter.period)"
+                        t-on-click="(ev) => { ev.stopPropagation(); this.selectNextPeriod(dateFilter.period); }"
                     />
                 </div>
             </DropdownItem>
@@ -41,14 +41,6 @@
 
             <t t-set-slot="content">
                 <t t-if="controller.options.date.mode === 'single'">
-                    <DropdownItem
-                        class="{ 'selected': controller.options.date.filter === 'today' }"
-                        onSelected="() => this.filterClicked({ optionKey: 'date.filter', optionValue: 'today', reload: true})"
-                        closingMode="'none'"
-                    >
-                        Today
-                    </DropdownItem>
-
                     <t t-call="l10n_ve_reports.AccountReportFilterDateSelection" />
 
                     <div id="filter_date_divider_single" class="dropdown-divider" />

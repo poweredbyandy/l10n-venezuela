@@ -86,13 +86,16 @@
                                     t-out="o.l10n_ve_third_party_partner_id.vat"
                                 /></span>
                                 <div
+                                    class="text-muted small"
+                                >
+                                    <span
+                                >Ventas por cuenta de terceros Art. 10 de la Ley del IVA.</span>
+                                </div>
+                                <div
                                     t-if="o.l10n_ve_certified_copy_deadline"
                                     class="text-muted small mb-2"
                                 >
-                                    <span
-                                >Obligación Art. 32 PA00071: Entregar copia certificada al cliente a más tardar el <span
-                                    t-field="o.l10n_ve_certified_copy_deadline"
-                                /></span>.
+                                    <span>Obligación Art. 32 PA00071: Entregar copia certificada al cliente a más tardar el <span t-field="o.l10n_ve_certified_copy_deadline"/></span>.
                                 </div>
                             </t>
                             <span class="d-block text-uppercase">
