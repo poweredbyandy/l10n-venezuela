@@ -43,18 +43,25 @@ class AccountPaymentRegister(models.TransientModel):
     @api.depends("payment_type", "company_id", "can_edit_wizard")
     def _compute_available_journal_ids(self):
         """
-        Ensure that the supplier retention journals are not selectable for
-        customer payments.
+        Ensure that retention journals are not selectable when registering
+        payments.
         """
         res = super()._compute_available_journal_ids()
-        supplier_retention_journal_ids = (
-            self.env.company.iva_supplier_retention_journal_id.id,
-            self.env.company.islr_supplier_retention_journal_id.id,
-            self.env.company.municipal_supplier_retention_journal_id.id,
+        retention_journal_ids = tuple(
+            journal_id
+            for journal_id in (
+                self.env.company.iva_supplier_retention_journal_id.id,
+                self.env.company.iva_customer_retention_journal_id.id,
+                self.env.company.islr_supplier_retention_journal_id.id,
+                self.env.company.islr_customer_retention_journal_id.id,
+                self.env.company.municipal_supplier_retention_journal_id.id,
+                self.env.company.municipal_customer_retention_journal_id.id,
+            )
+            if journal_id
         )
         for wizard in self:
             wizard.available_journal_ids = wizard.available_journal_ids.filtered_domain(
-                [("id", "not in", supplier_retention_journal_ids)]
+                [("id", "not in", retention_journal_ids)]
             )
         return res
 

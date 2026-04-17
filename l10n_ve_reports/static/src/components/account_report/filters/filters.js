@@ -9,6 +9,9 @@ import {Dropdown} from "@web/core/dropdown/dropdown";
 import {DropdownItem} from "@web/core/dropdown/dropdown_item";
 import {MultiRecordSelector} from "@web/core/record_selectors/multi_record_selector";
 import {formatDate} from "@web/core/l10n/dates";
+
+import {logAccountReportDate} from "../account_report_date_debug";
+
 const {DateTime} = luxon;
 
 export class AccountReportFilters extends Component {
@@ -29,6 +32,10 @@ export class AccountReportFilters extends Component {
         this.controller = useState(this.env.controller);
         if (this.env.controller.options.date) {
             this.dateFilter = useState(this.initDateFilters());
+            logAccountReportDate("setup:afterInitDateFilters", {
+                dateFilter: {...this.dateFilter},
+                optionsDate: this.env.controller.options.date,
+            });
         }
         this.budgetName = useState({
             value: "",
@@ -341,6 +348,7 @@ export class AccountReportFilters extends Component {
         switch (mode) {
             case "single":
                 return [
+                    {name: _t("Day"), period: "today"},
                     {name: _t("End of Month"), period: "month"},
                     {name: _t("End of Quarter"), period: "quarter"},
                     {name: _t("End of Year"), period: "year"},
@@ -358,6 +366,7 @@ export class AccountReportFilters extends Component {
 
     initDateFilters() {
         const filters = {
+            today: 0,
             month: 0,
             quarter: 0,
             year: 0,
@@ -369,9 +378,21 @@ export class AccountReportFilters extends Component {
         // In case the period is fiscalyear it will be computed exactly like a year period.
         const period = periodType === "fiscalyear" ? "year" : periodType;
         // Set the filter value based on the specifier
-        filters[period] =
-            this.controller.options.date.period ||
-            (specifier === "previous" ? -1 : specifier === "next" ? 1 : 0);
+        const rawPeriod = this.controller.options.date.period;
+        const fallback =
+            specifier === "previous" ? -1 : specifier === "next" ? 1 : 0;
+        filters[period] = rawPeriod ?? fallback;
+
+        logAccountReportDate("initDateFilters", {
+            filter: this.controller.options.date.filter,
+            specifier,
+            periodType,
+            periodKey: period,
+            rawPeriod,
+            fallbackUsed: rawPeriod === undefined || rawPeriod === null,
+            resolved: filters[period],
+            date_to: this.controller.options.date.date_to,
+        });
 
         return filters;
     }
@@ -407,7 +428,17 @@ export class AccountReportFilters extends Component {
     }
 
     _changePeriod(periodType, increment) {
+        const before = this.dateFilter[periodType];
         this.dateFilter[periodType] = this.dateFilter[periodType] + increment;
+
+        logAccountReportDate("_changePeriod:beforeUpdateOption", {
+            periodType,
+            increment,
+            before,
+            after: this.dateFilter[periodType],
+            nextFilter: this.getDateFilter(periodType),
+            optionsDateBefore: {...this.controller.options.date},
+        });
 
         this.controller.updateOption("date.filter", this.getDateFilter(periodType));
         this.controller.updateOption("date.period", this.dateFilter[periodType]);
@@ -423,6 +454,10 @@ export class AccountReportFilters extends Component {
         const dateTo = DateTime.now();
 
         switch (periodType) {
+            case "today": {
+                const dt = DateTime.fromISO(this.controller.options.date.date_to);
+                return dt.isValid ? formatDate(dt) : "";
+            }
             case "month":
                 return this._displayMonth(dateTo);
             case "quarter":
@@ -578,6 +613,14 @@ export class AccountReportFilters extends Component {
     // Generic filters
     //------------------------------------------------------------------------------------------------------------------
     async filterClicked({optionKey, optionValue = undefined, reload = false}) {
+        if (optionKey.startsWith("date.")) {
+            logAccountReportDate("filterClicked", {
+                optionKey,
+                optionValue,
+                reload,
+                optionsDate: this.controller.options.date,
+            });
+        }
         if (optionValue !== undefined) {
             await this.controller.updateOption(optionKey, optionValue);
         } else {
@@ -596,6 +639,13 @@ export class AccountReportFilters extends Component {
         }
 
         this.controller.incrementCallNumber();
+
+        logAccountReportDate("applyFilters:scheduled", {
+            optionKey,
+            delay,
+            loading_call_number: this.controller.options.loading_call_number,
+            date: this.controller.options.date,
+        });
 
         this.timeout = setTimeout(async () => {
             await this.controller.reload(optionKey, this.controller.options);

@@ -40,6 +40,18 @@
             groups="account.group_account_readonly"
         />
         <menuitem
+            id="menu_action_account_report_daily_payments"
+            name="🇻🇪 Pagos por diario"
+            action="action_account_report_daily_payments"
+            groups="account.group_account_readonly"
+        />
+        <menuitem
+            id="menu_action_account_report_ve_report_x"
+            name="🇻🇪 Reporte X"
+            action="action_account_report_ve_report_x"
+            groups="account.group_account_readonly"
+        />
+        <menuitem
             id="menu_action_account_report_sales_book"
             name="🇻🇪 Libro de Ventas"
             action="action_account_report_sales_book"

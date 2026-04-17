@@ -29,6 +29,8 @@ from . import balance_sheet
 from . import account_fiscal_position
 from . import account_customer_statement
 from . import account_followup_report
+from . import account_daily_payments_report
+from . import account_report_x
 from . import account_diary_book_report
 from . import account_sales_book_report
 from . import account_sales_book_fiscal_machine_report

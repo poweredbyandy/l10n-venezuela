@@ -5,6 +5,20 @@ from .common import TestL10nVeIgtfCommon
 
 @tagged("post_install", "-at_install")
 class TestIgtfPaymentFlows(TestL10nVeIgtfCommon):
+    def test_empty_igtf_currency_configuration_does_not_apply_igtf(self):
+        self.company.write({"l10n_ve_igtf_currency_ids": [(5, 0, 0)]})
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.ves)
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=self._usd_amount_for_ves(100.0),
+            currency=self.usd,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+        self.assertFalse(wizard.l10n_ve_show_apply_igtf)
+        self.assertFalse(wizard.l10n_ve_apply_igtf)
+        self.assertAlmostEqual(wizard.l10n_ve_igtf_amount_company_currency, 0.0, places=2)
+
     def _assert_igtf_case_in_bs(self, payment_ratio, expected_igtf_bs):
         invoice = self._create_customer_invoice(amount=100.0, currency=self.ves)
         payment_amount_bs = 100.0 * payment_ratio

@@ -122,12 +122,7 @@ class AccountPayment(models.Model):
             `res.currency` recordset.
         """
         self.ensure_one()
-        currencies = self.company_id.l10n_ve_igtf_currency_ids
-        return (
-            currencies
-            or self.env.ref("base.USD", raise_if_not_found=False)
-            or self.env["res.currency"]
-        )
+        return self.company_id.l10n_ve_igtf_currency_ids
 
     @api.depends("currency_id", "company_id", "company_id.l10n_ve_igtf_currency_ids")
     def _compute_l10n_ve_show_apply_igtf(self):
@@ -136,11 +131,6 @@ class AccountPayment(models.Model):
                 payment.l10n_ve_show_apply_igtf = False
                 continue
             allowed = payment.company_id.l10n_ve_igtf_currency_ids
-            if not allowed:
-                allowed = (
-                    payment.env.ref("base.USD", raise_if_not_found=False)
-                    or payment.env["res.currency"]
-                )
             payment.l10n_ve_show_apply_igtf = bool(
                 payment.currency_id and payment.currency_id in allowed
             )

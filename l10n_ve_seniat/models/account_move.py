@@ -36,13 +36,14 @@ class AccountMove(models.Model):
                 "out_refund",
             ):
                 texts = []
-                texts.append(
-                    "<span>Este pago estará sujeto al cobro adicional del 3% del "
-                    "Impuesto a las Grandes Transacciones Financieras (IGTF), de "
-                    "conformidad con la Providencia Administrativa SNAT/2022/000013 "
-                    "publicada en la G.O N 42.339 del 17-03-2022, en caso de ser "
-                    "cancelado en divisas. No aplica en pago en Bs.</span> "
-                )
+                if move.company_id.taxpayer_type != "ordinary":
+                    texts.append(
+                        "<span>Este pago estará sujeto al cobro adicional del 3% del "
+                        "Impuesto a las Grandes Transacciones Financieras (IGTF), de "
+                        "conformidad con la Providencia Administrativa SNAT/2022/000013 "
+                        "publicada en la G.O N 42.339 del 17-03-2022, en caso de ser "
+                        "cancelado en divisas. No aplica en pago en Bs.</span> "
+                    )
                 # Segundo texto sobre tipo de cambio (solo si hay tasa inversa)
                 if move.company_currency_id != move.currency_id:
                     # Formatear la tasa inversa con la moneda de la compañía
