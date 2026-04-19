@@ -26,6 +26,13 @@
             <form string="Talonario">
                 <header>
                     <button
+                        name="action_l10n_ve_open_void_folio_wizard"
+                        string="Anular folio"
+                        type="object"
+                        class="btn-secondary"
+                        groups="account.group_account_invoice"
+                    />
+                    <button
                         name="action_l10n_ve_sync_section_sequences"
                         string="Sincronizar secuencias de tramos"
                         type="object"
@@ -39,6 +46,15 @@
                         bg_color="text-bg-danger"
                         invisible="active"
                     />
+                    <div
+                        class="alert alert-warning"
+                        role="alert"
+                        invisible="not l10n_ve_void_folio_alert"
+                    >
+                        <field name="l10n_ve_void_folio_alert_text" nolabel="1" readonly="1" />
+                    </div>
+                    <field name="l10n_ve_void_folio_alert" invisible="1" />
+                    <field name="l10n_ve_void_folio_count_month" invisible="1" />
                     <div class="oe_title">
                         <label for="name" />
                         <h1>
@@ -93,7 +109,8 @@
                                 >
                                     <field name="number" />
                                     <field name="section_id" optional="hide" />
-                                    <field name="source_record" />
+                                    <field name="l10n_ve_correlative_label" string="Documento / motivo" />
+                                    <field name="source_record" column_invisible="True" />
                                     <field name="company_id" column_invisible="True" />
                                 </list>
                             </field>
