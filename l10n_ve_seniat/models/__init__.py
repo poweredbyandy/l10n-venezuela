@@ -11,6 +11,7 @@ from . import account_tax
 from . import res_company
 from . import res_config_settings
 from . import account_book
+from . import l10n_ve_book_folio_void
 from . import account_move
 from . import account_move_reversal
 from . import account_debit_note
