@@ -15,4 +15,9 @@
         <field name="model_id" ref="l10n_ve_seniat.model_account_book_document" />
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="l10n_ve_book_folio_void_company_rule" model="ir.rule">
+        <field name="name">l10n_ve.book.folio.void: multi-company</field>
+        <field name="model_id" ref="l10n_ve_seniat.model_l10n_ve_book_folio_void" />
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

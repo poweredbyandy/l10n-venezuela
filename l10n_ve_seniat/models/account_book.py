@@ -48,6 +48,16 @@ class AccountBook(models.Model):
         string="Documents count",
         compute="_compute_document_count",
     )
+    l10n_ve_void_folio_count_month = fields.Integer(
+        string="Anulaciones de folio (mes actual)",
+        compute="_compute_l10n_ve_void_folio_month_stats",
+    )
+    l10n_ve_void_folio_alert = fields.Boolean(
+        compute="_compute_l10n_ve_void_folio_month_stats",
+    )
+    l10n_ve_void_folio_alert_text = fields.Text(
+        compute="_compute_l10n_ve_void_folio_month_stats",
+    )
     l10n_ve_max_invoice_lines = fields.Integer(
         string="Máximo de líneas por factura",
         default=10,
@@ -88,6 +98,32 @@ class AccountBook(models.Model):
     def _compute_document_count(self):
         for book in self:
             book.document_count = len(book.document_ids)
+
+    @api.depends("document_ids", "document_ids.res_model", "document_ids.create_date")
+    def _compute_l10n_ve_void_folio_month_stats(self):
+        void_model = "l10n_ve.book.folio.void"
+        for book in self:
+            ref_date = fields.Date.context_today(book)
+            n = 0
+            for doc in book.document_ids:
+                if doc.res_model != void_model or not doc.create_date:
+                    continue
+                local_d = fields.Datetime.context_timestamp(
+                    book, doc.create_date
+                ).date()
+                if local_d.year == ref_date.year and local_d.month == ref_date.month:
+                    n += 1
+            book.l10n_ve_void_folio_count_month = n
+            book.l10n_ve_void_folio_alert = n > 0
+            book.l10n_ve_void_folio_alert_text = (
+                _(
+                    "Hay %(n)s anulación(es) de folio registrada(s) en el mes actual "
+                    "en este talonario."
+                )
+                % {"n": n}
+                if n
+                else ""
+            )
 
     @api.constrains("l10n_ve_max_invoice_lines", "l10n_ve_max_picking_lines")
     def _check_l10n_ve_max_lines_positive(self):
@@ -199,6 +235,42 @@ class AccountBook(models.Model):
             for section in book.section_ids:
                 section._l10n_ve_refresh_sequence_number_next()
         return True
+
+    def l10n_ve_allocate_void_folio(self, section, reason):
+        """Consume el siguiente correlativo del tramo registrando solo el motivo (sin movimiento)."""
+        self.ensure_one()
+        if section.book_id != self:
+            raise ValidationError(_("El tramo no pertenece a este talonario."))
+        void = self.env["l10n_ve.book.folio.void"].create(
+            {
+                "book_id": self.id,
+                "section_id": section.id,
+                "reason": reason,
+            }
+        )
+        number = self._l10n_ve_next_correlative_number_for_section(section)
+        self.env["account.book.document"].create(
+            {
+                "book_id": self.id,
+                "section_id": section.id,
+                "number": number,
+                "res_model": "l10n_ve.book.folio.void",
+                "res_id": void.id,
+            }
+        )
+        section._l10n_ve_refresh_sequence_number_next()
+        return True
+
+    def action_l10n_ve_open_void_folio_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Anular folio"),
+            "res_model": "l10n_ve.book.folio.void.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_book_id": self.id},
+        }
 
     def _l10n_ve_last_document_in_section_span(self, section):
         self.ensure_one()
@@ -533,6 +605,10 @@ class AccountBookDocument(models.Model):
         compute="_compute_source_record",
         readonly=True,
     )
+    l10n_ve_correlative_label = fields.Char(
+        string="Documento / motivo",
+        compute="_compute_l10n_ve_correlative_label",
+    )
 
     _sql_constraints = [
         (
@@ -554,6 +630,10 @@ class AccountBookDocument(models.Model):
                 "account.move",
                 _("Invoice / credit note / debit note"),
             ),
+            (
+                "l10n_ve.book.folio.void",
+                _("Anulación de folio (sin movimiento)"),
+            ),
         ]
         if "stock.picking" in self.env:
             selection.append(
@@ -572,6 +652,20 @@ class AccountBookDocument(models.Model):
                 line.source_record = line.env[line.res_model].browse(line.res_id)
             else:
                 line.source_record = False
+
+    @api.depends("res_model", "res_id", "source_record")
+    def _compute_l10n_ve_correlative_label(self):
+        void_model = "l10n_ve.book.folio.void"
+        for line in self:
+            if line.res_model == void_model and line.res_id:
+                void = self.env[void_model].browse(line.res_id)
+                line.l10n_ve_correlative_label = (
+                    void.reason if void.exists() else ""
+                )
+            elif line.source_record:
+                line.l10n_ve_correlative_label = line.source_record.display_name
+            else:
+                line.l10n_ve_correlative_label = ""
 
     @api.constrains("res_model")
     def _check_res_model_allowed(self):
