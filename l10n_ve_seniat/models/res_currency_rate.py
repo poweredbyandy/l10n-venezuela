@@ -47,6 +47,9 @@ class ResCurrencyRate(models.Model):
     def _l10n_ve_skip_validation(self):
         return bool(self.env.context.get("l10n_ve_skip_currency_rate_validation"))
 
+    def _l10n_ve_allow_historical_rate_write(self):
+        return bool(self.env.context.get("l10n_ve_allow_historical_rate_write"))
+
     def write(self, vals):
         if self._l10n_ve_skip_validation():
             return super().write(vals)
@@ -62,7 +65,7 @@ class ResCurrencyRate(models.Model):
 
         today = fields.Date.context_today(self)
         for rec in self:
-            if rec.name != today:
+            if rec.name != today and not self._l10n_ve_allow_historical_rate_write():
                 raise UserError(
                     _(
                         "Solo se pueden modificar las tasas con fecha de hoy "
