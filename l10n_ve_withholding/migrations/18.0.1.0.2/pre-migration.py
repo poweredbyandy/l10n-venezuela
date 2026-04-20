@@ -67,7 +67,16 @@ def migrate(cr, version):
             )
             continue
         changed = False
-        for node in arch.xpath(".//field[@name='account_tax_periodicity']"):
+        for node in arch.xpath(
+            ".//field[starts-with(@name, 'account_tax_periodicity')]"
+        ):
+            setting = node.xpath("ancestor::setting[1]")
+            if setting:
+                parent = setting[0].getparent()
+                if parent is not None:
+                    parent.remove(setting[0])
+                    changed = True
+                continue
             parent = node.getparent()
             if parent is not None:
                 parent.remove(node)
