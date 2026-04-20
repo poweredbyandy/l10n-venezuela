@@ -15,7 +15,10 @@ def migrate(cr, version):
            AND d.res_id = v.id
         WHERE v.model = 'res.config.settings'
           AND v.active = TRUE
-          AND v.arch_db::text ILIKE '%account_tax_periodicity%'
+          AND (
+                v.arch_db::text ILIKE '%account_tax_periodicity%'
+                OR v.arch_db::text ILIKE '%totals_below_sections%'
+          )
         """
     )
     for view_id, view_name, module_name, xmlid_name in cr.fetchall():
@@ -68,7 +71,7 @@ def migrate(cr, version):
             continue
         changed = False
         for node in arch.xpath(
-            ".//field[starts-with(@name, 'account_tax_periodicity')]"
+            ".//field[starts-with(@name, 'account_tax_periodicity') or @name='totals_below_sections']"
         ):
             setting = node.xpath("ancestor::setting[1]")
             if setting:
