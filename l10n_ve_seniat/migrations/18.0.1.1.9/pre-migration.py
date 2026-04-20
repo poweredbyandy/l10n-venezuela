@@ -15,7 +15,7 @@ def migrate(cr, version):
            AND d.res_id = v.id
         WHERE v.model = 'account.move'
           AND v.active = TRUE
-          AND v.arch_db ILIKE '%audit_log_ids%'
+          AND v.arch_db::text ILIKE '%audit_log_ids%'
         """
     )
     for view_id, view_name, module_name, xmlid_name in cr.fetchall():
@@ -43,8 +43,22 @@ def migrate(cr, version):
         row = cr.fetchone()
         if not row or not row[0]:
             continue
+        arch_value = row[0]
+        if isinstance(arch_value, dict):
+            arch_text = arch_value.get("en_US")
+            if not arch_text:
+                arch_text = next(
+                    (val for val in arch_value.values() if isinstance(val, str) and val),
+                    None,
+                )
+        elif isinstance(arch_value, str):
+            arch_text = arch_value
+        else:
+            arch_text = None
+        if not arch_text:
+            continue
         try:
-            arch = etree.fromstring(row[0].encode("utf-8"))
+            arch = etree.fromstring(arch_text.encode("utf-8"))
         except Exception:
             _logger.warning(
                 "No se pudo parsear vista %s (%s), se mantiene sin cambios",
@@ -63,10 +77,19 @@ def migrate(cr, version):
             cr.execute(
                 """
                 UPDATE ir_ui_view
-                   SET arch_db = %s
+                   SET arch_db = CASE
+                        WHEN jsonb_typeof(arch_db) = 'object'
+                            THEN jsonb_set(
+                                arch_db,
+                                '{en_US}',
+                                to_jsonb(%s::text),
+                                true
+                            )
+                        ELSE to_jsonb(%s::text)
+                    END
                  WHERE id = %s
                 """,
-                (new_arch, view_id),
+                (new_arch, new_arch, view_id),
             )
             _logger.warning(
                 "Removido audit_log_ids de vista account.move: %s (%s)",
