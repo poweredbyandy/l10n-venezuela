@@ -127,7 +127,10 @@ def _cleanup_res_company(cr):
            AND d.res_id = v.id
         WHERE v.model = 'res.company'
           AND v.active = TRUE
-          AND v.arch_db::text ILIKE '%account_display_representative_field%'
+          AND (
+                v.arch_db::text ILIKE '%account_display_representative_field%'
+                OR v.arch_db::text ILIKE '%account_representative_id%'
+          )
         """
     )
     for view_id, view_name, module_name, xmlid_name in cr.fetchall():
@@ -168,7 +171,9 @@ def _cleanup_res_company(cr):
             )
             continue
         changed = False
-        for node in arch.xpath(".//field[@name='account_display_representative_field']"):
+        for node in arch.xpath(
+            ".//field[starts-with(@name, 'account_representative') or starts-with(@name, 'account_display_representative')]"
+        ):
             parent = node.getparent()
             if parent is not None:
                 parent.remove(node)
