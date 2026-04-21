@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template
+        id="portal_invoice_page_inherit_l10n_ve_edi"
+        inherit_id="account.portal_invoice_page"
+    >
+        <xpath expr="//div[hasclass('o_download_pdf')]" position="inside">
+            <a
+                t-if="invoice.l10n_ve_edi_portal_show_abrir_imprenta"
+                class="btn btn-light flex-grow-1"
+                t-att-href="invoice.l10n_ve_edi_portal_digital_printer_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                role="button"
+                title="Abrir en imprenta digital"
+            >
+                <i class="fa fa-external-link" title="Abrir en imprenta digital" role="img"/>
+                Abrir en imprenta
+            </a>
+        </xpath>
+    </template>
+</odoo>

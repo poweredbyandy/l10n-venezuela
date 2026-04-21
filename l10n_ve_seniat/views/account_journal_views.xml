@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="account.view_account_journal_form" />
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="SENIAT" invisible="type != 'sale'">
+                <page name="l10n_ve_seniat_page" string="SENIAT" invisible="type != 'sale'">
                     <group string="Configuración">
                         <field name="l10n_ve_emission_medium" />
                     </group>
