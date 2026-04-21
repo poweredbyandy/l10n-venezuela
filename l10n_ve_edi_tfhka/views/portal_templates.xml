@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template
+        id="portal_invoice_page_inherit_l10n_ve_edi_tfhka"
+        inherit_id="account.portal_invoice_page"
+    >
+        <xpath expr="//iframe[@id='invoice_html']" position="attributes">
+            <attribute
+                name="t-att-src"
+            >invoice.get_portal_url(report_type=invoice.l10n_ve_edi_tfhka_portal_iframe_report_type)</attribute>
+        </xpath>
+    </template>
+</odoo>
