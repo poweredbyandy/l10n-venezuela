@@ -4,7 +4,7 @@
     "website": "https://github.com/OCA/l10n-venezuela",
     "icon": "/poweredbyandy_saas/static/description/icon.png",
     "countries": ["ve"],
-    "version": "18.0.1.1.9",
+    "version": "18.0.1.1.27",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "category": "Accounting/Localizations/Account Charts",
     "depends": ["base", "web", "mail", "account", "account_debit_note"],

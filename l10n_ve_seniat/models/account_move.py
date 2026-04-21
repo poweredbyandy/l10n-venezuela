@@ -78,15 +78,7 @@ class AccountMove(models.Model):
                             "crédito o débito para empresas con fiscalidad venezolana."
                         )
                     )
-        res = super().write(vals)
-        if "l10n_ve_control_number" in vals:
-            for rec in self:
-                if rec.l10n_ve_control_number and rec.move_type in (
-                    "out_invoice",
-                    "out_refund",
-                ):
-                    rec._check_control_number_unique()
-        return res
+        return super().write(vals)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -103,12 +95,125 @@ class AccountMove(models.Model):
             "copy should display a 'faithful copy' label."
         ),
     )
+    l10n_ve_hide_invoice_preview_send = fields.Boolean(
+        compute="_compute_l10n_ve_hide_invoice_preview_send",
+    )
+    l10n_ve_hide_invoice_print_pdf = fields.Boolean(
+        compute="_compute_l10n_ve_hide_invoice_print_pdf",
+    )
+    l10n_ve_digital_invoice_sent = fields.Boolean(
+        compute="_compute_l10n_ve_digital_invoice_sent",
+    )
+
+    @api.depends(
+        "country_code",
+        "move_type",
+        "state",
+        "l10n_ve_invoice_original_printed",
+        "l10n_ve_journal_emission_medium",
+    )
+    def _compute_l10n_ve_hide_invoice_preview_send(self):
+        for move in self:
+            move.l10n_ve_hide_invoice_preview_send = False
+            if move.country_code != "VE":
+                continue
+            if move.move_type not in ("out_invoice", "out_refund"):
+                continue
+            if move.state != "posted":
+                continue
+            if move._l10n_ve_blocking_invoice_report_before_digital_sent():
+                move.l10n_ve_hide_invoice_preview_send = True
+                continue
+            medium = move.l10n_ve_journal_emission_medium
+            if medium == "contingency":
+                move.l10n_ve_hide_invoice_preview_send = True
+                continue
+            if medium == "digital":
+                continue
+            if not move.l10n_ve_invoice_original_printed:
+                move.l10n_ve_hide_invoice_preview_send = True
+
+    @api.depends(
+        "country_code",
+        "move_type",
+        "state",
+        "l10n_ve_journal_emission_medium",
+    )
+    def _compute_l10n_ve_hide_invoice_print_pdf(self):
+        for move in self:
+            move.l10n_ve_hide_invoice_print_pdf = False
+            if move.country_code != "VE":
+                continue
+            if move.move_type not in ("out_invoice", "out_refund"):
+                continue
+            if move.l10n_ve_journal_emission_medium == "contingency":
+                move.l10n_ve_hide_invoice_print_pdf = True
+                continue
+            if move.state != "posted":
+                continue
+            if move._l10n_ve_blocking_invoice_report_before_digital_sent():
+                move.l10n_ve_hide_invoice_print_pdf = True
+
+    @api.depends(
+        "country_code",
+        "move_type",
+        "l10n_ve_journal_emission_medium",
+    )
+    def _compute_l10n_ve_digital_invoice_sent(self):
+        for move in self:
+            move.l10n_ve_digital_invoice_sent = False
+            if move.country_code != "VE" or move.move_type not in (
+                "out_invoice",
+                "out_refund",
+            ):
+                continue
+            if move.l10n_ve_journal_emission_medium != "digital":
+                continue
+            send = getattr(move, "l10n_ve_edi_send_state", None)
+            move.l10n_ve_digital_invoice_sent = send == "sent"
+
+    def _l10n_ve_block_invoice_pdf_contingency(self):
+        self.ensure_one()
+        return (
+            self.country_code == "VE"
+            and self.move_type in ("out_invoice", "out_refund")
+            and self.l10n_ve_journal_emission_medium == "contingency"
+        )
+
+    def _l10n_ve_blocking_invoice_report_before_digital_sent(self):
+        self.ensure_one()
+        if self.country_code != "VE":
+            return False
+        if self.move_type not in ("out_invoice", "out_refund"):
+            return False
+        if self.state != "posted":
+            return False
+        if self.l10n_ve_journal_emission_medium != "digital":
+            return False
+        journal = self.journal_id
+        if "l10n_ve_edi_provider" not in journal._fields:
+            return False
+        provider = journal.l10n_ve_edi_provider
+        if not provider or provider == "none":
+            return False
+        if "l10n_ve_edi_send_state" not in self._fields:
+            return False
+        return self.l10n_ve_edi_send_state != "sent"
 
     reception_date = fields.Date(
         help="Indicates when the invoice was received by the client/company",
         tracking=True,
     )
-    l10n_ve_invoice_date = fields.Datetime("Invoice Datetime", readonly=True)
+    l10n_ve_invoice_date = fields.Datetime(
+        string="Fecha del documento",
+        copy=False,
+        tracking=True,
+        help=(
+            "Forma libre: se asigna al confirmar. Contingencia: indíquela antes de "
+            "confirmar. Facturación digital: fecha de sincronización con la imprenta. "
+            "Máquina fiscal: fecha en que se imprimió el documento."
+        ),
+    )
     l10n_ve_control_number = fields.Char(
         string="Control Number",
         copy=False,
@@ -263,6 +368,15 @@ class AccountMove(models.Model):
         medium = journal.l10n_ve_emission_medium
         if not medium:
             return
+        if medium == "contingency":
+            if not self.l10n_ve_invoice_date:
+                raise ValidationError(
+                    _(
+                        "No se puede confirmar el documento “%(doc)s”. "
+                        "En contingencia debe indicar la fecha del documento."
+                    )
+                    % {"doc": self.name or _("Borrador")}
+                )
         if medium == "free":
             if (self.l10n_ve_control_number or "").strip():
                 return
@@ -289,6 +403,8 @@ class AccountMove(models.Model):
                         )
                         % {"doc": self.name or _("Borrador")}
                     )
+        elif medium == "digital":
+            return
         elif medium != "fiscal_machine" and not (
             self.l10n_ve_control_number or ""
         ).strip():
@@ -510,15 +626,22 @@ Please create a credit note instead.
         res = super()._post(soft=soft)
         if self.env.context.get("install_mode"):
             return res
+        ve_code = self.env.ref("base.ve").code
         for rec in self:
-            if rec.state == "posted":
-                rec.l10n_ve_invoice_date = fields.Datetime.now()
-                if (
-                    rec.country_code == self.env.ref("base.ve").code
-                    and rec.move_type in ("out_invoice", "out_refund")
-                    and not rec.l10n_ve_control_number
-                ):
-                    rec._generate_control_number()
+            if rec.state != "posted":
+                continue
+            if (
+                rec.country_code == ve_code
+                and rec.move_type in ("out_invoice", "out_refund")
+                and rec.l10n_ve_journal_emission_medium == "free"
+            ):
+                rec.write({"l10n_ve_invoice_date": fields.Datetime.now()})
+            if (
+                rec.country_code == ve_code
+                and rec.move_type in ("out_invoice", "out_refund")
+                and not rec.l10n_ve_control_number
+            ):
+                rec._generate_control_number()
         return res
 
     def _l10n_ve_journal_fiscal_book_section(self):
@@ -576,6 +699,8 @@ Please create a credit note instead.
         "move_type",
         "l10n_ve_journal_emission_medium",
         "l10n_ve_on_behalf_of_third_party",
+        "journal_id",
+        "journal_id.type",
     )
     def _compute_l10n_ve_show_control_number_ui(self):
         for move in self:
@@ -597,6 +722,14 @@ Please create a credit note instead.
         if (self.l10n_ve_control_number or "").strip():
             return True
         if self.l10n_ve_control_number_placeholder:
+            return True
+        if (
+            self.state == "draft"
+            and self.move_type in ("out_invoice", "out_refund")
+            and self.l10n_ve_journal_emission_medium == "free"
+            and self.journal_id
+            and self.journal_id.type == "sale"
+        ):
             return True
         if self.move_type == "in_invoice" and self.state == "draft":
             return True
@@ -630,7 +763,6 @@ Please create a credit note instead.
             with self.env.cr.savepoint():
                 formatted = book.l10n_ve_allocate_correlative(section, self)
                 self.write({"l10n_ve_control_number": formatted})
-                self._check_control_number_unique()
             return
 
         raise ValidationError(
@@ -641,20 +773,27 @@ Please create a credit note instead.
             )
         )
 
+    @api.constrains("l10n_ve_control_number", "journal_id")
+    def _check_l10n_ve_control_number_journal_unique(self):
+        for move in self:
+            if not move.l10n_ve_control_number:
+                continue
+            if move.move_type not in ("out_invoice", "out_refund"):
+                continue
+            move._check_control_number_unique()
+
     def _check_control_number_unique(self):
-        """Unicidad del número de control por compañía."""
         self.ensure_one()
         if not self.l10n_ve_control_number:
             return
 
-        # Solo validar para facturas y notas de crédito/débito
         if self.move_type not in ("out_invoice", "out_refund"):
             return
 
         domain = [
             ("l10n_ve_control_number", "=", self.l10n_ve_control_number),
             ("company_id", "=", self.company_id.id),
-            ("move_type", "=", self.move_type),
+            ("journal_id", "=", self.journal_id.id),
             ("id", "!=", self.id),
         ]
 
@@ -662,17 +801,16 @@ Please create a credit note instead.
         if existing:
             raise ValidationError(
                 _(
-                    "El número de control '%(num)s' ya existe en la compañía "
-                    "'%(company)s'. Por favor, verifique la secuencia o corrija el "
-                    "número manualmente."
+                    "El número de control '%(num)s' ya está asignado a otro "
+                    "documento en el diario '%(journal)s' (empresa %(company)s)."
                 )
                 % {
                     "num": self.l10n_ve_control_number,
+                    "journal": self.journal_id.display_name,
                     "company": self.company_id.name,
                 }
             )
 
-        # Validar que el número de control no sea inferior al último asignado
         self._check_control_number_not_inferior()
 
     def _l10n_ve_control_number_parts(self, control_number):
@@ -1047,6 +1185,37 @@ Please create a credit note instead.
                             "base_amount", 0.0
                         )
         return res
+
+    def action_send_and_print(self):
+        for move in self:
+            if move._l10n_ve_block_invoice_pdf_contingency():
+                raise UserError(
+                    _(
+                        "En contingencia no esta permitido imprimir ni enviar el documento "
+                        "desde esta acción."
+                    )
+                )
+        return super().action_send_and_print()
+
+    def action_invoice_sent(self):
+        self.ensure_one()
+        if self._l10n_ve_block_invoice_pdf_contingency():
+            raise UserError(
+                _(
+                    "En contingencia no esta permitido enviar el documento por correo."
+                )
+            )
+        return super().action_invoice_sent()
+
+    def preview_invoice(self):
+        self.ensure_one()
+        if self._l10n_ve_block_invoice_pdf_contingency():
+            raise UserError(
+                _(
+                    "En contingencia no esta permitido abrir la vista previa del documento."
+                )
+            )
+        return super().preview_invoice()
 
     def action_print_pdf(self):
         return super(

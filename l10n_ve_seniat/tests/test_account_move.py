@@ -542,7 +542,7 @@ class TestAccountMove(L10nVeSeniatCommon):
         move2.action_post()
         with self.assertRaises(ValidationError) as cm:
             move2.write({"l10n_ve_control_number": ctrl})
-        self.assertIn("ya existe", str(cm.exception))
+        self.assertIn("ya está asignado", str(cm.exception).lower())
 
     def test_get_name_invoice_report_ve(self):
         move = self.env["account.move"].create(
@@ -640,7 +640,12 @@ class TestAccountMove(L10nVeSeniatCommon):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )
-        move.write({"l10n_ve_control_number": "99-00000055"})
+        move.write(
+            {
+                "l10n_ve_control_number": "99-00000055",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
         move.action_post()
         self.assertEqual(move.l10n_ve_control_number, "99-00000055")
         self.assertFalse(
@@ -662,12 +667,13 @@ class TestAccountMove(L10nVeSeniatCommon):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )
+        move.write({"l10n_ve_invoice_date": fields.Datetime.now()})
         with self.assertRaises(ValidationError) as cm:
             move.action_post()
         self.assertIn("N° de control", str(cm.exception))
         self.assertIn("contingencia", str(cm.exception).lower())
 
-    def test_non_free_emission_requires_control_before_post(self):
+    def test_digital_posts_without_control_before_post(self):
         journal = self.company_data["default_journal_sale"]
         journal.write(
             {
@@ -680,9 +686,9 @@ class TestAccountMove(L10nVeSeniatCommon):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )
-        with self.assertRaises(ValidationError) as cm:
-            move.action_post()
-        self.assertIn("N° de control", str(cm.exception))
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+        self.assertFalse((move.l10n_ve_control_number or "").strip())
 
     def test_fiscal_machine_posts_without_machine_fields_or_control(self):
         journal = self.company_data["default_journal_sale"]
