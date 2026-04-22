@@ -622,7 +622,7 @@ class AccountRetention(models.Model):
                     errors.append(
                         _(
                             "2) Facturas: deben estar publicadas. Facturas no publicadas: %(invoices)s",
-                            invoices=", ".join(not_posted.mapped("name")),
+                            invoices=", ".join(m.display_name for m in not_posted),
                         )
                     )
 
@@ -631,7 +631,7 @@ class AccountRetention(models.Model):
                     errors.append(
                         _(
                             "2) Facturas: deben tener saldo pendiente > 0. Facturas sin saldo pendiente: %(invoices)s",
-                            invoices=", ".join(without_residual.mapped("name")),
+                            invoices=", ".join(m.display_name for m in without_residual),
                         )
                     )
 
@@ -645,7 +645,7 @@ class AccountRetention(models.Model):
                     errors.append(
                         _(
                             "2) Facturas: deben tener impuestos > 0. Facturas sin impuestos validos: %(invoices)s",
-                            invoices=", ".join(without_taxes.mapped("name")),
+                            invoices=", ".join(m.display_name for m in without_taxes),
                         )
                     )
 
@@ -661,7 +661,7 @@ class AccountRetention(models.Model):
                     errors.append(
                         _(
                             "3) Facturas: ya tienen una retencion IVA activa (draft/emitted). Facturas afectadas: %(invoices)s",
-                            invoices=", ".join(with_active_retention.mapped("name")),
+                            invoices=", ".join(m.display_name for m in with_active_retention),
                         )
                     )
 
