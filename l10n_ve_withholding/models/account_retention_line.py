@@ -148,7 +148,8 @@ class AccountRetentionLine(models.Model):
                 line.move_id
                 and line.id in line.move_id.retention_municipal_line_ids.ids
             ):
-                line.economic_activity_id = line.move_id.partner_id.economic_activity_id
+                partner = line.move_id._l10n_ve_withholding_partner()
+                line.economic_activity_id = partner.economic_activity_id
 
     def unlink(self):
         lines = self.exists()
@@ -174,13 +175,13 @@ class AccountRetentionLine(models.Model):
             # Payment concept of the line
             payment_concept = record.payment_concept_id.line_payment_concept_ids
             for line in payment_concept:
+                if not record.move_id:
+                    continue
                 # if not record.move_id.partner_id.type_person_id:
                 #     raise UserError(_("The partner does not have a type of person"))
 
-                if (
-                    record.move_id.partner_id.type_person_id.id
-                    == line.type_person_id.id
-                ):
+                partner = record.move_id._l10n_ve_withholding_partner()
+                if partner.type_person_id.id == line.type_person_id.id:
                     # compare the type_person_id of the partner with the
                     # type_person_id of the payment concept and set the related
                     # fields.

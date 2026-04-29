@@ -280,7 +280,7 @@
                         de Crédito -->
                         <div class="" style="width:6%;">
                         <t t-if="line.move_id.move_type in ('out_refund', 'in_refund')">
-                            <span t-esc="line.move_id.name" />
+                            <span t-esc="line.move_id.ref or '--'" />
                         </t>
                         <t t-else="">
                             <span>--</span>
@@ -316,7 +316,7 @@
                         <t
                             t-if="line.move_id.move_type in ('in_refund', 'out_refund') and line.move_id.reversed_entry_id"
                         >
-                            <span t-esc="line.move_id.reversed_entry_id.l10n_ve_control_number" />
+                            <span t-esc="line.move_id.reversed_entry_id.ref or '--'" />
                         </t>
                         <t t-else="">
                             <span>--</span>

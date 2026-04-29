@@ -217,7 +217,9 @@ class MunicipalRetentionXlsxReport(models.TransientModel):
                     retention.partner_id.vat
                 )
                 rows["Domicilio Fiscal"] = retention.partner_id.street
-                rows["Descripcion del Documento"] = retention_line.move_id.name
+                rows["Descripcion del Documento"] = (
+                    retention_line.move_id.ref or retention_line.move_id.name
+                )
                 rows["Actividad Económica"] = retention_line.economic_activity_id.name
                 rows["Monto Bruto"] = invoice_amount
                 rows["Alícuota %"] = retention_line.aliquot / 100

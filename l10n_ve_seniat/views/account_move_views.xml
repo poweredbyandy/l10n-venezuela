@@ -273,7 +273,7 @@
             <xpath expr="//page[@name='other_info']" position="inside">
                 <div
                     class="row w-100 m-0"
-                    invisible="not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
+                    invisible="move_type not in ('out_invoice', 'out_refund') or not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
                 >
                     <div class="col-6 p-0 pe-3">
                         <group string="Por cuenta de Terceros">
@@ -324,17 +324,22 @@
                 <label
                     for="l10n_ve_third_party_partner_id"
                     style="font-weight:bold;"
-                    invisible="not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
+                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
                 />
                 <field
                     name="l10n_ve_third_party_partner_id"
                     widget="res_partner_many2one"
                     nolabel="1"
-                    context="{'show_address': 1, 'default_is_company': True, 'show_vat': True}"
+                    context="{
+                        'res_partner_search_mode': (move_type in ('out_invoice', 'out_refund') and 'customer') or (move_type in ('in_invoice', 'in_refund') and 'supplier') or False,
+                        'show_address': 1,
+                        'default_is_company': True,
+                        'show_vat': True,
+                    }"
                     options='{"no_quick_create": True, "no_create": False, "no_create_edit": False}'
                     placeholder="Buscar nombre o RIF..."
                     readonly="state != 'draft'"
-                    invisible="not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
+                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
                 />
             </xpath>
             <xpath
@@ -395,5 +400,10 @@
                 >state in ('cancel', 'posted') or (country_code == 'VE' and (move_type in ('out_refund', 'in_refund') or debit_origin_id))</attribute>
             </xpath>
         </field>
+    </record>
+    <record id="account.action_move_out_refund_type" model="ir.actions.act_window">
+        <field
+            name="context"
+        >{'search_default_out_refund': 1, 'default_move_type': 'out_refund', 'display_account_trust': True, 'create': False}</field>
     </record>
 </odoo>
