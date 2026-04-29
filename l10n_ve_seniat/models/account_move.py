@@ -499,30 +499,6 @@ class AccountMove(models.Model):
                         % {"move": move_id.name or _("Borrador")}
                     )
 
-                if move_id.move_type == "out_refund" and move_id.reversed_entry_id:
-                    company_cur = move_id.company_currency_id
-                    limit = move_id._l10n_ve_credit_note_limit_company_amount()
-                    accumulated = (
-                        move_id._l10n_ve_credit_note_accumulated_company_amount(
-                            include_current=True
-                        )
-                    )
-                    if accumulated > limit and not company_cur.is_zero(
-                        accumulated - limit
-                    ):
-                        raise ValidationError(
-                            _(
-                                "No se puede confirmar la nota de crédito '%(move)s'. "
-                                "El monto máximo acumulado permitido es %(limit)s y "
-                                "con esta nota se alcanzan %(acc)s."
-                            )
-                            % {
-                                "move": move_id.name or _("Borrador"),
-                                "limit": company_cur.format(limit),
-                                "acc": company_cur.format(accumulated),
-                            }
-                        )
-
                 if move_id.l10n_ve_third_party_partner_id and move_id.move_type in (
                     "out_invoice",
                     "out_refund",
