@@ -97,6 +97,25 @@ class TestAccountMove(L10nVeSeniatCommon):
             move.action_post()
         self.assertIn("RIF", str(cm.exception))
 
+    def test_out_invoice_post_invalid_vat_format_can_be_disabled(self):
+        self.env.company.l10n_ve_validate_partner_vat_format = False
+        partner = (
+            self.env["res.partner"]
+            .with_context(skip_l10n_ve_vat_rif_format_check=True)
+            .create(
+                {
+                    "name": "Partner VE RIF flexible",
+                    "country_id": self.env.ref("base.ve").id,
+                    "vat": "ABC123",
+                }
+            )
+        )
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(partner)
+        )
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+
     def test_out_invoice_post_rejects_zero_total(self):
         tax = self.company_data["default_tax_sale"]
         with self.assertRaises(ValidationError) as cm:
