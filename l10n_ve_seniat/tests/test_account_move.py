@@ -97,6 +97,25 @@ class TestAccountMove(L10nVeSeniatCommon):
             move.action_post()
         self.assertIn("RIF", str(cm.exception))
 
+    def test_out_invoice_post_invalid_vat_format_can_be_disabled(self):
+        self.env.company.l10n_ve_validate_partner_vat_format = False
+        partner = (
+            self.env["res.partner"]
+            .with_context(skip_l10n_ve_vat_rif_format_check=True)
+            .create(
+                {
+                    "name": "Partner VE RIF flexible",
+                    "country_id": self.env.ref("base.ve").id,
+                    "vat": "ABC123",
+                }
+            )
+        )
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(partner)
+        )
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+
     def test_out_invoice_post_rejects_zero_total(self):
         tax = self.company_data["default_tax_sale"]
         with self.assertRaises(ValidationError) as cm:
@@ -233,7 +252,7 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertFalse((move.l10n_ve_control_number or "").strip())
         self.assertEqual(move.l10n_ve_control_number_placeholder, "00-00000001")
 
-    def test_book_correlative_forbids_unlink(self):
+    def test_book_correlative_admin_unlink_clears_control_number(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )
@@ -242,8 +261,19 @@ class TestAccountMove(L10nVeSeniatCommon):
             [("res_model", "=", "account.move"), ("res_id", "=", move.id)]
         )
         self.assertEqual(len(doc), 1)
-        with self.assertRaises(ValidationError):
-            doc.unlink()
+        doc.unlink()
+        self.assertFalse(move.l10n_ve_control_number)
+
+    def test_book_correlative_admin_write_updates_control_number(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        doc = self.env["account.book.document"].search(
+            [("res_model", "=", "account.move"), ("res_id", "=", move.id)]
+        )
+        doc.write({"number": 2})
+        self.assertEqual(move.l10n_ve_control_number, "00-00000002")
 
     def test_book_correlative_forbids_gap(self):
         book = self.env["account.book"].search(

@@ -12,6 +12,14 @@ class ResCompany(models.Model):
         string="Facturación por cuenta de terceros habilitada",
         default=False,
     )
+    l10n_ve_validate_partner_vat_format = fields.Boolean(
+        string="Validar formato de RIF/CI",
+        default=True,
+    )
+    l10n_ve_lock_partner_fiscal_data = fields.Boolean(
+        string="Bloquear datos fiscales con movimientos",
+        default=True,
+    )
 
     exent_aliquot_sale = fields.Many2one(
         "account.tax", domain=[("type_tax_use", "=", "sale")]

@@ -52,6 +52,18 @@ class TestResPartner(L10nVeSeniatCommon):
         with self.assertRaises(ValidationError):
             partner.write({"vat": "V123"})
 
+    def test_ve_vat_constraint_can_be_disabled(self):
+        self.env.company.l10n_ve_validate_partner_vat_format = False
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Test Partner",
+                "country_id": self.env.ref("base.ve").id,
+                "customer_rank": 1,
+            }
+        )
+        partner.write({"vat": "V123"})
+        self.assertEqual(partner.vat, "V123")
+
     def test_ve_vat_constraint_skipped_with_context(self):
         partner = self.env["res.partner"].create(
             {
@@ -186,4 +198,30 @@ class TestResPartner(L10nVeSeniatCommon):
             partner_as_user.write({"vat": "V87654321"})
         partner.write({"name": "Nombre admin", "vat": "V87654321"})
         self.assertEqual(partner.name, "Nombre admin")
+        self.assertEqual(partner.vat, "V87654321")
+
+    def test_partner_name_vat_lock_can_be_disabled(self):
+        self.env.company.l10n_ve_lock_partner_fiscal_data = False
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente fiscal",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "V12345678",
+            }
+        )
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=partner,
+            amounts=[1000.0],
+            taxes=self.tax_sale_a,
+            post=True,
+        )
+        self.assertEqual(invoice.state, "posted")
+        user = new_test_user(
+            self.env,
+            login="l10n_ve_partner_lock_disabled_user",
+            groups="account.group_account_invoice",
+        )
+        partner.with_user(user).write({"name": "Otro nombre", "vat": "V87654321"})
+        self.assertEqual(partner.name, "Otro nombre")
         self.assertEqual(partner.vat, "V87654321")
