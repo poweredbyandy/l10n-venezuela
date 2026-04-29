@@ -105,6 +105,195 @@ class TestCoverageExtraAccountMove(L10nVeSeniatCommon):
             credit2.action_post()
         self.assertIn("monto máximo", str(cm.exception).lower())
 
+    def test_credit_note_foreign_amount_uses_origin_invoice_rate(self):
+        customer = self._ve_customer()
+        usd = self.env.ref("base.USD")
+        date_invoice = fields.Date.to_date("2026-01-10")
+        date_credit = fields.Date.to_date("2026-01-20")
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": usd.id,
+                "company_id": self.env.company.id,
+                "name": date_invoice,
+                "inverse_company_rate": 2.0,
+            }
+        )
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": usd.id,
+                "company_id": self.env.company.id,
+                "name": date_credit,
+                "inverse_company_rate": 3.0,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": customer.id,
+                "currency_id": usd.id,
+                "invoice_date": date_invoice,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Invoice USD",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        },
+                    )
+                ],
+            }
+        )
+        invoice.action_post()
+        credit = self.env["account.move"].create(
+            {
+                "move_type": "out_refund",
+                "reversed_entry_id": invoice.id,
+                "partner_id": customer.id,
+                "currency_id": usd.id,
+                "invoice_date": date_credit,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Credit USD",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        },
+                    )
+                ],
+            }
+        )
+        self.assertEqual(credit._l10n_ve_to_company_abs_amount(), 200.0)
+
+    def test_manual_credit_note_from_usd_invoice_posts_in_company_currency(self):
+        customer = self._ve_customer()
+        usd = self.env.ref("base.USD")
+        date_invoice = fields.Date.to_date("2026-02-10")
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": usd.id,
+                "company_id": self.env.company.id,
+                "name": date_invoice,
+                "inverse_company_rate": 2.0,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": customer.id,
+                "currency_id": usd.id,
+                "invoice_date": date_invoice,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Invoice USD",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        },
+                    )
+                ],
+            }
+        )
+        invoice.action_post()
+        credit = self.env["account.move"].create(
+            {
+                "move_type": "out_refund",
+                "reversed_entry_id": invoice.id,
+                "partner_id": customer.id,
+                "currency_id": usd.id,
+                "invoice_date": fields.Date.to_date("2026-02-20"),
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Credit USD",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        },
+                    )
+                ],
+            }
+        )
+        credit.action_post()
+        self.assertEqual(credit.currency_id, credit.company_currency_id)
+
+    def test_reversal_wizard_creates_credit_note_in_company_currency(self):
+        customer = self._ve_customer()
+        usd = self.env.ref("base.USD")
+        date_invoice = fields.Date.to_date("2026-03-10")
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": usd.id,
+                "company_id": self.env.company.id,
+                "name": date_invoice,
+                "inverse_company_rate": 2.0,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": customer.id,
+                "currency_id": usd.id,
+                "invoice_date": date_invoice,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Invoice USD",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        },
+                    )
+                ],
+            }
+        )
+        invoice.action_post()
+        wiz = (
+            self.env["account.move.reversal"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create({"reason": "NC Bs"})
+        )
+        wiz.reverse_moves()
+        credit = wiz.new_move_ids
+        credit.ensure_one()
+        self.assertEqual(credit.currency_id, credit.company_currency_id)
+        inv_line = invoice.invoice_line_ids.filtered(
+            lambda l: l.display_type == "product"
+        )
+        cred_line = credit.invoice_line_ids.filtered(
+            lambda l: l.display_type == "product"
+        )
+        inv_line.ensure_one()
+        cred_line.ensure_one()
+        if "price_subtotal_currency" in inv_line._fields and inv_line.price_subtotal_currency:
+            expected_subtotal = abs(inv_line.price_subtotal_currency)
+        else:
+            expected_subtotal = abs(inv_line.balance)
+        expected_pu = expected_subtotal / (abs(inv_line.quantity) or 1.0)
+        self.assertEqual(cred_line.price_unit, expected_pu)
+
     def test_debit_note_uses_debit_note_section_for_control_number(self):
         journal = self.company_data["default_journal_sale"]
         book = self.env["account.book"].create(
