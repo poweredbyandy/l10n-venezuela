@@ -58,3 +58,8 @@ class AccountMoveReversal(models.TransientModel):
                         )
                     )
         return super().write(vals)
+
+    def reverse_moves(self, is_modify=False):
+        action = super().reverse_moves(is_modify=is_modify)
+        self.new_move_ids._l10n_ve_force_refund_to_company_currency()
+        return action

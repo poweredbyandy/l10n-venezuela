@@ -1,0 +1,138 @@
+from odoo import _, fields, models
+from odoo.fields import Command
+from odoo.exceptions import ValidationError
+
+
+class AccountMove(models.Model):
+    _inherit = "account.move"
+
+    def _l10n_ve_company_price_unit_from_origin_line(self, line):
+        if "price_subtotal_currency" in line._fields and line.price_subtotal_currency:
+            subtotal = abs(line.price_subtotal_currency)
+        else:
+            subtotal = abs(line.balance)
+        quantity = abs(line.quantity) or 1.0
+        discount_factor = 1.0 - (line.discount or 0.0) / 100.0
+        if discount_factor <= 0.0:
+            return 0.0
+        return subtotal / quantity / discount_factor
+
+    def _l10n_ve_force_refund_to_company_currency(self):
+        ve_country = self.env.ref("base.ve").code
+        for move in self:
+            if (
+                move.country_code != ve_country
+                or move.move_type not in ("out_refund", "in_refund")
+                or move.currency_id == move.company_currency_id
+            ):
+                continue
+            origin = move.reversed_entry_id
+            if (
+                not origin
+                or origin.currency_id == origin.company_currency_id
+            ):
+                continue
+            cc = move.company_currency_id
+            orig_lines = origin.invoice_line_ids.sorted(
+                lambda l: (l.sequence, l.id)
+            )
+            cred_lines = move.invoice_line_ids.sorted(
+                lambda l: (l.sequence, l.id)
+            )
+            if len(orig_lines) != len(cred_lines):
+                raise ValidationError(
+                    _(
+                        "La nota de crédito '%(credit)s' no coincide en líneas "
+                        "con la factura origen '%(origin)s'. Revise el borrador "
+                        "o cree la reversión desde el asistente estándar."
+                    )
+                    % {
+                        "credit": move.display_name,
+                        "origin": origin.display_name,
+                    }
+                )
+            line_cmds = []
+            for ol, cl in zip(orig_lines, cred_lines):
+                if ol.display_type != cl.display_type:
+                    raise ValidationError(
+                        _(
+                            "Las líneas de la nota de crédito no coinciden con "
+                            "la factura origen (tipo de línea distinto)."
+                        )
+                    )
+                if ol.display_type in ("product", "cogs"):
+                    line_cmds.append(
+                        Command.update(
+                            cl.id,
+                            {
+                                "price_unit": move._l10n_ve_company_price_unit_from_origin_line(
+                                    ol
+                                ),
+                            },
+                        )
+                    )
+                elif ol.display_type == "rounding":
+                    line_cmds.append(
+                        Command.update(
+                            cl.id,
+                            {
+                                "amount_currency": abs(ol.balance),
+                            },
+                        )
+                    )
+            vals = {"currency_id": cc.id}
+            if line_cmds:
+                vals["invoice_line_ids"] = line_cmds
+            move.write(vals)
+
+    def _l10n_ve_to_company_abs_amount(self):
+        self.ensure_one()
+        amount = super()._l10n_ve_to_company_abs_amount()
+        if (
+            self.move_type != "out_refund"
+            or not self.reversed_entry_id
+            or self.currency_id == self.company_currency_id
+            or self.country_code != self.env.ref("base.ve").code
+        ):
+            return amount
+        origin = self.reversed_entry_id
+        origin_date = (
+            origin.invoice_date or origin.date or fields.Date.context_today(self)
+        )
+        return self.company_currency_id.round(
+            self.currency_id._convert(
+                abs(self.amount_total),
+                self.company_currency_id,
+                self.company_id,
+                origin_date,
+            )
+        )
+
+    def action_post(self):
+        ve_code = self.env.ref("base.ve").code
+        to_company_refund = self.filtered(
+            lambda m: m.country_code == ve_code
+            and m.move_type in ("out_refund", "in_refund")
+            and m.state == "draft"
+            and m.reversed_entry_id
+            and m.currency_id != m.company_currency_id
+            and m.reversed_entry_id.currency_id
+            != m.reversed_entry_id.company_currency_id
+        )
+        if to_company_refund:
+            to_company_refund._l10n_ve_force_refund_to_company_currency()
+        for move in self:
+            if (
+                move.country_code == ve_code
+                and move.move_type in ("out_refund", "in_refund")
+                and move.currency_id != move.company_currency_id
+            ):
+                raise ValidationError(
+                    _(
+                        "No se puede confirmar la nota de crédito '%(move)s'. "
+                        "Las notas de crédito deben registrarse en bolívares "
+                        "(moneda de la compañía)."
+                    )
+                    % {"move": move.name or _("Borrador")}
+                )
+        return super().action_post()

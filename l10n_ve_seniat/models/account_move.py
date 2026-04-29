@@ -261,8 +261,9 @@ class AccountMove(models.Model):
         store=True,
         copy=False,
         help=_(
-            "Verdadero si hay un contacto en Por cuenta de Terceros. "
-            "Según Art. 11 PA00071, esas operaciones deben emitirse en forma libre."
+            "Verdadero si hay un contacto en Por cuenta de Terceros en "
+            "facturas de cliente. Según Art. 11 PA00071, esas operaciones "
+            "deben emitirse en forma libre."
         ),
     )
     l10n_ve_third_party_partner_id = fields.Many2one(
@@ -279,11 +280,12 @@ class AccountMove(models.Model):
         tracking=True,
     )
 
-    @api.depends("l10n_ve_third_party_partner_id")
+    @api.depends("l10n_ve_third_party_partner_id", "move_type")
     def _compute_l10n_ve_on_behalf_of_third_party(self):
         for move in self:
             move.l10n_ve_on_behalf_of_third_party = bool(
                 move.l10n_ve_third_party_partner_id
+                and move.move_type in ("out_invoice", "out_refund")
             )
 
     l10n_ve_certified_copy_deadline = fields.Date(
@@ -306,10 +308,10 @@ class AccountMove(models.Model):
         copy=False,
     )
 
-    @api.depends("invoice_date", "l10n_ve_third_party_partner_id")
+    @api.depends("invoice_date", "l10n_ve_on_behalf_of_third_party")
     def _compute_l10n_ve_certified_copy_deadline(self):
         for move in self:
-            if move.l10n_ve_third_party_partner_id and move.invoice_date:
+            if move.l10n_ve_on_behalf_of_third_party and move.invoice_date:
                 next_month = move.invoice_date + relativedelta(months=1)
                 move.l10n_ve_certified_copy_deadline = next_month.replace(day=5)
             else:
@@ -517,6 +519,8 @@ class AccountMove(models.Model):
                 if move_id.l10n_ve_third_party_partner_id and move_id.move_type in (
                     "out_invoice",
                     "out_refund",
+                    "in_invoice",
+                    "in_refund",
                 ):
                     if not move_id.l10n_ve_on_behalf_of_third_party_enabled:
                         raise ValidationError(

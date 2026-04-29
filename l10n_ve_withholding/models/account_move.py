@@ -17,6 +17,15 @@ class AccountMoveRetention(models.Model):
         string="Generate IVA Retention?", default=False
     )
 
+    def _l10n_ve_withholding_partner(self):
+        self.ensure_one()
+        if (
+            self.move_type in ("in_invoice", "in_refund")
+            and self.l10n_ve_third_party_partner_id
+        ):
+            return self.l10n_ve_third_party_partner_id
+        return self.partner_id
+
     retention_islr_line_ids = fields.One2many(
         "account.retention.line",
         "move_id",
@@ -121,7 +130,8 @@ class AccountMoveRetention(models.Model):
                     "The amount of the retention is greater than the total amount of the invoice."  # noqa: E501
                 )
             )
-        if not self.partner_id.type_person_id:
+        withholding_partner = self._l10n_ve_withholding_partner()
+        if not withholding_partner.type_person_id:
             raise UserError(_("The partner must have a type of person"))
         if sum_invoice_amount <= 0:
             raise UserError(_("The amount of the retention must be greater than zero."))
@@ -172,7 +182,8 @@ class AccountMoveRetention(models.Model):
             The retention created.
         """
         self.ensure_one()
-        if type_retention == "iva" and not self.partner_id.withholding_type_id:
+        withholding_partner = self._l10n_ve_withholding_partner()
+        if type_retention == "iva" and not withholding_partner.withholding_type_id:
             raise UserError(_("The partner has no withholding type."))
 
         retention = self.env["account.retention"]
@@ -191,7 +202,7 @@ class AccountMoveRetention(models.Model):
         payment_vals = {
             "payment_type": payment_type,
             "partner_type": "supplier",
-            "partner_id": self.partner_id.id,
+            "partner_id": withholding_partner.id,
             "journal_id": journals[type_retention].id,
             "payment_type_retention": type_retention,
             "payment_method_id": self.env.ref(
@@ -219,7 +230,7 @@ class AccountMoveRetention(models.Model):
             "date": self.date if self.move_type == "in_invoice" else False,
             "type_retention": type_retention,
             "type": "in_invoice",
-            "partner_id": self.partner_id.id,
+            "partner_id": withholding_partner.id,
         }
 
         if type_retention == "iva":

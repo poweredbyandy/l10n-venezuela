@@ -62,6 +62,33 @@ class TestAccountMove(L10nVeSeniatCommon):
             ],
         }
 
+    def _create_supplier_invoice_vals(self, partner, tax_ids=None, price_unit=100.0):
+        tax_ids = tax_ids or [self.company_data["default_tax_purchase"].id]
+        return {
+            "move_type": "in_invoice",
+            "partner_id": partner.id,
+            "invoice_date": fields.Date.today(),
+            "invoice_line_ids": [
+                (
+                    0,
+                    0,
+                    {
+                        "name": "Test line",
+                        "quantity": 1.0,
+                        "price_unit": price_unit,
+                        "account_id": self.company_data["default_account_expense"].id,
+                        "tax_ids": [
+                            (
+                                6,
+                                0,
+                                tax_ids,
+                            )
+                        ],
+                    },
+                )
+            ],
+        }
+
     def test_out_invoice_post_requires_vat(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve_no_vat)
@@ -468,6 +495,26 @@ class TestAccountMove(L10nVeSeniatCommon):
         )
         move.action_post()
         self.assertEqual(move.l10n_ve_certified_copy_deadline, date(2024, 2, 5))
+
+    def test_supplier_third_party_is_for_withholding(self):
+        self.env.company.l10n_ve_on_behalf_of_third_party_enabled = True
+        supplier = self.env["res.partner"].create(
+            {
+                "name": "Proveedor VE",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J87654321",
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                **self._create_supplier_invoice_vals(supplier),
+                "l10n_ve_third_party_partner_id": self.third_party_ve.id,
+            }
+        )
+        move.action_post()
+        self.assertEqual(move.l10n_ve_third_party_partner_id, self.third_party_ve)
+        self.assertFalse(move.l10n_ve_on_behalf_of_third_party)
+        self.assertFalse(move.l10n_ve_certified_copy_deadline)
 
     def test_on_behalf_of_third_party_report_print(self):
         self.env.company.l10n_ve_on_behalf_of_third_party_enabled = True

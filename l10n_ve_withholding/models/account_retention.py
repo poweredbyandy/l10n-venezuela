@@ -161,9 +161,16 @@ class AccountRetention(models.Model):
             domain = [
                 ("company_id", "=", self.env.company.id),
                 ("state", "=", "posted"),
-                ("partner_id", "=", retention.partner_id.id),
                 ("move_type", "in", allowed_types),
             ]
+            if retention.type == "in_invoice":
+                domain += [
+                    "|",
+                    ("partner_id", "=", retention.partner_id.id),
+                    ("l10n_ve_third_party_partner_id", "=", retention.partner_id.id),
+                ]
+            else:
+                domain.append(("partner_id", "=", retention.partner_id.id))
 
             retention.allowed_lines_move_ids = self.env["account.move"].search(domain)
 
@@ -227,10 +234,12 @@ class AccountRetention(models.Model):
         self.date_accounting = fields.Date.today()
         search_domain = [
             ("company_id", "=", self.company_id.id),
-            ("partner_id", "=", self.partner_id.id),
             ("state", "=", "posted"),
             ("move_type", "in", ("in_refund", "in_invoice")),
             ("amount_residual", ">", 0),
+            "|",
+            ("partner_id", "=", self.partner_id.id),
+            ("l10n_ve_third_party_partner_id", "=", self.partner_id.id),
         ]
         invoices_with_taxes = search_invoices_with_taxes(
             self.env["account.move"], search_domain
@@ -489,31 +498,41 @@ class AccountRetention(models.Model):
             in_invoices_dict[line.move_id] += line
 
         for lines in in_refunds_dict.values():
-            payment_vals["payment_type"] = "inbound"
-            payment_vals["payment_method_line_id"] = (
-                payment_vals["journal_id"]
-                and self.env["account.journal"]
-                .browse(payment_vals["journal_id"])
-                .inbound_payment_method_line_ids.filtered(lambda l: l.code == "manual")[
-                    :1
-                ]
-                .id
-            )
-            payment = Payment.create(payment_vals)
+            partner = lines[0].move_id._l10n_ve_withholding_partner()
+            vals = {
+                **payment_vals,
+                "partner_id": partner.id,
+                "payment_type": "inbound",
+                "payment_method_line_id": (
+                    payment_vals["journal_id"]
+                    and self.env["account.journal"]
+                    .browse(payment_vals["journal_id"])
+                    .inbound_payment_method_line_ids.filtered(
+                        lambda l: l.code == "manual"
+                    )[:1]
+                    .id
+                ),
+            }
+            payment = Payment.create(vals)
             lines.write({"payment_id": payment.id})
             payment.compute_retention_amount_from_retention_lines()
         for lines in in_invoices_dict.values():
-            payment_vals["payment_type"] = "outbound"
-            payment_vals["payment_method_line_id"] = (
-                payment_vals["journal_id"]
-                and self.env["account.journal"]
-                .browse(payment_vals["journal_id"])
-                .outbound_payment_method_line_ids.filtered(
-                    lambda l: l.code == "manual"
-                )[:1]
-                .id
-            )
-            payment = Payment.create(payment_vals)
+            partner = lines[0].move_id._l10n_ve_withholding_partner()
+            vals = {
+                **payment_vals,
+                "partner_id": partner.id,
+                "payment_type": "outbound",
+                "payment_method_line_id": (
+                    payment_vals["journal_id"]
+                    and self.env["account.journal"]
+                    .browse(payment_vals["journal_id"])
+                    .outbound_payment_method_line_ids.filtered(
+                        lambda l: l.code == "manual"
+                    )[:1]
+                    .id
+                ),
+            }
+            payment = Payment.create(vals)
             lines.write({"payment_id": payment.id})
             payment.compute_retention_amount_from_retention_lines()
 
@@ -863,7 +882,7 @@ class AccountRetention(models.Model):
                     "state": "draft",
                     "payment_type": payment_type,
                     "partner_type": partner_type,
-                    "partner_id": line.move_id.partner_id.id,
+                    "partner_id": line.move_id._l10n_ve_withholding_partner().id,
                     "journal_id": journal_id,
                     "payment_type_retention": self.type_retention,
                     "payment_method_id": self.env.ref(payment_method_ref).id,
@@ -887,7 +906,10 @@ class AccountRetention(models.Model):
         a payment concept.
         """
         self.ensure_one()
-        if not self.partner_id.type_person_id:
+        without_type = self.retention_line_ids.mapped(
+            "move_id"
+        ).filtered(lambda m: not m._l10n_ve_withholding_partner().type_person_id)
+        if without_type:
             raise UserError(_("Select a type person"))
         if not any(
             self.retention_line_ids.filtered(lambda line: line.payment_concept_id)
@@ -996,7 +1018,8 @@ class AccountRetention(models.Model):
         if not any(tax_ids):
             raise UserError(_("The invoice %s has no tax."), invoice_id.number)
 
-        withholding_amount = invoice_id.partner_id.withholding_type_id.value
+        withholding_partner = invoice_id._l10n_ve_withholding_partner()
+        withholding_amount = withholding_partner.withholding_type_id.value
         lines_data = []
 
         if len(invoice_id.tax_totals.get("subtotals", [])) < 1:

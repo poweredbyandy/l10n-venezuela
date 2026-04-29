@@ -206,7 +206,7 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
                 elif col_expr_label == "document_number":
                     line_columns.append(
                         report._build_column_dict(
-                            move.name or "",
+                            move.ref or "",
                             column,
                             options=options,
                         )
@@ -366,7 +366,7 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
                 "id": report._get_generic_line_id(
                     "account.move", move.id, markup="purchases_book_line"
                 ),
-                "name": move.name or "",
+                "name": move.ref or move.name or "",
                 "columns": line_columns,
                 "level": 1,
                 "unfoldable": False,
@@ -482,9 +482,9 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
     def _get_number_invoice_affected(self, move):
         if hasattr(move.journal_id, "is_debit") and move.journal_id.is_debit:
             if hasattr(move, "debit_origin_id") and move.debit_origin_id:
-                return move.debit_origin_id.name
+                return move.debit_origin_id.ref or move.debit_origin_id.name or ""
         if hasattr(move, "reversed_entry_id") and move.reversed_entry_id:
-            return move.reversed_entry_id.name
+            return move.reversed_entry_id.ref or move.reversed_entry_id.name or ""
         return "--"
 
     def _get_tax_values_from_stored(self, move):
