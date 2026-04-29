@@ -24,6 +24,8 @@
                                 <field
                                     name="l10n_ve_on_behalf_of_third_party_enabled"
                                 />
+                                <field name="l10n_ve_validate_partner_vat_format" />
+                                <field name="l10n_ve_lock_partner_fiscal_data" />
                             </group>
                         </div>
                     </div>

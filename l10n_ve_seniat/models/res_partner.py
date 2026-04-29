@@ -23,6 +23,12 @@ class ResPartner(models.Model):
             "l10n_ve_seniat.group_l10n_ve_override_locked_master_data"
         )
 
+    def _l10n_ve_lock_partner_fiscal_data_enabled(self):
+        return self.env.company.l10n_ve_lock_partner_fiscal_data
+
+    def _l10n_ve_validate_partner_vat_format_enabled(self):
+        return self.env.company.l10n_ve_validate_partner_vat_format
+
     def _l10n_ve_has_posted_accounting_activity(self):
         self.ensure_one()
         commercial = self.commercial_partner_id
@@ -41,6 +47,7 @@ class ResPartner(models.Model):
     def _l10n_ve_check_fiscal_lock_on_write(self, partners, vals):
         if (
             self._l10n_ve_fiscal_locks_apply()
+            and self._l10n_ve_lock_partner_fiscal_data_enabled()
             and not self._l10n_ve_override_locked_partner_fields()
             and {"name", "vat"} & vals.keys()
         ):
@@ -403,6 +410,8 @@ class ResPartner(models.Model):
     def _l10n_ve_must_check_rif_vat_format(self):
         self.ensure_one()
         if self.env.context.get("skip_l10n_ve_vat_rif_format_check"):
+            return False
+        if not self._l10n_ve_validate_partner_vat_format_enabled():
             return False
         commercial = self.commercial_partner_id
         return (

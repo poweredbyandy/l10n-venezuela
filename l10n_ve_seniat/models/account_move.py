@@ -427,6 +427,10 @@ class AccountMove(models.Model):
                 % {"doc": self.name or _("Borrador")}
             )
 
+    def _l10n_ve_validate_partner_vat_format_enabled(self):
+        self.ensure_one()
+        return self.company_id.l10n_ve_validate_partner_vat_format
+
     def action_post(self):  # noqa: C901
         if self.env.context.get("install_mode"):
             return super().action_post()
@@ -455,7 +459,10 @@ class AccountMove(models.Model):
                             "partner": partner.name,
                         }
                     )
-                if not partner.check_vat_ve(partner.vat):
+                if (
+                    move_id._l10n_ve_validate_partner_vat_format_enabled()
+                    and not partner.check_vat_ve(partner.vat)
+                ):
                     raise ValidationError(
                         _(
                             "No se puede confirmar la factura '%(move)s'. "
@@ -545,7 +552,10 @@ class AccountMove(models.Model):
                                 "third": third.name,
                             }
                         )
-                    if not third.check_vat_ve(third.vat):
+                    if (
+                        move_id._l10n_ve_validate_partner_vat_format_enabled()
+                        and not third.check_vat_ve(third.vat)
+                    ):
                         raise ValidationError(
                             _(
                                 "No se puede confirmar la factura por cuenta de "
