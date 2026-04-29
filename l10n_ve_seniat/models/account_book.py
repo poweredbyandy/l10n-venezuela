@@ -179,10 +179,10 @@ class AccountBook(models.Model):
                 "correlativo al publicar."
             ),
             _(
-                "La pestaña «Correlatives» es solo consulta: dentro de cada tramo "
-                "los números son consecutivos sin saltos; cada tipo de documento "
-                "usa el tramo configurado en el diario. No borre ni altere "
-                "correlativos manualmente."
+                "La pestaña «Correlatives» permite al administrador contable "
+                "corregir o eliminar correlativos. Al modificar una línea se "
+                "actualiza el N° de control del documento enlazado; al eliminarla "
+                "se limpia ese N° de control."
             ),
             _(
                 "«Sincronizar secuencias de tramos» alinea prefijos y el siguiente "
@@ -679,6 +679,8 @@ class AccountBookDocument(models.Model):
 
     @api.constrains("number", "book_id", "section_id")
     def _check_correlative_sequence_no_gaps(self):
+        if self.env.context.get("l10n_ve_allow_book_document_admin_edit"):
+            return
         for line in self:
             book = line.book_id
             if not book:
@@ -776,16 +778,52 @@ class AccountBookDocument(models.Model):
                     % {"c": book_company.display_name}
                 )
 
-    def write(self, vals):
-        if self.ids and ("number" in vals or "book_id" in vals):
+    def _l10n_ve_check_can_admin_edit(self):
+        if not self.env.user.has_group("account.group_account_manager"):
             raise ValidationError(
-                _("No se puede cambiar el número ni el talonario de un correlativo.")
+                _(
+                    "Solo un administrador contable puede modificar o eliminar "
+                    "correlativos del talonario."
+                )
             )
+
+    def _l10n_ve_sync_source_control_number(self, clear=False):
+        for line in self:
+            if not line.res_model or not line.res_id:
+                continue
+            record = line.env[line.res_model].browse(line.res_id).exists()
+            if record and "l10n_ve_control_number" in record._fields:
+                record.write(
+                    {
+                        "l10n_ve_control_number": (
+                            False
+                            if clear
+                            else line.book_id._l10n_ve_format_control_number(line.number)
+                        )
+                    }
+                )
+
+    def write(self, vals):
+        if self.ids and ("number" in vals or "book_id" in vals or "section_id" in vals):
+            self._l10n_ve_check_can_admin_edit()
+            sections = self.mapped("section_id")
+            docs = self.with_context(l10n_ve_allow_book_document_admin_edit=True)
+            res = super(AccountBookDocument, docs).write(vals)
+            self._l10n_ve_sync_source_control_number()
+            (sections | self.mapped("section_id"))._l10n_ve_refresh_sequence_number_next()
+            return res
         return super().write(vals)
 
     @api.ondelete(at_uninstall=False)
     def _unlink_if_not_internal_book_cleanup(self):
         if not self.env.context.get("l10n_ve_allow_book_document_unlink"):
-            raise ValidationError(
-                _("No se pueden eliminar correlativos asignados en el talonario.")
-            )
+            self._l10n_ve_check_can_admin_edit()
+
+    def unlink(self):
+        if not self.env.context.get("l10n_ve_allow_book_document_unlink"):
+            self._l10n_ve_check_can_admin_edit()
+        sections = self.mapped("section_id")
+        self._l10n_ve_sync_source_control_number(clear=True)
+        res = super().unlink()
+        sections._l10n_ve_refresh_sequence_number_next()
+        return res

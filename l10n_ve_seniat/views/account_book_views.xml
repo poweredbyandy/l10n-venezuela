@@ -100,7 +100,20 @@
                             </field>
                         </page>
                         <page string="Correlatives" name="documents">
-                            <field name="document_ids" readonly="1">
+                            <field name="document_ids" groups="account.group_account_manager">
+                                <list
+                                    string="Correlatives"
+                                    create="false"
+                                    editable="bottom"
+                                >
+                                    <field name="number" />
+                                    <field name="section_id" optional="hide" readonly="1" />
+                                    <field name="l10n_ve_correlative_label" string="Documento / motivo" readonly="1" />
+                                    <field name="source_record" column_invisible="True" />
+                                    <field name="company_id" column_invisible="True" />
+                                </list>
+                            </field>
+                            <field name="document_ids" readonly="1" groups="!account.group_account_manager">
                                 <list
                                     string="Correlatives"
                                     create="false"

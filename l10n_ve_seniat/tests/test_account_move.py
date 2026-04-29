@@ -233,7 +233,7 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertFalse((move.l10n_ve_control_number or "").strip())
         self.assertEqual(move.l10n_ve_control_number_placeholder, "00-00000001")
 
-    def test_book_correlative_forbids_unlink(self):
+    def test_book_correlative_admin_unlink_clears_control_number(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )
@@ -242,8 +242,19 @@ class TestAccountMove(L10nVeSeniatCommon):
             [("res_model", "=", "account.move"), ("res_id", "=", move.id)]
         )
         self.assertEqual(len(doc), 1)
-        with self.assertRaises(ValidationError):
-            doc.unlink()
+        doc.unlink()
+        self.assertFalse(move.l10n_ve_control_number)
+
+    def test_book_correlative_admin_write_updates_control_number(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        doc = self.env["account.book.document"].search(
+            [("res_model", "=", "account.move"), ("res_id", "=", move.id)]
+        )
+        doc.write({"number": 2})
+        self.assertEqual(move.l10n_ve_control_number, "00-00000002")
 
     def test_book_correlative_forbids_gap(self):
         book = self.env["account.book"].search(
