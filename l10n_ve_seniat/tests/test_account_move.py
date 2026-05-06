@@ -35,6 +35,27 @@ class TestAccountMove(L10nVeSeniatCommon):
                 "vat": "V12345678",
             }
         )
+        cls.partner_foreign_no_vat = cls.env["res.partner"].create(
+            {
+                "name": "Partner extranjero sin VAT",
+                "country_id": cls.env.ref("base.us").id,
+                "vat": False,
+            }
+        )
+        cls.partner_foreign_invalid_vat = cls.env["res.partner"].create(
+            {
+                "name": "Partner extranjero VAT libre",
+                "country_id": cls.env.ref("base.us").id,
+                "vat": "ABC123",
+            }
+        )
+        cls.third_party_foreign_no_vat = cls.env["res.partner"].create(
+            {
+                "name": "Tercero extranjero sin VAT",
+                "country_id": cls.env.ref("base.us").id,
+                "vat": False,
+            }
+        )
 
     def _create_invoice_vals(self, partner, tax_ids=None, price_unit=100.0):
         return {
@@ -96,6 +117,20 @@ class TestAccountMove(L10nVeSeniatCommon):
         with self.assertRaises(ValidationError) as cm:
             move.action_post()
         self.assertIn("RIF", str(cm.exception))
+
+    def test_out_invoice_post_skips_ve_rif_for_foreign_partner(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_foreign_no_vat)
+        )
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+
+    def test_out_invoice_post_skips_ve_rif_format_for_foreign_partner(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_foreign_invalid_vat)
+        )
+        move.action_post()
+        self.assertEqual(move.state, "posted")
 
     def test_out_invoice_post_invalid_vat_format_can_be_disabled(self):
         self.env.company.l10n_ve_validate_partner_vat_format = False
@@ -501,6 +536,17 @@ class TestAccountMove(L10nVeSeniatCommon):
             move.action_post()
         self.assertIn("RIF", str(cm.exception))
 
+    def test_on_behalf_of_third_party_skips_ve_rif_for_foreign_third_party(self):
+        self.env.company.l10n_ve_on_behalf_of_third_party_enabled = True
+        move = self.env["account.move"].create(
+            {
+                **self._create_invoice_vals(self.partner_ve),
+                "l10n_ve_third_party_partner_id": self.third_party_foreign_no_vat.id,
+            }
+        )
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+
     def test_on_behalf_of_third_party_post_success(self):
         self.env.company.l10n_ve_on_behalf_of_third_party_enabled = True
         move = self.env["account.move"].create(
@@ -590,6 +636,42 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertIn("reset to draft", str(cm.exception))
         self.assertIn("Venezuelan", str(cm.exception))
 
+    def test_button_draft_in_invoice_allowed(self):
+        supplier = self.env["res.partner"].create(
+            {
+                "name": "Supplier draft reset",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J98765432",
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "in_invoice",
+                "partner_id": supplier.id,
+                "invoice_date": fields.Date.today(),
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Line",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_expense"
+                            ].id,
+                            "tax_ids": [
+                                (6, 0, [self.company_data["default_tax_purchase"].id])
+                            ],
+                        },
+                    )
+                ],
+            }
+        )
+        move.action_post()
+        move.button_draft()
+        self.assertEqual(move.state, "draft")
+
     def test_extract_control_number_numeric(self):
         move = self.env["account.move"].new({})
         self.assertEqual(move._extract_control_number_numeric("00000001"), 1)
@@ -600,6 +682,7 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertEqual(move._l10n_ve_control_number_parts("00000007"), ("00", 7))
 
     def test_seniat_invoice_tag_same_currency(self):
+        self.env.company.partner_id.taxpayer_type = "formal"
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )

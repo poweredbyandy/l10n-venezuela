@@ -5,6 +5,10 @@ from odoo.exceptions import UserError
 class AccountPayment(models.Model):
     _inherit = "account.payment"
 
+    l10n_ve_igtf_feature_active = fields.Boolean(
+        related="company_id.l10n_ve_igtf_feature_active",
+    )
+
     l10n_ve_apply_igtf = fields.Boolean(string="Apply IGTF", default=False)
     l10n_ve_igtf_included = fields.Boolean(
         string="Include IGTF in amount",
@@ -108,6 +112,13 @@ class AccountPayment(models.Model):
         self._l10n_ve_igtf_block_manual_activation(vals)
         return super().write(vals)
 
+    def _l10n_ve_igtf_payment_applies(self):
+        self.ensure_one()
+        return (
+            self.country_code == "VE"
+            and self.company_id.l10n_ve_igtf_feature_active
+        )
+
     def _get_igtf_currency_ids(self):
         """
         Return the currencies that should trigger IGTF for the current company.
@@ -124,16 +135,31 @@ class AccountPayment(models.Model):
         self.ensure_one()
         return self.company_id.l10n_ve_igtf_currency_ids
 
-    @api.depends("currency_id", "company_id", "company_id.l10n_ve_igtf_currency_ids")
+    @api.depends(
+        "currency_id",
+        "company_id",
+        "company_id.l10n_ve_igtf_currency_ids",
+        "company_id.l10n_ve_igtf_feature_active",
+        "country_code",
+        "reconciled_invoice_ids",
+        "invoice_ids",
+    )
     def _compute_l10n_ve_show_apply_igtf(self):
         for payment in self:
-            if payment.country_code != "VE":
+            if not payment._l10n_ve_igtf_payment_applies():
                 payment.l10n_ve_show_apply_igtf = False
                 continue
             allowed = payment.company_id.l10n_ve_igtf_currency_ids
-            payment.l10n_ve_show_apply_igtf = bool(
-                payment.currency_id and payment.currency_id in allowed
-            )
+            if not (payment.currency_id and payment.currency_id in allowed):
+                payment.l10n_ve_show_apply_igtf = False
+                continue
+            invs = payment.reconciled_invoice_ids | payment.invoice_ids
+            if any(
+                m.l10n_ve_igtf_invoice_has_igtf_accrual() for m in invs
+            ):
+                payment.l10n_ve_show_apply_igtf = False
+                continue
+            payment.l10n_ve_show_apply_igtf = True
 
     @api.depends(
         "l10n_ve_apply_igtf",
@@ -162,7 +188,12 @@ class AccountPayment(models.Model):
 
     def _l10n_ve_get_igtf_amounts(self):
         self.ensure_one()
-        if self.country_code != "VE":
+        if not self._l10n_ve_igtf_payment_applies():
+            return 0.0, 0.0
+        if any(
+            m.l10n_ve_igtf_invoice_has_igtf_accrual()
+            for m in (self.reconciled_invoice_ids | self.invoice_ids)
+        ):
             return 0.0, 0.0
         percent = self.company_id.l10n_ve_igtf_percent or 0.0
         if not self.l10n_ve_apply_igtf or percent <= 0.0 or not self.currency_id:
@@ -246,7 +277,13 @@ class AccountPayment(models.Model):
             force_balance=force_balance,
         )
 
-        if self.country_code != "VE":
+        if not self._l10n_ve_igtf_payment_applies():
+            return line_vals_list
+
+        if any(
+            m.l10n_ve_igtf_invoice_has_igtf_accrual()
+            for m in (self.reconciled_invoice_ids | self.invoice_ids)
+        ):
             return line_vals_list
 
         company = self.company_id

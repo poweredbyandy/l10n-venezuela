@@ -45,6 +45,7 @@ class AccountChartTemplate(models.AbstractModel):
         """
         return {
             self.env.company.id: {
+                "l10n_ve_igtf_enabled": False,
                 "l10n_ve_igtf_account_id": "l10n_ve_igtf.l10n_ve_igtf_account_igtf_payable",
                 "l10n_ve_igtf_percent": 3.0,
             },

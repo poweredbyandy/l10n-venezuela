@@ -5,9 +5,10 @@
     "countries": ["ve"],
     "author": "Odoo Community Association (OCA)",
     "category": "Accounting/Localizations",
-    "depends": ["web", "account", "l10n_ve_seniat"],
+    "depends": ["web", "account", "l10n_ve_seniat", "currency_account"],
     "data": [
         "security/ir.model.access.csv",
+        "views/account_move_views.xml",
         "views/account_payment_views.xml",
         "views/account_payment_register_views.xml",
         "views/res_config_settings.xml",
@@ -17,6 +18,8 @@
         "web.assets_backend": [
             "l10n_ve_igtf/static/src/components/account_payment_field/account_payment.xml",
             "l10n_ve_igtf/static/src/components/account_payment_field/account_payment_field_patch.js",
+            "l10n_ve_igtf/static/src/components/tax_totals/tax_totals_igtf.xml",
+            "l10n_ve_igtf/static/src/components/tax_totals/tax_totals_company_currency_igtf.xml",
         ],
     },
     "license": "AGPL-3",

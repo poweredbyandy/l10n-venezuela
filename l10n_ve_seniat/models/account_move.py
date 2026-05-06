@@ -4,7 +4,7 @@ import re
 from dateutil.relativedelta import relativedelta
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.mail import html2plaintext
 
 _logger = logging.getLogger(__name__)
@@ -12,10 +12,7 @@ _logger = logging.getLogger(__name__)
 _L10N_VE_CANCEL_REASON_MOVE_TYPES = (
     "out_invoice",
     "out_refund",
-    "in_invoice",
-    "in_refund",
     "out_receipt",
-    "in_receipt",
 )
 
 
@@ -28,7 +25,13 @@ class AccountMove(models.Model):
         compute="_compute_seniat_invoice_tag",
     )
 
-    @api.depends("company_id", "l10n_ve_inverse_rate", "move_type", "country_code")
+    @api.depends(
+        "company_id",
+        "company_id.taxpayer_type",
+        "l10n_ve_inverse_rate",
+        "move_type",
+        "country_code",
+    )
     def _compute_seniat_invoice_tag(self):
         for move in self:
             if move.country_code == "VE" and move.move_type in (
@@ -36,7 +39,7 @@ class AccountMove(models.Model):
                 "out_refund",
             ):
                 texts = []
-                if move.company_id.taxpayer_type != "ordinary":
+                if move.company_id._l10n_ve_invoice_tag_include_igtf_notice():
                     texts.append(
                         "<span>Este pago estará sujeto al cobro adicional del 3% del "
                         "Impuesto a las Grandes Transacciones Financieras (IGTF), de "
@@ -431,6 +434,11 @@ class AccountMove(models.Model):
         self.ensure_one()
         return self.company_id.l10n_ve_validate_partner_vat_format
 
+    def _l10n_ve_partner_requires_rif_validation(self, partner):
+        self.ensure_one()
+        country = partner.country_id or partner.commercial_partner_id.country_id
+        return bool(country and country.code == "VE")
+
     def action_post(self):  # noqa: C901
         if self.env.context.get("install_mode"):
             return super().action_post()
@@ -447,7 +455,10 @@ class AccountMove(models.Model):
                 "in_refund",
             ):
                 partner = move_id.partner_id
-                if not partner.vat:
+                partner_requires_rif = move_id._l10n_ve_partner_requires_rif_validation(
+                    partner
+                )
+                if partner_requires_rif and not partner.vat:
                     raise ValidationError(
                         _(
                             "No se puede confirmar la factura '%(move)s'. "
@@ -460,7 +471,8 @@ class AccountMove(models.Model):
                         }
                     )
                 if (
-                    move_id._l10n_ve_validate_partner_vat_format_enabled()
+                    partner_requires_rif
+                    and move_id._l10n_ve_validate_partner_vat_format_enabled()
                     and not partner.check_vat_ve(partner.vat)
                 ):
                     raise ValidationError(
@@ -516,7 +528,10 @@ class AccountMove(models.Model):
                             % {"move": move_id.name or _("Borrador")}
                         )
                     third = move_id.l10n_ve_third_party_partner_id
-                    if not third.vat:
+                    third_requires_rif = move_id._l10n_ve_partner_requires_rif_validation(
+                        third
+                    )
+                    if third_requires_rif and not third.vat:
                         raise ValidationError(
                             _(
                                 "No se puede confirmar la factura por cuenta de "
@@ -529,7 +544,8 @@ class AccountMove(models.Model):
                             }
                         )
                     if (
-                        move_id._l10n_ve_validate_partner_vat_format_enabled()
+                        third_requires_rif
+                        and move_id._l10n_ve_validate_partner_vat_format_enabled()
                         and not third.check_vat_ve(third.vat)
                     ):
                         raise ValidationError(
@@ -564,6 +580,8 @@ class AccountMove(models.Model):
 
     def action_l10n_ve_open_cancel_wizard(self):
         self.ensure_one()
+        if not self.env.user.has_group("l10n_ve_seniat.group_l10n_ve_invoice_void"):
+            raise AccessError(_("No tiene permiso para anular facturas de cliente."))
         return {
             "type": "ir.actions.act_window",
             "name": _("Anular documento"),
@@ -599,6 +617,8 @@ class AccountMove(models.Model):
 
         _logger.info("Button draft called on move %s", self.move_type)
         if self.move_type == "entry":
+            return super().button_draft()
+        if self.move_type in ("in_invoice", "in_refund", "in_receipt"):
             return super().button_draft()
 
         raise ValidationError(

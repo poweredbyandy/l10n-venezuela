@@ -55,6 +55,83 @@ class AccountMoveRetention(models.Model):
         ],
     )
 
+    iva_retention_id = fields.Many2one(
+        "account.retention",
+        compute="_compute_supplier_retention_links",
+        string="IVA retention document",
+    )
+    islr_retention_id = fields.Many2one(
+        "account.retention",
+        compute="_compute_supplier_retention_links",
+        string="ISLR retention document",
+    )
+
+    @api.depends(
+        "retention_iva_line_ids.retention_id",
+        "retention_iva_line_ids.state",
+        "retention_islr_line_ids.retention_id",
+        "retention_islr_line_ids.state",
+    )
+    def _compute_supplier_retention_links(self):
+        for move in self:
+            iva_lines = move.retention_iva_line_ids.filtered(
+                lambda line: line.state != "cancel"
+            )
+            ret_iva = iva_lines.mapped("retention_id")[:1]
+            move.iva_retention_id = ret_iva
+
+            islr_lines = move.retention_islr_line_ids.filtered(
+                lambda line: line.state != "cancel"
+            )
+            ret_islr = islr_lines.mapped("retention_id")[:1]
+            move.islr_retention_id = ret_islr
+
+    def action_open_iva_retention(self):
+        self.ensure_one()
+        if not self.iva_retention_id:
+            raise UserError(
+                _("No IVA retention document linked to this vendor bill.")
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.iva_retention_id.display_name,
+            "res_model": "account.retention",
+            "res_id": self.iva_retention_id.id,
+            "view_mode": "form",
+            "views": [
+                (
+                    self.env.ref(
+                        "l10n_ve_withholding.view_retention_iva_form_l10n_ve_withholding"
+                    ).id,
+                    "form",
+                )
+            ],
+            "target": "current",
+        }
+
+    def action_open_islr_retention(self):
+        self.ensure_one()
+        if not self.islr_retention_id:
+            raise UserError(
+                _("No ISLR retention document linked to this vendor bill.")
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.islr_retention_id.display_name,
+            "res_model": "account.retention",
+            "res_id": self.islr_retention_id.id,
+            "view_mode": "form",
+            "views": [
+                (
+                    self.env.ref(
+                        "l10n_ve_withholding.view_retention_islr_form_l10n_ve_withholding"
+                    ).id,
+                    "form",
+                )
+            ],
+            "target": "current",
+        }
+
     def action_post(self):
         """
         Override the action_post method to create the retentions payment.

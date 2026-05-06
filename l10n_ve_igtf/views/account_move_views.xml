@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_move_form_igtf_hide_register_payment" model="ir.ui.view">
+        <field name="name">account.move.form.igtf.hide.register.payment</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_state']" position="after">
+                <field name="l10n_ve_igtf_feature_active" invisible="1" />
+                <field name="l10n_ve_igtf_hide_register_payment" invisible="1" />
+                <field name="l10n_ve_igtf_show_unpaid_in_doc_currency" invisible="1" />
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div
+                    name="l10n_ve_igtf_unpaid_in_doc_alert"
+                    class="alert alert-warning mb-2 mx-0 o_notification_alert"
+                    role="alert"
+                    invisible="not l10n_ve_igtf_feature_active or not l10n_ve_igtf_show_unpaid_in_doc_currency"
+                >
+                    <span
+                    >La factura no se ha pagado en su totalidad en la moneda del documento (p. ej. dólares).</span>
+                    <button
+                        name="action_l10n_ve_igtf_credit_note_by_difference"
+                        type="object"
+                        string="Crear nota de crédito por la diferencia"
+                        class="btn btn-link p-0 align-baseline ms-2"
+                    />
+                </div>
+            </xpath>
+            <xpath expr="//button[@id='account_invoice_payment_btn']" position="attributes">
+                <attribute
+                    name="invisible"
+                    separator="or"
+                    add="l10n_ve_igtf_hide_register_payment"
+                />
+            </xpath>
+            <xpath expr="//button[@id='account_invoice_payment_secondary_btn']" position="attributes">
+                <attribute
+                    name="invisible"
+                    separator="or"
+                    add="l10n_ve_igtf_hide_register_payment"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

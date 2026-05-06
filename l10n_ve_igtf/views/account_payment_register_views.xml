@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='payment_date']" position="after">
                 <field name="company_id" invisible="1" />
+                <field name="l10n_ve_igtf_feature_active" invisible="1" />
                 <field name="l10n_ve_show_apply_igtf" invisible="1" />
                 <field name="l10n_ve_igtf_limit_reached" invisible="1" />
                 <field name="l10n_ve_igtf_limit_explanation" invisible="1" />
@@ -31,6 +32,45 @@
                     name="l10n_ve_igtf_included"
                     invisible="not l10n_ve_apply_igtf or not l10n_ve_show_apply_igtf"
                 />
+                <field
+                    name="l10n_ve_ves_show_bolivar_split"
+                    invisible="1"
+                />
+                <div
+                    class="text-muted"
+                    invisible="not l10n_ve_ves_show_bolivar_split"
+                >
+                    <div>
+                        <span>Tope de pago de Bs: </span>
+                        <field
+                            name="l10n_ve_ves_payment_cap"
+                            widget="monetary"
+                            class="d-inline o_inline o_field_float"
+                            nolabel="1"
+                            readonly="1"
+                        />
+                    </div>
+                    <div>
+                        <span>Abono permitido en Bs (base documento, según reglas de cupo): </span>
+                        <field
+                            name="l10n_ve_ves_suggested_base"
+                            widget="monetary"
+                            class="d-inline o_inline o_field_float"
+                            nolabel="1"
+                            readonly="1"
+                        />
+                    </div>
+                    <div>
+                        <span>Abono permitido en Bs (IGTF en el saldo actual): </span>
+                        <field
+                            name="l10n_ve_ves_suggested_igtf"
+                            widget="monetary"
+                            class="d-inline o_inline o_field_float"
+                            nolabel="1"
+                            readonly="1"
+                        />
+                    </div>
+                </div>
                 <field
                     name="l10n_ve_igtf_exchange_rate_inverse"
                     readonly="1"

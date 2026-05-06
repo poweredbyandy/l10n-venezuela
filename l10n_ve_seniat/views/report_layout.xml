@@ -143,6 +143,13 @@
                                         t-field="origin_affected.l10n_ve_invoice_date"
                                     />
                                 </div>
+                                <div class="d-block text-uppercase">
+                                    <strong>Monto Original:</strong>
+                                    <span
+                                        t-field="origin_affected.amount_total"
+                                        t-options="{'widget': 'monetary', 'display_currency': origin_affected.currency_id}"
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div class="col-3">

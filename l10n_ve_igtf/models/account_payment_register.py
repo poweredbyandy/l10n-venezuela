@@ -24,6 +24,10 @@ class AccountPaymentRegister(models.TransientModel):
         related="company_id.l10n_ve_igtf_currency_ids",
         readonly=True,
     )
+    l10n_ve_igtf_feature_active = fields.Boolean(
+        related="company_id.l10n_ve_igtf_feature_active",
+        readonly=True,
+    )
     l10n_ve_show_apply_igtf = fields.Boolean(
         string="Show Apply IGTF",
         compute="_compute_l10n_ve_show_apply_igtf",
@@ -81,10 +85,40 @@ class AccountPaymentRegister(models.TransientModel):
         digits=(12, 6),
         help="1 unit of payment currency = X units of company currency.",
     )
+    l10n_ve_ves_show_bolivar_split = fields.Boolean(
+        compute="_compute_l10n_ve_ves_suggested_bolivar_split",
+        store=False,
+    )
+    l10n_ve_ves_suggested_base = fields.Monetary(
+        string="Límite abono Bs (excl. IGTF en saldo)",
+        currency_field="company_currency_id",
+        compute="_compute_l10n_ve_ves_suggested_bolivar_split",
+        store=False,
+        readonly=True,
+    )
+    l10n_ve_ves_suggested_igtf = fields.Monetary(
+        string="Límite abono Bs (parte IGTF del saldo)",
+        currency_field="company_currency_id",
+        compute="_compute_l10n_ve_ves_suggested_bolivar_split",
+        store=False,
+        readonly=True,
+    )
+    l10n_ve_ves_payment_cap = fields.Monetary(
+        string="Tope de pago de Bs",
+        currency_field="company_currency_id",
+        compute="_compute_l10n_ve_ves_suggested_bolivar_split",
+        store=False,
+        readonly=True,
+    )
 
     def _l10n_ve_is_venezuela_company(self):
         self.ensure_one()
-        return self.company_id.account_fiscal_country_id.code == "VE"
+        if (
+            not self.company_id.account_fiscal_country_id
+            or self.company_id.account_fiscal_country_id.code != "VE"
+        ):
+            return False
+        return self.company_id._l10n_ve_igtf_is_active()
 
     def _l10n_ve_get_igtf_percent(self):
         self.ensure_one()
@@ -144,6 +178,33 @@ class AccountPaymentRegister(models.TransientModel):
             and not self.currency_id.is_zero(self.payment_difference)
             and self.writeoff_is_exchange_account
         )
+
+    @api.depends(
+        "can_edit_wizard",
+        "source_amount",
+        "source_amount_currency",
+        "source_currency_id",
+        "company_id",
+        "company_id.l10n_ve_igtf_feature_active",
+        "currency_id",
+        "payment_date",
+        "installments_mode",
+        "batches",
+    )
+    def _compute_amount(self):
+        super()._compute_amount()
+        for wiz in self:
+            if not wiz.journal_id or not wiz.currency_id or not wiz.payment_date:
+                continue
+            if wiz.custom_user_amount:
+                continue
+            if not wiz._l10n_ve_is_venezuela_company():
+                continue
+            cap = wiz._l10n_ve_get_max_ves_payment_full_residual_in_company_currency()
+            if cap is None:
+                continue
+            if wiz.currency_id.compare_amounts(wiz.amount, cap) > 0:
+                wiz.amount = cap
 
     @api.depends(
         "early_payment_discount_mode",
@@ -419,6 +480,74 @@ class AccountPaymentRegister(models.TransientModel):
             residual_total += move._l10n_ve_igtf_get_residual_company_amount()
         return self.company_currency_id.round(max(residual_total, 0.0))
 
+    def _l10n_ve_get_max_ves_payment_wo_igtf(self):
+        self.ensure_one()
+        if not self._l10n_ve_is_venezuela_company():
+            return None
+        if not self.currency_id or self.currency_id != self.company_currency_id:
+            return None
+        if not self.batches or not self.payment_date:
+            return None
+        lines = self._get_lines()
+        moves = self._l10n_ve_get_customer_moves_from_lines(lines)
+        if not any(m.l10n_ve_igtf_invoice_has_igtf_accrual() for m in moves):
+            return None
+        total = 0.0
+        for move in moves:
+            if not move.l10n_ve_igtf_invoice_has_igtf_accrual():
+                res_wo = move.l10n_ve_igtf_get_residual_excluding_igtf_in_document_currency()
+            else:
+                ceiling = move.l10n_ve_igtf_get_wo_igtf_total_in_document_currency()
+                used_bs = move.l10n_ve_igtf_get_cumulative_bs_paid_in_document_currency()
+                res_wo = move.l10n_ve_igtf_get_residual_excluding_igtf_in_document_currency()
+                left_from_ceiling = max(ceiling - used_bs, 0.0)
+                res_wo = min(res_wo, left_from_ceiling)
+            if move.currency_id.is_zero(res_wo):
+                continue
+            total += move.currency_id._convert(
+                res_wo,
+                self.currency_id,
+                self.company_id,
+                self.payment_date,
+            )
+        return self.currency_id.round(total)
+
+    def _l10n_ve_get_max_ves_payment_full_residual_in_company_currency(self):
+        return self._l10n_ve_get_ves_payment_cap_company_currency()
+
+    def _l10n_ve_get_ves_payment_cap_company_currency(self):
+        self.ensure_one()
+        if not self._l10n_ve_is_venezuela_company():
+            return None
+        if not self.currency_id or self.currency_id != self.company_currency_id:
+            return None
+        if not self.batches or not self.payment_date:
+            return None
+        lines = self._get_lines()
+        moves = self._l10n_ve_get_customer_moves_from_lines(lines)
+        if not any(m.l10n_ve_igtf_invoice_has_igtf_accrual() for m in moves):
+            return None
+        total = 0.0
+        for move in moves:
+            base_doc = move.l10n_ve_igtf_get_residual_excluding_igtf_in_document_currency()
+            ceiling = move.l10n_ve_igtf_get_wo_igtf_total_in_document_currency()
+            used_bs = move.l10n_ve_igtf_get_cumulative_bs_paid_in_document_currency()
+            base_left_from_ceiling = max(ceiling - used_bs, 0.0)
+            base_doc = min(base_doc, base_left_from_ceiling)
+            igtf_doc = (
+                move.l10n_ve_igtf_get_bs_payable_igtf_residual_in_document_currency()
+            )
+            res_doc = move.currency_id.round(base_doc + igtf_doc)
+            if move.currency_id.is_zero(res_doc):
+                continue
+            total += move.currency_id._convert(
+                res_doc,
+                self.currency_id,
+                self.company_id,
+                self.payment_date,
+            )
+        return self.currency_id.round(total)
+
     def _l10n_ve_batches_contain_only_customer_invoices(self):
         self.ensure_one()
         if not self.batches:
@@ -434,9 +563,11 @@ class AccountPaymentRegister(models.TransientModel):
     @api.depends(
         "company_id",
         "company_id.l10n_ve_igtf_percent",
+        "company_id.l10n_ve_igtf_feature_active",
         "currency_id",
         "l10n_ve_igtf_limit_reached",
         "amount",
+        "batches",
     )
     def _compute_l10n_ve_apply_igtf(self):
         for record in self:
@@ -456,9 +587,25 @@ class AccountPaymentRegister(models.TransientModel):
                 record.l10n_ve_apply_igtf = False
                 continue
 
+            if record._l10n_ve_invoices_in_wizard_have_igtf_on_move():
+                record.l10n_ve_apply_igtf = False
+                continue
+
             record.l10n_ve_apply_igtf = True
 
-    @api.depends("batches", "company_id", "company_id.l10n_ve_igtf_percent")
+    def _l10n_ve_invoices_in_wizard_have_igtf_on_move(self):
+        for batch in self.batches or []:
+            for line in batch.get("lines", self.env["account.move.line"]):
+                if line.move_id.l10n_ve_igtf_invoice_has_igtf_accrual():
+                    return True
+        return False
+
+    @api.depends(
+        "batches",
+        "company_id",
+        "company_id.l10n_ve_igtf_percent",
+        "company_id.l10n_ve_igtf_feature_active",
+    )
     def _compute_l10n_ve_igtf_limit_reached(self):
         for wiz in self:
             limit_reached, explanation = wiz._l10n_ve_get_igtf_limit_status()
@@ -474,6 +621,7 @@ class AccountPaymentRegister(models.TransientModel):
         "batches",
         "company_id",
         "company_id.l10n_ve_igtf_percent",
+        "company_id.l10n_ve_igtf_feature_active",
         "group_payment",
         "can_edit_wizard",
     )
@@ -497,6 +645,7 @@ class AccountPaymentRegister(models.TransientModel):
         "currency_id",
         "company_id",
         "company_id.l10n_ve_igtf_currency_ids",
+        "company_id.l10n_ve_igtf_feature_active",
         "batches",
     )
     def _compute_l10n_ve_show_apply_igtf(self):
@@ -506,6 +655,10 @@ class AccountPaymentRegister(models.TransientModel):
                 continue
 
             if not wiz._l10n_ve_batches_contain_only_customer_invoices():
+                wiz.l10n_ve_show_apply_igtf = False
+                continue
+
+            if wiz._l10n_ve_invoices_in_wizard_have_igtf_on_move():
                 wiz.l10n_ve_show_apply_igtf = False
                 continue
 
@@ -522,6 +675,7 @@ class AccountPaymentRegister(models.TransientModel):
         "company_id",
         "company_currency_id",
         "company_id.l10n_ve_igtf_percent",
+        "company_id.l10n_ve_igtf_feature_active",
     )
     def _compute_l10n_ve_igtf_amount_currency(self):
         for wiz in self:
@@ -607,6 +761,7 @@ class AccountPaymentRegister(models.TransientModel):
         "company_id",
         "company_currency_id",
         "company_id.l10n_ve_igtf_percent",
+        "company_id.l10n_ve_igtf_feature_active",
     )
     def _compute_l10n_ve_base_amount_company_currency(self):
         for wiz in self:
@@ -621,10 +776,14 @@ class AccountPaymentRegister(models.TransientModel):
         "currency_id",
         "company_currency_id",
         "company_id",
+        "company_id.l10n_ve_igtf_feature_active",
         "payment_date",
     )
     def _compute_l10n_ve_igtf_exchange_rate_inverse(self):
         for wiz in self:
+            if not wiz._l10n_ve_is_venezuela_company():
+                wiz.l10n_ve_igtf_exchange_rate_inverse = 1.0
+                continue
             if (
                 not wiz.currency_id
                 or not wiz.company_currency_id
@@ -642,10 +801,47 @@ class AccountPaymentRegister(models.TransientModel):
             wiz.l10n_ve_igtf_exchange_rate_inverse = rate or 0.0
 
     @api.depends(
+        "batches",
+        "currency_id",
+        "company_currency_id",
+        "payment_date",
+        "can_edit_wizard",
+        "company_id",
+        "company_id.l10n_ve_igtf_feature_active",
+    )
+    def _compute_l10n_ve_ves_suggested_bolivar_split(self):
+        for wiz in self:
+            if not wiz._l10n_ve_is_venezuela_company():
+                wiz.l10n_ve_ves_show_bolivar_split = False
+                wiz.l10n_ve_ves_suggested_base = 0.0
+                wiz.l10n_ve_ves_suggested_igtf = 0.0
+                wiz.l10n_ve_ves_payment_cap = 0.0
+                continue
+            cap_full = wiz._l10n_ve_get_max_ves_payment_full_residual_in_company_currency()
+            if cap_full is None or not wiz.currency_id:
+                wiz.l10n_ve_ves_show_bolivar_split = False
+                wiz.l10n_ve_ves_suggested_base = 0.0
+                wiz.l10n_ve_ves_suggested_igtf = 0.0
+                wiz.l10n_ve_ves_payment_cap = 0.0
+                continue
+            base = wiz._l10n_ve_get_max_ves_payment_wo_igtf() or 0.0
+            full = cap_full
+            extra = max(wiz.currency_id.round(full - base), 0.0)
+            wiz.l10n_ve_ves_show_bolivar_split = not wiz.currency_id.is_zero(
+                cap_full
+            ) and (
+                not wiz.currency_id.is_zero(base) or not wiz.currency_id.is_zero(extra)
+            )
+            wiz.l10n_ve_ves_suggested_base = base
+            wiz.l10n_ve_ves_suggested_igtf = extra
+            wiz.l10n_ve_ves_payment_cap = full
+
+    @api.depends(
         "l10n_ve_igtf_amount_currency",
         "currency_id",
         "company_currency_id",
         "company_id",
+        "company_id.l10n_ve_igtf_feature_active",
         "payment_date",
     )
     def _compute_l10n_ve_igtf_amount_company_currency(self):
@@ -743,6 +939,24 @@ class AccountPaymentRegister(models.TransientModel):
         # Overpayments are allowed; IGTF is capped later using residual IGTF available.
         return
 
+    @api.onchange(
+        "amount",
+        "batches",
+        "payment_date",
+        "currency_id",
+    )
+    def _onchange_l10n_ve_ves_cap_without_igtf(self):
+        for wiz in self:
+            if not wiz.can_edit_wizard or not wiz.currency_id or not wiz.payment_date:
+                continue
+            cap = wiz._l10n_ve_get_max_ves_payment_full_residual_in_company_currency()
+            if cap is None or not wiz.amount:
+                continue
+            if wiz.currency_id.compare_amounts(wiz.amount, cap) > 0:
+                wiz.amount = cap
+                wiz.custom_user_amount = False
+                wiz.custom_user_currency_id = False
+
     @api.onchange("amount", "l10n_ve_apply_igtf", "currency_id", "payment_date")
     def _onchange_l10n_ve_validate_amount_max_with_igtf(self):
         for wiz in self:
@@ -759,6 +973,29 @@ class AccountPaymentRegister(models.TransientModel):
                 if max_amount_with_igtf and wiz.amount > max_amount_with_igtf:
                     wiz.l10n_ve_igtf_included = True
 
+    def _l10n_ve_check_register_payment_allowed_for_moves(self):
+        self.ensure_one()
+        if not self._l10n_ve_is_venezuela_company() or not self.batches:
+            return
+        if not self.currency_id or self.currency_id != self.company_currency_id:
+            return
+        lines = self._get_lines()
+        moves = self._l10n_ve_get_customer_moves_from_lines(lines)
+        for move in moves:
+            if not move.l10n_ve_igtf_invoice_has_igtf_accrual():
+                continue
+            if not move.l10n_ve_igtf_hide_register_payment:
+                continue
+            raise UserError(
+                _(
+                    "No puede confirmar un pago en bolívares en el estado actual de la factura "
+                    "%(name)s: el asistente o las reglas de cupo/IGTF no lo permiten. Compruebe el "
+                    "abono o utilice otra moneda, o abra una nota de crédito si corresponde a la "
+                    "diferencia en moneda de la factura."
+                )
+                % {"name": (move.name or str(move.id))}
+            )
+
     def _create_payments(self):
         self.ensure_one()
 
@@ -766,12 +1003,31 @@ class AccountPaymentRegister(models.TransientModel):
             self.l10n_ve_show_apply_igtf
             and not self.l10n_ve_apply_igtf
             and not self.l10n_ve_igtf_limit_reached
+            and not self._l10n_ve_invoices_in_wizard_have_igtf_on_move()
         ):
             raise UserError(
                 _(
                     "El IGTF es obligatorio cuando el pago es en las monedas configuradas (ej. USD). "
                     "Debe aplicar IGTF para continuar."
                 )
+            )
+
+        self._l10n_ve_check_register_payment_allowed_for_moves()
+
+        max_bs = self._l10n_ve_get_max_ves_payment_full_residual_in_company_currency()
+        if max_bs is not None and self.currency_id.compare_amounts(
+            self.amount, max_bs
+        ) > 0:
+            raise UserError(
+                _(
+                    "En bolívares el abono no puede ser mayor al saldo pendiente total (incluye "
+                    "el importe que corresponde a la base en moneda documento e IGTF). Máximo "
+                    "permitido ahora: %(max)s %(cur)s."
+                )
+                % {
+                    "max": max_bs,
+                    "cur": self.company_currency_id.symbol or self.company_currency_id.name,
+                }
             )
 
         self._l10n_ve_validate_amount_does_not_exceed_max()

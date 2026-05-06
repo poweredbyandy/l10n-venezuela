@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 
 class L10nVeAccountMoveCancelWizard(models.TransientModel):
@@ -21,6 +21,8 @@ class L10nVeAccountMoveCancelWizard(models.TransientModel):
 
     def action_confirm(self):
         self.ensure_one()
+        if not self.env.user.has_group("l10n_ve_seniat.group_l10n_ve_invoice_void"):
+            raise AccessError(_("No tiene permiso para anular facturas de cliente."))
         move = self.move_id
         ve_code = self.env.ref("base.ve").code
         if move.country_code != ve_code:
