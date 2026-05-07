@@ -2639,3 +2639,27 @@ msgstr "impuesto retenido"
 msgid "the percentage may not exceed 100% on the payment concept line"
 msgstr ""
 "el porcentaje no podrá exceder el 100% en la línea del concepto de pago"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_move.py:0
+msgid "No IVA retention document linked to this vendor bill."
+msgstr ""
+"No hay comprobante de retención de IVA asociado a esta factura de proveedor."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_move.py:0
+msgid "No ISLR retention document linked to this vendor bill."
+msgstr ""
+"No hay comprobante de retención de ISLR asociado a esta factura de proveedor."
+
+#. module: l10n_ve_withholding
+#: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.account_move_form_l10n_ve_withholding
+msgid "Abrir retención de IVA"
+msgstr "Abrir retención de IVA"
+
+#. module: l10n_ve_withholding
+#: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.account_move_form_l10n_ve_withholding
+msgid "Abrir retención de ISLR"
+msgstr "Abrir retención de ISLR"

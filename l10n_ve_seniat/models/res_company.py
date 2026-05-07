@@ -4,6 +4,10 @@ from odoo import fields, models
 class ResCompany(models.Model):
     _inherit = "res.company"
 
+    def _l10n_ve_invoice_tag_include_igtf_notice(self):
+        self.ensure_one()
+        return bool(self.taxpayer_type and self.taxpayer_type != "ordinary")
+
     taxpayer_type = fields.Selection(
         related="partner_id.taxpayer_type",
         readonly=False,

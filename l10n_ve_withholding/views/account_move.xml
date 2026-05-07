@@ -5,20 +5,60 @@
         <field name="inherit_id" ref="account.view_move_form" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_shipping_id']" position="after">
+                <field name="iva_retention_id" invisible="1" />
+                <field name="islr_retention_id" invisible="1" />
                 <field
                     name="generate_iva_retention"
                     invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')"
                 />
-                <field
-                    name="iva_voucher_number"
-                    readonly="1"
-                    invisible="not iva_voucher_number"
+                <label
+                    for="iva_voucher_number"
+                    string="Comprobante retención IVA"
+                    invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund') or not iva_voucher_number"
                 />
-                <field
-                    name="islr_voucher_number"
-                    readonly="1"
-                    invisible="not islr_voucher_number"
+                <div
+                    class="d-inline-flex flex-nowrap align-items-center gap-2"
+                    invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund') or not iva_voucher_number"
+                >
+                    <field
+                        name="iva_voucher_number"
+                        nolabel="1"
+                        readonly="1"
+                        class="oe_inline w-auto"
+                    />
+                    <button
+                        name="action_open_iva_retention"
+                        type="object"
+                        class="btn-link px-1 py-0 flex-shrink-0 align-baseline"
+                        icon="fa-external-link"
+                        title="Abrir retención de IVA"
+                        invisible="not iva_retention_id"
+                    />
+                </div>
+                <label
+                    for="islr_voucher_number"
+                    string="Comprobante retención ISLR"
+                    invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund') or not islr_voucher_number"
                 />
+                <div
+                    class="d-inline-flex flex-nowrap align-items-center gap-2"
+                    invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund') or not islr_voucher_number"
+                >
+                    <field
+                        name="islr_voucher_number"
+                        nolabel="1"
+                        readonly="1"
+                        class="oe_inline w-auto"
+                    />
+                    <button
+                        name="action_open_islr_retention"
+                        type="object"
+                        class="btn-link px-1 py-0 flex-shrink-0 align-baseline"
+                        icon="fa-external-link"
+                        title="Abrir retención de ISLR"
+                        invisible="not islr_retention_id"
+                    />
+                </div>
                 <field
                     name="municipal_voucher_number"
                     readonly="1"

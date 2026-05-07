@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-inherit="account.TaxTotalsField" t-inherit-mode="extension">
+        <xpath
+            expr="//tr[.//span[@name='amount_total']]"
+            position="replace"
+        >
+            <t t-if="'l10n_ve_igtf_total_without_igtf_currency' in totals">
+                <tr>
+                    <td class="o_td_label">
+                        <label class="o_form_label o_tax_total_label">Total</label>
+                    </td>
+                    <td class="o_list_monetary">
+                        <span
+                            name="l10n_ve_igtf_total_without_igtf"
+                            t-out="formatMonetary(totals.l10n_ve_igtf_total_without_igtf_currency)"
+                            style="font-weight: 600; white-space: nowrap;"
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="o_td_label">
+                        <label
+                            class="o_form_label o_tax_total_label"
+                        >Total con IGTF</label>
+                    </td>
+                    <td class="o_list_monetary">
+                        <span
+                            name="amount_total"
+                            t-att-class="{'oe_subtotal_footer_separator': totals.has_tax_groups}"
+                            t-out="formatMonetary(totals.total_amount_currency)"
+                            style="font-size: 1.3em; font-weight: bold; white-space: nowrap;"
+                        />
+                    </td>
+                </tr>
+            </t>
+            <t t-else="">
+                <tr>
+                    <td class="o_td_label">
+                        <label class="o_form_label o_tax_total_label">Total</label>
+                    </td>
+                    <td class="o_list_monetary">
+                        <span
+                            name="amount_total"
+                            t-att-class="{'oe_subtotal_footer_separator': totals.has_tax_groups}"
+                            t-out="formatMonetary(totals.total_amount_currency)"
+                            style="font-size: 1.3em; font-weight: bold; white-space: nowrap;"
+                        />
+                    </td>
+                </tr>
+            </t>
+        </xpath>
+    </t>
+</templates>

@@ -19,6 +19,7 @@ class TestCoverageExtraAccountMove(L10nVeSeniatCommon):
         )
 
     def test_seniat_invoice_tag_foreign_currency_includes_rate_text(self):
+        self.env.company.partner_id.taxpayer_type = "formal"
         company_ccy = self.env.company.currency_id
         foreign = (
             self.env.ref("base.USD")

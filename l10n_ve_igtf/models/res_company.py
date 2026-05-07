@@ -5,6 +5,19 @@ from odoo.exceptions import ValidationError
 class ResCompany(models.Model):
     _inherit = "res.company"
 
+    l10n_ve_igtf_enabled = fields.Boolean(
+        string="Apply IGTF",
+        default=False,
+        help="If disabled, IGTF is not calculated or shown for this company, even if the "
+        "module is installed. Requires fiscal country Venezuela and taxpayer type Special.",
+    )
+    l10n_ve_igtf_feature_active = fields.Boolean(
+        string="IGTF regime active",
+        compute="_compute_l10n_ve_igtf_feature_active",
+        store=True,
+        help="Technical: IGTF applies (Venezuela, special taxpayer, option enabled).",
+    )
+
     l10n_ve_igtf_currency_ids = fields.Many2many(
         comodel_name="res.currency",
         relation="l10n_ve_igtf_res_company_currency_rel",
@@ -12,6 +25,15 @@ class ResCompany(models.Model):
         column2="currency_id",
         string="IGTF Currencies",
         help="Currencies for which IGTF should apply (for example, USD).",
+    )
+    l10n_ve_igtf_allow_invoice_accrual = fields.Boolean(
+        string="IGTF en facturas",
+        default=True,
+        help=(
+            "Si está activo, al confirmar facturas de venta en monedas IGTF (p. ej. USD) "
+            "se generan líneas de IGTF en el asiento. Si está desactivado, el IGTF solo "
+            "se calcula y registra en cobros y pagos."
+        ),
     )
 
     l10n_ve_igtf_account_id = fields.Many2one(
@@ -26,6 +48,31 @@ class ResCompany(models.Model):
         default=3.0,
         help="IGTF percentage to split from the payment and post to the IGTF account.",
     )
+
+    def _l10n_ve_igtf_is_active(self):
+        self.ensure_one()
+        if not self.l10n_ve_igtf_enabled:
+            return False
+        if not self.account_fiscal_country_id or self.account_fiscal_country_id.code != "VE":
+            return False
+        if self.taxpayer_type != "special":
+            return False
+        return True
+
+    def _l10n_ve_invoice_tag_include_igtf_notice(self):
+        self.ensure_one()
+        if not super()._l10n_ve_invoice_tag_include_igtf_notice():
+            return False
+        return self._l10n_ve_igtf_is_active()
+
+    @api.depends(
+        "l10n_ve_igtf_enabled",
+        "account_fiscal_country_id",
+        "partner_id.taxpayer_type",
+    )
+    def _compute_l10n_ve_igtf_feature_active(self):
+        for company in self:
+            company.l10n_ve_igtf_feature_active = company._l10n_ve_igtf_is_active()
 
     @api.constrains("l10n_ve_igtf_percent")
     def _check_l10n_ve_igtf_percent(self):
