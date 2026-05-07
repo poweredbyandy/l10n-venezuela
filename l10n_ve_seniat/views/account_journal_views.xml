@@ -5,6 +5,13 @@
         <field name="model">account.journal</field>
         <field name="inherit_id" ref="account.view_account_journal_form" />
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_sequence']" position="after">
+                <field
+                    name="l10n_ve_fiscal_payment_code"
+                    invisible="country_code != 'VE' or type not in ('bank', 'cash', 'credit')"
+                    placeholder="01"
+                />
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page name="l10n_ve_seniat_page" string="SENIAT" invisible="type != 'sale'">
                     <group string="Configuración">

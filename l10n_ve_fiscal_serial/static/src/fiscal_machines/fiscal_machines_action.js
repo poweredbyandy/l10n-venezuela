@@ -22,6 +22,8 @@ export class FiscalMachinesAction extends Component {
     setup() {
         this.fiscalSerial = useService("l10n_ve_fiscal_serial");
         this.notification = useService("notification");
+        this.orm = useService("orm");
+        this.ui = useService("ui");
         this.state = useState({
             phase: PHASE.DISCONNECTED,
             busy: false,
@@ -36,8 +38,10 @@ export class FiscalMachinesAction extends Component {
             fpDescripStatus: "",
             fpDescripError: "",
             fpLrcValid: null,
+            flag21: "30",
         });
         this.driver = null;
+        this._isUIBlocked = false;
     }
 
     get display() {
@@ -149,6 +153,44 @@ export class FiscalMachinesAction extends Component {
         this.state.logLines = next.slice(-24);
     }
 
+    _setBlockingProgress(percent, message = "Imprimiendo...") {
+        const pct = Math.max(0, Math.min(100, Math.round(percent)));
+        if (this._isUIBlocked) {
+            this.ui.unblock();
+            this._isUIBlocked = false;
+        }
+        this.ui.block({ message: `${message} ${pct}%` });
+        this._isUIBlocked = true;
+    }
+
+    _clearBlockingProgress() {
+        if (this._isUIBlocked) {
+            this.ui.unblock();
+            this._isUIBlocked = false;
+        }
+    }
+
+    async _loadMachineConfig() {
+        try {
+            const cfg = await this.orm.call(
+                "res.company",
+                "l10n_ve_fiscal_serial_get_machine_config",
+                []
+            );
+            if (cfg?.flag_21) {
+                this.state.flag21 = cfg.flag_21;
+            } else {
+                this.state.flag21 = "30";
+            }
+            this._log(`Configuración activa FLAG_21=${this.state.flag21}`);
+            return cfg;
+        } catch {
+            this.state.flag21 = "30";
+            this._log("No se pudo leer configuración de FLAG_21; se usa 30.");
+            return { flag_21: "30" };
+        }
+    }
+
     async onOpenConnection() {
         if (this.state.busy) {
             return;
@@ -159,6 +201,7 @@ export class FiscalMachinesAction extends Component {
         this.state.logLines = [];
         this._log("Inicio: comprobar Web Serial API");
         try {
+            await this._loadMachineConfig();
             if (!this.fiscalSerial.isSupported()) {
                 this.state.phase = PHASE.ERROR;
                 this.state.estado =
@@ -261,15 +304,20 @@ export class FiscalMachinesAction extends Component {
         }
         this.state.busy = true;
         this.state.lastCmdResult = "";
+        this._setBlockingProgress(0, "Imprimiendo...");
+        await this._loadMachineConfig();
         this._log(`Enviar ${lines.length} línea(s) de comando`);
+        this._log(`FLAG_21 configurada para esta sesión: ${this.state.flag21}`);
         try {
             let okCount = 0;
-            for (const line of lines) {
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
                 this._log(`sendCmd: «${line.length > 80 ? line.slice(0, 80) + "…" : line}»`);
                 const sent = await this.driver.sendCmd(line);
                 if (sent) {
                     okCount += 1;
                     this._log(`Línea ${okCount}: ACK OK`);
+                    this._setBlockingProgress((okCount / lines.length) * 100, "Imprimiendo...");
                 } else {
                     const errDetail = `Error en comando. Estado driver: ${this.driver.estado || "NAK/sin ACK"}`;
                     this.state.lastCmdResult = errDetail;
@@ -287,6 +335,7 @@ export class FiscalMachinesAction extends Component {
             this.notification.add(this.state.lastCmdResult, { type: "danger" });
         } finally {
             this.state.busy = false;
+            this._clearBlockingProgress();
         }
     }
 
@@ -303,6 +352,8 @@ export class FiscalMachinesAction extends Component {
         const lines = this.fiscalSerial.getSampleHkaInvoiceLines();
         this.state.busy = true;
         this.state.lastCmdResult = "";
+        this._setBlockingProgress(0, "Imprimiendo...");
+        await this._loadMachineConfig();
         this._log(`Secuencia de prueba: ${lines.length} línea(s) (pausa ${TFHKA_COMMAND_DELAY_MS} ms entre líneas)`);
         try {
             let okCount = 0;
@@ -316,6 +367,7 @@ export class FiscalMachinesAction extends Component {
                 if (sent) {
                     okCount += 1;
                     this._log(`Línea ${okCount}: ACK OK`);
+                    this._setBlockingProgress((okCount / lines.length) * 100, "Imprimiendo...");
                 } else {
                     const errDetail = `Error en secuencia de prueba. Estado driver: ${this.driver.estado || "NAK/sin ACK"}`;
                     this.state.lastCmdResult = errDetail;
@@ -333,6 +385,7 @@ export class FiscalMachinesAction extends Component {
             this.notification.add(this.state.lastCmdResult, { type: "danger" });
         } finally {
             this.state.busy = false;
+            this._clearBlockingProgress();
         }
     }
 
@@ -348,6 +401,7 @@ export class FiscalMachinesAction extends Component {
         }
         this.state.busy = true;
         this.state.lastCmdResult = "";
+        this._setBlockingProgress(0, "Imprimiendo...");
         this._log("Consulta estado TFHKA: ENQ (0x05) — respuesta 5 bytes STX, estado, error, ETX, LRC");
         try {
             const ok = await this.driver.readFpStatus();
@@ -365,6 +419,7 @@ export class FiscalMachinesAction extends Component {
                 }
                 this._log(line);
                 this.notification.add("Estado leído (ENQ).", { type: "success" });
+                this._setBlockingProgress(100, "Imprimiendo...");
             } else {
                 const detail =
                     this.driver.estado ||
@@ -373,6 +428,7 @@ export class FiscalMachinesAction extends Component {
                 this.state.estado = detail;
                 this._log(`ERROR estado ENQ: ${detail}`);
                 this.notification.add(detail, { type: "danger" });
+                this._setBlockingProgress(100, "Imprimiendo...");
             }
         } catch (e) {
             this.state.lastCmdResult = e.message || String(e);
@@ -380,6 +436,7 @@ export class FiscalMachinesAction extends Component {
             this.notification.add(this.state.lastCmdResult, { type: "danger" });
         } finally {
             this.state.busy = false;
+            this._clearBlockingProgress();
         }
     }
 
@@ -395,6 +452,7 @@ export class FiscalMachinesAction extends Component {
         }
         this.state.busy = true;
         this.state.lastCmdResult = "";
+        this._setBlockingProgress(0, "Imprimiendo...");
         this._log("Prueba HKA: sendCmd «7» (comando mínimo del ejemplo de prueba del manual/driver)");
         try {
             const sent = await this.driver.sendCmd("7");
@@ -403,11 +461,13 @@ export class FiscalMachinesAction extends Component {
                     "Comando «7» respondió ACK. El enlace de comandos enmarcados funciona; si fallan las líneas i*, revise estado fiscal y secuencia del documento en el manual.";
                 this._log("ACK en comando 7");
                 this.notification.add("Comando 7: ACK OK.", { type: "success" });
+                this._setBlockingProgress(100, "Imprimiendo...");
             } else {
                 const errDetail = `Prueba «7»: ${this.driver.estado || "sin ACK"}`;
                 this.state.lastCmdResult = errDetail;
                 this._log(`ERROR: ${errDetail}`);
                 this.notification.add(errDetail, { type: "danger" });
+                this._setBlockingProgress(100, "Imprimiendo...");
             }
         } catch (e) {
             this.state.lastCmdResult = e.message || String(e);
@@ -415,6 +475,119 @@ export class FiscalMachinesAction extends Component {
             this.notification.add(this.state.lastCmdResult, { type: "danger" });
         } finally {
             this.state.busy = false;
+            this._clearBlockingProgress();
+        }
+    }
+
+    async onPrintXReport() {
+        if (!this.canSendCommands) {
+            if (this.state.phase !== PHASE.CONNECTED) {
+                this.notification.add(
+                    "Conecte primero con «Abrir conexión» y espere el estado «Puerto abierto».",
+                    { type: "warning" }
+                );
+            }
+            return;
+        }
+        this.state.busy = true;
+        this.state.lastCmdResult = "";
+        this._setBlockingProgress(0, "Imprimiendo...");
+        await this._loadMachineConfig();
+        this._log("Iniciar reporte X desde vista de máquina fiscal");
+        try {
+            const machine = this.fiscalSerial.createTfhkaFiscalMachine(this.driver);
+            const response = await machine.printXReport();
+            if (!response?.valid) {
+                throw new Error(response?.message || "No se pudo imprimir reporte X.");
+            }
+            this.state.lastCmdResult = response.message || "Reporte X impreso correctamente.";
+            this._log(this.state.lastCmdResult);
+            this.notification.add(this.state.lastCmdResult, { type: "success" });
+            this._setBlockingProgress(100, "Imprimiendo...");
+        } catch (e) {
+            this.state.lastCmdResult = e.message || String(e);
+            this._log(`ERROR reporte X: ${this.state.lastCmdResult}`);
+            this.notification.add(this.state.lastCmdResult, { type: "danger" });
+        } finally {
+            this.state.busy = false;
+            this._clearBlockingProgress();
+        }
+    }
+
+    async onPrintZReport() {
+        if (!this.canSendCommands) {
+            if (this.state.phase !== PHASE.CONNECTED) {
+                this.notification.add(
+                    "Conecte primero con «Abrir conexión» y espere el estado «Puerto abierto».",
+                    { type: "warning" }
+                );
+            }
+            return;
+        }
+        this.state.busy = true;
+        this.state.lastCmdResult = "";
+        this._setBlockingProgress(0, "Imprimiendo...");
+        await this._loadMachineConfig();
+        this._log("Iniciar reporte Z desde vista de máquina fiscal");
+        try {
+            const machine = this.fiscalSerial.createTfhkaFiscalMachine(this.driver);
+            const response = await machine.printZReport();
+            if (!response?.valid) {
+                throw new Error(response?.message || "No se pudo imprimir reporte Z.");
+            }
+            this.state.lastCmdResult = response.message || "Reporte Z impreso correctamente.";
+            this._log(this.state.lastCmdResult);
+            this.notification.add(this.state.lastCmdResult, { type: "success" });
+            this._setBlockingProgress(100, "Imprimiendo...");
+        } catch (e) {
+            this.state.lastCmdResult = e.message || String(e);
+            this._log(`ERROR reporte Z: ${this.state.lastCmdResult}`);
+            this.notification.add(this.state.lastCmdResult, { type: "danger" });
+        } finally {
+            this.state.busy = false;
+            this._clearBlockingProgress();
+        }
+    }
+
+    async onConfigureFiscalMachine() {
+        if (!this.canSendCommands) {
+            if (this.state.phase !== PHASE.CONNECTED) {
+                this.notification.add(
+                    "Conecte primero con «Abrir conexión» y espere el estado «Puerto abierto».",
+                    { type: "warning" }
+                );
+            }
+            return;
+        }
+        this.state.busy = true;
+        this.state.lastCmdResult = "";
+        this._setBlockingProgress(0, "Imprimiendo...");
+        const cfg = await this._loadMachineConfig();
+        const flag21 = cfg?.flag_21 || this.state.flag21 || "30";
+        this._log(`Configurar máquina fiscal con FLAG_21=${flag21}`);
+        try {
+            const machine = this.fiscalSerial.createTfhkaFiscalMachine(this.driver);
+            const response = await machine.configureMachineFlag21(flag21, {
+                onProgress: ({ percent }) => {
+                    this._setBlockingProgress(percent, "Imprimiendo...");
+                },
+            });
+            if (!response?.valid) {
+                throw new Error(
+                    response?.message || "No se pudo configurar la máquina fiscal."
+                );
+            }
+            this.state.lastCmdResult =
+                response.message || `Configuración enviada con FLAG_21=${flag21}.`;
+            this._log(this.state.lastCmdResult);
+            this.notification.add(this.state.lastCmdResult, { type: "success" });
+        } catch (e) {
+            this.state.lastCmdResult = e.message || String(e);
+            this._log(`ERROR configuración fiscal: ${this.state.lastCmdResult}`);
+            this.notification.add(this.state.lastCmdResult, { type: "danger" });
+        } finally {
+            this.state.busy = false;
+            this._clearBlockingProgress();
         }
     }
 }

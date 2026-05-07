@@ -362,27 +362,6 @@
                                             <table
                                                 class="table table-sm table-borderless tax-totals-table mb-0"
                                             >
-                                                <thead>
-                                                    <tr>
-                                                        <th class="text-end pe-2 py-1" />
-                                                        <t t-if="show_company_currency">
-                                                            <th
-                                                                class="text-end py-1 ps-2"
-                                                                style="min-width: 75px;"
-                                                            >
-                                                                <t
-                                                                    t-out="comp_currency.symbol"
-                                                                />
-                                                            </th>
-                                                        </t>
-                                                        <th
-                                                            class="text-end py-1"
-                                                            style="min-width: 75px;"
-                                                        >
-                                                            <t t-out="doc_currency.symbol" />
-                                                        </th>
-                                                    </tr>
-                                                </thead>
                                                 <tbody>
                                                     <t
                                                         t-set="all_tax_groups"

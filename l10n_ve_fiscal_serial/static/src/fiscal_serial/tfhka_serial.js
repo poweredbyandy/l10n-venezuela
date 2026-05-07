@@ -82,6 +82,10 @@ export class TfhkaFiscal {
         this._lastEnqHeadHex = "";
     }
 
+    _consoleLogCommand(step, payload) {
+        console.log("[l10n_ve_fiscal_serial][tfhka_serial]", step, payload);
+    }
+
     reiniciarVariables() {
         this.portReceiveStatus = "Espera";
         this._dataReady = false;
@@ -386,6 +390,7 @@ export class TfhkaFiscal {
             return false;
         }
         const cmd = String(sCMD);
+        this._consoleLogCommand("SEND_CMD_REQUEST", { command: cmd });
         const xorChar = doXorCommand(cmd);
         const bodyLatin1 = encodeLatin1(cmd);
         this.mensaje = `${String.fromCharCode(STX)}${decodeLatin15ish(bodyLatin1)}${String.fromCharCode(ETX)}${xorChar}`;
@@ -398,10 +403,20 @@ export class TfhkaFiscal {
             {}
         ));
         if (num2 === 1 && bResp.length && bResp[0] === ACK) {
+            this._consoleLogCommand("SEND_CMD_RESPONSE", {
+                command: cmd,
+                ack: true,
+                code: "ACK",
+            });
             this.reiniciarVariables();
             return true;
         }
         if (num2 === 0) {
+            this._consoleLogCommand("SEND_CMD_RESPONSE", {
+                command: cmd,
+                ack: false,
+                code: "TIMEOUT",
+            });
             return false;
         }
         let num1 = 0;
@@ -413,13 +428,23 @@ export class TfhkaFiscal {
             num1++
         ) {
             await this._sleep(this.sendCmdRetryInterval);
+            this._consoleLogCommand("SEND_CMD_RETRY", {
+                command: cmd,
+                retry: num1 + 1,
+            });
             ({ n: num2, bytes: bResp } = await this._serialPortWriteAndRead(
                 frame,
                 "ack"
             ));
         }
+        const ok = num2 === 1 && bResp.length > 0 && bResp[0] === ACK;
+        this._consoleLogCommand("SEND_CMD_RESPONSE", {
+            command: cmd,
+            ack: ok,
+            code: ok ? "ACK" : (bResp[0] === NAK || num2 === -2 ? "NAK" : "UNKNOWN"),
+        });
         this.reiniciarVariables();
-        return num2 === 1 && bResp.length > 0 && bResp[0] === ACK;
+        return ok;
     }
 
     async sendFileCmdFromLines(lines) {
@@ -450,6 +475,7 @@ export class TfhkaFiscal {
     }
 
     async subirDataStatus(cmd) {
+        this._consoleLogCommand("STATUS_COMMAND_REQUEST", { command: cmd });
         const frame = buildSendCmdFrame(cmd);
         await this.transport.writeBytes(frame);
         const raw = await this.transport.readSome({
@@ -458,10 +484,15 @@ export class TfhkaFiscal {
             maxLen: 4000,
         });
         const s = decodeLatin15ish(raw).replace(/\r/g, "").trim();
+        this._consoleLogCommand("STATUS_COMMAND_RESPONSE", {
+            command: cmd,
+            length: s.length,
+        });
         return { len: s.length, data: s };
     }
 
     async subirDataReport(cmd) {
+        this._consoleLogCommand("REPORT_COMMAND_REQUEST", { command: cmd });
         const frame = buildSendCmdFrame(cmd);
         await this.transport.writeBytes(frame);
         const raw = await this.transport.readSome({
@@ -472,6 +503,10 @@ export class TfhkaFiscal {
         const text = decodeLatin15ish(raw);
         const lines = text.split(/\r\n|\n|\r/).filter((l) => l.length > 0);
         this.dataLectorFisc = lines;
+        this._consoleLogCommand("REPORT_COMMAND_RESPONSE", {
+            command: cmd,
+            lines: lines.length,
+        });
         return lines.length;
     }
 
@@ -516,6 +551,7 @@ export class TfhkaFiscal {
     }
 
     async readFpStatus() {
+        this._consoleLogCommand("STATUS_ENQ_REQUEST", { command: "ENQ(0x05)" });
         try {
             const prev = this._serialPortReceiveTimeout;
             this._serialPortReceiveTimeout = 2;
@@ -549,6 +585,11 @@ export class TfhkaFiscal {
                     this._darStatusError(st, er);
                 }
                 if (this.status != null && this.error != null) {
+                    this._consoleLogCommand("STATUS_ENQ_RESPONSE", {
+                        status: this.status,
+                        error: this.error,
+                        lrcValid: this.erroValid,
+                    });
                     this.estado = `Last known Fiscal Printer Status: ${this.descripStatus} - ${this.descripError}`;
                     this.reiniciarVariables();
                     return true;
@@ -559,6 +600,12 @@ export class TfhkaFiscal {
                 return false;
             }
             this._darStatusError(0, 137);
+            this._consoleLogCommand("STATUS_ENQ_RESPONSE", {
+                status: this.status,
+                error: this.error,
+                lrcValid: false,
+                detail: "INVALID_LENGTH",
+            });
             this.reiniciarVariables();
             return false;
         } catch (e) {
@@ -573,6 +620,12 @@ export class TfhkaFiscal {
                         .toLowerCase()
                         .includes("null"));
             this._darStatusError(0, ioOrNull ? 128 : 145);
+            this._consoleLogCommand("STATUS_ENQ_RESPONSE", {
+                status: this.status,
+                error: this.error,
+                lrcValid: false,
+                detail: e.message || String(e),
+            });
             this.reiniciarVariables();
             return false;
         }
