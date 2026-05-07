@@ -14,6 +14,10 @@ class AccountMoveLine(models.Model):
         compute="_compute_subtotal_company_currency",
         currency_field="company_currency_id",
     )
+    price_unit_company_currency = fields.Monetary(
+        compute="_compute_price_unit_company_currency",
+        currency_field="company_currency_id",
+    )
 
     @api.depends("balance")
     def _compute_subtotal_company_currency(self):
@@ -25,6 +29,20 @@ class AccountMoveLine(models.Model):
                 line.subtotal_company_currency = abs(line.balance)
                 continue
             line.subtotal_company_currency = 0.0
+
+    @api.depends("subtotal_company_currency", "discount", "quantity")
+    def _compute_price_unit_company_currency(self):
+        for line in self:
+            qty = line.quantity or 0.0
+            if not qty:
+                line.price_unit_company_currency = 0.0
+                continue
+            discount_factor = 1 - ((line.discount or 0.0) / 100.0)
+            if not discount_factor:
+                line.price_unit_company_currency = 0.0
+                continue
+            subtotal_wo_discount = line.subtotal_company_currency / discount_factor
+            line.price_unit_company_currency = subtotal_wo_discount / qty
 
     @api.model_create_multi
     def create(self, vals_list):

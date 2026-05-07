@@ -59,10 +59,10 @@
                 <attribute name="invisible">state != 'posted' or (not is_being_sent and not invoice_pdf_report_id) or (country_code == 'VE' and move_type in ('out_invoice', 'out_refund') and l10n_ve_hide_invoice_print_pdf)</attribute>
             </xpath>
             <xpath expr="//button[@name='button_draft']" position="attributes">
-                <attribute name="invisible">move_type != 'entry'</attribute>
+                <attribute name="invisible">not show_reset_to_draft_button or (country_code == 'VE' and move_type in ('out_invoice', 'out_refund', 'out_receipt'))</attribute>
             </xpath>
             <xpath expr="//button[@name='button_cancel'][2]" position="attributes">
-                <attribute name="invisible">not id or state != 'draft' or move_type == 'entry' or (country_code == 'VE' and move_type in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))</attribute>
+                <attribute name="invisible">not id or state != 'draft' or move_type == 'entry' or (country_code == 'VE' and move_type in ('out_invoice', 'out_refund', 'out_receipt'))</attribute>
             </xpath>
 
             <xpath expr="//button[@name='button_cancel'][2]" position="after">
@@ -70,9 +70,9 @@
                     name="action_l10n_ve_open_cancel_wizard"
                     string="Anular"
                     type="object"
-                    groups="account.group_account_invoice"
+                    groups="account.group_account_invoice,l10n_ve_seniat.group_l10n_ve_invoice_void"
                     data-hotkey="x"
-                    invisible="country_code != 'VE' or not id or state not in ('draft', 'posted') or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')"
+                    invisible="country_code != 'VE' or not id or state not in ('draft', 'posted') or move_type not in ('out_invoice', 'out_refund', 'out_receipt')"
                 />
             </xpath>
 

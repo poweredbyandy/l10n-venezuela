@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_partner_form_l10n_ve_vat_seniat" model="ir.ui.view">
+        <field name="name">res.partner.form.l10n.ve.vat.seniat</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="l10n_ve_seniat.view_partner_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//h1[field[@name='vat']]" position="attributes">
+                <attribute name="class">d-flex flex-wrap align-items-baseline gap-2</attribute>
+            </xpath>
+            <xpath expr="//h1/field[@name='vat']" position="before">
+                <span
+                    class="d-inline-flex align-items-center gap-1 flex-shrink-0"
+                    invisible="not vat"
+                >
+                    <button
+                        name="action_l10n_ve_vat_seniat_query"
+                        type="object"
+                        class="btn btn-link p-1 lh-1"
+                        icon="fa-refresh"
+                        title="Consultar RIF en el SENIAT"
+                        groups="base.group_user"
+                    />
+                    <button
+                        name="action_l10n_ve_vat_seniat_open_portal"
+                        type="object"
+                        class="btn btn-link p-1 lh-1"
+                        icon="fa-share"
+                        title="Abrir consulta RIF en el SENIAT (nueva pestaña)"
+                        groups="base.group_user"
+                    />
+                </span>
+            </xpath>
+        </field>
+    </record>
+</odoo>

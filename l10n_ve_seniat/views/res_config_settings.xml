@@ -82,6 +82,11 @@
                         </div>
                     </div>
                 </block>
+                <block
+                    id="l10n_ve_extended_localization_settings"
+                    name="l10n_ve_extended_localization_settings"
+                    title="Venezuela - Retenciones e IGTF"
+                />
             </xpath>
         </field>
     </record>

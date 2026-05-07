@@ -8,6 +8,80 @@ from odoo.tools import float_is_zero
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    l10n_ve_inverse_rate = fields.Float(
+        string="Tasa de cambio inversa",
+        compute="_compute_l10n_ve_inverse_rate",
+        digits=(16, 6),
+    )
+    l10n_ve_seniat_note = fields.Html(
+        string="Nota SENIAT",
+        compute="_compute_l10n_ve_seniat_note",
+        sanitize=False,
+    )
+
+    @api.depends("currency_id", "date_order", "company_id")
+    def _compute_l10n_ve_inverse_rate(self):
+        for order in self:
+            if not order.currency_id or not order.company_id:
+                order.l10n_ve_inverse_rate = 0.0
+                continue
+            date_ref = (order.date_order or fields.Datetime.now()).date()
+            if order.currency_id == order.company_id.currency_id:
+                order.l10n_ve_inverse_rate = 1.0
+                continue
+            currency_rate = self.env["res.currency.rate"].search(
+                [
+                    ("currency_id", "=", order.currency_id.id),
+                    ("name", "<=", date_ref),
+                    ("company_id", "=", order.company_id.id),
+                ],
+                order="name desc",
+                limit=1,
+            )
+            if currency_rate and currency_rate.rate and currency_rate.rate != 0.0:
+                order.l10n_ve_inverse_rate = 1.0 / currency_rate.rate
+            else:
+                order.l10n_ve_inverse_rate = 0.0
+
+    @api.depends(
+        "company_id",
+        "company_id.taxpayer_type",
+        "l10n_ve_inverse_rate",
+        "country_code",
+        "currency_id",
+    )
+    def _compute_l10n_ve_seniat_note(self):
+        for order in self:
+            if order.country_code != "VE":
+                order.l10n_ve_seniat_note = False
+                continue
+            texts = []
+            if order.company_id._l10n_ve_invoice_tag_include_igtf_notice():
+                texts.append(
+                    "<span>Este pago estará sujeto al cobro adicional del 3% del "
+                    "Impuesto a las Grandes Transacciones Financieras (IGTF), de "
+                    "conformidad con la Providencia Administrativa SNAT/2022/000013 "
+                    "publicada en la G.O N 42.339 del 17-03-2022, en caso de ser "
+                    "cancelado en divisas. No aplica en pago en Bs.</span> "
+                )
+            if order.company_id.currency_id != order.currency_id:
+                rate_formatted = order.company_id.currency_id.format(
+                    order.l10n_ve_inverse_rate
+                )
+                texts.append(
+                    "<span>Este documento se expresa en Bolívares con su "
+                    "equivalente en Divisas, al tipo de cambio corriente del "
+                    "mercado a la fecha de su emisión, según lo establecido en "
+                    "el articulo 13 numeral 14 de la providencia administrativa "
+                    "SNAT/2011/0071 "
+                    f"({rate_formatted}) en concordancia con el articulo 128 "
+                    "de la Ley del Banco Central de Venezuela (BCV); articulo 15 "
+                    "de la Ley que establece el impuesto al valor agregado (IVA) "
+                    "y 38 del Reglamento General de la Ley que establece el "
+                    "Impuesto de Valor agregado (RLIVA)</span>"
+                )
+            order.l10n_ve_seniat_note = "".join(texts) if texts else False
+
     invoicing_date = fields.Date(
         string="Fecha de Facturación",
         compute="_compute_invoicing_date",

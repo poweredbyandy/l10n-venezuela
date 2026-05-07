@@ -1,3 +1,5 @@
+from odoo import Command
+from odoo.exceptions import UserError
 from odoo.tests import tagged
 
 from .common import TestL10nVeIgtfCommon
@@ -718,3 +720,297 @@ class TestIgtfPaymentFlows(TestL10nVeIgtfCommon):
             igtf_included=True,
         )
         self.assertAlmostEqual(wizard.payment_difference, -2.0, places=2)
+
+    def test_invoice_usd_with_igtf_initial_ves_payment_cap_excludes_igtf(self):
+        invoice = self._create_customer_invoice(amount=110.0, currency=self.usd)
+        cap_bs = self.ves.round(
+            self.usd._convert(110.0, self.ves, self.company, self.test_date)
+        )
+
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=cap_bs,
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+
+        self.assertAlmostEqual(wizard.l10n_ve_ves_payment_cap, cap_bs, places=2)
+        self.assertAlmostEqual(wizard.l10n_ve_ves_suggested_base, cap_bs, places=2)
+        self.assertAlmostEqual(wizard.l10n_ve_ves_suggested_igtf, 0.0, places=2)
+
+    def test_invoice_usd_with_igtf_receivable_currency_includes_igtf(self):
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
+        receivable_line = invoice.line_ids.filtered(
+            lambda line: line.account_id.account_type == "asset_receivable"
+        )
+
+        self.assertAlmostEqual(receivable_line.amount_currency, 103.0, places=2)
+
+    def test_invoice_usd_base_paid_in_ves_counts_document_base_without_exchange(self):
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
+        payment_amount_bs = self.ves.round(
+            self.usd._convert(100.0, self.ves, self.company, self.test_date)
+        )
+        payment, wizard = self._register_invoice_payment(
+            invoice=invoice,
+            amount=payment_amount_bs,
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+            return_wizard=True,
+        )
+        self._assert_wizard_payment_consistency(wizard, payment)
+
+        receivable_line = invoice.line_ids.filtered(
+            lambda line: line.account_id.account_type == "asset_receivable"
+        )
+        partial = receivable_line.matched_credit_ids | receivable_line.matched_debit_ids
+
+        self.assertAlmostEqual(partial.debit_amount_currency, 100.0, places=2)
+        self.assertFalse(partial.exchange_move_id)
+        self.assertAlmostEqual(invoice.amount_residual, 3.0, places=2)
+
+    def test_invoice_usd_after_100usd_payment_ves_cap_includes_igtf(self):
+        invoice = self._create_customer_invoice(amount=110.0, currency=self.usd)
+        self._register_invoice_payment(
+            invoice=invoice,
+            amount=100.0,
+            currency=self.usd,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+        invoice.invalidate_recordset()
+        cap_bs = self.ves.round(
+            self.usd._convert(13.0, self.ves, self.company, self.test_date)
+        )
+        base_bs = self.ves.round(
+            self.usd._convert(10.0, self.ves, self.company, self.test_date)
+        )
+        igtf_bs = self.ves.round(
+            self.usd._convert(3.0, self.ves, self.company, self.test_date)
+        )
+
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=cap_bs,
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+
+        self.assertAlmostEqual(wizard.l10n_ve_ves_payment_cap, cap_bs, places=2)
+        self.assertAlmostEqual(wizard.l10n_ve_ves_suggested_base, base_bs, places=2)
+        self.assertAlmostEqual(wizard.l10n_ve_ves_suggested_igtf, igtf_bs, places=2)
+
+    def test_invoice_usd_base_paid_in_usd_allows_igtf_residual_in_ves(self):
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
+        self._register_invoice_payment(
+            invoice=invoice,
+            amount=100.0,
+            currency=self.usd,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+        invoice.invalidate_recordset()
+        cap_bs = self.ves.round(
+            self.usd._convert(3.0, self.ves, self.company, self.test_date)
+        )
+
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=cap_bs,
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+
+        self.assertFalse(invoice.l10n_ve_igtf_hide_register_payment)
+        self.assertAlmostEqual(wizard.l10n_ve_ves_payment_cap, cap_bs, places=2)
+        self.assertAlmostEqual(wizard.l10n_ve_ves_suggested_base, 0.0, places=2)
+        self.assertAlmostEqual(wizard.l10n_ve_ves_suggested_igtf, cap_bs, places=2)
+
+    def test_invoice_usd_igtf_on_bs_paid_base_goes_to_credit_note(self):
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
+        self._register_invoice_payment(
+            invoice=invoice,
+            amount=90.0,
+            currency=self.usd,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+        self._register_invoice_payment(
+            invoice=invoice,
+            amount=self.ves.round(
+                self.usd._convert(10.0, self.ves, self.company, self.test_date)
+            ),
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+        self._register_invoice_payment(
+            invoice=invoice,
+            amount=self.ves.round(
+                self.usd._convert(2.70, self.ves, self.company, self.test_date)
+            ),
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+        invoice.invalidate_recordset()
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=1.0,
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+
+        self.assertAlmostEqual(invoice.amount_residual, 0.30, places=2)
+        self.assertTrue(invoice.l10n_ve_igtf_hide_register_payment)
+        self.assertTrue(invoice.l10n_ve_igtf_show_unpaid_in_doc_currency)
+        self.assertAlmostEqual(wizard.l10n_ve_ves_payment_cap, 0.0, places=2)
+        self.assertAlmostEqual(
+            invoice.l10n_ve_igtf_get_bs_payable_igtf_residual_in_document_currency(),
+            0.0,
+            places=2,
+        )
+
+    def test_invoice_usd_ves_payment_above_cap_is_blocked(self):
+        invoice = self._create_customer_invoice(amount=110.0, currency=self.usd)
+        cap_bs = self.ves.round(
+            self.usd._convert(110.0, self.ves, self.company, self.test_date)
+        )
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=cap_bs + 1.0,
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+
+        with self.assertRaises(UserError):
+            wizard._create_payments()
+
+    def test_igtf_surplus_credit_note_uses_igtf_account_without_product(self):
+        invoice = self._create_customer_invoice(amount=110.0, currency=self.usd)
+        self._register_invoice_payment(
+            invoice=invoice,
+            amount=100.0,
+            currency=self.usd,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+        self._register_invoice_payment(
+            invoice=invoice,
+            amount=self.ves.round(
+                self.usd._convert(13.0, self.ves, self.company, self.test_date)
+            ),
+            currency=self.ves,
+            apply_igtf=False,
+            igtf_included=False,
+        )
+        invoice.invalidate_recordset()
+
+        action = invoice.action_l10n_ve_igtf_credit_note_by_difference()
+        credit_note = self.env["account.move"].browse(action["res_id"])
+        igtf_line = credit_note.invoice_line_ids
+
+        self.assertEqual(credit_note.move_type, "out_refund")
+        self.assertEqual(credit_note.reversed_entry_id, invoice)
+        self.assertEqual(credit_note.currency_id, self.ves)
+        self.assertTrue(credit_note.l10n_ve_igtf_surplus_credit_note)
+        self.assertEqual(igtf_line.name, "IGTF sobrante")
+        self.assertFalse(igtf_line.product_id)
+        self.assertEqual(igtf_line.account_id, self.company.l10n_ve_igtf_account_id)
+        self.assertFalse(credit_note._l10n_ve_igtf_should_add_move_lines())
+        self.assertFalse(credit_note._l10n_ve_igtf_aml())
+        expected_amount = self.ves.round(
+            self.usd._convert(0.30, self.ves, self.company, invoice.invoice_date)
+        )
+        self.assertAlmostEqual(credit_note.amount_total, expected_amount, places=2)
+
+        credit_note.action_post()
+        self.assertAlmostEqual(credit_note.amount_total, expected_amount, places=2)
+        self.assertFalse(credit_note._l10n_ve_igtf_aml())
+        igtf_move_line = credit_note.line_ids.filtered(
+            lambda line: line.account_id == self.company.l10n_ve_igtf_account_id
+        )
+        self.assertTrue(igtf_move_line)
+        self.assertGreater(sum(igtf_move_line.mapped("balance")), 0.0)
+
+    def test_invoice_accrual_disabled_no_igtf_lines_on_usd_invoice(self):
+        self.company.l10n_ve_igtf_allow_invoice_accrual = False
+        invoice = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "company_id": self.company.id,
+                    "journal_id": self.sale_journal.id,
+                    "partner_id": self.partner.id,
+                    "currency_id": self.usd.id,
+                    "invoice_date": self.test_date,
+                    "date": self.test_date,
+                    "invoice_line_ids": [
+                        Command.create(
+                            {
+                                "name": "Sin devengo IGTF en factura",
+                                "quantity": 1.0,
+                                "price_unit": 100.0,
+                                "account_id": self.revenue_account.id,
+                                "tax_ids": [Command.clear()],
+                            }
+                        )
+                    ],
+                }
+            )
+        )
+        invoice.action_post()
+        igtf_aml = invoice.line_ids.filtered(
+            lambda line: line.display_type == "l10n_ve_igtf"
+        )
+        self.assertFalse(igtf_aml)
+        self.assertFalse(invoice.l10n_ve_igtf_invoice_has_igtf_accrual())
+
+    def test_invoice_accrual_disabled_payment_igtf_still_posts(self):
+        self.company.l10n_ve_igtf_allow_invoice_accrual = False
+        invoice = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "company_id": self.company.id,
+                    "journal_id": self.sale_journal.id,
+                    "partner_id": self.partner.id,
+                    "currency_id": self.usd.id,
+                    "invoice_date": self.test_date,
+                    "date": self.test_date,
+                    "invoice_line_ids": [
+                        Command.create(
+                            {
+                                "name": "Pago con IGTF",
+                                "quantity": 1.0,
+                                "price_unit": 100.0,
+                                "account_id": self.revenue_account.id,
+                                "tax_ids": [Command.clear()],
+                            }
+                        )
+                    ],
+                }
+            )
+        )
+        invoice.action_post()
+        self.assertFalse(invoice._l10n_ve_igtf_aml())
+        payment, _wiz = self._register_invoice_payment(
+            invoice=invoice,
+            amount=100.0,
+            currency=self.usd,
+            apply_igtf=True,
+            igtf_included=False,
+            return_wizard=True,
+        )
+        igtf_line = self._get_payment_igtf_line(payment)
+        self.assertTrue(igtf_line)

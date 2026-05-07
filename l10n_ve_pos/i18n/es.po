@@ -1,0 +1,126 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * l10n_ve_pos
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#. module: l10n_ve_pos
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: l10n_ve_pos
+msgid "POS Reference"
+msgstr "Referencia POS"
+
+#. module: l10n_ve_pos
+msgid "Print document"
+msgstr "Imprimir documento"
+
+#. module: l10n_ve_pos
+msgid "Finalize"
+msgstr "Finalizar"
+
+#. module: l10n_ve_pos
+msgid "Print complete"
+msgstr "Imprimir completo"
+
+#. module: l10n_ve_pos
+msgid "Print simplified"
+msgstr "Imprimir simplificado"
+
+#. module: l10n_ve_pos
+msgid "the invoice"
+msgstr "la factura"
+
+#. module: l10n_ve_pos
+msgid "Venezuela invoice preview"
+msgstr "Vista previa de factura (Venezuela)"
+
+#. module: l10n_ve_pos
+msgid "Invoice journal"
+msgstr "Diario de facturación"
+
+#. module: l10n_ve_pos
+msgid "Notebook section"
+msgstr "Talonario"
+
+#. module: l10n_ve_pos
+msgid "Next control number"
+msgstr "Próximo correlativo (N° control)"
+
+#. module: l10n_ve_pos
+msgid "POS order reference"
+msgstr "Referencia del pedido POS"
+
+#. module: l10n_ve_pos
+msgid "Fiscal invoice number"
+msgstr "N° de factura (máquina fiscal)"
+
+#. module: l10n_ve_pos
+msgid "Fiscal machine serial"
+msgstr "Serial de máquina fiscal"
+
+#. module: l10n_ve_pos
+msgid "Z report number"
+msgstr "N° de reporte Z"
+
+#. module: l10n_ve_pos
+msgid "Control number"
+msgstr "N° de control"
+
+#. module: l10n_ve_pos
+msgid "Invoice data (Venezuela)"
+msgstr "Datos de factura (Venezuela)"
+
+#. module: l10n_ve_pos
+msgid "Accounting invoice number"
+msgstr "N° de factura contable"
+
+#. module: l10n_ve_pos
+msgid "Download free-form PDF"
+msgstr "Descargar forma libre (PDF)"
+
+#. module: l10n_ve_pos
+msgid "Could not download the invoice."
+msgstr "No se pudo descargar la factura."
+
+#. module: l10n_ve_pos
+msgid "Creating products from the Point of Sale is not allowed."
+msgstr "No está permitido crear productos desde el Punto de Venta."
+
+#. module: l10n_ve_pos
+msgid "A discount of 100% is not allowed."
+msgstr "No está permitido un descuento del 100%."
+
+#. module: l10n_ve_pos
+msgid "Changing the price from the Point of Sale is not allowed."
+msgstr "No está permitido cambiar el precio desde el Punto de Venta."
+
+#. module: l10n_ve_pos
+msgid "Tasas:"
+msgstr "Tasas:"
+
+#. module: l10n_ve_pos
+msgid "Loading rates..."
+msgstr "Cargando tasas..."
+
+#. module: l10n_ve_pos
+msgid "No active exchange rates are configured."
+msgstr "No hay tasas activas configuradas."
+
+#. module: l10n_ve_pos
+msgid "Date:"
+msgstr "Fecha:"
+
+#. module: l10n_ve_pos
+msgid "Exchange rates (Ref: %s)"
+msgstr "Tasas de cambio (Ref: %s)"
+
+#. module: l10n_ve_pos
+msgid "Exchange rates"
+msgstr "Tasas de cambio"
