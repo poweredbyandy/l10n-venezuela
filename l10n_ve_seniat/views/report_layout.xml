@@ -106,10 +106,13 @@
                                 <strong>RIF:</strong>
                                 <t t-out="o.partner_id.vat" />
                             </span>
-                            <span class="d-block text-uppercase">
-                                <strong>Dirección:</strong>
-                                <t t-out="o.partner_id.contact_address_inline" />
-                            </span>
+                            <div class="d-flex text-uppercase">
+                                <strong class="me-1">Dirección:</strong>
+                                <span
+                                    class="flex-grow-1"
+                                    t-out="(o.partner_id._display_address(without_company=True) or '').replace('\n', ', ')"
+                                />
+                            </div>
                             <div t-if="o.ref" class="d-block text-uppercase">
                                 <strong>Referencia:</strong>
                                 <span t-field="o.ref" />
@@ -172,6 +175,10 @@
                                 <strong>Vencimiento:</strong>
                                 <span t-field="o.invoice_date_due" />
                             </div>
+                            <div class="d-block text-uppercase">
+                                <strong>Moneda:</strong>
+                                <span t-out="o.currency_id.name" />
+                            </div>
                             <div
                                 t-if="o.company_id.taxpayer_type == 'formal'"
                                 class="d-block text-center fw-bold mb-2"
@@ -193,11 +200,18 @@
                         </div>
                         <div class="page mb-1">
                             <t
-                                t-set="has_discount"
-                                t-value="any(l.discount for l in o.invoice_line_ids)"
+                                t-set="show_company_currency"
+                                t-value="o.company_currency_id != o.currency_id"
                             />
+                            <style>
+                                .l10n_ve_invoice_lines th,
+                                .l10n_ve_invoice_lines td {
+                                    padding-left: 0.45rem !important;
+                                    padding-right: 0.45rem !important;
+                                }
+                            </style>
                             <table
-                                class="table table-striped table-sm table-borderless mt-2 table-light"
+                                class="table table-striped table-sm table-borderless mt-2 table-light l10n_ve_invoice_lines"
                             >
                                 <thead>
                                     <tr class="bg-secundary text-white border-bottom">
@@ -209,27 +223,31 @@
                                         >Codigo</th>
                                         <th
                                             class="col-5 text-uppercase fw-bold text-nowrap"
-                                        >Descripcion</th>
+                                        >Descripción</th>
                                         <th
-                                            class="col text-uppercase fw-bold text-nowrap"
+                                            class="col text-uppercase fw-bold text-nowrap text-end"
                                         >Cant.</th>
                                         <th
                                             class="col text-uppercase fw-bold text-nowrap"
-                                        >Precio U.</th>
-                                        <th
-                                            class="col text-uppercase fw-bold text-nowrap"
-                                            t-if="has_discount"
-                                        >Desc.</th>
+                                        >PRECIO U.<t
+                                            t-if="show_company_currency"
+                                        > <t
+                                            t-out="o.currency_id.symbol"
+                                        /></t></th>
                                         <th
                                             class="col text-uppercase fw-bold text-nowrap"
                                         >Impuesto</th>
                                         <th
                                             class="col-1 text-uppercase fw-bold text-nowrap"
-                                        >Subtotal</th>
+                                            t-if="show_company_currency"
+                                        >SUBTOTAL BS</th>
                                         <th
-                                            t-if="o.company_currency_id != o.currency_id"
                                             class="col-1 text-uppercase fw-bold text-nowrap"
-                                        >Subtotal Moneda</th>
+                                        >SUBTOTAL<t
+                                            t-if="show_company_currency"
+                                        > <t
+                                            t-out="o.currency_id.symbol"
+                                        /></t></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -246,7 +264,7 @@
                                                 <td class="text-center text-nowrap">
                                                     <span t-out="l10n_ve_line_item" />
                                                 </td>
-                                                <td>
+                                                <td class="text-nowrap">
                                                     <span
                                                         t-field="line.product_id.default_code"
                                                     />
@@ -259,31 +277,29 @@
                                                         t-if="line.tax_ids.amount == 0"
                                                     >(E)</t>
                                                 </td>
-                                                <td>
+                                                <td class="text-end">
                                                     <span t-field="line.quantity" />
                                                 </td>
-                                                <td>
+                                                <td class="text-end">
                                                     <span t-field="line.price_unit" />
                                                 </td>
-                                                <td t-if="has_discount"><span
-                                                    t-field="line.discount"
-                                                /> %</td>
                                                 <td>
                                                     <span
                                                         t-field="line.tax_ids"
                                                         options="{'widget': 'many2many_tags'}"
                                                     />
                                                 </td>
-                                                <td>
-                                                    <span
-                                                        t-field="line.price_subtotal"
-                                                    />
-                                                </td>
                                                 <td
-                                                    t-if="o.company_currency_id != o.currency_id"
+                                                    t-if="show_company_currency"
+                                                    class="text-end"
                                                 >
                                                     <span
                                                         t-field="line.subtotal_company_currency"
+                                                    />
+                                                </td>
+                                                <td class="text-end">
+                                                    <span
+                                                        t-field="line.price_subtotal"
                                                     />
                                                 </td>
                                             </t>
@@ -319,10 +335,6 @@
                                     </t>
                                 </tbody>
                             </table>
-                            <t
-                                t-set="show_company_currency"
-                                t-value="o.company_currency_id != o.currency_id"
-                            />
                             <div class="overflow-hidden">
                                 <div
                                     id="right-elements"
@@ -352,159 +364,176 @@
                                             >
                                                 <thead>
                                                     <tr>
-                                                        <t
-                                                            t-if="not show_company_currency"
-                                                        />
-                                                        <th
-                                                            class="text-end pe-2 py-1"
-                                                        />
-                                                        <th
-                                                            class="text-end py-1"
-                                                            style="min-width: 75px;"
-                                                        >
-                                                            Base <t
-                                                            t-out="doc_currency.symbol"
-                                                        />
-                                                        </th>
-                                                        <th
-                                                            class="text-end py-1"
-                                                            style="min-width: 75px;"
-                                                        >
-                                                            Impuesto <t
-                                                            t-out="doc_currency.symbol"
-                                                        />
-                                                        </th>
+                                                        <th class="text-end pe-2 py-1" />
                                                         <t t-if="show_company_currency">
                                                             <th
                                                                 class="text-end py-1 ps-2"
                                                                 style="min-width: 75px;"
                                                             >
-                                                                Base <t
-                                                                t-out="comp_currency.symbol"
-                                                            />
-                                                            </th>
-                                                            <th
-                                                                class="text-end py-1"
-                                                                style="min-width: 75px;"
-                                                            >
-                                                                Impuesto <t
-                                                                t-out="comp_currency.symbol"
-                                                            />
+                                                                <t
+                                                                    t-out="comp_currency.symbol"
+                                                                />
                                                             </th>
                                                         </t>
+                                                        <th
+                                                            class="text-end py-1"
+                                                            style="min-width: 75px;"
+                                                        >
+                                                            <t t-out="doc_currency.symbol" />
+                                                        </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <t
-                                                        t-foreach="tax_totals.get('subtotals', [])"
-                                                        t-as="subtotal"
-                                                    >
-                                                        <tr class="border-bottom">
-                                                            <td
-                                                                class="text-end pe-2 py-1"
-                                                            >
-                                                                <span
-                                                                    t-out="subtotal.get('name', 'Subtotal')"
-                                                                />
-                                                            </td>
-                                                            <td class="text-end py-1">
-                                                                <span
-                                                                    t-out="subtotal.get('base_amount_currency', 0)"
-                                                                    t-options='{"widget": "monetary", "display_currency": doc_currency}'
-                                                                />
-                                                            </td>
-                                                            <td class="text-end py-1" />
-                                                            <t
-                                                                t-if="show_company_currency"
-                                                            >
-                                                                <td
-                                                                    class="text-end py-1 ps-2"
-                                                                >
-                                                                    <span
-                                                                        t-out="subtotal.get('base_amount', 0)"
-                                                                        t-options='{"widget": "monetary", "display_currency": comp_currency}'
-                                                                    />
-                                                                </td>
-                                                                <td
-                                                                    class="text-end py-1"
-                                                                />
-                                                            </t>
-                                                        </tr>
-                                                        <t
-                                                            t-foreach="subtotal.get('tax_groups', [])"
-                                                            t-as="tax_group"
-                                                        >
-                                                            <tr>
-                                                                <td
-                                                                    class="text-end pe-2 py-1"
-                                                                >
-                                                                    <span
-                                                                        t-out="tax_group.get('group_name', '')"
-                                                                    />
-                                                                </td>
-                                                                <td
-                                                                    class="text-end py-1"
-                                                                >
-                                                                    <span
-                                                                        t-out="tax_group.get('display_base_amount_currency', tax_group.get('base_amount_currency', 0))"
-                                                                        t-options='{"widget": "monetary", "display_currency": doc_currency}'
-                                                                    />
-                                                                </td>
-                                                                <td
-                                                                    class="text-end py-1"
-                                                                >
-                                                                    <span
-                                                                        t-out="tax_group.get('tax_amount_currency', 0)"
-                                                                        t-options='{"widget": "monetary", "display_currency": doc_currency}'
-                                                                    />
-                                                                </td>
-                                                                <t
-                                                                    t-if="show_company_currency"
-                                                                >
-                                                                    <td
-                                                                        class="text-end py-1 ps-2"
-                                                                    >
-                                                                        <span
-                                                                            t-out="tax_group.get('display_base_amount', tax_group.get('base_amount', 0))"
-                                                                            t-options='{"widget": "monetary", "display_currency": comp_currency}'
-                                                                        />
-                                                                    </td>
-                                                                    <td
-                                                                        class="text-end py-1"
-                                                                    >
-                                                                        <span
-                                                                            t-out="tax_group.get('tax_amount', 0)"
-                                                                            t-options='{"widget": "monetary", "display_currency": comp_currency}'
-                                                                        />
-                                                                    </td>
-                                                                </t>
-                                                            </tr>
-                                                        </t>
-                                                    </t>
-                                                    <tr
-                                                        class="border-top border-2 fw-bold fs-5"
-                                                    >
+                                                        t-set="all_tax_groups"
+                                                        t-value="[group for subtotal in tax_totals.get('subtotals', []) for group in subtotal.get('tax_groups', [])]"
+                                                    />
+                                                    <t
+                                                        t-set="vat_groups"
+                                                        t-value="[group for group in all_tax_groups if group.get('id') != -1]"
+                                                    />
+                                                    <t
+                                                        t-set="vat_group"
+                                                        t-value="vat_groups[0] if vat_groups else {}"
+                                                    />
+                                                    <t
+                                                        t-set="igtf_groups"
+                                                        t-value="[group for group in all_tax_groups if group.get('id') == -1]"
+                                                    />
+                                                    <t
+                                                        t-set="igtf_group"
+                                                        t-value="igtf_groups[0] if igtf_groups else {}"
+                                                    />
+                                                    <t
+                                                        t-set="vat_percent_tokens"
+                                                        t-value="[token for token in vat_group.get('group_name', '').replace(':', ' ').split() if '%' in token]"
+                                                    />
+                                                    <t
+                                                        t-set="vat_percent"
+                                                        t-value="vat_percent_tokens[0] if vat_percent_tokens else '16%'"
+                                                    />
+                                                    <t
+                                                        t-set="igtf_percent_value"
+                                                        t-value="o.company_id.l10n_ve_igtf_percent or 3.0"
+                                                    />
+                                                    <t
+                                                        t-set="igtf_percent_txt"
+                                                        t-value="'%s' % igtf_percent_value"
+                                                    />
+                                                    <t
+                                                        t-set="igtf_percent"
+                                                        t-value="igtf_percent_txt.replace('.', ',') + '%'"
+                                                    />
+                                                    <tr>
                                                         <td
-                                                            class="text-end pe-2 py-1"
-                                                        >Total</td>
-                                                        <td class="text-end py-1" />
-                                                        <td class="text-end py-1">
+                                                            class="text-end pe-2 py-2"
+                                                            style="border-bottom: 1px solid #6c757d;"
+                                                        >Subtotal:</td>
+                                                        <t t-if="show_company_currency">
+                                                            <td
+                                                                class="text-end py-2 ps-2"
+                                                                style="border-bottom: 1px solid #6c757d;"
+                                                            >
+                                                                <span
+                                                                    t-out="tax_totals.get('base_amount', 0)"
+                                                                    t-options='{"widget": "monetary", "display_currency": comp_currency}'
+                                                                />
+                                                            </td>
+                                                        </t>
+                                                        <td
+                                                            class="text-end py-2"
+                                                            style="border-bottom: 1px solid #6c757d;"
+                                                        >
                                                             <span
-                                                                t-out="tax_totals.get('total_amount_currency', 0)"
+                                                                t-out="tax_totals.get('base_amount_currency', 0)"
                                                                 t-options='{"widget": "monetary", "display_currency": doc_currency}'
                                                             />
                                                         </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-end pe-2 py-1">B.I <t t-out="vat_percent" />:</td>
                                                         <t t-if="show_company_currency">
-                                                            <td
-                                                                class="text-end py-1 ps-2"
+                                                            <td class="text-end py-1 ps-2">
+                                                                <span
+                                                                    t-out="vat_group.get('display_base_amount', vat_group.get('base_amount', 0))"
+                                                                    t-options='{"widget": "monetary", "display_currency": comp_currency}'
+                                                                />
+                                                            </td>
+                                                        </t>
+                                                        <td class="text-end py-1">
+                                                            <span
+                                                                t-out="vat_group.get('display_base_amount_currency', vat_group.get('base_amount_currency', 0))"
+                                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
                                                             />
-                                                            <td class="text-end py-1">
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-end pe-2 py-1"><t t-out="vat_percent" />:</td>
+                                                        <t t-if="show_company_currency">
+                                                            <td class="text-end py-1 ps-2">
+                                                                <span
+                                                                    t-out="vat_group.get('tax_amount', 0)"
+                                                                    t-options='{"widget": "monetary", "display_currency": comp_currency}'
+                                                                />
+                                                            </td>
+                                                        </t>
+                                                        <td class="text-end py-1">
+                                                            <span
+                                                                t-out="vat_group.get('tax_amount_currency', 0)"
+                                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-end pe-2 py-1">Base Imponible IGTF:</td>
+                                                        <t t-if="show_company_currency">
+                                                            <td class="text-end py-1 ps-2">
+                                                                <span
+                                                                    t-out="igtf_group.get('display_base_amount', igtf_group.get('base_amount', 0))"
+                                                                    t-options='{"widget": "monetary", "display_currency": comp_currency}'
+                                                                />
+                                                            </td>
+                                                        </t>
+                                                        <td class="text-end py-1">
+                                                            <span
+                                                                t-out="igtf_group.get('display_base_amount_currency', igtf_group.get('base_amount_currency', 0))"
+                                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-end pe-2 py-1">IGTF <t t-out="igtf_percent" />:</td>
+                                                        <t t-if="show_company_currency">
+                                                            <td class="text-end py-1 ps-2">
+                                                                <span
+                                                                    t-out="igtf_group.get('tax_amount', 0)"
+                                                                    t-options='{"widget": "monetary", "display_currency": comp_currency}'
+                                                                />
+                                                            </td>
+                                                        </t>
+                                                        <td class="text-end py-1">
+                                                            <span
+                                                                t-out="igtf_group.get('tax_amount_currency', 0)"
+                                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="border-top border-2 fw-bold fs-5">
+                                                        <td class="text-end pe-2 py-1">Total a Pagar</td>
+                                                        <t t-if="show_company_currency">
+                                                            <td class="text-end py-1 ps-2">
                                                                 <span
                                                                     t-out="tax_totals.get('total_amount', 0)"
                                                                     t-options='{"widget": "monetary", "display_currency": comp_currency}'
                                                                 />
                                                             </td>
                                                         </t>
+                                                        <td class="text-end py-1">
+                                                            <span
+                                                                t-out="tax_totals.get('total_amount_currency', 0)"
+                                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                                            />
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
