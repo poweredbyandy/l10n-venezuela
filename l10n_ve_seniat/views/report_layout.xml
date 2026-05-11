@@ -149,8 +149,8 @@
                                 <div class="d-block text-uppercase">
                                     <strong>Monto Original:</strong>
                                     <span
-                                        t-field="origin_affected.amount_total"
-                                        t-options="{'widget': 'monetary', 'display_currency': origin_affected.currency_id}"
+                                        t-field="o.l10n_ve_origin_affected_total_company"
+                                        t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"
                                     />
                                 </div>
                             </div>
@@ -189,7 +189,7 @@
                     </div>
                     <div class="clearfix invoice_main" style="position: relative;">
                         <div
-                            t-if="o.company_id.account_fiscal_country_id.code == 'VE' and (not o.env.context.get('l10n_ve_invoice') or o.l10n_ve_invoice_original_printed)"
+                            t-if="o.company_id.account_fiscal_country_id.code == 'VE' and o.l10n_ve_invoice_original_printed"
                             class="position-absolute w-100 text-center text-bold"
                             style="top: 25%; left: 0; right: 0; pointer-events: none;"
                         >
@@ -202,6 +202,10 @@
                             <t
                                 t-set="show_company_currency"
                                 t-value="o.company_currency_id != o.currency_id"
+                            />
+                            <t
+                                t-set="l10n_ve_cn_nd_bs"
+                                t-value="o.company_id.account_fiscal_country_id.code == 'VE' and not show_company_currency and (o.move_type == 'out_refund' or (o.move_type == 'out_invoice' and o.debit_origin_id))"
                             />
                             <style>
                                 .l10n_ve_invoice_lines th,
@@ -225,6 +229,9 @@
                                             class="col-5 text-uppercase fw-bold text-nowrap"
                                         >Descripción</th>
                                         <th
+                                            class="col text-uppercase fw-bold text-nowrap"
+                                        >Impuesto</th>
+                                        <th
                                             class="col text-uppercase fw-bold text-nowrap text-end"
                                         >Cant.</th>
                                         <th
@@ -234,9 +241,6 @@
                                         > <t
                                             t-out="o.currency_id.symbol"
                                         /></t></th>
-                                        <th
-                                            class="col text-uppercase fw-bold text-nowrap"
-                                        >Impuesto</th>
                                         <th
                                             class="col-1 text-uppercase fw-bold text-nowrap"
                                             t-if="show_company_currency"
@@ -277,17 +281,17 @@
                                                         t-if="line.tax_ids.amount == 0"
                                                     >(E)</t>
                                                 </td>
-                                                <td class="text-end">
-                                                    <span t-field="line.quantity" />
-                                                </td>
-                                                <td class="text-end">
-                                                    <span t-field="line.price_unit" />
-                                                </td>
                                                 <td>
                                                     <span
                                                         t-field="line.tax_ids"
                                                         options="{'widget': 'many2many_tags'}"
                                                     />
+                                                </td>
+                                                <td class="text-end">
+                                                    <span t-field="line.quantity" />
+                                                </td>
+                                                <td class="text-end">
+                                                    <span t-field="line.price_unit" />
                                                 </td>
                                                 <td
                                                     t-if="show_company_currency"
@@ -335,6 +339,10 @@
                                     </t>
                                 </tbody>
                             </table>
+                            <t t-if="l10n_ve_cn_nd_bs">
+                                <t t-call="l10n_ve_seniat.report_invoice_footer_cn_bs" />
+                            </t>
+                            <t t-else="">
                             <div class="overflow-hidden">
                                 <div
                                     id="right-elements"
@@ -539,11 +547,148 @@
                                     </div>
                                 </div>
                             </div>
+                            </t>
                         </div>
                     </div>
                 </t>
             </t>
         </t>
+    </template>
+
+    <template id="report_invoice_footer_cn_bs">
+        <div class="overflow-hidden">
+            <div class="row mt-2 gx-2 align-items-start">
+                <div class="col-6 justify-text small">
+                    <span t-field="o.narration" />
+                    <span t-field="o.seniat_invoice_tag" />
+                </div>
+                <div class="col-6">
+                    <t t-set="tax_totals" t-value="o.tax_totals or {}" />
+                    <t t-set="doc_currency" t-value="o.currency_id" />
+                    <t t-set="comp_currency" t-value="o.company_currency_id" />
+                    <t
+                        t-set="all_tax_groups"
+                        t-value="[group for subtotal in tax_totals.get('subtotals', []) for group in subtotal.get('tax_groups', [])]"
+                    />
+                    <t
+                        t-set="vat_groups"
+                        t-value="[group for group in all_tax_groups if group.get('id') != -1]"
+                    />
+                    <t t-set="vat_group" t-value="vat_groups[0] if vat_groups else {}" />
+                    <t
+                        t-set="igtf_groups"
+                        t-value="[group for group in all_tax_groups if group.get('id') == -1]"
+                    />
+                    <t t-set="igtf_group" t-value="igtf_groups[0] if igtf_groups else {}" />
+                    <t
+                        t-set="vat_percent_tokens"
+                        t-value="[token for token in vat_group.get('group_name', '').replace(':', ' ').split() if '%' in token]"
+                    />
+                    <t
+                        t-set="vat_percent"
+                        t-value="vat_percent_tokens[0] if vat_percent_tokens else '16%'"
+                    />
+                    <t t-set="igtf_percent_value" t-value="o.company_id.l10n_ve_igtf_percent or 3.0" />
+                    <t t-set="igtf_percent_txt" t-value="'%s' % igtf_percent_value" />
+                    <t t-set="igtf_percent" t-value="igtf_percent_txt.replace('.', ',') + '%'" />
+                    <div class="row">
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless mb-0 w-100">
+                                <tbody>
+                                    <tr>
+                                        <td
+                                            class="text-end py-2 pe-1 border-bottom border-secondary"
+                                        >Subtotal:</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end py-1 pe-1">B.I <t
+                                            t-out="vat_percent"
+                                        />:</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end py-1 pe-1"><t t-out="vat_percent" />:</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end py-1 pe-1">Base Imponible IGTF:</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end py-1 pe-1">IGTF <t t-out="igtf_percent" />:</td>
+                                    </tr>
+                                    <tr class="border-top border-2 fw-bold fs-6">
+                                        <td class="text-end py-1 pe-1">Total a Pagar</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless tax-totals-table mb-0 w-100">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-end py-2 border-bottom border-secondary">
+                                            <span
+                                                t-out="tax_totals.get('base_amount_currency', 0)"
+                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end py-1">
+                                            <span
+                                                t-out="vat_group.get('display_base_amount_currency', vat_group.get('base_amount_currency', 0))"
+                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end py-1">
+                                            <span
+                                                t-out="vat_group.get('tax_amount_currency', 0)"
+                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end py-1">
+                                            <span
+                                                t-out="igtf_group.get('display_base_amount_currency', igtf_group.get('base_amount_currency', 0))"
+                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-end py-1">
+                                            <span
+                                                t-out="igtf_group.get('tax_amount_currency', 0)"
+                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr class="border-top border-2 fw-bold fs-6">
+                                        <td class="text-end py-1">
+                                            <span
+                                                t-out="tax_totals.get('total_amount_currency', 0)"
+                                                t-options='{"widget": "monetary", "display_currency": doc_currency}'
+                                            />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-2">
+                <p
+                    class="text-end lh-sm"
+                    t-if="o.company_id.display_invoice_amount_total_words"
+                >
+                    Total amount in words: <br />
+                    <small class="text-muted lh-sm">
+                        <span t-field="o.amount_total_words" />
+                    </small>
+                </p>
+            </div>
+        </div>
     </template>
 
     <template id="report_invoice" inherit_id="account.report_invoice">

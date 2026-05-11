@@ -1,4 +1,4 @@
-from odoo import api, fields, models, _
+from odoo import fields, models, _
 from odoo.tools import float_is_zero, float_round
 
 
@@ -73,14 +73,6 @@ class PosPayment(models.Model):
         ):
             return 0.0
         return abs(self.amount or 0.0)
-
-    @api.model
-    def _load_pos_data_fields(self, config_id):
-        fields_list = super()._load_pos_data_fields(config_id)
-        for name in ("include_igtf", "igtf_amount", "foreign_igtf_amount"):
-            if name not in fields_list:
-                fields_list.append(name)
-        return fields_list
 
     def _create_payment_moves(self, is_reverse=False):
         result = self.env["account.move"]

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
-    <t t-name="l10n_ve_pos_igtf.PaymentScreenDue" t-inherit="l10n_ve_pos.PaymentScreenDue" t-inherit-mode="extension">
+    <t t-name="l10n_ve_pos_igtf.PaymentScreenDue" t-inherit="point_of_sale.PaymentScreenDue" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('total')]" position="after">
             <div t-if="currentOrder.company and currentOrder.company.l10n_ve_igtf_feature_active and currentOrder.is_to_invoice() and currentOrder.igtf_amount"
                 class="text-center py-2 border-top border-secondary-subtle">

@@ -116,7 +116,15 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
         )
         self.assertEqual(p.list_price, 1.0)
 
-    def test_ve_product_rejects_list_price_below_cost(self):
+    def test_ve_product_allows_list_price_below_cost_when_not_enforced(self):
+        p = self.env["product.template"].create(
+            self._create_product_vals(list_price=40.0, standard_price=50.0)
+        )
+        self.assertEqual(p.list_price, 40.0)
+        self.assertEqual(p.standard_price, 50.0)
+
+    def test_ve_product_rejects_list_price_below_cost_when_enforced(self):
+        self.env.company.l10n_ve_enforce_sale_price_ge_cost = True
         with self.assertRaises(ValidationError):
             self.env["product.template"].create(
                 self._create_product_vals(list_price=40.0, standard_price=50.0)

@@ -42,3 +42,17 @@ class TestAccountJournal(L10nVeSeniatCommon):
         journal = self.company_data["default_journal_sale"]
         with self.assertRaises(ValidationError):
             journal.write({"l10n_ve_invoice_section_id": section_b.id})
+
+    def test_free_form_print_medium_default_pdf(self):
+        journal = self.company_data["default_journal_sale"]
+        self.assertEqual(journal.l10n_ve_free_form_print_medium, "pdf")
+
+    def test_continuous_print_requires_free_emission(self):
+        journal = self.company_data["default_journal_sale"]
+        with self.assertRaises(ValidationError):
+            journal.write(
+                {
+                    "l10n_ve_emission_medium": "digital",
+                    "l10n_ve_free_form_print_medium": "continuous",
+                }
+            )

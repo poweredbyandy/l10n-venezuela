@@ -6,10 +6,18 @@ const posOrderTaxTotalsDescriptor = Object.getOwnPropertyDescriptor(PosOrder.pro
 const rawTaxTotalsGetter = posOrderTaxTotalsDescriptor.get;
 
 function l10nVePosCurrencyIdsSet(order) {
-    const raw = order.company?.l10n_ve_igtf_currency_ids;
-    if (!raw) {
-        return new Set();
+    const jsonIds = order.company?.l10n_ve_igtf_currency_pos_ids_json;
+    if (jsonIds) {
+        try {
+            const ids = JSON.parse(jsonIds);
+            if (Array.isArray(ids)) {
+                return new Set(ids);
+            }
+        } catch {
+            return new Set();
+        }
     }
+    const raw = order.company?.l10n_ve_igtf_currency_ids;
     const ids = Array.isArray(raw) ? raw : [];
     return new Set(
         ids.map((item) => {

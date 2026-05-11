@@ -16,6 +16,10 @@
                 <page name="l10n_ve_seniat_page" string="SENIAT" invisible="type != 'sale'">
                     <group string="Configuración">
                         <field name="l10n_ve_emission_medium" />
+                        <field
+                            name="l10n_ve_free_form_print_medium"
+                            invisible="l10n_ve_emission_medium != 'free'"
+                        />
                     </group>
                     <group
                         string="Tramos (talonario)"

@@ -13,6 +13,7 @@
                 <field name="section_count" string="Sections" />
                 <field name="document_count" string="Correlatives" />
                 <field name="l10n_ve_max_invoice_lines" optional="hide" />
+                <field name="l10n_ve_escp_invoice_margin_lines" optional="hide" />
                 <field name="l10n_ve_max_picking_lines" optional="hide" />
                 <field name="active" column_invisible="True" />
             </list>
@@ -81,6 +82,7 @@
                                 <field name="number_to" class="oe_inline" />
                             </div>
                             <field name="l10n_ve_max_invoice_lines" />
+                            <field name="l10n_ve_escp_invoice_margin_lines" />
                             <field name="l10n_ve_max_picking_lines" />
                         </group>
                     </group>
