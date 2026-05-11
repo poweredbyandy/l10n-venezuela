@@ -1,0 +1,29 @@
+{
+    "name": "Venezuela Fiscal Serial POS",
+    "summary": "Impresión fiscal TFHKA (Web Serial) desde el Punto de Venta",
+    "version": "18.0.1.0.0",
+    "category": "Point of Sale/Localizations",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "website": "https://github.com/OCA/l10n-venezuela",
+    "license": "LGPL-3",
+    "depends": [
+        "point_of_sale",
+        "l10n_ve_fiscal_serial",
+        "l10n_ve_pos",
+    ],
+    "data": [],
+    "assets": {
+        "point_of_sale._assets_pos": [
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_transport_webserial.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_protocol.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_serial.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_invoice_samples.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_fiscal_machine.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/fiscal_serial_service.js",
+            "l10n_ve_fiscal_serial_pos/static/src/overrides/screens/payment_screen.js",
+        ],
+    },
+    "installable": True,
+    "application": False,
+}

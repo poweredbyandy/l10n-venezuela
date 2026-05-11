@@ -64,6 +64,15 @@ class AccountBook(models.Model):
         help="Al facturar desde ventas, si el pedido supera este número de líneas de "
         "producto, se generarán varias facturas respetando el límite.",
     )
+    l10n_ve_escp_invoice_margin_lines = fields.Integer(
+        string="Líneas de margen (factura ESC/P)",
+        default=8,
+        help=(
+            "Líneas en blanco al inicio del papel continuo antes del encabezado al "
+            "imprimir la factura en formato ESC/P (impresora matriz). Use 0 si no "
+            "requiere margen superior."
+        ),
+    )
     l10n_ve_max_picking_lines = fields.Integer(
         string="Máximo de líneas por guía de despacho",
         default=10,
@@ -125,7 +134,11 @@ class AccountBook(models.Model):
                 else ""
             )
 
-    @api.constrains("l10n_ve_max_invoice_lines", "l10n_ve_max_picking_lines")
+    @api.constrains(
+        "l10n_ve_max_invoice_lines",
+        "l10n_ve_max_picking_lines",
+        "l10n_ve_escp_invoice_margin_lines",
+    )
     def _check_l10n_ve_max_lines_positive(self):
         for book in self:
             if book.l10n_ve_max_invoice_lines is not None and book.l10n_ve_max_invoice_lines < 1:
@@ -136,6 +149,12 @@ class AccountBook(models.Model):
                 raise ValidationError(
                     _("El máximo de líneas por guía de despacho debe ser al menos 1.")
                 )
+            if book.l10n_ve_escp_invoice_margin_lines is not None:
+                m = book.l10n_ve_escp_invoice_margin_lines
+                if m < 0 or m > 127:
+                    raise ValidationError(
+                        _("Las líneas de margen ESC/P deben estar entre 0 y 127.")
+                    )
 
     @api.depends("active")
     def _compute_l10n_ve_setup_guide(self):

@@ -24,6 +24,10 @@ class ResCompany(models.Model):
         string="Bloquear datos fiscales con movimientos",
         default=True,
     )
+    l10n_ve_enforce_sale_price_ge_cost = fields.Boolean(
+        string="Exigir precio de venta mayor o igual al coste",
+        default=False,
+    )
 
     exent_aliquot_sale = fields.Many2one(
         "account.tax", domain=[("type_tax_use", "=", "sale")]

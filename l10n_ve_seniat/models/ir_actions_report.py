@@ -48,29 +48,31 @@ class IrActionsReport(models.Model):
         self._l10n_ve_check_block_invoice_pdf_before_digital_sent(report_ref, res_ids, data)
         return super()._pre_render_qweb_pdf(report_ref, res_ids=res_ids, data=data)
 
+    def _l10n_ve_mark_ve_invoice_printed_after_render(self, res_ids):
+        if not self.env.context.get("l10n_ve_invoice"):
+            return
+        moves = (
+            self.env["account.move"]
+            .browse(res_ids or [])
+            .filtered(
+                lambda m: m.company_id.account_fiscal_country_id.code == "VE"
+                and m.move_type in ("out_invoice", "out_refund")
+                and m.state == "posted"
+            )
+        )
+        to_mark = moves.filtered(lambda m: not m.l10n_ve_invoice_original_printed)
+        for move in to_mark:
+            write_vals = {"l10n_ve_invoice_original_printed": True}
+            if (
+                move.l10n_ve_journal_emission_medium == "fiscal_machine"
+                and not move.l10n_ve_invoice_date
+            ):
+                write_vals["l10n_ve_invoice_date"] = fields.Datetime.now()
+            move.sudo().write(write_vals)
+
     def _render_qweb_pdf(self, report_ref, res_ids=None, data=None):
         pdf, report_type = super()._render_qweb_pdf(
             report_ref, res_ids=res_ids, data=data
         )
-
-        if self.env.context.get("l10n_ve_invoice"):
-            moves = (
-                self.env["account.move"]
-                .browse(res_ids or [])
-                .filtered(
-                    lambda m: m.company_id.account_fiscal_country_id.code == "VE"
-                    and m.move_type in ("out_invoice", "out_refund")
-                    and m.state == "posted"
-                )
-            )
-            to_mark = moves.filtered(lambda m: not m.l10n_ve_invoice_original_printed)
-            for move in to_mark:
-                write_vals = {"l10n_ve_invoice_original_printed": True}
-                if (
-                    move.l10n_ve_journal_emission_medium == "fiscal_machine"
-                    and not move.l10n_ve_invoice_date
-                ):
-                    write_vals["l10n_ve_invoice_date"] = fields.Datetime.now()
-                move.sudo().write(write_vals)
-
+        self._l10n_ve_mark_ve_invoice_printed_after_render(res_ids)
         return pdf, report_type

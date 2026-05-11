@@ -4,7 +4,7 @@
     "website": "https://github.com/OCA/l10n-venezuela",
     "icon": "/poweredbyandy_saas/static/description/icon.png",
     "countries": ["ve"],
-    "version": "18.0.1.0.24",
+    "version": "18.0.1.0.26",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "category": "Point of Sale/Localizations",
@@ -13,6 +13,9 @@
         "l10n_ve_seniat",
         "l10n_ve_stock",
         "l10n_ve_exchange_rates",
+    ],
+    "data": [
+        "views/product_view.xml",
     ],
     "assets": {
         "point_of_sale._assets_pos": [

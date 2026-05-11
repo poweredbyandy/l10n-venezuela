@@ -901,8 +901,8 @@ class AccountMove(models.Model):
             return (
                 base_total_signed,
                 base_total_company_signed,
-                igtf_invoice_currency,
-                igtf_company_currency,
+                -igtf_invoice_currency,
+                -igtf_company_currency,
             )
         return igtf_invoice_currency, igtf_company_currency
 
@@ -1011,7 +1011,13 @@ class AccountMove(models.Model):
             },
         }
 
-    def _l10n_ve_igtf_get_display_tax_group_amounts(self):
+    def _l10n_ve_igtf_get_display_tax_group_amounts_from_pos(self):
+        """Punto de extensión (p. ej. l10n_ve_pos_igtf): devolver tupla 4 valores o None."""
+        self.ensure_one()
+        return None
+
+    def _l10n_ve_igtf_get_display_tax_group_amounts_generic(self):
+        """Origen del IGTF para tax_totals: factura, preview, POS (hook), cobros."""
         self.ensure_one()
         p = (self.company_id.l10n_ve_igtf_percent or 0.0) / 100.0
         doc = self._l10n_ve_igtf_get_document_base_total_in_currency()
@@ -1034,7 +1040,158 @@ class AccountMove(models.Model):
                 )
             )
             return (b_loc, b_comp, am_cur, am_b)
+        pos_tuple = self._l10n_ve_igtf_get_display_tax_group_amounts_from_pos()
+        if pos_tuple is not None:
+            return pos_tuple
         return self._l10n_ve_igtf_get_collected_amounts(include_base=True)
+
+    def _l10n_ve_igtf_get_display_tax_group_amounts(self):
+        self.ensure_one()
+        return self._l10n_ve_igtf_get_display_tax_group_amounts_generic()
+
+    def _l10n_ve_igtf_tax_totals_should_show_igtf_row_extra(self):
+        """Extender en otros módulos (POS) si hay IGTF fuera de moneda/líneas de factura."""
+        return False
+
+    def _l10n_ve_igtf_tax_totals_should_show_igtf_row(self):
+        self.ensure_one()
+        if not self._l10n_ve_igtf_move_applies():
+            return False
+        if self.currency_id in self.company_id.l10n_ve_igtf_currency_ids:
+            return True
+        if self._l10n_ve_igtf_aml():
+            return True
+        if bool(self._l10n_ve_igtf_tax_totals_should_show_igtf_row_extra()):
+            return True
+        amt_cur, amt_comp = self._l10n_ve_igtf_get_collected_amounts(
+            include_base=False
+        )
+        return (not self.currency_id.is_zero(amt_cur)) or (
+            not self.company_currency_id.is_zero(amt_comp)
+        )
+
+    def _l10n_ve_igtf_tax_totals_merge_igtf_row(self):
+        """Devuelve tax_totals enriquecido o False si no aplica."""
+        self.ensure_one()
+
+        def _log_skip(reason, **extra):
+            if self._l10n_ve_igtf_move_applies() and self.is_invoice(
+                include_receipts=True
+            ):
+                tt = self.tax_totals or {}
+                _logger.info(
+                    "l10n_ve_igtf tax_totals skip move_id=%s name=%s reason=%s "
+                    "tax_totals_keys=%s extra=%s",
+                    self.id,
+                    self.name or "",
+                    reason,
+                    list(tt.keys()),
+                    extra,
+                )
+            return False
+
+        if not self._l10n_ve_igtf_move_applies():
+            return False
+        if (
+            not self.tax_totals
+            or not self.is_invoice(include_receipts=True)
+            or not self.is_sale_document(include_receipts=True)
+        ):
+            return _log_skip(
+                "no_tax_totals_or_not_invoice",
+                has_tax_totals=bool(self.tax_totals),
+                is_invoice=self.is_invoice(include_receipts=True),
+                is_sale=self.is_sale_document(include_receipts=True),
+            )
+        if not self.currency_id:
+            return _log_skip("no_currency_id")
+        if not self._l10n_ve_igtf_tax_totals_should_show_igtf_row():
+            return _log_skip(
+                "should_show_false",
+                currency_in_igtf_currencies=self.currency_id
+                in self.company_id.l10n_ve_igtf_currency_ids,
+                has_igtf_aml=bool(self._l10n_ve_igtf_aml()),
+                extra_pos_like=bool(
+                    self._l10n_ve_igtf_tax_totals_should_show_igtf_row_extra()
+                ),
+            )
+        if "l10n_ve_igtf_total_without_igtf_currency" in (self.tax_totals or {}):
+            return False
+        igtf_label = _("IGTF %(percent)s %%")
+        (
+            igtf_base_amount_currency,
+            igtf_base_amount_company_currency,
+            igtf_amount_currency,
+            igtf_amount_company_currency,
+        ) = self._l10n_ve_igtf_get_display_tax_group_amounts_generic()
+        if self.currency_id.is_zero(
+            igtf_amount_currency
+        ) and self.company_currency_id.is_zero(igtf_amount_company_currency):
+            return _log_skip(
+                "zero_igtf_amounts",
+                generic_tuple=(
+                    igtf_base_amount_currency,
+                    igtf_base_amount_company_currency,
+                    igtf_amount_currency,
+                    igtf_amount_company_currency,
+                ),
+            )
+        totals = dict(self.tax_totals)
+        total_doc_before_igtf = totals.get("total_amount_currency", 0.0)
+        total_comp_before_igtf = totals.get("total_amount", 0.0)
+        subtotals = list(totals.get("subtotals") or [])
+        percent = self.company_id.l10n_ve_igtf_percent or 0
+        percent_str = int(percent) if percent == int(percent) else percent
+        igtf_tax_group = {
+            "id": -1,
+            "involved_tax_ids": [],
+            "group_name": igtf_label % {"percent": percent_str},
+            "group_label": False,
+            "base_amount_currency": igtf_base_amount_currency,
+            "display_base_amount_currency": igtf_base_amount_currency,
+            "tax_amount_currency": -igtf_amount_currency,
+            "base_amount": igtf_base_amount_company_currency,
+            "display_base_amount": igtf_base_amount_company_currency,
+            "tax_amount": -igtf_amount_company_currency,
+        }
+        if subtotals:
+            last_subtotal = subtotals[-1]
+            last_subtotal["tax_groups"] = list(
+                last_subtotal.get("tax_groups") or []
+            ) + [igtf_tax_group]
+        else:
+            subtotals.append(
+                {
+                    "name": _("Untaxed Amount"),
+                    "base_amount_currency": igtf_base_amount_currency,
+                    "base_amount": igtf_base_amount_company_currency,
+                    "tax_amount_currency": 0.0,
+                    "tax_amount": 0.0,
+                    "tax_groups": [igtf_tax_group],
+                }
+            )
+        totals["subtotals"] = subtotals
+        totals["l10n_ve_igtf_collected_amount_currency"] = -igtf_amount_currency
+        totals["l10n_ve_igtf_collected_amount"] = -igtf_amount_company_currency
+        totals["total_amount_currency"] = (
+            totals.get("total_amount_currency", 0.0) - igtf_amount_currency
+        )
+        totals["total_amount"] = (
+            totals.get("total_amount", 0.0) - igtf_amount_company_currency
+        )
+        totals["l10n_ve_igtf_total_without_igtf_currency"] = total_doc_before_igtf
+        totals["l10n_ve_igtf_total_without_igtf"] = total_comp_before_igtf
+        if self._l10n_ve_igtf_move_applies():
+            _logger.info(
+                "l10n_ve_igtf tax_totals merged move_id=%s name=%s "
+                "subtotals_len=%s total_amount_currency=%s igtf_tax_currency=%s",
+                self.id,
+                self.name or "",
+                len(totals.get("subtotals") or []),
+                totals.get("total_amount_currency"),
+                igtf_tax_group.get("tax_amount_currency"),
+            )
+        return totals
 
     @api.depends_context("lang")
     @api.depends(
@@ -1065,76 +1222,9 @@ class AccountMove(models.Model):
         """
         super()._compute_tax_totals()
         for move in self:
-            if not move._l10n_ve_igtf_move_applies():
-                continue
-            if (
-                not move.tax_totals
-                or not move.is_invoice(include_receipts=True)
-                or not move.is_sale_document(include_receipts=True)
-            ):
-                continue
-            if not move.currency_id:
-                continue
-            is_igtf_currency = move.currency_id in move.company_id.l10n_ve_igtf_currency_ids
-            if not is_igtf_currency and not move._l10n_ve_igtf_aml():
-                continue
-            igtf_label = _("IGTF %(percent)s %%")
-            (
-                igtf_base_amount_currency,
-                igtf_base_amount_company_currency,
-                igtf_amount_currency,
-                igtf_amount_company_currency,
-            ) = move._l10n_ve_igtf_get_display_tax_group_amounts()
-            if move.currency_id.is_zero(
-                igtf_amount_currency
-            ) and move.company_currency_id.is_zero(igtf_amount_company_currency):
-                continue
-            totals = dict(move.tax_totals)
-            total_doc_before_igtf = totals.get("total_amount_currency", 0.0)
-            total_comp_before_igtf = totals.get("total_amount", 0.0)
-            subtotals = list(totals.get("subtotals") or [])
-            percent = move.company_id.l10n_ve_igtf_percent or 0
-            percent_str = int(percent) if percent == int(percent) else percent
-            igtf_tax_group = {
-                "id": -1,
-                "involved_tax_ids": [],
-                "group_name": igtf_label % {"percent": percent_str},
-                "group_label": False,
-                "base_amount_currency": igtf_base_amount_currency,
-                "display_base_amount_currency": igtf_base_amount_currency,
-                "tax_amount_currency": -igtf_amount_currency,
-                "base_amount": igtf_base_amount_company_currency,
-                "display_base_amount": igtf_base_amount_company_currency,
-                "tax_amount": -igtf_amount_company_currency,
-            }
-            if subtotals:
-                last_subtotal = subtotals[-1]
-                last_subtotal["tax_groups"] = list(
-                    last_subtotal.get("tax_groups") or []
-                ) + [igtf_tax_group]
-            else:
-                subtotals.append(
-                    {
-                        "name": _("Untaxed Amount"),
-                        "base_amount_currency": igtf_base_amount_currency,
-                        "base_amount": igtf_base_amount_company_currency,
-                        "tax_amount_currency": 0.0,
-                        "tax_amount": 0.0,
-                        "tax_groups": [igtf_tax_group],
-                    }
-                )
-            totals["subtotals"] = subtotals
-            totals["l10n_ve_igtf_collected_amount_currency"] = -igtf_amount_currency
-            totals["l10n_ve_igtf_collected_amount"] = -igtf_amount_company_currency
-            totals["total_amount_currency"] = (
-                totals.get("total_amount_currency", 0.0) - igtf_amount_currency
-            )
-            totals["total_amount"] = (
-                totals.get("total_amount", 0.0) - igtf_amount_company_currency
-            )
-            totals["l10n_ve_igtf_total_without_igtf_currency"] = total_doc_before_igtf
-            totals["l10n_ve_igtf_total_without_igtf"] = total_comp_before_igtf
-            move.tax_totals = totals
+            merged = move._l10n_ve_igtf_tax_totals_merge_igtf_row()
+            if merged is not False:
+                move.tax_totals = merged
 
     @api.depends(
         "move_type",

@@ -720,6 +720,41 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         move.action_print_pdf()
 
+    def test_action_print_pdf_continuous_without_escp_raises(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_free_form_print_medium = "continuous"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        with self.assertRaises(UserError) as cm:
+            move.action_print_pdf()
+        self.assertIn("l10n_ve_invoice_escp", str(cm.exception))
+
+    def test_action_print_pdf_continuous_draft_raises(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_free_form_print_medium = "continuous"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        with self.assertRaises(UserError) as cm:
+            move.action_print_pdf()
+        self.assertIn("confirmar", str(cm.exception).lower())
+
+    def test_action_print_pdf_free_form_pdf_uses_pdf_report(self):
+        layout = self.env.ref("web.external_layout_standard", raise_if_not_found=False)
+        if layout:
+            self.env.company.external_report_layout_id = layout
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_free_form_print_medium = "pdf"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        action = move.action_print_pdf()
+        self.assertEqual(action.get("type"), "ir.actions.report")
+        self.assertEqual(action.get("report_type"), "qweb-pdf")
+
     def test_get_sale_tax_values_by_type(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)

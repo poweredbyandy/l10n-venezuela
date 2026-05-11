@@ -11,6 +11,12 @@ import {
     TfhkaWebSerialTransport,
 } from "./tfhka_transport_webserial";
 import { getSampleHkaInvoiceLines } from "./tfhka_invoice_samples";
+import {
+    createTfhkaFiscalMachine,
+    FLAG_21,
+    TAX_MAP,
+    TfhkaFiscalMachine,
+} from "./tfhka_fiscal_machine";
 
 export const l10nVeFiscalSerialService = {
     dependencies: [],
@@ -24,6 +30,10 @@ export const l10nVeFiscalSerialService = {
             encodeLatin1,
             formatWebSerialError,
             getSampleHkaInvoiceLines,
+            createTfhkaFiscalMachine,
+            TfhkaFiscalMachine,
+            FLAG_21,
+            TAX_MAP,
             isSupported: () => TfhkaWebSerialTransport.isSupported(),
         };
     },

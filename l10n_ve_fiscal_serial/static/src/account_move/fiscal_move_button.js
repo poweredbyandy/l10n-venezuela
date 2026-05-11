@@ -1,0 +1,198 @@
+/** @odoo-module **/
+
+import { Component, xml } from "@odoo/owl";
+import { registry } from "@web/core/registry";
+import { useService } from "@web/core/utils/hooks";
+
+const ACTION_TO_CHECK_METHOD = {
+    print_out_invoice: "check_print_out_invoice",
+    print_out_refund: "check_print_out_refund",
+    print_debit_note: "check_print_debit_note",
+    reprint: "check_reprint",
+};
+
+const ACTION_LABELS = {
+    print_out_invoice: "Imprimir",
+    print_out_refund: "Imprimir",
+    print_debit_note: "Imprimir",
+    reprint: "Reimprimir",
+};
+
+const ACTION_BUTTON_CLASS = {
+    print_out_invoice: "btn btn-primary",
+    print_out_refund: "btn btn-primary",
+    print_debit_note: "btn btn-primary",
+    reprint: "btn btn-secondary",
+};
+
+export class FiscalMoveButton extends Component {
+    static props = ["*"];
+    static template = xml`
+        <button t-att-class="buttonClass" type="button" t-on-click="onClick">
+            <span t-esc="label"/>
+        </button>
+    `;
+
+    setup() {
+        this.orm = useService("orm");
+        this.action = useService("action");
+        this.notification = useService("notification");
+        this.fiscalSerial = useService("l10n_ve_fiscal_serial");
+        this.ui = useService("ui");
+        this._uiBlocked = false;
+    }
+
+    get label() {
+        return ACTION_LABELS[this.props.action] || "Fiscal";
+    }
+
+    get buttonClass() {
+        return ACTION_BUTTON_CLASS[this.props.action] || "btn btn-secondary";
+    }
+
+    async _getPayload(actionName, moveId) {
+        const method = ACTION_TO_CHECK_METHOD[actionName];
+        if (!method) {
+            throw new Error(`Accion no soportada: ${actionName}`);
+        }
+        return this.orm.call("account.move", method, [[moveId]]);
+    }
+
+    async _persistResponse(actionName, moveId, response) {
+        if (actionName === "reprint") {
+            return;
+        }
+        await this.orm.call("account.move", actionName, [[moveId], response]);
+    }
+
+    async _reloadRecord() {
+        if (this.props.record?.model?.root) {
+            await this.props.record.model.root.load();
+        }
+    }
+
+    async _reloadView() {
+        await this.action.doAction({ type: "ir.actions.client", tag: "reload" });
+    }
+
+    _formatErrorMessage(error) {
+        const rpcData = error?.data || {};
+        const rpcMessage = rpcData?.message;
+        const rpcArgs = Array.isArray(rpcData?.arguments) ? rpcData.arguments : [];
+        const debug = typeof rpcData?.debug === "string" ? rpcData.debug : "";
+        if (rpcMessage && !/internal error/i.test(rpcMessage)) {
+            return rpcMessage;
+        }
+        if (rpcArgs.length && rpcArgs[0]) {
+            return String(rpcArgs[0]);
+        }
+        if (debug) {
+            const lines = debug.split("\n");
+            const validation = lines.find((line) =>
+                /ValidationError|UserError|No se puede|No se recib/i.test(line)
+            );
+            if (validation) {
+                return validation.trim();
+            }
+        }
+        if (error?.message && !/internal error/i.test(error.message)) {
+            return error.message;
+        }
+        return "Error interno al imprimir fiscalmente.";
+    }
+
+    _setBlockingProgress(percent, message = "Imprimiendo...") {
+        const pct = Math.max(0, Math.min(100, Math.round(percent)));
+        if (this._uiBlocked) {
+            this.ui.unblock();
+            this._uiBlocked = false;
+        }
+        this.ui.block({ message: `${message} ${pct}%` });
+        this._uiBlocked = true;
+    }
+
+    _clearBlockingProgress() {
+        if (this._uiBlocked) {
+            this.ui.unblock();
+            this._uiBlocked = false;
+        }
+    }
+
+    async onClick() {
+        const actionName = this.props.action;
+        const moveId =
+            this.props.record?.resId ||
+            this.props.record?.data?.id ||
+            this.env?.model?.root?.resId ||
+            this.env?.model?.root?.data?.id;
+        if (!moveId) {
+            this.notification.add("No se pudo detectar la factura activa.", {
+                type: "danger",
+            });
+            return;
+        }
+        if (!this.fiscalSerial.isSupported()) {
+            this.notification.add("Web Serial no está disponible en este navegador.", {
+                type: "danger",
+            });
+            return;
+        }
+        let driver;
+        try {
+            this._setBlockingProgress(0, "Imprimiendo...");
+            this.notification.add(
+                "Seleccione la máquina fiscal en el cuadro de puertos del navegador.",
+                { type: "warning" }
+            );
+            const payload = await this._getPayload(actionName, moveId);
+            this._setBlockingProgress(15, "Imprimiendo...");
+            driver = this.fiscalSerial.createTfhkaFiscal();
+            const opened = await driver.openFpCtrl({ baudRate: 9600, parity: "even" });
+            if (!opened) {
+                throw new Error(driver.estado || "No fue posible abrir el puerto serial.");
+            }
+            this._setBlockingProgress(25, "Imprimiendo...");
+            const machine = this.fiscalSerial.createTfhkaFiscalMachine(driver);
+            const response = await machine.runAction({
+                action: actionName,
+                data: payload,
+                onProgress: ({ percent, message }) => {
+                    this._setBlockingProgress(percent, message || "Imprimiendo...");
+                },
+            });
+            if (!response?.valid) {
+                throw new Error(response?.message || "Fallo la impresión fiscal.");
+            }
+            this._setBlockingProgress(95, "Imprimiendo...");
+            await this._persistResponse(actionName, moveId, response);
+            await this._reloadRecord();
+            await this._reloadView();
+            this._setBlockingProgress(100, "Imprimiendo...");
+            this.notification.add(response.message || "Operación fiscal completada.", {
+                type: "success",
+            });
+        } catch (error) {
+            const message = this._formatErrorMessage(error);
+            console.error("[l10n_ve_fiscal_serial] Error impresión fiscal:", error);
+            this.notification.add(message, {
+                type: "danger",
+            });
+        } finally {
+            if (driver) {
+                try {
+                    await driver.closeFpCtrl();
+                } catch {
+                }
+            }
+            this._clearBlockingProgress();
+        }
+    }
+}
+
+registry.category("view_widgets").add("l10n_ve_fiscal_serial_button", {
+    component: FiscalMoveButton,
+    extractProps: ({ attrs, record }) => ({
+        ...attrs,
+        record,
+    }),
+});
