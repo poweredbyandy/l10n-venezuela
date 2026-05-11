@@ -33,6 +33,9 @@
                                         </select>
                                     </div>
                                 </div>
+                                <p class="text-muted small mb-2">
+                                    FLAG_21 configurada: <strong><t t-esc="state.flag21"/></strong>
+                                </p>
                                 <p class="text-muted small mb-2">Si no responde el ENQ, pruebe <strong>8N1</strong> y el baud del manual; el flujo de apertura replica el DLL (DSR/DTR, CTS/RTS, luego ENQ con 5 bytes).</p>
                                 <div class="d-flex gap-2 mb-3 flex-wrap">
                                     <button type="button" class="btn btn-primary" t-on-click="onOpenConnection" t-att-disabled="state.busy or state.phase === 'connected'">
@@ -74,6 +77,15 @@
                                     </button>
                                     <button type="button" class="btn btn-outline-info" t-on-click="onReadFpStatusEnq" t-att-disabled="isSendDisabled" title="Comando nativo TFHKA: byte ENQ (0x05); la impresora responde 5 bytes con estado y error fiscal.">
                                         Estado impresora (ENQ)
+                                    </button>
+                                    <button type="button" class="btn btn-outline-dark" t-on-click="onPrintXReport" t-att-disabled="isSendDisabled">
+                                        Reporte X
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" t-on-click="onPrintZReport" t-att-disabled="isSendDisabled">
+                                        Reporte Z
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" t-on-click="onConfigureFiscalMachine" t-att-disabled="isSendDisabled">
+                                        Configurar maquina fiscal
                                     </button>
                                 </div>
                                 <div t-if="state.lastCmdResult" class="alert alert-secondary mb-3" role="status">

@@ -24,6 +24,36 @@ class AccountMove(models.Model):
         readonly=True,
         compute="_compute_seniat_invoice_tag",
     )
+    l10n_ve_origin_affected_total_company = fields.Monetary(
+        string="Total documento origen (moneda compañía)",
+        currency_field="company_currency_id",
+        compute="_compute_l10n_ve_origin_affected_total_company",
+    )
+
+    @api.depends(
+        "debit_origin_id",
+        "reversed_entry_id",
+        "debit_origin_id.tax_totals",
+        "reversed_entry_id.tax_totals",
+        "debit_origin_id.amount_total",
+        "debit_origin_id.currency_id",
+        "reversed_entry_id.amount_total",
+        "reversed_entry_id.currency_id",
+        "company_currency_id",
+    )
+    def _compute_l10n_ve_origin_affected_total_company(self):
+        for move in self:
+            origin = move.debit_origin_id or move.reversed_entry_id
+            if not origin:
+                move.l10n_ve_origin_affected_total_company = False
+                continue
+            tt = origin.tax_totals or {}
+            if isinstance(tt, dict) and "total_amount" in tt:
+                move.l10n_ve_origin_affected_total_company = tt["total_amount"]
+            elif origin.currency_id == origin.company_currency_id:
+                move.l10n_ve_origin_affected_total_company = origin.amount_total
+            else:
+                move.l10n_ve_origin_affected_total_company = False
 
     @api.depends(
         "company_id",
@@ -31,6 +61,8 @@ class AccountMove(models.Model):
         "l10n_ve_inverse_rate",
         "move_type",
         "country_code",
+        "debit_origin_id",
+        "reversed_entry_id",
     )
     def _compute_seniat_invoice_tag(self):
         for move in self:
@@ -64,6 +96,16 @@ class AccountMove(models.Model):
                         "de la Ley que establece el impuesto al valor agregado (IVA) "
                         "y 38 del Reglamento General de la Ley que establece el "
                         "Impuesto de Valor agregado (RLIVA)</span>"
+                    )
+                if not texts and (
+                    move.move_type == "out_refund" or move.debit_origin_id
+                ):
+                    texts.append(
+                        "<span>%s</span>"
+                        % _(
+                            "Este documento se expresa conforme a la normativa "
+                            "tributaria vigente (SENIAT)."
+                        )
                     )
                 move.seniat_invoice_tag = "".join(texts) if texts else False
             else:
@@ -1227,7 +1269,36 @@ Please create a credit note instead.
             )
         return super().preview_invoice()
 
+    def _l10n_ve_get_free_form_continuous_print_action(self):
+        self.ensure_one()
+        return False
+
     def action_print_pdf(self):
+        self.ensure_one()
+        if (
+            self.company_id.account_fiscal_country_id.code == "VE"
+            and self.move_type in ("out_invoice", "out_refund")
+            and self.l10n_ve_journal_emission_medium == "free"
+            and self.journal_id.l10n_ve_free_form_print_medium == "continuous"
+        ):
+            if self.state != "posted":
+                raise UserError(
+                    _("Debe confirmar la factura para imprimir en papel continuo.")
+                )
+            action = self._l10n_ve_get_free_form_continuous_print_action()
+            if action:
+                if action.get("type") == "ir.actions.client":
+                    return action
+                return self._get_action_with_base_document_layout_configurator(
+                    action
+                )
+            raise UserError(
+                _(
+                    "El diario está configurado para papel continuo. Instale el módulo "
+                    "«l10n_ve_invoice_escp» para imprimir la factura en formato ESC/P por "
+                    "USB (WebUSB), o cambie la impresión en forma libre a PDF en el diario."
+                )
+            )
         return super(
             AccountMove, self.with_context(l10n_ve_invoice=True)
         ).action_print_pdf()

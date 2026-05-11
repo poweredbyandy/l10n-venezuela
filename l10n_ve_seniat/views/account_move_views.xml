@@ -72,7 +72,7 @@
                     type="object"
                     groups="account.group_account_invoice,l10n_ve_seniat.group_l10n_ve_invoice_void"
                     data-hotkey="x"
-                    invisible="country_code != 'VE' or not id or state not in ('draft', 'posted') or move_type not in ('out_invoice', 'out_refund', 'out_receipt')"
+                    invisible="country_code != 'VE' or not id or state != 'posted' or move_type not in ('out_invoice', 'out_refund', 'out_receipt')"
                 />
             </xpath>
 

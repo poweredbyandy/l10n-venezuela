@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="l10n_ve_pos_igtf.PaymentScreenPaymentLines" t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension">
+        <xpath expr="//t[@t-foreach='props.paymentLines']/t[@t-if='line.isSelected()']/div[1]" position="after">
+            <div t-if="line.include_igtf and line.igtf_amount"
+                t-attf-class="d-flex align-items-center ps-4 pb-1 {{ line.isSelected() ? 'bg-200' : 'bg-view' }}">
+                <span class="badge rounded-pill text-bg-warning text-wrap">
+                    IGTF = <t t-esc="this.l10nVePosFormatIgtfLine(line)"/>
+                </span>
+            </div>
+        </xpath>
+        <xpath expr="//t[@t-foreach='props.paymentLines']/t[@t-else='']/div[1]" position="after">
+            <div t-if="line.include_igtf and line.igtf_amount"
+                class="d-flex align-items-center ps-4 pb-1 bg-view">
+                <span class="badge rounded-pill text-bg-warning text-wrap">
+                    IGTF = <t t-esc="this.l10nVePosFormatIgtfLine(line)"/>
+                </span>
+            </div>
+        </xpath>
+    </t>
+</templates>

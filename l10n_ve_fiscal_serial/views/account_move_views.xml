@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_l10n_ve_fiscal_serial" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.ve.fiscal.serial</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_ve_seniat.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath expr="(//header//button[@name='action_post'])[last()]" position="after">
+                <widget
+                    name="l10n_ve_fiscal_serial_button"
+                    action="print_out_invoice"
+                    invisible="country_code != 'VE' or l10n_ve_journal_emission_medium != 'fiscal_machine' or move_type != 'out_invoice' or state != 'posted' or l10n_ve_on_behalf_of_third_party or l10n_ve_invoice_number or debit_origin_id"
+                />
+                <widget
+                    name="l10n_ve_fiscal_serial_button"
+                    action="print_out_refund"
+                    invisible="country_code != 'VE' or l10n_ve_journal_emission_medium != 'fiscal_machine' or move_type != 'out_refund' or state != 'posted' or l10n_ve_on_behalf_of_third_party or l10n_ve_invoice_number"
+                />
+                <widget
+                    name="l10n_ve_fiscal_serial_button"
+                    action="print_debit_note"
+                    invisible="country_code != 'VE' or l10n_ve_journal_emission_medium != 'fiscal_machine' or move_type != 'out_invoice' or state != 'posted' or l10n_ve_on_behalf_of_third_party or l10n_ve_invoice_number or not debit_origin_id"
+                />
+                <widget
+                    name="l10n_ve_fiscal_serial_button"
+                    action="reprint"
+                    invisible="country_code != 'VE' or l10n_ve_journal_emission_medium != 'fiscal_machine' or move_type not in ('out_invoice', 'out_refund') or state != 'posted' or not l10n_ve_invoice_number"
+                />
+            </xpath>
+            <xpath expr="//header//button[@name='action_print_pdf'][1]" position="attributes">
+                <attribute name="invisible">
+                    state != 'posted' or is_being_sent or invoice_pdf_report_id or move_type == 'entry' or (
+                    country_code == 'VE' and l10n_ve_journal_emission_medium == 'fiscal_machine' and
+                    move_type in ('out_invoice', 'out_refund')
+                    )
+                </attribute>
+            </xpath>
+            <xpath expr="//header//button[@name='action_print_pdf'][2]" position="attributes">
+                <attribute name="invisible">
+                    state != 'posted' or (not is_being_sent and not invoice_pdf_report_id) or (
+                    country_code == 'VE' and l10n_ve_journal_emission_medium == 'fiscal_machine' and
+                    move_type in ('out_invoice', 'out_refund')
+                    )
+                </attribute>
+            </xpath>
+            <xpath expr="//header//button[@name='action_l10n_ve_open_cancel_wizard']" position="attributes">
+                <attribute name="invisible">
+                    country_code != 'VE' or not id or state not in ('draft', 'posted') or move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (
+                    l10n_ve_journal_emission_medium == 'fiscal_machine' and l10n_ve_invoice_number
+                    )
+                </attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

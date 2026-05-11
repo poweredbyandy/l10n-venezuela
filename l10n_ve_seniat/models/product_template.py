@@ -226,6 +226,7 @@ class ProductTemplate(models.Model):
             company = tmpl.company_id or self.env.company
             if company.account_fiscal_country_id != ve_country:
                 continue
+            enforce_ge_cost = company.l10n_ve_enforce_sale_price_ge_cost
             for variant in tmpl.product_variant_ids:
                 lst = variant.lst_price
                 cost = variant.standard_price
@@ -240,7 +241,10 @@ class ProductTemplate(models.Model):
                             "variant": variant.display_name,
                         }
                     )
-                if float_compare(lst, cost, precision_digits=prec) < 0:
+                if (
+                    enforce_ge_cost
+                    and float_compare(lst, cost, precision_digits=prec) < 0
+                ):
                     raise ValidationError(
                         _(
                             'El precio de venta del producto "%(name)s" no puede ser '
@@ -258,6 +262,10 @@ class ProductTemplate(models.Model):
 
     @api.constrains("taxes_id", "supplier_taxes_id")
     def _l10n_ve_check_exactly_one_tax_per_use(self):
+        if self.env.context.get(
+            "install_mode"
+        ) or self.env.context.get("l10n_ve_skip_product_tax_constraint"):
+            return
         ve_country = self.env.ref("base.ve", raise_if_not_found=False)
         if not ve_country:
             return

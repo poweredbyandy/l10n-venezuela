@@ -36,6 +36,21 @@ class AccountJournal(models.Model):
         ),
     )
 
+    l10n_ve_free_form_print_medium = fields.Selection(
+        selection=[
+            ("pdf", _("PDF")),
+            ("continuous", _("Papel continuo (ESC/P USB)")),
+        ],
+        string=_("Impresión en forma libre"),
+        default="pdf",
+        copy=False,
+        help=_(
+            "Solo aplica con medio de emisión «Forma libre». PDF usa el informe estándar. "
+            "Papel continuo requiere el módulo «l10n_ve_invoice_escp» e imprime la factura "
+            "en formato ESC/P Epson por WebUSB."
+        ),
+    )
+
     l10n_ve_invoice_section_id = fields.Many2one(
         "account.book.section",
         string="SENIAT fiscal book section (invoices)",
@@ -62,6 +77,56 @@ class AccountJournal(models.Model):
         domain="[('company_id', '=', company_id)]",
         help="Tramo del talonario para notas de crédito de cliente (out_refund).",
     )
+
+    l10n_ve_fiscal_payment_code = fields.Char(
+        string=_("Código forma de pago fiscal"),
+        size=2,
+        copy=False,
+        help=_(
+            "Código numérico de forma de pago para máquina fiscal TFHKA (01–24). "
+            "Se usa al enviar pagos en la impresión fiscal cuando el registro proviene "
+            "de este diario."
+        ),
+    )
+
+    @api.constrains("l10n_ve_fiscal_payment_code")
+    def _check_l10n_ve_fiscal_payment_code(self):
+        for journal in self:
+            raw = (journal.l10n_ve_fiscal_payment_code or "").strip()
+            if not raw:
+                continue
+            if len(raw) != 2 or not raw.isdigit():
+                raise ValidationError(
+                    _(
+                        "El código forma de pago fiscal del diario “%(journal)s” debe ser "
+                        "dos dígitos (ej.: 01)."
+                    )
+                    % {"journal": journal.display_name}
+                )
+            value = int(raw)
+            if value < 1 or value > 24:
+                raise ValidationError(
+                    _(
+                        "El código forma de pago fiscal del diario “%(journal)s” debe estar "
+                        "entre 01 y 24."
+                    )
+                    % {"journal": journal.display_name}
+                )
+
+    @api.constrains("l10n_ve_emission_medium", "l10n_ve_free_form_print_medium")
+    def _check_l10n_ve_free_form_print_medium(self):
+        for journal in self:
+            if (
+                journal.l10n_ve_free_form_print_medium == "continuous"
+                and journal.l10n_ve_emission_medium != "free"
+            ):
+                raise ValidationError(
+                    _(
+                        "El formato «Papel continuo» solo está permitido cuando el medio de "
+                        "emisión del diario «%(journal)s» es «Forma libre»."
+                    )
+                    % {"journal": journal.display_name}
+                )
 
     @api.constrains(
         "l10n_ve_invoice_section_id",

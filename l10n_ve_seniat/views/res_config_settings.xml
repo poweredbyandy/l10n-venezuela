@@ -26,6 +26,7 @@
                                 />
                                 <field name="l10n_ve_validate_partner_vat_format" />
                                 <field name="l10n_ve_lock_partner_fiscal_data" />
+                                <field name="l10n_ve_enforce_sale_price_ge_cost" />
                             </group>
                         </div>
                     </div>

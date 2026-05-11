@@ -10,7 +10,9 @@
     "depends": ["web", "l10n_ve_seniat"],
     "data": [
         "data/fiscal_machines_action.xml",
+        "views/account_move_views.xml",
         "views/fiscal_machines_menu.xml",
+        "views/res_config_settings_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
@@ -18,7 +20,9 @@
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_protocol.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_serial.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_invoice_samples.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_fiscal_machine.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/fiscal_serial_service.js",
+            "l10n_ve_fiscal_serial/static/src/account_move/fiscal_move_button.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml",
             "l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.js",
         ],
