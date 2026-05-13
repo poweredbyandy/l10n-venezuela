@@ -3,6 +3,7 @@
 from odoo import _, api, models
 from odoo.exceptions import ValidationError
 from odoo.tools import float_compare
+from odoo.tools.mail import plaintext2html
 
 
 class SaleOrderLine(models.Model):
@@ -10,18 +11,51 @@ class SaleOrderLine(models.Model):
 
     def l10n_ve_report_line_description(self):
         self.ensure_one()
-        name = (self.name or "").strip()
-        product = self.product_id
-        if not product:
-            return name
-        code = (product.default_code or "").strip()
-        if not code:
-            return name
-        prefix = f"[{code}]"
-        if name.startswith(prefix):
-            rest = name[len(prefix) :].strip()
-            return rest or (product.name or "")
-        return name
+        if self.display_type or self.is_downpayment or self.product_type == "combo":
+            return plaintext2html(self.name or "", with_paragraph=False)
+        if not self.product_id:
+            return plaintext2html(self.name or "", with_paragraph=False)
+        lang = self.order_id._get_lang()
+        line = self.with_context(lang=lang) if lang != self.env.lang else self
+        product = line.product_id.with_context(
+            lang=lang,
+            display_default_code=False,
+        )
+        parts = []
+        if product.description_sale:
+            parts.append(product.description_sale)
+        variants = line._get_sale_order_line_multiline_description_variants()
+        if variants and variants.strip():
+            parts.append(variants.strip())
+        if line.linked_line_id and not line.combo_item_id:
+            link_product = line.linked_line_id.product_id.with_context(
+                lang=lang,
+                display_default_code=False,
+            )
+            parts.append(_("Option for: %s", link_product.display_name))
+        if line.linked_line_ids and line.product_type != "combo":
+            for linked_line in line.linked_line_ids:
+                lp = linked_line.product_id.with_context(
+                    lang=lang,
+                    display_default_code=False,
+                )
+                parts.append(_("Option: %s", lp.display_name))
+        text = "\n".join(p for p in parts if p)
+        raw_stripped = "\n".join((line.name or "").splitlines()).strip()
+        if raw_stripped:
+            std = "\n".join(
+                (line._get_sale_order_line_multiline_description_sale() or "").splitlines()
+            ).strip()
+            if raw_stripped != std:
+                if std and raw_stripped.startswith(std):
+                    extra = raw_stripped[len(std) :].strip().lstrip("\n").strip()
+                    if extra:
+                        text = f"{text}\n{extra}" if text else extra
+                else:
+                    text = f"{text}\n{raw_stripped}" if text else raw_stripped
+        if not (text or "").strip():
+            text = (line.name or "").strip()
+        return plaintext2html(text, with_paragraph=False)
 
     @api.constrains("discount", "order_id")
     def _l10n_ve_check_line_discount(self):
