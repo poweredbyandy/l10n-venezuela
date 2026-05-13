@@ -4,6 +4,38 @@ export const ENQ = 0x05;
 export const ACK = 0x06;
 export const NAK = 0x15;
 
+export const TFHKA_ENQ_STS2_NINGUN_ERROR = 0x40;
+
+const TFHKA_ENQ_STS1_DESC = {
+    0x60: "Modo fiscal (inactiva en transacción)",
+    0x61: "Modo fiscal y en transacción fiscal",
+    0x42: "Sin transacción fiscal",
+    0x44: "Ocupada, búfer lleno",
+};
+
+export function describeTfhkaEnqSts1(byte) {
+    return TFHKA_ENQ_STS1_DESC[byte] || `STS1=0x${(byte & 0xff).toString(16).toUpperCase()}`;
+}
+
+export function describeTfhkaEnqSts2(byte) {
+    if ((byte & 0xff) === TFHKA_ENQ_STS2_NINGUN_ERROR) {
+        return "Sin error fiscal (STS2=0x40, manual TFHKA)";
+    }
+    return `STS2=0x${(byte & 0xff).toString(16).toUpperCase()} (ver manual TFHKA, byte de estado fiscal)`;
+}
+
+export function isTfhkaEnqSts2SinErrorFiscal(byte) {
+    return (byte & 0xff) === TFHKA_ENQ_STS2_NINGUN_ERROR;
+}
+
+export function isTfhkaEnqSts1Operativa(byte) {
+    const b = byte & 0xff;
+    if (b === 0x44) {
+        return false;
+    }
+    return b === 0x60 || b === 0x61 || b === 0x42;
+}
+
 export function encodeLatin1(str) {
     const out = [];
     for (const ch of str) {

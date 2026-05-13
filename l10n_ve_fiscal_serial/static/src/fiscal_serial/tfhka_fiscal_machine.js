@@ -1,5 +1,10 @@
 /** @odoo-module **/
 
+import {
+    isTfhkaEnqSts1Operativa,
+    isTfhkaEnqSts2SinErrorFiscal,
+} from "./tfhka_protocol";
+
 const FLAG_21 = {
     30: {
         maxAmountInt: 14,
@@ -164,12 +169,26 @@ export class TfhkaFiscalMachine {
             throw new Error(this.driver.estado || "No se pudo leer el estado fiscal.");
         }
         const errorCode = String(this.driver.error ?? "");
-        if (errorCode !== "0") {
-            throw new Error(this.driver.descripError || `Error fiscal ${errorCode}`);
+        const fiscalSts2 = parseInt(errorCode, 10);
+        if (
+            Number.isFinite(fiscalSts2) &&
+            !isTfhkaEnqSts2SinErrorFiscal(fiscalSts2)
+        ) {
+            throw new Error(
+                this.driver.descripError ||
+                    `Estado fiscal STS2 no admite operación (byte ${errorCode})`
+            );
         }
         const statusCode = String(this.driver.status ?? "");
-        if (!STATUS_CODES.has(statusCode)) {
-            throw new Error(this.driver.descripStatus || `Estado fiscal ${statusCode} no permitido`);
+        const sts1 = parseInt(statusCode, 10);
+        if (
+            !STATUS_CODES.has(statusCode) &&
+            !(Number.isFinite(sts1) && isTfhkaEnqSts1Operativa(sts1))
+        ) {
+            throw new Error(
+                this.driver.descripStatus ||
+                    `Estado impresora STS1 no permitido (${statusCode})`
+            );
         }
         return true;
     }
