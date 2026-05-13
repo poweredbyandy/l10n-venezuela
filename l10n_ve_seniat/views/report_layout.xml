@@ -277,9 +277,6 @@
                                                     <span
                                                         t-out="line.l10n_ve_report_line_description()"
                                                     />
-                                                    <t
-                                                        t-if="line.tax_ids.amount == 0"
-                                                    >(E)</t>
                                                 </td>
                                                 <td>
                                                     <span
