@@ -115,11 +115,102 @@ function mapTaxCodeFromLine(line) {
     return "3";
 }
 
+function _s1NormalizeRaw(raw) {
+    return String(raw || "")
+        .replace(/\r/g, "")
+        .replace(/\x02/g, "")
+        .replace(/\x03[\s\S]*$/g, "")
+        .trim();
+}
+
+function _s1SplitParts(raw) {
+    const normalized = _s1NormalizeRaw(raw);
+    return normalized
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+}
+
+function defaultS1Parser(raw) {
+    const text = String(raw || "");
+    const parts = _s1SplitParts(text);
+    const out = {
+        raw: text,
+        LastInvoiceNumber: null,
+        LastCreditNoteNumber: null,
+        LastDebitNoteNumber: null,
+        DailyClosureCounter: null,
+        RegisteredMachineNumber: null,
+        DailySalesTotal: null,
+        CashierCode: null,
+        InvoicesCountDay: null,
+    };
+    if (!parts.length) {
+        return out;
+    }
+    let i = 0;
+    const head = parts[0];
+    if (/^S1/i.test(head)) {
+        out.CashierCode = head.length > 2 ? head.slice(2) : null;
+        i = 1;
+    }
+    if (i < parts.length && /^\d+$/.test(parts[i])) {
+        out.DailySalesTotal = parts[i];
+        i++;
+    }
+    let invoiceIdx = -1;
+    if (i < parts.length && /^\d{8}$/.test(parts[i])) {
+        out.LastInvoiceNumber = parts[i];
+        invoiceIdx = i;
+        i++;
+    } else if (
+        i < parts.length &&
+        /^\d{5,10}$/.test(parts[i]) &&
+        parts[i].length !== 8 &&
+        i + 1 < parts.length &&
+        /^\d{8}$/.test(parts[i + 1])
+    ) {
+        out.RegisteredMachineNumber = parts[i];
+        invoiceIdx = i + 1;
+        out.LastInvoiceNumber = parts[i + 1];
+        i += 2;
+    }
+    if (invoiceIdx >= 0 && invoiceIdx + 1 < parts.length && /^\d{5}$/.test(parts[invoiceIdx + 1])) {
+        out.InvoicesCountDay = parts[invoiceIdx + 1];
+    }
+    if (invoiceIdx >= 0) {
+        const closureCandidate = parts[invoiceIdx + 4];
+        if (closureCandidate && /^\d{4}$/.test(closureCandidate)) {
+            out.DailyClosureCounter = closureCandidate;
+        }
+    }
+    if (!out.RegisteredMachineNumber) {
+        for (let j = 0; j < parts.length - 1; j++) {
+            if (
+                /^\d{5,10}$/.test(parts[j]) &&
+                parts[j].length !== 8 &&
+                /^\d{8}$/.test(parts[j + 1])
+            ) {
+                out.RegisteredMachineNumber = parts[j];
+                break;
+            }
+        }
+    }
+    if (!out.LastInvoiceNumber) {
+        const groups = text.match(/\d+/g) || [];
+        const fallback = groups.length ? groups[groups.length - 1] : null;
+        out.LastInvoiceNumber = fallback;
+    }
+    out.LastCreditNoteNumber = out.LastInvoiceNumber;
+    out.LastDebitNoteNumber = out.LastInvoiceNumber;
+    return out;
+}
+
 export class TfhkaFiscalMachine {
     constructor(driver, options = {}) {
         this.driver = driver;
         this.commandDelayMs = options.commandDelayMs ?? 200;
-        this.s1Parser = options.s1Parser || this._defaultS1Parser.bind(this);
+        this.s1Parser = options.s1Parser || defaultS1Parser;
         this.actions = {
             status: this.getStatusMachine.bind(this),
             status1: this.getS1PrinterData.bind(this),
@@ -829,18 +920,25 @@ export class TfhkaFiscalMachine {
         }
     }
 
-    _defaultS1Parser(raw) {
-        const text = String(raw || "");
-        const groups = text.match(/\d+/g) || [];
-        const number = groups.length ? groups[groups.length - 1] : null;
-        return {
-            raw: text,
-            LastInvoiceNumber: number,
-            LastCreditNoteNumber: number,
-            LastDebitNoteNumber: number,
-            DailyClosureCounter: null,
-            RegisteredMachineNumber: null,
-        };
+    _s1Trace(stage, s1, extra = {}) {
+        const parsed = s1
+            ? {
+                  LastInvoiceNumber: s1.LastInvoiceNumber,
+                  LastCreditNoteNumber: s1.LastCreditNoteNumber,
+                  RegisteredMachineNumber: s1.RegisteredMachineNumber,
+                  DailyClosureCounter: s1.DailyClosureCounter,
+                  DailySalesTotal: s1.DailySalesTotal,
+                  CashierCode: s1.CashierCode,
+                  InvoicesCountDay: s1.InvoicesCountDay,
+              }
+            : null;
+        const rawStr = s1?.raw != null ? String(s1.raw) : "";
+        console.log("[l10n_ve_fiscal_serial][s1]", stage, {
+            ...extra,
+            parsed,
+            rawLineCount: rawStr ? rawStr.split("\n").length : 0,
+            rawPreview: rawStr ? rawStr.slice(0, 800) : null,
+        });
     }
 
     _toIntOrNull(value) {
@@ -879,15 +977,28 @@ export class TfhkaFiscalMachine {
         return EMULATOR_LAST_REPORT_Z;
     }
 
-    async getS1PrinterData() {
+    async getS1PrinterData(debugStage) {
+        const traceLabel = typeof debugStage === "string" ? debugStage : null;
         if (!this.driver || typeof this.driver.uploadStatusCmdToString !== "function") {
             return null;
         }
         const result = await this.driver.uploadStatusCmdToString("S1");
         if (!result?.ok || !result.content) {
+            if (traceLabel) {
+                this._s1Trace(`${traceLabel}_empty`, null, {
+                    ok: result?.ok,
+                    contentLength: result?.content != null ? String(result.content).length : 0,
+                });
+            }
             return null;
         }
-        return this.s1Parser(result.content);
+        const parsed = this.s1Parser(result.content);
+        if (traceLabel) {
+            this._s1Trace(traceLabel, parsed, {
+                contentLength: String(result.content).length,
+            });
+        }
+        return parsed;
     }
 
     async finalizeInvoice() {
@@ -949,7 +1060,7 @@ export class TfhkaFiscalMachine {
         }
         const isEmulator = this._isEmulatorMode(invoicePayload);
         this._notifyProgress(options, 10, "Consultando S1 inicial...");
-        const preS1 = await this.getS1PrinterData();
+        const preS1 = await this.getS1PrinterData("print_out_invoice_pre");
         const preSequence = this._toIntOrNull(preS1?.LastInvoiceNumber);
         const prepared = this.prepareInvoiceData(invoicePayload, options);
         if (!prepared.valid) {
@@ -965,7 +1076,7 @@ export class TfhkaFiscalMachine {
             return sent;
         }
         this._notifyProgress(options, 90, "Consultando S1 final...");
-        const postS1 = await this.getS1PrinterData();
+        const postS1 = await this.getS1PrinterData("print_out_invoice_post");
         let postSequence = this._toIntOrNull(postS1?.LastInvoiceNumber);
         let serialMachine =
             postS1?.RegisteredMachineNumber || preS1?.RegisteredMachineNumber || null;
@@ -997,26 +1108,53 @@ export class TfhkaFiscalMachine {
         }
 
         if (preSequence !== null && postSequence !== null && postSequence <= preSequence) {
+            const detailMsg = `No se imprimió el documento fiscal: correlativo factura S1 antes=${preSequence} después=${postSequence}. Revise [l10n_ve_fiscal_serial][s1] en consola (pre/post).`;
+            console.warn("[l10n_ve_fiscal_serial][s1] validación correlativo fallida", {
+                preSequence,
+                postSequence,
+                preParsed: preS1,
+                postParsed: postS1,
+            });
             return {
                 valid: false,
-                message:
-                    "No se imprimio el documento fiscal. El S1 mantiene el mismo correlativo.",
+                message: detailMsg,
                 data: {
                     sequence_before: preSequence,
                     sequence_after: postSequence,
+                    parsed_pre: preS1,
+                    parsed_post: postS1,
+                    raw_pre: preS1?.raw || null,
+                    raw_post: postS1?.raw || null,
                 },
             };
         }
 
         if (!isEmulator && preSequence === null && postSequence === null) {
+            console.warn("[l10n_ve_fiscal_serial][s1] sin correlativo parseado", {
+                preParsed: preS1,
+                postParsed: postS1,
+            });
             return {
                 valid: false,
                 message:
-                    "No se pudo validar la impresion fiscal: S1 no devolvio correlativo antes ni despues.",
+                    "No se pudo validar la impresión fiscal: S1 no devolvió correlativo de factura antes ni después. Revise consola [s1] y el preview del comando S1.",
+                data: {
+                    parsed_pre: preS1,
+                    parsed_post: postS1,
+                    raw_pre: preS1?.raw || null,
+                    raw_post: postS1?.raw || null,
+                },
             };
         }
 
         this._notifyProgress(options, 100, "Imprimiendo... 100%");
+
+        this._s1Trace("print_out_invoice_ok", postS1, {
+            preSequence,
+            postSequence,
+            serialMachine,
+            reportZ,
+        });
 
         return {
             valid: true,
@@ -1024,6 +1162,8 @@ export class TfhkaFiscalMachine {
                 sequence: postSequence ?? preSequence ?? null,
                 serial_machine: serialMachine,
                 mf_reportz: reportZ,
+                parsed_pre: preS1,
+                parsed_post: postS1,
             },
             message: "Factura impresa correctamente",
             raw_status: {

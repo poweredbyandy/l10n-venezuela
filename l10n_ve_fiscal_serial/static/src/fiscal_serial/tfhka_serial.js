@@ -493,9 +493,11 @@ export class TfhkaFiscal {
             maxLen: 4000,
         });
         const s = decodeLatin15ish(raw).replace(/\r/g, "").trim();
+        const maxPreview = 900;
         this._consoleLogCommand("STATUS_COMMAND_RESPONSE", {
             command: cmd,
             length: s.length,
+            textPreview: s.length > maxPreview ? `${s.slice(0, maxPreview)}…` : s,
         });
         return { len: s.length, data: s };
     }
