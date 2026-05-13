@@ -7,13 +7,21 @@ import {
     buildQueryBytes,
     buildSendCmdFrame,
     decodeLatin15ish,
+    describeTfhkaEnqSts1,
+    describeTfhkaEnqSts2,
     doXorCommand,
     encodeLatin1,
     ENQ,
     ETX,
+    isTfhkaEnqSts2SinErrorFiscal,
     NAK,
     STX,
+    TFHKA_ENQ_STS2_NINGUN_ERROR,
 } from "./tfhka_protocol";
+import {
+    mfReportzFromDailyClosureString,
+    parseTfhkaS1StatusResponse,
+} from "./tfhka_s1_parser";
 
 const ENQ_READ_OPTS = {
     byteTimeout: 280,
@@ -24,6 +32,10 @@ const ENQ_READ_OPTS = {
 const STATUS_MESSAGES = {
     0: "Unknown status",
     48: "Printer status (0x30)",
+    66: describeTfhkaEnqSts1(0x42),
+    68: describeTfhkaEnqSts1(0x44),
+    96: describeTfhkaEnqSts1(0x60),
+    97: describeTfhkaEnqSts1(0x61),
     128: "No response",
     137: "Incorrect response length",
     144: "Status validation failed",
@@ -32,6 +44,7 @@ const STATUS_MESSAGES = {
 
 const ERROR_MESSAGES = {
     0: "No error",
+    64: describeTfhkaEnqSts2(TFHKA_ENQ_STS2_NINGUN_ERROR),
     128: "No response",
     137: "Incorrect response length",
     144: "Status validation failed",
@@ -484,10 +497,23 @@ export class TfhkaFiscal {
             maxLen: 4000,
         });
         const s = decodeLatin15ish(raw).replace(/\r/g, "").trim();
-        this._consoleLogCommand("STATUS_COMMAND_RESPONSE", {
+        const maxPreview = 900;
+        const logPayload = {
             command: cmd,
             length: s.length,
-        });
+            textPreview: s.length > maxPreview ? `${s.slice(0, maxPreview)}…` : s,
+        };
+        if (cmd === "S1" && s.length) {
+            const p = parseTfhkaS1StatusResponse(s);
+            logPayload.parsed = {
+                LastInvoiceNumber: p.LastInvoiceNumber,
+                LastCreditNoteNumber: p.LastCreditNoteNumber,
+                RegisteredMachineNumber: p.RegisteredMachineNumber,
+                DailyClosureCounter: p.DailyClosureCounter,
+                mfReportz: mfReportzFromDailyClosureString(p.DailyClosureCounter),
+            };
+        }
+        this._consoleLogCommand("STATUS_COMMAND_RESPONSE", logPayload);
         return { len: s.length, data: s };
     }
 

@@ -160,7 +160,17 @@ export class FiscalMoveButton extends Component {
                     this._setBlockingProgress(percent, message || "Imprimiendo...");
                 },
             });
+            try {
+                await driver.closeFpCtrl();
+            } catch {
+            }
+            driver = null;
             if (!response?.valid) {
+                console.error(
+                    "[l10n_ve_fiscal_serial] Impresión fiscal rechazada",
+                    response?.message,
+                    response?.data ?? null
+                );
                 throw new Error(response?.message || "Fallo la impresión fiscal.");
             }
             this._setBlockingProgress(95, "Imprimiendo...");
