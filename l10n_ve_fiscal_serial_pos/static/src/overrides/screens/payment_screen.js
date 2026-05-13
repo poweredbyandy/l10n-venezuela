@@ -68,6 +68,27 @@ patch(PaymentScreen.prototype, {
         return super.validateOrder(isForceValidate);
     },
 
+    _l10nVeFiscalSerialSyncOrderFiscalFieldsFromResponse(response) {
+        const order = this.currentOrder;
+        if (!order?.update || !response?.data || typeof order.update !== "function") {
+            return;
+        }
+        const d = response.data;
+        const vals = {};
+        if (d.sequence !== undefined && d.sequence !== null) {
+            vals.l10n_ve_pos_fiscal_invoice_number = String(d.sequence);
+        }
+        if (d.serial_machine !== undefined && d.serial_machine !== null && d.serial_machine !== "") {
+            vals.l10n_ve_pos_fiscal_serial = String(d.serial_machine);
+        }
+        if (d.mf_reportz !== undefined && d.mf_reportz !== null) {
+            vals.l10n_ve_pos_fiscal_report_z = String(d.mf_reportz);
+        }
+        if (Object.keys(vals).length) {
+            order.update(vals);
+        }
+    },
+
     async _l10nVeFiscalSerialPrintAfterSync() {
         if (!this._l10nVeFiscalSerialNeedsPrint()) {
             return true;
@@ -149,11 +170,31 @@ patch(PaymentScreen.prototype, {
             if (!response?.valid) {
                 throw new Error(response?.message || _t("Falló la impresión fiscal."));
             }
+            try {
+                await driver.closeFpCtrl();
+            } catch {
+            }
+            driver = null;
             setProgress(95, _t("Imprimiendo fiscalmente"));
             await this.pos.data.call("pos.order", "l10n_ve_fiscal_serial_register_print_result", [
                 [orderId],
                 response,
             ]);
+            this._l10nVeFiscalSerialSyncOrderFiscalFieldsFromResponse(response);
+            const rawPost = response?.raw_status?.post_s1;
+            if (fiscalSerial.parseTfhkaS1StatusResponse && rawPost) {
+                console.info(
+                    "[l10n_ve_fiscal_serial][s1][pos]",
+                    "S1 parseado (post impresión)",
+                    fiscalSerial.parseTfhkaS1StatusResponse(rawPost)
+                );
+            } else {
+                console.info(
+                    "[l10n_ve_fiscal_serial][s1][pos]",
+                    "Datos impresión",
+                    response?.data ?? null
+                );
+            }
             setProgress(100, _t("Imprimiendo fiscalmente"));
             this.notification.add(response.message || _t("Impresión fiscal completada."), {
                 type: "success",

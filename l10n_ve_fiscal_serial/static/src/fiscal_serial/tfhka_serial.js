@@ -18,6 +18,10 @@ import {
     STX,
     TFHKA_ENQ_STS2_NINGUN_ERROR,
 } from "./tfhka_protocol";
+import {
+    mfReportzFromDailyClosureString,
+    parseTfhkaS1StatusResponse,
+} from "./tfhka_s1_parser";
 
 const ENQ_READ_OPTS = {
     byteTimeout: 280,
@@ -494,11 +498,22 @@ export class TfhkaFiscal {
         });
         const s = decodeLatin15ish(raw).replace(/\r/g, "").trim();
         const maxPreview = 900;
-        this._consoleLogCommand("STATUS_COMMAND_RESPONSE", {
+        const logPayload = {
             command: cmd,
             length: s.length,
             textPreview: s.length > maxPreview ? `${s.slice(0, maxPreview)}…` : s,
-        });
+        };
+        if (cmd === "S1" && s.length) {
+            const p = parseTfhkaS1StatusResponse(s);
+            logPayload.parsed = {
+                LastInvoiceNumber: p.LastInvoiceNumber,
+                LastCreditNoteNumber: p.LastCreditNoteNumber,
+                RegisteredMachineNumber: p.RegisteredMachineNumber,
+                DailyClosureCounter: p.DailyClosureCounter,
+                mfReportz: mfReportzFromDailyClosureString(p.DailyClosureCounter),
+            };
+        }
+        this._consoleLogCommand("STATUS_COMMAND_RESPONSE", logPayload);
         return { len: s.length, data: s };
     }
 

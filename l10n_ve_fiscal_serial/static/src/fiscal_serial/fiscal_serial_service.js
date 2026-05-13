@@ -17,6 +17,10 @@ import {
     TAX_MAP,
     TfhkaFiscalMachine,
 } from "./tfhka_fiscal_machine";
+import {
+    mfReportzFromDailyClosureString,
+    parseTfhkaS1StatusResponse,
+} from "./tfhka_s1_parser";
 
 export const l10nVeFiscalSerialService = {
     dependencies: [],
@@ -34,6 +38,8 @@ export const l10nVeFiscalSerialService = {
             TfhkaFiscalMachine,
             FLAG_21,
             TAX_MAP,
+            parseTfhkaS1StatusResponse,
+            mfReportzFromDailyClosureString,
             isSupported: () => TfhkaWebSerialTransport.isSupported(),
         };
     },

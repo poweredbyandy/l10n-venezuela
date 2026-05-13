@@ -4,6 +4,10 @@ import {
     isTfhkaEnqSts1Operativa,
     isTfhkaEnqSts2SinErrorFiscal,
 } from "./tfhka_protocol";
+import {
+    mfReportzFromDailyClosureString,
+    parseTfhkaS1StatusResponse,
+} from "./tfhka_s1_parser";
 
 const FLAG_21 = {
     30: {
@@ -57,6 +61,7 @@ const TAX_MAP = {
 
 const STATUS_CODES = new Set(["1", "4", "48"]);
 let EMULATOR_INVOICE_SEQUENCE = 0;
+let EMULATOR_CREDIT_NOTE_SEQUENCE = 0;
 let EMULATOR_LAST_REPORT_Z = 0;
 const EMULATOR_MACHINE_SERIAL = "EMULADOR-TFHKA-001";
 
@@ -115,102 +120,11 @@ function mapTaxCodeFromLine(line) {
     return "3";
 }
 
-function _s1NormalizeRaw(raw) {
-    return String(raw || "")
-        .replace(/\r/g, "")
-        .replace(/\x02/g, "")
-        .replace(/\x03[\s\S]*$/g, "")
-        .trim();
-}
-
-function _s1SplitParts(raw) {
-    const normalized = _s1NormalizeRaw(raw);
-    return normalized
-        .split("\n")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
-}
-
-function defaultS1Parser(raw) {
-    const text = String(raw || "");
-    const parts = _s1SplitParts(text);
-    const out = {
-        raw: text,
-        LastInvoiceNumber: null,
-        LastCreditNoteNumber: null,
-        LastDebitNoteNumber: null,
-        DailyClosureCounter: null,
-        RegisteredMachineNumber: null,
-        DailySalesTotal: null,
-        CashierCode: null,
-        InvoicesCountDay: null,
-    };
-    if (!parts.length) {
-        return out;
-    }
-    let i = 0;
-    const head = parts[0];
-    if (/^S1/i.test(head)) {
-        out.CashierCode = head.length > 2 ? head.slice(2) : null;
-        i = 1;
-    }
-    if (i < parts.length && /^\d+$/.test(parts[i])) {
-        out.DailySalesTotal = parts[i];
-        i++;
-    }
-    let invoiceIdx = -1;
-    if (i < parts.length && /^\d{8}$/.test(parts[i])) {
-        out.LastInvoiceNumber = parts[i];
-        invoiceIdx = i;
-        i++;
-    } else if (
-        i < parts.length &&
-        /^\d{5,10}$/.test(parts[i]) &&
-        parts[i].length !== 8 &&
-        i + 1 < parts.length &&
-        /^\d{8}$/.test(parts[i + 1])
-    ) {
-        out.RegisteredMachineNumber = parts[i];
-        invoiceIdx = i + 1;
-        out.LastInvoiceNumber = parts[i + 1];
-        i += 2;
-    }
-    if (invoiceIdx >= 0 && invoiceIdx + 1 < parts.length && /^\d{5}$/.test(parts[invoiceIdx + 1])) {
-        out.InvoicesCountDay = parts[invoiceIdx + 1];
-    }
-    if (invoiceIdx >= 0) {
-        const closureCandidate = parts[invoiceIdx + 4];
-        if (closureCandidate && /^\d{4}$/.test(closureCandidate)) {
-            out.DailyClosureCounter = closureCandidate;
-        }
-    }
-    if (!out.RegisteredMachineNumber) {
-        for (let j = 0; j < parts.length - 1; j++) {
-            if (
-                /^\d{5,10}$/.test(parts[j]) &&
-                parts[j].length !== 8 &&
-                /^\d{8}$/.test(parts[j + 1])
-            ) {
-                out.RegisteredMachineNumber = parts[j];
-                break;
-            }
-        }
-    }
-    if (!out.LastInvoiceNumber) {
-        const groups = text.match(/\d+/g) || [];
-        const fallback = groups.length ? groups[groups.length - 1] : null;
-        out.LastInvoiceNumber = fallback;
-    }
-    out.LastCreditNoteNumber = out.LastInvoiceNumber;
-    out.LastDebitNoteNumber = out.LastInvoiceNumber;
-    return out;
-}
-
 export class TfhkaFiscalMachine {
     constructor(driver, options = {}) {
         this.driver = driver;
         this.commandDelayMs = options.commandDelayMs ?? 200;
-        this.s1Parser = options.s1Parser || defaultS1Parser;
+        this.s1Parser = options.s1Parser || parseTfhkaS1StatusResponse;
         this.actions = {
             status: this.getStatusMachine.bind(this),
             status1: this.getS1PrinterData.bind(this),
@@ -962,6 +876,15 @@ export class TfhkaFiscalMachine {
         return EMULATOR_INVOICE_SEQUENCE;
     }
 
+    _nextEmulatorCreditNoteSequence(baseValue = null) {
+        const base = this._toIntOrNull(baseValue);
+        if (base !== null && base > EMULATOR_CREDIT_NOTE_SEQUENCE) {
+            EMULATOR_CREDIT_NOTE_SEQUENCE = base;
+        }
+        EMULATOR_CREDIT_NOTE_SEQUENCE += 1;
+        return EMULATOR_CREDIT_NOTE_SEQUENCE;
+    }
+
     _nextEmulatorReportZ(baseClosureCounter = null) {
         const base = this._toIntOrNull(baseClosureCounter);
         if (base !== null) {
@@ -1008,10 +931,7 @@ export class TfhkaFiscalMachine {
             data: {
                 sequence: s1?.LastInvoiceNumber || null,
                 serial_machine: s1?.RegisteredMachineNumber || null,
-                mf_reportz:
-                    s1?.DailyClosureCounter !== null && s1?.DailyClosureCounter !== undefined
-                        ? asNumber(s1.DailyClosureCounter, 0) + 1
-                        : null,
+                mf_reportz: mfReportzFromDailyClosureString(s1?.DailyClosureCounter),
             },
             message: "Factura impresa correctamente",
             raw_status: s1?.raw || null,
@@ -1025,10 +945,7 @@ export class TfhkaFiscalMachine {
             data: {
                 sequence: s1?.LastCreditNoteNumber || null,
                 serial_machine: s1?.RegisteredMachineNumber || null,
-                mf_reportz:
-                    s1?.DailyClosureCounter !== null && s1?.DailyClosureCounter !== undefined
-                        ? asNumber(s1.DailyClosureCounter, 0) + 1
-                        : null,
+                mf_reportz: mfReportzFromDailyClosureString(s1?.DailyClosureCounter),
             },
             message: "Nota de crédito impresa correctamente",
             raw_status: s1?.raw || null,
@@ -1042,10 +959,7 @@ export class TfhkaFiscalMachine {
             data: {
                 sequence: s1?.LastDebitNoteNumber || null,
                 serial_machine: s1?.RegisteredMachineNumber || null,
-                mf_reportz:
-                    s1?.DailyClosureCounter !== null && s1?.DailyClosureCounter !== undefined
-                        ? asNumber(s1.DailyClosureCounter, 0) + 1
-                        : null,
+                mf_reportz: mfReportzFromDailyClosureString(s1?.DailyClosureCounter),
             },
             message: "Nota de débito impresa correctamente",
             raw_status: s1?.raw || null,
@@ -1081,13 +995,9 @@ export class TfhkaFiscalMachine {
         let serialMachine =
             postS1?.RegisteredMachineNumber || preS1?.RegisteredMachineNumber || null;
         let reportZ =
-            postS1?.DailyClosureCounter !== null &&
-            postS1?.DailyClosureCounter !== undefined
-                ? asNumber(postS1.DailyClosureCounter, 0) + 1
-                : preS1?.DailyClosureCounter !== null &&
-                    preS1?.DailyClosureCounter !== undefined
-                  ? asNumber(preS1.DailyClosureCounter, 0) + 1
-                  : null;
+            mfReportzFromDailyClosureString(postS1?.DailyClosureCounter) ||
+            mfReportzFromDailyClosureString(preS1?.DailyClosureCounter) ||
+            null;
 
         if (isEmulator) {
             if (postSequence === null) {
@@ -1101,9 +1011,11 @@ export class TfhkaFiscalMachine {
             if (reportZ === null) {
                 const closureCounter =
                     postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter ?? null;
-                reportZ = this._nextEmulatorReportZ(closureCounter);
+                reportZ = String(this._nextEmulatorReportZ(closureCounter)).padStart(4, "0");
             } else {
-                this._nextEmulatorReportZ(reportZ - 1);
+                this._nextEmulatorReportZ(
+                    this._toIntOrNull(postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter)
+                );
             }
         }
 
@@ -1159,7 +1071,11 @@ export class TfhkaFiscalMachine {
         return {
             valid: true,
             data: {
-                sequence: postSequence ?? preSequence ?? null,
+                sequence:
+                    postS1?.LastInvoiceNumber ||
+                    (postSequence != null ? String(postSequence).padStart(8, "0") : null) ||
+                    preS1?.LastInvoiceNumber ||
+                    null,
                 serial_machine: serialMachine,
                 mf_reportz: reportZ,
                 parsed_pre: preS1,
@@ -1179,23 +1095,125 @@ export class TfhkaFiscalMachine {
         if (!validation.valid) {
             return validation;
         }
+        const isEmulator = this._isEmulatorMode(invoicePayload);
+        this._notifyProgress(options, 8, "Consultando S1 inicial (NC)…");
+        const preS1 = await this.getS1PrinterData("print_out_refund_pre");
+        const preNc = this._toIntOrNull(preS1?.LastCreditNoteNumber);
         const prepared = this.prepareOutRefundData(invoicePayload, options);
         if (!prepared.valid) {
             return prepared;
         }
-        prepared.use_emulator = Boolean(
-            invoicePayload?.use_emulator || invoicePayload?.data?.use_emulator
-        );
+        prepared.use_emulator =
+            Boolean(invoicePayload?.use_emulator || invoicePayload?.data?.use_emulator) ||
+            isEmulator;
         const sent = await this.sendInvoiceCommands(prepared, {
             ...options,
-            progressStart: 10,
-            progressEnd: 90,
+            progressStart: 15,
+            progressEnd: 85,
         });
         if (!sent.valid) {
             return sent;
         }
+        this._notifyProgress(options, 90, "Consultando S1 final (NC)…");
+        const postS1 = await this.getS1PrinterData("print_out_refund_post");
+        let postNc = this._toIntOrNull(postS1?.LastCreditNoteNumber);
+        let serialMachine =
+            postS1?.RegisteredMachineNumber || preS1?.RegisteredMachineNumber || null;
+        let reportZ =
+            mfReportzFromDailyClosureString(postS1?.DailyClosureCounter) ||
+            mfReportzFromDailyClosureString(preS1?.DailyClosureCounter) ||
+            null;
+
+        if (isEmulator) {
+            if (postNc === null) {
+                postNc = this._nextEmulatorCreditNoteSequence(preNc);
+            } else {
+                this._nextEmulatorCreditNoteSequence(postNc);
+            }
+            if (!serialMachine) {
+                serialMachine = EMULATOR_MACHINE_SERIAL;
+            }
+            if (reportZ === null) {
+                const closureCounter =
+                    postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter ?? null;
+                reportZ = String(this._nextEmulatorReportZ(closureCounter)).padStart(4, "0");
+            } else {
+                this._nextEmulatorReportZ(
+                    this._toIntOrNull(postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter)
+                );
+            }
+        }
+
+        if (preNc !== null && postNc !== null && postNc <= preNc) {
+            const detailMsg = `No se imprimió la nota de crédito fiscal: correlativo NC en S1 antes=${preNc} después=${postNc}. Revise [l10n_ve_fiscal_serial][s1] en consola (pre/post).`;
+            console.warn("[l10n_ve_fiscal_serial][s1] validación correlativo NC fallida", {
+                preNc,
+                postNc,
+                preParsed: preS1,
+                postParsed: postS1,
+            });
+            return {
+                valid: false,
+                message: detailMsg,
+                data: {
+                    sequence_before: preNc,
+                    sequence_after: postNc,
+                    parsed_pre: preS1,
+                    parsed_post: postS1,
+                    raw_pre: preS1?.raw || null,
+                    raw_post: postS1?.raw || null,
+                },
+            };
+        }
+
+        if (!isEmulator && preNc === null && postNc === null) {
+            console.warn("[l10n_ve_fiscal_serial][s1] sin correlativo NC parseado", {
+                preParsed: preS1,
+                postParsed: postS1,
+            });
+            return {
+                valid: false,
+                message:
+                    "No se pudo validar la impresión fiscal: S1 no devolvió correlativo de nota de crédito antes ni después.",
+                data: {
+                    parsed_pre: preS1,
+                    parsed_post: postS1,
+                    raw_pre: preS1?.raw || null,
+                    raw_post: postS1?.raw || null,
+                },
+            };
+        }
+
         this._notifyProgress(options, 100, "Imprimiendo... 100%");
-        return this.finalizeOutRefund();
+
+        const ncDisplay =
+            postS1?.LastCreditNoteNumber ||
+            (postNc != null ? String(postNc).padStart(8, "0") : null) ||
+            preS1?.LastCreditNoteNumber;
+
+        this._s1Trace("print_out_refund_ok", postS1, {
+            preNc,
+            postNc,
+            serialMachine,
+            reportZ,
+            ncDisplay,
+        });
+
+        return {
+            valid: true,
+            data: {
+                sequence: ncDisplay,
+                serial_machine: serialMachine,
+                mf_reportz: reportZ,
+                parsed_pre: preS1,
+                parsed_post: postS1,
+            },
+            message: "Nota de crédito impresa correctamente",
+            raw_status: {
+                pre_s1: preS1?.raw || null,
+                post_s1: postS1?.raw || null,
+            },
+        };
     }
 
     async printDebitNote(invoicePayload, options = {}) {
@@ -1384,10 +1402,7 @@ export class TfhkaFiscalMachine {
                 sequence: s1?.LastInvoiceNumber || null,
                 serial_machine: s1?.RegisteredMachineNumber || null,
                 number: s1?.LastInvoiceNumber || null,
-                report_z:
-                    s1?.DailyClosureCounter !== null && s1?.DailyClosureCounter !== undefined
-                        ? asNumber(s1.DailyClosureCounter, 0) + 1
-                        : null,
+                report_z: mfReportzFromDailyClosureString(s1?.DailyClosureCounter),
             },
             raw_status: s1?.raw || null,
         };
@@ -1401,10 +1416,7 @@ export class TfhkaFiscalMachine {
                 sequence: s1?.LastCreditNoteNumber || null,
                 serial_machine: s1?.RegisteredMachineNumber || null,
                 number: s1?.LastCreditNoteNumber || null,
-                report_z:
-                    s1?.DailyClosureCounter !== null && s1?.DailyClosureCounter !== undefined
-                        ? asNumber(s1.DailyClosureCounter, 0) + 1
-                        : null,
+                report_z: mfReportzFromDailyClosureString(s1?.DailyClosureCounter),
             },
             raw_status: s1?.raw || null,
         };
@@ -1515,3 +1527,4 @@ export function createTfhkaFiscalMachine(driver, options = {}) {
 }
 
 export { FLAG_21, TAX_MAP };
+export { mfReportzFromDailyClosureString, parseTfhkaS1StatusResponse } from "./tfhka_s1_parser";
