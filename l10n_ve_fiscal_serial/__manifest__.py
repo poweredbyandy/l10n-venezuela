@@ -18,6 +18,7 @@
         "web.assets_backend": [
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_transport_webserial.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_protocol.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_s1_parser.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_serial.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_invoice_samples.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_fiscal_machine.js",
