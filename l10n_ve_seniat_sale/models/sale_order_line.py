@@ -9,6 +9,13 @@ from odoo.tools.mail import plaintext2html
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
+    def _prepare_invoice_line(self, **optional_values):
+        res = super()._prepare_invoice_line(**optional_values)
+        alloc = self.env.context.get("l10n_ve_discount_qty_allocation") or {}
+        if self.id in alloc:
+            res["quantity"] = alloc[self.id]
+        return res
+
     def l10n_ve_report_line_description(self):
         self.ensure_one()
         if self.display_type or self.is_downpayment or self.product_type == "combo":

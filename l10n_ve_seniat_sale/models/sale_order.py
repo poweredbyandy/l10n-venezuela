@@ -2,7 +2,7 @@
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.tools import float_is_zero
+from odoo.tools import float_is_zero, float_round
 
 
 class SaleOrder(models.Model):
@@ -137,17 +137,54 @@ class SaleOrder(models.Model):
 
     def _l10n_ve_get_max_invoice_lines_from_book(self):
         self.ensure_one()
-        book = self.journal_id.l10n_ve_invoice_section_id.book_id
-        if not book:
+        journal = self.journal_id
+        if not journal:
             return 0
-        return max(book.l10n_ve_max_invoice_lines or 10, 1)
+        book = journal.l10n_ve_invoice_section_id.book_id
+        if journal.l10n_ve_emission_medium == "free" and book:
+            return max(book.l10n_ve_max_invoice_lines or 10, 1)
+        if journal.l10n_ve_emission_medium != "free":
+            return max(journal.l10n_ve_max_invoice_lines or 10, 1)
+        return 0
+
+    def _l10n_ve_global_discount_lines(self, invoiceable_lines):
+        self.ensure_one()
+        disc = self.company_id.sale_discount_product_id
+        if not disc:
+            return self.env["sale.order.line"]
+        return invoiceable_lines.filtered(
+            lambda line: not line.display_type
+            and not line.is_downpayment
+            and line.product_id == disc
+        )
+
+    def _l10n_ve_split_float_n_ways(self, amount, parts):
+        self.ensure_one()
+        if parts <= 0:
+            return []
+        if parts == 1:
+            return [amount]
+        prec = self.env["decimal.precision"].precision_get("Product Unit of Measure")
+        share = float_round(amount / parts, precision_digits=prec)
+        out = []
+        acc = 0.0
+        for _ in range(parts - 1):
+            out.append(share)
+            acc += share
+        out.append(float_round(amount - acc, precision_digits=prec))
+        return out
 
     def _l10n_ve_product_line_count_invoiceable(self, invoiceable_lines):
-        return len(
-            invoiceable_lines.filtered(
-                lambda line: not line.display_type and not line.is_downpayment
-            )
-        )
+        disc = self.company_id.sale_discount_product_id
+
+        def _is_counted_product_line(line):
+            if line.display_type or line.is_downpayment:
+                return False
+            if disc and line.product_id == disc:
+                return False
+            return True
+
+        return len(invoiceable_lines.filtered(_is_counted_product_line))
 
     def _l10n_ve_split_invoiceable_lines(self, invoiceable_lines, max_lines):
         self.ensure_one()
@@ -192,8 +229,31 @@ class SaleOrder(models.Model):
             max_lines <= 0
             or self._l10n_ve_product_line_count_invoiceable(invoiceable_lines) <= max_lines
         ):
-            return [invoiceable_lines]
-        return self._l10n_ve_split_invoiceable_lines(invoiceable_lines, max_lines)
+            return [(invoiceable_lines, {})]
+        disc_lines = self._l10n_ve_global_discount_lines(invoiceable_lines)
+        lines_wo_disc = invoiceable_lines - disc_lines
+        core_chunks = self._l10n_ve_split_invoiceable_lines(lines_wo_disc, max_lines)
+        n = len(core_chunks)
+        out = []
+        for i, chunk in enumerate(core_chunks):
+            alloc = {}
+            extra_ids = []
+            for dline in disc_lines:
+                qty = dline.qty_to_invoice
+                if float_is_zero(qty, precision_rounding=dline.product_uom.rounding):
+                    continue
+                part = self._l10n_ve_split_float_n_ways(qty, n)[i]
+                if float_is_zero(part, precision_rounding=dline.product_uom.rounding):
+                    continue
+                alloc[dline.id] = part
+                extra_ids.append(dline.id)
+            out.append(
+                (
+                    chunk | self.env["sale.order.line"].browse(extra_ids),
+                    alloc,
+                )
+            )
+        return out
 
     def _get_invoiceable_lines(self, final=False):
         lines = super()._get_invoiceable_lines(final)
@@ -217,18 +277,23 @@ class SaleOrder(models.Model):
             else self.env["account.move"]
         )
         for order in ve:
-            chunks = order._l10n_ve_invoiceable_line_chunks(final)
-            if len(chunks) <= 1:
-                moves |= super(SaleOrder, order)._create_invoices(
+            chunk_specs = order._l10n_ve_invoiceable_line_chunks(final)
+            if len(chunk_specs) <= 1:
+                _chunk, alloc = chunk_specs[0]
+                ctx = {}
+                if alloc:
+                    ctx["l10n_ve_discount_qty_allocation"] = alloc
+                moves |= super(SaleOrder, order.with_context(**ctx))._create_invoices(
                     grouped=False, final=final, date=date
                 )
             else:
-                for chunk in chunks:
+                for chunk, alloc in chunk_specs:
+                    ctx = {"l10n_ve_invoiceable_line_ids": tuple(chunk.ids)}
+                    if alloc:
+                        ctx["l10n_ve_discount_qty_allocation"] = alloc
                     moves |= super(
                         SaleOrder,
-                        order.with_context(
-                            l10n_ve_invoiceable_line_ids=tuple(chunk.ids)
-                        ),
+                        order.with_context(**ctx),
                     )._create_invoices(grouped=False, final=final, date=date)
         return moves
 
