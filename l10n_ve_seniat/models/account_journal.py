@@ -89,6 +89,29 @@ class AccountJournal(models.Model):
         ),
     )
 
+    l10n_ve_max_invoice_lines = fields.Integer(
+        string=_("Máximo de líneas por factura (diario)"),
+        default=10,
+        copy=False,
+        help=_(
+            "Si el medio de emisión no es «Forma libre», al facturar desde ventas se "
+            "parte el pedido en varias facturas cuando supera este número de líneas de "
+            "producto. Con «Forma libre» y tramo de talonario configurado, se usa el "
+            "máximo definido en el talonario."
+        ),
+    )
+    l10n_ve_max_picking_lines = fields.Integer(
+        string=_("Máximo de líneas por guía de despacho (diario)"),
+        default=10,
+        copy=False,
+        help=_(
+            "Si el medio de emisión no es «Forma libre», al confirmar el pedido se "
+            "dividen los albaranes de salida que superen este número de movimientos de "
+            "producto. Con «Forma libre» y talonario en el tramo del diario, se usa el "
+            "máximo del talonario."
+        ),
+    )
+
     @api.constrains("l10n_ve_fiscal_payment_code")
     def _check_l10n_ve_fiscal_payment_code(self):
         for journal in self:
@@ -124,6 +147,32 @@ class AccountJournal(models.Model):
                     _(
                         "El formato «Papel continuo» solo está permitido cuando el medio de "
                         "emisión del diario «%(journal)s» es «Forma libre»."
+                    )
+                    % {"journal": journal.display_name}
+                )
+
+    @api.constrains("l10n_ve_max_invoice_lines", "l10n_ve_max_picking_lines")
+    def _check_l10n_ve_journal_max_lines(self):
+        for journal in self:
+            if (
+                journal.l10n_ve_max_invoice_lines is not None
+                and journal.l10n_ve_max_invoice_lines < 1
+            ):
+                raise ValidationError(
+                    _(
+                        "El máximo de líneas por factura del diario «%(journal)s» debe "
+                        "ser al menos 1."
+                    )
+                    % {"journal": journal.display_name}
+                )
+            if (
+                journal.l10n_ve_max_picking_lines is not None
+                and journal.l10n_ve_max_picking_lines < 1
+            ):
+                raise ValidationError(
+                    _(
+                        "El máximo de líneas por guía del diario «%(journal)s» debe "
+                        "ser al menos 1."
                     )
                     % {"journal": journal.display_name}
                 )

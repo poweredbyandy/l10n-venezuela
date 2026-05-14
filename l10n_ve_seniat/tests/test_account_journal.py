@@ -56,3 +56,15 @@ class TestAccountJournal(L10nVeSeniatCommon):
                     "l10n_ve_free_form_print_medium": "continuous",
                 }
             )
+
+    def test_journal_max_lines_defaults(self):
+        journal = self.company_data["default_journal_sale"]
+        self.assertEqual(journal.l10n_ve_max_invoice_lines, 10)
+        self.assertEqual(journal.l10n_ve_max_picking_lines, 10)
+
+    def test_journal_max_lines_below_one_raises(self):
+        journal = self.company_data["default_journal_sale"]
+        with self.assertRaises(ValidationError):
+            journal.write({"l10n_ve_max_invoice_lines": 0})
+        with self.assertRaises(ValidationError):
+            journal.write({"l10n_ve_max_picking_lines": 0})
