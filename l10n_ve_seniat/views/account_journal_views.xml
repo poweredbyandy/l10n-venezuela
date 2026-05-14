@@ -22,6 +22,13 @@
                         />
                     </group>
                     <group
+                        string="Límites por pedido (otros medios de emisión)"
+                        invisible="type != 'sale' or l10n_ve_emission_medium == 'free'"
+                    >
+                        <field name="l10n_ve_max_invoice_lines" />
+                        <field name="l10n_ve_max_picking_lines" />
+                    </group>
+                    <group
                         string="Tramos (talonario)"
                         invisible="type != 'sale' or l10n_ve_emission_medium in ('contingency', 'fiscal_machine', 'digital')"
                     >

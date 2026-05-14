@@ -13,11 +13,17 @@ class SaleOrder(models.Model):
 
     def _l10n_ve_split_delivery_pickings(self):
         for order in self:
-            section = order.journal_id.l10n_ve_invoice_section_id
-            book = section.book_id if section else False
-            if not book:
+            journal = order.journal_id
+            if not journal:
                 continue
-            max_moves = max(book.l10n_ve_max_picking_lines or 10, 1)
+            section = journal.l10n_ve_invoice_section_id
+            book = section.book_id if section else False
+            if book:
+                max_moves = max(book.l10n_ve_max_picking_lines or 10, 1)
+            elif journal.l10n_ve_emission_medium != "free":
+                max_moves = max(journal.l10n_ve_max_picking_lines or 10, 1)
+            else:
+                continue
             pickings = order.picking_ids.filtered(
                 lambda p: p.state not in ("done", "cancel")
                 and p.picking_type_id.code == "outgoing"

@@ -379,9 +379,12 @@ def _l10n_ve_max_product_table_lines(move):
     if not journal or journal.type != "sale":
         return None
     section = move._l10n_ve_journal_fiscal_book_section()
-    if not section or not section.book_id:
+    if section and section.book_id:
+        mx = section.book_id.l10n_ve_max_invoice_lines
+    elif journal.l10n_ve_emission_medium != "free":
+        mx = journal.l10n_ve_max_invoice_lines
+    else:
         return None
-    mx = section.book_id.l10n_ve_max_invoice_lines
     if mx is None or mx < 1:
         return None
     return int(mx)
