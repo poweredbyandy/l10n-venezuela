@@ -10,6 +10,7 @@
         <field name="arch" type="xml">
             <field name="header_lines_skip_count" position="after">
                 <field name="lines_skip_after_header" />
+                <field name="csv_leading_rows_skip" invisible="not no_header" />
             </field>
             <xpath expr="//field[@name='bank_account_column']" position="after">
                 <field name="initial_balance_row" />

@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
+from datetime import timedelta
 
 from odoo import _, fields, models
 from odoo.addons.web.controllers.utils import clean_action
@@ -11,6 +12,11 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
     _name = "account.daily.payments.report.handler.oca"
     _inherit = "account.report.custom.handler.oca"
     _description = "Daily Payments by Journal Report Custom Handler"
+
+    def _get_current_week_monday_friday(self, reference_date):
+        monday = reference_date - timedelta(days=reference_date.weekday())
+        friday = monday + timedelta(days=4)
+        return monday, friday
 
     def _custom_options_initializer(self, report, options, previous_options):
         super()._custom_options_initializer(
@@ -30,12 +36,11 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
 
         if previous_options.get("is_opening_report"):
             today = fields.Date.context_today(report)
-            date_opt = options.get("date")
-            if not date_opt or date_opt.get("period_type") != "today":
-                options["date"] = report._get_dates_period(
-                    today, today, "single", period_type="today"
-                )
-            options["date"]["filter"] = "this_today"
+            date_from, date_to = self._get_current_week_monday_friday(today)
+            options["date"] = report._get_dates_period(
+                date_from, date_to, "range", period_type="custom"
+            )
+            options["date"]["filter"] = "custom"
             options["date"]["period"] = 0
 
     def _get_custom_display_config(self):
@@ -369,6 +374,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         )
 
         for journal in journals:
+            journal_group_totals = defaultdict(float)
             journal_currency = journal.currency_id or journal.company_id.currency_id
             journal_title = _("%(journal)s — %(label)s: %(currency)s") % {
                 "journal": journal.display_name,
@@ -438,6 +444,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
+                        journal_group_totals[col_group_key] += amt
                     partner_label = move.partner_id.display_name if move.partner_id else ""
                     lines.append(
                         (
@@ -513,6 +520,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
+                        journal_group_totals[col_group_key] += amt
                     partner_label = (
                         move.partner_id.display_name if move.partner_id else ""
                     )
@@ -557,6 +565,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
+                        journal_group_totals[col_group_key] += amt
                     partner_label = move.partner_id.display_name if move.partner_id else ""
                     lines.append(
                         (
@@ -596,6 +605,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
+                        journal_group_totals[col_group_key] += amt
                     move = aml.move_id
                     partner_label = aml.partner_id.display_name if aml.partner_id else ""
                     short_name = (move.name if move else None) or aml.move_name or _(
@@ -629,6 +639,44 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                             },
                         )
                     )
+
+            journal_subtotal_columns = []
+            display_currency = self.env["res.currency"].browse(
+                options["display_currency_id"]
+            )
+            for column in options["columns"]:
+                label = column["expression_label"]
+                col_group_key = column["column_group_key"]
+                if label == "amount":
+                    journal_subtotal_columns.append(
+                        report._build_column_dict(
+                            journal_group_totals[col_group_key],
+                            column,
+                            options=options,
+                            currency=display_currency,
+                        )
+                    )
+                else:
+                    journal_subtotal_columns.append(
+                        report._build_column_dict(None, column, options=options)
+                    )
+            lines.append(
+                (
+                    0,
+                    {
+                        "id": report._get_generic_line_id(
+                            "account.journal",
+                            journal.id,
+                            markup="daily_pay_journal_subtotal",
+                        ),
+                        "name": _("Total (%(journal)s)", journal=journal.display_name),
+                        "columns": journal_subtotal_columns,
+                        "level": 1,
+                        "unfoldable": False,
+                        "class": "total",
+                    },
+                )
+            )
 
         total_line_columns = []
         for column in options["columns"]:
