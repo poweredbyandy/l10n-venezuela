@@ -270,6 +270,24 @@
                     />
                 </div>
             </xpath>
+            <xpath
+                expr="//page[@id='other_tab']//group[@name='accounting_info_group']"
+                position="inside"
+            >
+                <field
+                    name="l10n_ve_process_date"
+                    readonly="state == 'cancel'"
+                />
+            </xpath>
+            <xpath
+                expr="//page[@id='other_tab_entry']//group[@name='misc_group']"
+                position="inside"
+            >
+                <field
+                    name="l10n_ve_process_date"
+                    readonly="state == 'cancel'"
+                />
+            </xpath>
             <xpath expr="//page[@name='other_info']" position="inside">
                 <div
                     class="row w-100 m-0"

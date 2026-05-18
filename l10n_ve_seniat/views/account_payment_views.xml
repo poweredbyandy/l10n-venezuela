@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_payment_form_l10n_ve" model="ir.ui.view">
+        <field name="name">account.payment.form.l10n.ve</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//notebook[@name='payment_notebook']" position="inside">
+                <page string="Otra información" name="l10n_ve_other_info">
+                    <group>
+                        <field
+                            name="l10n_ve_process_date"
+                            readonly="state == 'canceled'"
+                        />
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

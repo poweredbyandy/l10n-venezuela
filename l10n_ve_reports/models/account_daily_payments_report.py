@@ -33,6 +33,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             additional_journals_domain=[("type", "in", ("bank", "cash"))],
         )
         options["unfold_all"] = options.get("unfold_all", True)
+        options["daily_payments_date_type"] = previous_options.get(
+            "daily_payments_date_type", "validation"
+        )
 
         if previous_options.get("is_opening_report"):
             today = fields.Date.context_today(report)
@@ -43,10 +46,80 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             options["date"]["filter"] = "custom"
             options["date"]["period"] = 0
 
+        self._update_line_date_column_label(options)
+
+    def _get_line_date_column_name(self, date_type):
+        if date_type == "payment":
+            return _("Fecha del pago")
+        return _("Fecha de validación")
+
+    def _update_line_date_column_label(self, options):
+        column_name = self._get_line_date_column_name(
+            self._get_daily_payments_date_type(options)
+        )
+        for column in options.get("columns", []):
+            if column.get("expression_label") == "line_date":
+                column["name"] = column_name
+
     def _get_custom_display_config(self):
         return {
             "css_custom_class": "daily_payments_report",
+            "templates": {
+                "AccountReportFilters": (
+                    "l10n_ve_reports.DailyPaymentsReportFiltersCustomizable"
+                ),
+            },
         }
+
+    def _get_daily_payments_date_type(self, options):
+        date_type = options.get("daily_payments_date_type", "validation")
+        if date_type not in ("payment", "validation"):
+            return "validation"
+        return date_type
+
+    def _get_move_payment(self, move):
+        payment = move.origin_payment_id
+        if not payment:
+            payment = self.env["account.payment"].search(
+                [("move_id", "=", move.id)], limit=1
+            )
+        return payment
+
+    def _get_move_payment_date(self, move):
+        payment = self._get_move_payment(move)
+        if payment:
+            return payment.date
+        return move.date
+
+    def _get_move_validation_date(self, move):
+        process_date = move.l10n_ve_process_date
+        if process_date:
+            return process_date
+        return move.date
+
+    def _get_move_filter_date(self, move, date_type):
+        if date_type == "payment":
+            return self._get_move_payment_date(move)
+        return self._get_move_validation_date(move)
+
+    def _get_move_display_date(self, move, date_type="validation"):
+        return self._get_move_filter_date(move, date_type)
+
+    def _get_aml_filter_date(self, aml, date_type):
+        if date_type == "payment":
+            return self._get_move_payment_date(aml.move_id)
+        return self._get_move_validation_date(aml.move_id)
+
+    def _get_aml_display_date(self, aml, date_type="validation"):
+        return self._get_aml_filter_date(aml, date_type)
+
+    def _move_in_date_range(self, move, date_from, date_to, date_type):
+        filter_date = self._get_move_filter_date(move, date_type)
+        return date_from <= filter_date <= date_to
+
+    def _aml_in_date_range(self, aml, date_from, date_to, date_type):
+        filter_date = self._get_aml_filter_date(aml, date_type)
+        return date_from <= filter_date <= date_to
 
     def _amount_to_report_currency(self, amount_company, company, options, conv_date):
         display_currency = self.env["res.currency"].browse(
@@ -278,17 +351,24 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
         return line_columns
 
+    def _to_report_date(self, value):
+        if not value:
+            return False
+        if isinstance(value, str):
+            return fields.Date.from_string(value)
+        return value
+
     def _get_report_date_bounds(self, options):
         date_info = options["date"]
-        date_to = date_info["date_to"]
+        date_to = self._to_report_date(date_info["date_to"])
         if date_info.get("mode") == "single":
             if date_info.get("period_type") == "today":
                 return date_to, date_to
-            date_from = date_info.get("date_from")
+            date_from = self._to_report_date(date_info.get("date_from"))
             if date_from:
                 return date_from, date_to
             return date_to, date_to
-        date_from = date_info.get("date_from")
+        date_from = self._to_report_date(date_info.get("date_from"))
         if not date_from:
             return date_to, date_to
         return date_from, date_to
@@ -312,28 +392,74 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             return journals
         return journals.filtered(lambda journal: journal.id not in retention_journal_ids)
 
-    def _get_posted_moves_by_date(self, journal, company_ids, date_from, date_to):
-        domain = [
+    def _get_posted_moves_by_date(
+        self, journal, company_ids, date_from, date_to, date_type
+    ):
+        base_domain = [
             ("journal_id", "=", journal.id),
             ("company_id", "in", company_ids),
             ("state", "=", "posted"),
-            ("date", ">=", date_from),
-            ("date", "<=", date_to),
         ]
-        return self.env["account.move"].search(domain, order="date asc, name asc")
+        if date_type == "validation":
+            moves = self.env["account.move"].search(
+                base_domain, order="date asc, name asc"
+            )
+            return moves.filtered(
+                lambda move, df=date_from, dt=date_to: df
+                <= self._get_move_validation_date(move)
+                <= dt
+            )
 
-    def _get_draft_moves(self, journal, company_ids, date_from, date_to):
+        payments = self.env["account.payment"].search(
+            [
+                ("journal_id", "=", journal.id),
+                ("company_id", "in", company_ids),
+                ("date", ">=", date_from),
+                ("date", "<=", date_to),
+                ("state", "in", ("paid", "in_process")),
+            ]
+        )
+        payment_moves = payments.move_id.filtered(lambda m: m.state == "posted")
+        other_moves = self.env["account.move"].search(
+            base_domain
+            + [
+                ("origin_payment_id", "=", False),
+                ("date", ">=", date_from),
+                ("date", "<=", date_to),
+            ],
+            order="date asc, name asc",
+        )
+        moves = payment_moves | other_moves
+        return moves.sorted(
+            lambda m, dtp=date_type: (
+                self._get_move_display_date(m, dtp),
+                m.name or "",
+                m.id,
+            )
+        )
+
+    def _get_draft_moves(self, journal, company_ids, date_from, date_to, date_type):
         domain = [
             ("journal_id", "=", journal.id),
             ("company_id", "in", company_ids),
             ("state", "=", "draft"),
-            ("date", ">=", date_from),
-            ("date", "<=", date_to),
         ]
-        return self.env["account.move"].search(domain, order="date asc, name asc")
+        if date_type == "validation":
+            domain += [
+                ("date", ">=", date_from),
+                ("date", "<=", date_to),
+            ]
+        moves = self.env["account.move"].search(domain, order="date asc, name asc")
+        if date_type == "payment":
+            moves = moves.filtered(
+                lambda m, df=date_from, dt=date_to, dtp=date_type: self._move_in_date_range(
+                    m, df, dt, dtp
+                )
+            )
+        return moves
 
     def _get_outstanding_amls(
-        self, journal, company_ids, date_from, date_to, exclude_move_ids
+        self, journal, company_ids, date_from, date_to, exclude_move_ids, date_type
     ):
         accounts = (
             journal._get_journal_inbound_outstanding_payment_accounts()
@@ -350,10 +476,20 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             "|",
             ("amount_residual", "!=", 0.0),
             ("amount_residual_currency", "!=", 0.0),
-            ("date", ">=", date_from),
-            ("date", "<=", date_to),
         ]
         amls = self.env["account.move.line"].search(domain, order="date asc, id asc")
+        if date_type == "validation":
+            amls = amls.filtered(
+                lambda line, df=date_from, dt=date_to: df
+                <= self._get_aml_filter_date(line, "validation")
+                <= dt
+            )
+        elif date_type == "payment":
+            amls = amls.filtered(
+                lambda line, df=date_from, dt=date_to, dtp=date_type: self._aml_in_date_range(
+                    line, df, dt, dtp
+                )
+            )
         if not exclude_move_ids:
             return amls
         exclude = set(exclude_move_ids)
@@ -364,6 +500,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
     ):
         lines = []
         date_from, date_to = self._get_report_date_bounds(options)
+        date_type = self._get_daily_payments_date_type(options)
         company_ids = report.get_report_company_ids(options)
 
         journals = self._get_selected_bank_cash_journals(report, options)
@@ -399,7 +536,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             )
 
             posted_moves = self._get_posted_moves_by_date(
-                journal, company_ids, date_from, date_to
+                journal, company_ids, date_from, date_to, date_type
             )
             registered_moves = posted_moves.filtered(
                 lambda m, j=journal: self._is_move_bank_liquidity_registered(m, j)
@@ -413,7 +550,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             )
             moves_by_date = defaultdict(list)
             for move in registered_moves:
-                moves_by_date[move.date].append(move)
+                moves_by_date[self._get_move_display_date(move, date_type)].append(
+                    move
+                )
 
             if moves_by_date:
                 lines.append(
@@ -436,11 +575,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             for move_date in sorted(moves_by_date.keys()):
                 for move in moves_by_date[move_date]:
                     bal = self._get_move_liquidity_balance(move, journal)
+                    display_date = self._get_move_display_date(move, date_type)
                     amt = self._amount_to_report_currency(
                         bal,
                         journal.company_id,
                         options,
-                        move.date,
+                        display_date,
                     )
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
@@ -460,7 +600,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                     report,
                                     options,
                                     {
-                                        "line_date": move.date,
+                                        "line_date": display_date,
                                         "invoice_documents": self._format_invoice_documents_label(
                                             move
                                         ),
@@ -476,7 +616,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
 
             draft_moves = self._get_draft_moves(
-                journal, company_ids, date_from, date_to
+                journal, company_ids, date_from, date_to, date_type
             )
             exclude_move_ids_for_outstanding = (
                 registered_moves.ids + pending_posted_bank_moves.ids
@@ -487,6 +627,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 date_from,
                 date_to,
                 exclude_move_ids_for_outstanding,
+                date_type,
             )
             if (
                 draft_moves
@@ -511,12 +652,13 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
 
                 for move in draft_moves:
+                    display_date = self._get_move_display_date(move, date_type)
                     bal = self._get_move_liquidity_balance(move, journal)
                     amt = self._amount_to_report_currency(
                         bal,
                         journal.company_id,
                         options,
-                        move.date,
+                        display_date,
                     )
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
@@ -538,7 +680,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                     report,
                                     options,
                                     {
-                                        "line_date": move.date,
+                                        "line_date": display_date,
                                         "invoice_documents": self._format_invoice_documents_label(
                                             move
                                         ),
@@ -554,14 +696,18 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
 
                 for move in pending_posted_bank_moves.sorted(
-                    lambda m: (m.date, m.name or "")
+                    lambda m, dtp=date_type: (
+                        self._get_move_display_date(m, dtp),
+                        m.name or "",
+                    )
                 ):
+                    display_date = self._get_move_display_date(move, date_type)
                     bal = self._get_move_outstanding_balance_company(move, journal)
                     amt = self._amount_to_report_currency(
                         bal,
                         journal.company_id,
                         options,
-                        move.date,
+                        display_date,
                     )
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
@@ -581,7 +727,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                     report,
                                     options,
                                     {
-                                        "line_date": move.date,
+                                        "line_date": display_date,
                                         "invoice_documents": self._format_invoice_documents_label(
                                             move
                                         ),
@@ -597,11 +743,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
 
                 for aml in outstanding_amls:
+                    display_date = self._get_aml_display_date(aml, date_type)
                     amt = self._amount_to_report_currency(
                         aml.amount_residual,
                         journal.company_id,
                         options,
-                        aml.date,
+                        display_date,
                     )
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
@@ -625,7 +772,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                     report,
                                     options,
                                     {
-                                        "line_date": aml.date,
+                                        "line_date": display_date,
                                         "invoice_documents": self._format_invoice_documents_label(
                                             aml.move_id
                                         ),

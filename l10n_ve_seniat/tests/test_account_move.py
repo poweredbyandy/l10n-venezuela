@@ -118,6 +118,48 @@ class TestAccountMove(L10nVeSeniatCommon):
             move.action_post()
         self.assertIn("RIF", str(cm.exception))
 
+    def test_l10n_ve_process_date_on_invoice_post(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+        self.assertEqual(move.l10n_ve_process_date, fields.Date.today())
+
+    def test_l10n_ve_process_date_on_entry_post_and_draft(self):
+        move = self.env["account.move"].create(
+            {
+                "move_type": "entry",
+                "date": fields.Date.today(),
+                "line_ids": [
+                    Command.create(
+                        {
+                            "name": "Debit",
+                            "debit": 100.0,
+                            "credit": 0.0,
+                            "account_id": self.company_data[
+                                "default_account_expense"
+                            ].id,
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "name": "Credit",
+                            "debit": 0.0,
+                            "credit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        }
+                    ),
+                ],
+            }
+        )
+        move.action_post()
+        self.assertEqual(move.l10n_ve_process_date, fields.Date.today())
+        move.button_draft()
+        self.assertFalse(move.l10n_ve_process_date)
+
     def test_out_invoice_post_skips_ve_rif_for_foreign_partner(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_foreign_no_vat)
