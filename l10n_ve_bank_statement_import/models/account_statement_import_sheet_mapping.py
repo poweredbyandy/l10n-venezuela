@@ -9,6 +9,12 @@ class AccountStatementImportSheetMapping(models.Model):
         default=0,
         help="Número de líneas a omitir después del header antes de comenzar a leer las transacciones",
     )
+    csv_leading_rows_skip = fields.Integer(
+        string="Filas iniciales a omitir (CSV sin cabecera)",
+        default=0,
+        help="Solo CSV: número de filas al inicio del archivo (sin cabecera de columnas) que se "
+        "descartan antes de leer movimientos, por ejemplo línea de número de cuenta.",
+    )
     initial_balance_row = fields.Integer(
         string="Fila del Saldo Inicial",
         help="Fila donde se encuentra el saldo inicial (1-based, la primera fila es 1)",
