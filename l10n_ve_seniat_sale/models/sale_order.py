@@ -158,21 +158,48 @@ class SaleOrder(models.Model):
             and line.product_id == disc
         )
 
-    def _l10n_ve_split_float_n_ways(self, amount, parts):
+    def _l10n_ve_split_amount_by_weights(self, amount, weights):
         self.ensure_one()
-        if parts <= 0:
+        if not weights:
             return []
-        if parts == 1:
+        if len(weights) == 1:
             return [amount]
-        prec = self.env["decimal.precision"].precision_get("Product Unit of Measure")
-        share = float_round(amount / parts, precision_digits=prec)
+        total_weight = sum(weights)
+        if float_is_zero(total_weight, precision_rounding=1e-9):
+            return [0.0] * len(weights)
+        prec = self.currency_id.decimal_places
         out = []
         acc = 0.0
-        for _ in range(parts - 1):
-            out.append(share)
-            acc += share
+        for weight in weights[:-1]:
+            part = float_round(amount * weight / total_weight, precision_digits=prec)
+            out.append(part)
+            acc += part
         out.append(float_round(amount - acc, precision_digits=prec))
         return out
+
+    def _l10n_ve_chunk_subtotal_for_discount(self, chunk_lines, discount_line):
+        self.ensure_one()
+        disc = self.company_id.sale_discount_product_id
+        disc_taxes = discount_line.tax_id.flatten_taxes_hierarchy().filtered(
+            lambda tax: tax.amount_type != "fixed"
+        )
+        subtotal = 0.0
+        for line in chunk_lines:
+            if line.display_type or line.is_downpayment:
+                continue
+            if disc and line.product_id == disc:
+                continue
+            line_taxes = line.tax_id.flatten_taxes_hierarchy().filtered(
+                lambda tax: tax.amount_type != "fixed"
+            )
+            if line_taxes != disc_taxes:
+                continue
+            qty = line.qty_to_invoice
+            if float_is_zero(qty, precision_rounding=line.product_uom.rounding):
+                continue
+            price_reduce = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+            subtotal += price_reduce * qty
+        return subtotal
 
     def _l10n_ve_product_line_count_invoiceable(self, invoiceable_lines):
         disc = self.company_id.sale_discount_product_id
@@ -233,17 +260,31 @@ class SaleOrder(models.Model):
         disc_lines = self._l10n_ve_global_discount_lines(invoiceable_lines)
         lines_wo_disc = invoiceable_lines - disc_lines
         core_chunks = self._l10n_ve_split_invoiceable_lines(lines_wo_disc, max_lines)
-        n = len(core_chunks)
         out = []
+        chunk_weights_by_discount = {}
+        for dline in disc_lines:
+            qty = dline.qty_to_invoice
+            if float_is_zero(qty, precision_rounding=dline.product_uom.rounding):
+                continue
+            weights = [
+                self._l10n_ve_chunk_subtotal_for_discount(chunk, dline)
+                for chunk in core_chunks
+            ]
+            if float_is_zero(sum(weights), precision_rounding=1e-9):
+                continue
+            total_disc = abs(dline.price_unit * qty)
+            chunk_weights_by_discount[dline.id] = self._l10n_ve_split_amount_by_weights(
+                total_disc, weights
+            )
         for i, chunk in enumerate(core_chunks):
             alloc = {}
             extra_ids = []
             for dline in disc_lines:
-                qty = dline.qty_to_invoice
-                if float_is_zero(qty, precision_rounding=dline.product_uom.rounding):
+                parts = chunk_weights_by_discount.get(dline.id)
+                if not parts:
                     continue
-                part = self._l10n_ve_split_float_n_ways(qty, n)[i]
-                if float_is_zero(part, precision_rounding=dline.product_uom.rounding):
+                part = parts[i]
+                if float_is_zero(part, precision_rounding=10 ** (-self.currency_id.decimal_places)):
                     continue
                 alloc[dline.id] = part
                 extra_ids.append(dline.id)
@@ -282,7 +323,7 @@ class SaleOrder(models.Model):
                 _chunk, alloc = chunk_specs[0]
                 ctx = {}
                 if alloc:
-                    ctx["l10n_ve_discount_qty_allocation"] = alloc
+                    ctx["l10n_ve_discount_amount_allocation"] = alloc
                 moves |= super(SaleOrder, order.with_context(**ctx))._create_invoices(
                     grouped=False, final=final, date=date
                 )
@@ -290,7 +331,7 @@ class SaleOrder(models.Model):
                 for chunk, alloc in chunk_specs:
                     ctx = {"l10n_ve_invoiceable_line_ids": tuple(chunk.ids)}
                     if alloc:
-                        ctx["l10n_ve_discount_qty_allocation"] = alloc
+                        ctx["l10n_ve_discount_amount_allocation"] = alloc
                     moves |= super(
                         SaleOrder,
                         order.with_context(**ctx),

@@ -14,7 +14,7 @@
         <field name="filter_period_comparison" eval="False" />
         <field name="filter_unreconciled" eval="False" />
         <field name="filter_hide_0_lines">never</field>
-        <field name="filter_date_range" eval="False" />
+        <field name="filter_date_range" eval="True" />
         <field name="default_opening_date_filter">today</field>
         <field
             name="custom_handler_model_id"

@@ -1418,3 +1418,20 @@ Please create a credit note instead.
                     text=text,
                 )
             )
+
+    def l10n_ve_report_invoice_lines(self):
+        self.ensure_one()
+        lines = self.invoice_line_ids.sorted(key=lambda line: (line.sequence, line.id))
+        if self.company_id.account_fiscal_country_id.code != "VE":
+            return lines
+        disc = self.company_id.sale_discount_product_id
+        if not disc:
+            return lines
+
+        def _is_discount_product_line(line):
+            return line.display_type == "product" and line.product_id == disc
+
+        discount_lines = lines.filtered(_is_discount_product_line)
+        if not discount_lines:
+            return lines
+        return lines.filtered(lambda line: not _is_discount_product_line(line)) + discount_lines

@@ -526,7 +526,7 @@ def build_move_escp_bytes(move):
     buf += _enc("-" * lw) + b"\n"
 
     item = 0
-    for line in move.invoice_line_ids:
+    for line in move.l10n_ve_report_invoice_lines():
         if line.display_type == "line_section":
             buf += b"\n"
             buf += b"\x1bE\x01"

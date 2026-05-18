@@ -2,7 +2,7 @@
 
 from odoo import _, api, models
 from odoo.exceptions import ValidationError
-from odoo.tools import float_compare
+from odoo.tools import float_compare, float_is_zero
 from odoo.tools.mail import plaintext2html
 
 
@@ -11,10 +11,46 @@ class SaleOrderLine(models.Model):
 
     def _prepare_invoice_line(self, **optional_values):
         res = super()._prepare_invoice_line(**optional_values)
-        alloc = self.env.context.get("l10n_ve_discount_qty_allocation") or {}
+        alloc = self.env.context.get("l10n_ve_discount_amount_allocation") or {}
         if self.id in alloc:
-            res["quantity"] = alloc[self.id]
+            res["quantity"] = 1.0
+            res["price_unit"] = -alloc[self.id]
         return res
+
+    def _l10n_ve_is_split_discount_line(self):
+        self.ensure_one()
+        disc = self.company_id.sale_discount_product_id
+        return (
+            self.order_id.country_code == "VE"
+            and disc
+            and self.product_id == disc
+            and not self.display_type
+        )
+
+    @api.depends(
+        "invoice_lines.move_id.state",
+        "invoice_lines.quantity",
+        "invoice_lines.price_subtotal",
+    )
+    def _compute_qty_invoiced(self):
+        super()._compute_qty_invoiced()
+        for line in self.filtered(lambda sol: sol._l10n_ve_is_split_discount_line()):
+            line_total = abs(line.price_unit * line.product_uom_qty)
+            if float_is_zero(line_total, precision_rounding=line.currency_id.rounding):
+                continue
+            qty_invoiced = 0.0
+            for invoice_line in line._get_invoice_lines():
+                move = invoice_line.move_id
+                if move.state == "cancel" and move.payment_state != "invoicing_legacy":
+                    continue
+                portion = (
+                    abs(invoice_line.price_subtotal) / line_total * line.product_uom_qty
+                )
+                if move.move_type == "out_invoice":
+                    qty_invoiced += portion
+                elif move.move_type == "out_refund":
+                    qty_invoiced -= portion
+            line.qty_invoiced = qty_invoiced
 
     def l10n_ve_report_line_description(self):
         self.ensure_one()

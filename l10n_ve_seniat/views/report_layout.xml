@@ -256,7 +256,7 @@
                                 </thead>
                                 <tbody>
                                     <t t-set="l10n_ve_line_item" t-value="0" />
-                                    <t t-foreach="o.invoice_line_ids" t-as="line">
+                                    <t t-foreach="o.l10n_ve_report_invoice_lines()" t-as="line">
                                         <tr
                                             t-att-class="'fw-bold o_line_section' if line.display_type == 'line_section' else 'fst-italic o_line_note' if line.display_type == 'line_note' else ''"
                                         >
