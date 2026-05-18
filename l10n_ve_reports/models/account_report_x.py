@@ -224,6 +224,7 @@ class AccountVeReportXHandler(models.AbstractModel):
         add_row(_("Usuario"), self.env.user.name, None, level=1)
 
         daily = self._daily()
+        date_type = daily._get_daily_payments_date_type(options)
         bank_cash_journals = daily._get_selected_bank_cash_journals(report, options)
         add_row(_("Arqueo por forma de cobro / diario"), "", None, level=0, markup="rx_arc")
 
@@ -231,7 +232,7 @@ class AccountVeReportXHandler(models.AbstractModel):
         total_ops = 0
         for journal in bank_cash_journals.sorted(lambda j: (j.company_id.name, j.name)):
             posted = daily._get_posted_moves_by_date(
-                journal, company_ids, date_from, date_to
+                journal, company_ids, date_from, date_to, date_type
             )
             registered = posted.filtered(
                 lambda m, j=journal: daily._is_move_bank_liquidity_registered(m, j)
