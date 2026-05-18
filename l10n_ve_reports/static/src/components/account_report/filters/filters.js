@@ -765,9 +765,9 @@ export class AccountReportFilters extends Component {
 
     dailyPaymentsDateTypeOptionLabel(dateType) {
         if (dateType === "payment") {
-            return _t("Payment date");
+            return _t("Fecha del pago");
         }
-        return _t("Validation date");
+        return _t("Fecha de validación");
     }
 
     async filterDailyPaymentsDateType(dateType) {

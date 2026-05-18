@@ -77,8 +77,34 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             return "validation"
         return date_type
 
+    def _get_move_display_report_amount(self, move, journal, options, conv_date):
+        balance = self._get_move_report_amount(move, journal)
+        return self._amount_to_report_currency(
+            balance,
+            move.company_id,
+            options,
+            conv_date,
+        )
+
+    def _get_move_pending_report_amount(self, move, journal, options, conv_date):
+        bal = self._get_move_outstanding_balance_company(move, journal)
+        if journal.company_id.currency_id.is_zero(bal):
+            bal = self._get_move_report_amount(move, journal)
+        return self._amount_to_report_currency(
+            bal,
+            journal.company_id,
+            options,
+            conv_date,
+        )
+
     def _get_move_payment(self, move):
         payment = move.origin_payment_id
+        if not payment:
+            st_line = self.env["account.bank.statement.line"].search(
+                [("move_id", "=", move.id)], limit=1
+            )
+            if st_line and st_line.payment_ids:
+                return st_line.payment_ids[:1]
         if not payment:
             payment = self.env["account.payment"].search(
                 [("move_id", "=", move.id)], limit=1
@@ -92,9 +118,11 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         return move.date
 
     def _get_move_validation_date(self, move):
-        process_date = move.l10n_ve_process_date
-        if process_date:
-            return process_date
+        if move.l10n_ve_process_date:
+            return move.l10n_ve_process_date
+        payment = self._get_move_payment(move)
+        if payment and payment.l10n_ve_process_date:
+            return payment.l10n_ve_process_date
         return move.date
 
     def _get_move_filter_date(self, move, date_type):
@@ -137,20 +165,78 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             conv_date,
         )
 
+    def _get_journal_liquidity_accounts(self, journal):
+        accounts = self.env["account.account"]
+        if journal.default_account_id:
+            accounts |= journal.default_account_id
+        accounts |= journal._get_journal_inbound_outstanding_payment_accounts()
+        accounts |= journal._get_journal_outbound_outstanding_payment_accounts()
+        return accounts
+
     def _get_move_liquidity_balance(self, move, journal):
-        if not journal.default_account_id:
+        accounts = self._get_journal_liquidity_accounts(journal)
+        if not accounts:
             return 0.0
         liquidity_lines = move.line_ids.filtered(
-            lambda line, acc=journal.default_account_id: line.account_id == acc
+            lambda line, accs=accounts: line.account_id in accs
         )
         return sum(liquidity_lines.mapped("balance"))
 
-    def _is_move_bank_liquidity_registered(self, move, journal):
-        if journal.type != "bank":
-            return True
+    def _get_move_report_amount(self, move, journal):
         company_currency = journal.company_id.currency_id
-        bal = self._get_move_liquidity_balance(move, journal)
-        return not company_currency.is_zero(bal)
+        balance = self._get_move_liquidity_balance(move, journal)
+        if not company_currency.is_zero(balance):
+            return balance
+        st_line = self.env["account.bank.statement.line"].search(
+            [("move_id", "=", move.id)], limit=1
+        )
+        if st_line and not company_currency.is_zero(st_line.amount):
+            st_currency = st_line.foreign_currency_id or journal.currency_id
+            if st_currency and st_currency != company_currency:
+                return st_currency._convert(
+                    st_line.amount,
+                    company_currency,
+                    journal.company_id,
+                    st_line.date,
+                )
+            return st_line.amount
+        payment = self._get_move_payment(move)
+        if payment and not company_currency.is_zero(payment.amount):
+            signed_amount = abs(payment.amount)
+            if payment.payment_type == "outbound":
+                signed_amount = -signed_amount
+            pay_currency = payment.currency_id
+            if pay_currency != company_currency:
+                return pay_currency._convert(
+                    signed_amount,
+                    company_currency,
+                    journal.company_id,
+                    payment.date,
+                )
+            return signed_amount
+        return balance
+
+    def _is_report_amount_zero(self, amount, options):
+        display_currency = self.env["res.currency"].browse(
+            options["display_currency_id"]
+        )
+        return display_currency.is_zero(amount)
+
+    def _is_move_bank_liquidity_registered(self, move, journal):
+        company_currency = journal.company_id.currency_id
+        if journal.default_account_id:
+            liquidity_lines = move.line_ids.filtered(
+                lambda line, acc=journal.default_account_id: line.account_id == acc
+            )
+            if liquidity_lines and not company_currency.is_zero(
+                sum(liquidity_lines.mapped("balance"))
+            ):
+                return True
+        if journal.type == "cash":
+            return not company_currency.is_zero(
+                self._get_move_report_amount(move, journal)
+            )
+        return False
 
     def _get_move_outstanding_balance_company(self, move, journal):
         accounts = (
@@ -392,44 +478,25 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             return journals
         return journals.filtered(lambda journal: journal.id not in retention_journal_ids)
 
+    def _filter_moves_by_date_type(self, moves, date_from, date_to, date_type):
+        return moves.filtered(
+            lambda move, df=date_from, dt=date_to, dtp=date_type: self._move_in_date_range(
+                move, df, dt, dtp
+            )
+        )
+
     def _get_posted_moves_by_date(
         self, journal, company_ids, date_from, date_to, date_type
     ):
-        base_domain = [
-            ("journal_id", "=", journal.id),
-            ("company_id", "in", company_ids),
-            ("state", "=", "posted"),
-        ]
-        if date_type == "validation":
-            moves = self.env["account.move"].search(
-                base_domain, order="date asc, name asc"
-            )
-            return moves.filtered(
-                lambda move, df=date_from, dt=date_to: df
-                <= self._get_move_validation_date(move)
-                <= dt
-            )
-
-        payments = self.env["account.payment"].search(
+        moves = self.env["account.move"].search(
             [
                 ("journal_id", "=", journal.id),
                 ("company_id", "in", company_ids),
-                ("date", ">=", date_from),
-                ("date", "<=", date_to),
-                ("state", "in", ("paid", "in_process")),
-            ]
-        )
-        payment_moves = payments.move_id.filtered(lambda m: m.state == "posted")
-        other_moves = self.env["account.move"].search(
-            base_domain
-            + [
-                ("origin_payment_id", "=", False),
-                ("date", ">=", date_from),
-                ("date", "<=", date_to),
+                ("state", "=", "posted"),
             ],
             order="date asc, name asc",
         )
-        moves = payment_moves | other_moves
+        moves = self._filter_moves_by_date_type(moves, date_from, date_to, date_type)
         return moves.sorted(
             lambda m, dtp=date_type: (
                 self._get_move_display_date(m, dtp),
@@ -439,24 +506,15 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         )
 
     def _get_draft_moves(self, journal, company_ids, date_from, date_to, date_type):
-        domain = [
-            ("journal_id", "=", journal.id),
-            ("company_id", "in", company_ids),
-            ("state", "=", "draft"),
-        ]
-        if date_type == "validation":
-            domain += [
-                ("date", ">=", date_from),
-                ("date", "<=", date_to),
-            ]
-        moves = self.env["account.move"].search(domain, order="date asc, name asc")
-        if date_type == "payment":
-            moves = moves.filtered(
-                lambda m, df=date_from, dt=date_to, dtp=date_type: self._move_in_date_range(
-                    m, df, dt, dtp
-                )
-            )
-        return moves
+        moves = self.env["account.move"].search(
+            [
+                ("journal_id", "=", journal.id),
+                ("company_id", "in", company_ids),
+                ("state", "=", "draft"),
+            ],
+            order="date asc, name asc",
+        )
+        return self._filter_moves_by_date_type(moves, date_from, date_to, date_type)
 
     def _get_outstanding_amls(
         self, journal, company_ids, date_from, date_to, exclude_move_ids, date_type
@@ -478,18 +536,11 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             ("amount_residual_currency", "!=", 0.0),
         ]
         amls = self.env["account.move.line"].search(domain, order="date asc, id asc")
-        if date_type == "validation":
-            amls = amls.filtered(
-                lambda line, df=date_from, dt=date_to: df
-                <= self._get_aml_filter_date(line, "validation")
-                <= dt
+        amls = amls.filtered(
+            lambda line, df=date_from, dt=date_to, dtp=date_type: self._aml_in_date_range(
+                line, df, dt, dtp
             )
-        elif date_type == "payment":
-            amls = amls.filtered(
-                lambda line, df=date_from, dt=date_to, dtp=date_type: self._aml_in_date_range(
-                    line, df, dt, dtp
-                )
-            )
+        )
         if not exclude_move_ids:
             return amls
         exclude = set(exclude_move_ids)
@@ -518,22 +569,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 "label": _("Moneda del diario"),
                 "currency": journal_currency.name,
             }
-            lines.append(
-                (
-                    0,
-                    {
-                        "id": report._get_generic_line_id(
-                            "account.journal",
-                            journal.id,
-                            markup="daily_pay_journal_header",
-                        ),
-                        "name": journal_title,
-                        "columns": self._build_row_columns(report, options, {}),
-                        "level": 0,
-                        "unfoldable": False,
-                    },
-                )
-            )
+            journal_lines_start = len(lines)
 
             posted_moves = self._get_posted_moves_by_date(
                 journal, company_ids, date_from, date_to, date_type
@@ -554,34 +590,35 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     move
                 )
 
-            if moves_by_date:
-                lines.append(
-                    (
-                        0,
-                        {
-                            "id": report._get_generic_line_id(
-                                "account.journal",
-                                journal.id,
-                                markup="daily_pay_section_done",
-                            ),
-                            "name": _("Pagos y cobros registrados"),
-                            "columns": self._build_row_columns(report, options, {}),
-                            "level": 1,
-                            "unfoldable": False,
-                        },
-                    )
-                )
-
+            registered_section_added = False
             for move_date in sorted(moves_by_date.keys()):
                 for move in moves_by_date[move_date]:
-                    bal = self._get_move_liquidity_balance(move, journal)
                     display_date = self._get_move_display_date(move, date_type)
-                    amt = self._amount_to_report_currency(
-                        bal,
-                        journal.company_id,
-                        options,
-                        display_date,
+                    amt = self._get_move_display_report_amount(
+                        move, journal, options, display_date
                     )
+                    if self._is_report_amount_zero(amt, options):
+                        continue
+                    if not registered_section_added:
+                        lines.append(
+                            (
+                                0,
+                                {
+                                    "id": report._get_generic_line_id(
+                                        "account.journal",
+                                        journal.id,
+                                        markup="daily_pay_section_done",
+                                    ),
+                                    "name": _("Pagos y cobros registrados"),
+                                    "columns": self._build_row_columns(
+                                        report, options, {}
+                                    ),
+                                    "level": 1,
+                                    "unfoldable": False,
+                                },
+                            )
+                        )
+                        registered_section_added = True
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
                         journal_group_totals[col_group_key] += amt
@@ -629,11 +666,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 exclude_move_ids_for_outstanding,
                 date_type,
             )
-            if (
-                draft_moves
-                or outstanding_amls
-                or pending_posted_bank_moves
-            ):
+            pending_section_added = False
+
+            def _append_pending_section_header():
+                nonlocal pending_section_added
+                if pending_section_added:
+                    return
                 lines.append(
                     (
                         0,
@@ -650,142 +688,166 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                         },
                     )
                 )
+                pending_section_added = True
 
-                for move in draft_moves:
-                    display_date = self._get_move_display_date(move, date_type)
-                    bal = self._get_move_liquidity_balance(move, journal)
-                    amt = self._amount_to_report_currency(
-                        bal,
-                        journal.company_id,
-                        options,
-                        display_date,
+            for move in draft_moves:
+                display_date = self._get_move_display_date(move, date_type)
+                amt = self._get_move_display_report_amount(
+                    move, journal, options, display_date
+                )
+                if self._is_report_amount_zero(amt, options):
+                    continue
+                _append_pending_section_header()
+                for col_group_key in options["column_groups"]:
+                    totals_by_group[col_group_key]["amount"] += amt
+                    journal_group_totals[col_group_key] += amt
+                partner_label = (
+                    move.partner_id.display_name if move.partner_id else ""
+                )
+                lines.append(
+                    (
+                        0,
+                        {
+                            "id": report._get_generic_line_id(
+                                "account.move",
+                                move.id,
+                                markup="daily_pay_draft",
+                            ),
+                            "name": move.name or _("Borrador"),
+                            "columns": self._build_row_columns(
+                                report,
+                                options,
+                                {
+                                    "line_date": display_date,
+                                    "invoice_documents": self._format_invoice_documents_label(
+                                        move
+                                    ),
+                                    "partner": partner_label,
+                                    "amount": amt,
+                                },
+                            ),
+                            "level": 2,
+                            "unfoldable": False,
+                            "caret_options": "account.move",
+                        },
                     )
-                    for col_group_key in options["column_groups"]:
-                        totals_by_group[col_group_key]["amount"] += amt
-                        journal_group_totals[col_group_key] += amt
-                    partner_label = (
-                        move.partner_id.display_name if move.partner_id else ""
-                    )
-                    lines.append(
-                        (
-                            0,
-                            {
-                                "id": report._get_generic_line_id(
-                                    "account.move",
-                                    move.id,
-                                    markup="daily_pay_draft",
-                                ),
-                                "name": move.name or _("Borrador"),
-                                "columns": self._build_row_columns(
-                                    report,
-                                    options,
-                                    {
-                                        "line_date": display_date,
-                                        "invoice_documents": self._format_invoice_documents_label(
-                                            move
-                                        ),
-                                        "partner": partner_label,
-                                        "amount": amt,
-                                    },
-                                ),
-                                "level": 2,
-                                "unfoldable": False,
-                                "caret_options": "account.move",
-                            },
-                        )
-                    )
+                )
 
-                for move in pending_posted_bank_moves.sorted(
-                    lambda m, dtp=date_type: (
-                        self._get_move_display_date(m, dtp),
-                        m.name or "",
+            for move in pending_posted_bank_moves.sorted(
+                lambda m, dtp=date_type: (
+                    self._get_move_display_date(m, dtp),
+                    m.name or "",
+                )
+            ):
+                display_date = self._get_move_display_date(move, date_type)
+                amt = self._get_move_pending_report_amount(
+                    move, journal, options, display_date
+                )
+                if self._is_report_amount_zero(amt, options):
+                    continue
+                _append_pending_section_header()
+                for col_group_key in options["column_groups"]:
+                    totals_by_group[col_group_key]["amount"] += amt
+                    journal_group_totals[col_group_key] += amt
+                partner_label = move.partner_id.display_name if move.partner_id else ""
+                lines.append(
+                    (
+                        0,
+                        {
+                            "id": report._get_generic_line_id(
+                                "account.move",
+                                move.id,
+                                markup="daily_pay_bank_pending",
+                            ),
+                            "name": move.name or move.display_name,
+                            "columns": self._build_row_columns(
+                                report,
+                                options,
+                                {
+                                    "line_date": display_date,
+                                    "invoice_documents": self._format_invoice_documents_label(
+                                        move
+                                    ),
+                                    "partner": partner_label,
+                                    "amount": amt,
+                                },
+                            ),
+                            "level": 2,
+                            "unfoldable": False,
+                            "caret_options": "account.move",
+                        },
                     )
-                ):
-                    display_date = self._get_move_display_date(move, date_type)
-                    bal = self._get_move_outstanding_balance_company(move, journal)
-                    amt = self._amount_to_report_currency(
-                        bal,
-                        journal.company_id,
-                        options,
-                        display_date,
-                    )
-                    for col_group_key in options["column_groups"]:
-                        totals_by_group[col_group_key]["amount"] += amt
-                        journal_group_totals[col_group_key] += amt
-                    partner_label = move.partner_id.display_name if move.partner_id else ""
-                    lines.append(
-                        (
-                            0,
-                            {
-                                "id": report._get_generic_line_id(
-                                    "account.move",
-                                    move.id,
-                                    markup="daily_pay_bank_pending",
-                                ),
-                                "name": move.name or move.display_name,
-                                "columns": self._build_row_columns(
-                                    report,
-                                    options,
-                                    {
-                                        "line_date": display_date,
-                                        "invoice_documents": self._format_invoice_documents_label(
-                                            move
-                                        ),
-                                        "partner": partner_label,
-                                        "amount": amt,
-                                    },
-                                ),
-                                "level": 2,
-                                "unfoldable": False,
-                                "caret_options": "account.move",
-                            },
-                        )
-                    )
+                )
 
-                for aml in outstanding_amls:
-                    display_date = self._get_aml_display_date(aml, date_type)
-                    amt = self._amount_to_report_currency(
-                        aml.amount_residual,
-                        journal.company_id,
-                        options,
-                        display_date,
+            for aml in outstanding_amls:
+                display_date = self._get_aml_display_date(aml, date_type)
+                amt = self._amount_to_report_currency(
+                    aml.amount_residual,
+                    journal.company_id,
+                    options,
+                    display_date,
+                )
+                if self._is_report_amount_zero(amt, options):
+                    continue
+                _append_pending_section_header()
+                for col_group_key in options["column_groups"]:
+                    totals_by_group[col_group_key]["amount"] += amt
+                    journal_group_totals[col_group_key] += amt
+                move = aml.move_id
+                partner_label = aml.partner_id.display_name if aml.partner_id else ""
+                short_name = (move.name if move else None) or aml.move_name or _(
+                    "Línea pendiente"
+                )
+                lines.append(
+                    (
+                        0,
+                        {
+                            "id": report._get_generic_line_id(
+                                "account.move.line",
+                                aml.id,
+                                markup="daily_pay_outstanding",
+                            ),
+                            "name": short_name,
+                            "columns": self._build_row_columns(
+                                report,
+                                options,
+                                {
+                                    "line_date": display_date,
+                                    "invoice_documents": self._format_invoice_documents_label(
+                                        aml.move_id
+                                    ),
+                                    "partner": partner_label,
+                                    "amount": amt,
+                                },
+                            ),
+                            "level": 2,
+                            "unfoldable": False,
+                            "caret_options": "account.move.line",
+                        },
                     )
-                    for col_group_key in options["column_groups"]:
-                        totals_by_group[col_group_key]["amount"] += amt
-                        journal_group_totals[col_group_key] += amt
-                    move = aml.move_id
-                    partner_label = aml.partner_id.display_name if aml.partner_id else ""
-                    short_name = (move.name if move else None) or aml.move_name or _(
-                        "Línea pendiente"
-                    )
-                    lines.append(
-                        (
-                            0,
-                            {
-                                "id": report._get_generic_line_id(
-                                    "account.move.line",
-                                    aml.id,
-                                    markup="daily_pay_outstanding",
-                                ),
-                                "name": short_name,
-                                "columns": self._build_row_columns(
-                                    report,
-                                    options,
-                                    {
-                                        "line_date": display_date,
-                                        "invoice_documents": self._format_invoice_documents_label(
-                                            aml.move_id
-                                        ),
-                                        "partner": partner_label,
-                                        "amount": amt,
-                                    },
-                                ),
-                                "level": 2,
-                                "unfoldable": False,
-                                "caret_options": "account.move.line",
-                            },
-                        )
-                    )
+                )
+
+            has_journal_detail = len(lines) > journal_lines_start
+            if not has_journal_detail:
+                continue
+
+            lines.insert(
+                journal_lines_start,
+                (
+                    0,
+                    {
+                        "id": report._get_generic_line_id(
+                            "account.journal",
+                            journal.id,
+                            markup="daily_pay_journal_header",
+                        ),
+                        "name": journal_title,
+                        "columns": self._build_row_columns(report, options, {}),
+                        "level": 0,
+                        "unfoldable": False,
+                    },
+                ),
+            )
 
             journal_subtotal_columns = []
             display_currency = self.env["res.currency"].browse(
