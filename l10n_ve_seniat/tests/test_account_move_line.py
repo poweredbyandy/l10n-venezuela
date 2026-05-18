@@ -1,6 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields
+from odoo import Command, fields
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 
@@ -254,3 +254,52 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         line = move.line_ids.filtered(lambda aml: aml.debit > 0)
         line.write({"name": "asiento ok"})
         self.assertEqual(line.name, "asiento ok")
+
+    def test_l10n_ve_report_invoice_lines_discount_last(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Partner report",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345680",
+            }
+        )
+        product = self.env["product.product"].create(
+            {
+                "name": "Producto reporte",
+                "list_price": 100.0,
+                "taxes_id": [(6, 0, [self.company_data["default_tax_sale"].id])],
+            }
+        )
+        self.env.company.sale_discount_product_id = product
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "name": "Descuento",
+                            "quantity": 1.0,
+                            "price_unit": -10.0,
+                            "account_id": self.company_data["default_account_revenue"].id,
+                            "tax_ids": [(6, 0, [self.company_data["default_tax_sale"].id])],
+                            "sequence": 5,
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "name": "Producto",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data["default_account_revenue"].id,
+                            "tax_ids": [(6, 0, [self.company_data["default_tax_sale"].id])],
+                            "sequence": 10,
+                        }
+                    ),
+                ],
+            }
+        )
+        report_lines = move.l10n_ve_report_invoice_lines()
+        product_lines = report_lines.filtered(lambda aml: aml.display_type == "product")
+        self.assertEqual(product_lines[-1].product_id, product)
