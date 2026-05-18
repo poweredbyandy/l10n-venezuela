@@ -757,6 +757,27 @@ export class AccountReportFilters extends Component {
         }
     }
 
+    get dailyPaymentsDateTypeLabel() {
+        return this.dailyPaymentsDateTypeOptionLabel(
+            this.controller.options.daily_payments_date_type || "validation"
+        );
+    }
+
+    dailyPaymentsDateTypeOptionLabel(dateType) {
+        if (dateType === "payment") {
+            return _t("Payment date");
+        }
+        return _t("Validation date");
+    }
+
+    async filterDailyPaymentsDateType(dateType) {
+        if (this.controller.options.daily_payments_date_type === dateType) {
+            return;
+        }
+        await this.controller.updateOption("daily_payments_date_type", dateType, false);
+        await this.controller.reload("daily_payments_date_type", this.controller.options);
+    }
+
     async filterCurrencyRateDateType(dateType) {
         await this.controller.updateOption("currency_rate_date_type", dateType, false);
         if (dateType === "manual" && !this.controller.options.currency_rate_date) {

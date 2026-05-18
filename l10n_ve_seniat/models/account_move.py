@@ -19,6 +19,11 @@ _L10N_VE_CANCEL_REASON_MOVE_TYPES = (
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    l10n_ve_process_date = fields.Date(
+        string="Fecha de proceso",
+        copy=False,
+        tracking=True,
+    )
     seniat_invoice_tag = fields.Html(
         string="SENIAT Invoice Tag",
         readonly=True,
@@ -659,9 +664,13 @@ class AccountMove(models.Model):
 
         _logger.info("Button draft called on move %s", self.move_type)
         if self.move_type == "entry":
-            return super().button_draft()
+            res = super().button_draft()
+            self.write({"l10n_ve_process_date": False})
+            return res
         if self.move_type in ("in_invoice", "in_refund", "in_receipt"):
-            return super().button_draft()
+            res = super().button_draft()
+            self.write({"l10n_ve_process_date": False})
+            return res
 
         raise ValidationError(
             _("""You cannot reset to draft an invoice in the Venezuelan localization.
@@ -694,6 +703,13 @@ Please create a credit note instead.
                 and not rec.l10n_ve_control_number
             ):
                 rec._generate_control_number()
+        to_process_date = self.filtered(
+            lambda move: move.state == "posted" and not move.l10n_ve_process_date
+        )
+        if to_process_date:
+            to_process_date.write(
+                {"l10n_ve_process_date": fields.Date.context_today(self)}
+            )
         return res
 
     def _l10n_ve_journal_fiscal_book_section(self):
