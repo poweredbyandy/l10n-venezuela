@@ -28,6 +28,7 @@
         "wizard/l10n_ve_account_move_cancel_wizard_views.xml",
         "wizard/l10n_ve_book_folio_void_wizard_views.xml",
         "views/account_move_views.xml",
+        "views/account_payment_views.xml",
         "views/account_move_reversal_views.xml",
         "views/account_debit_note_views.xml",
         "views/product_template_views.xml",
