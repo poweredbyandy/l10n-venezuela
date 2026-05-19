@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_move_form_advance_widget" model="ir.ui.view">
+        <field name="name">account.move.form.advance.widget</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//group[field[@name='invoice_outstanding_credits_debits_widget']]"
+                position="after"
+            >
+                <group
+                    class="oe_subtotal_footer px-4"
+                    invisible="not invoice_show_advances_widget"
+                    groups="account.group_account_invoice,account.group_account_readonly"
+                >
+                    <field name="invoice_show_advances_widget" invisible="1" />
+                    <field name="invoice_has_outstanding_advances" invisible="1" />
+                    <field
+                        name="invoice_outstanding_advances_widget"
+                        class="oe_invoice_outstanding_credits_debits py-3"
+                        colspan="2"
+                        nolabel="1"
+                        widget="advance_payment"
+                    />
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

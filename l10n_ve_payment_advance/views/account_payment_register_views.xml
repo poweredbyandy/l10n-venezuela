@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_payment_register_form_advance" model="ir.ui.view">
+        <field name="name">account.payment.register.form.advance</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account.view_account_payment_register_form" />
+        <field name="arch" type="xml">
+            <field name="line_ids" position="after">
+                <field name="l10n_ve_apply_advance" invisible="1" />
+                <field name="show_advance_difference_handling" invisible="1" />
+            </field>
+            <xpath expr="//form/group[1]" position="before">
+                <group invisible="not l10n_ve_apply_advance" colspan="2">
+                    <group string="Anticipo a aplicar">
+                        <field name="l10n_ve_advance_line_id" readonly="1" />
+                        <field
+                            name="l10n_ve_advance_amount_available"
+                            readonly="1"
+                        />
+                        <field
+                            name="l10n_ve_invoice_amount_residual"
+                            readonly="1"
+                        />
+                    </group>
+                </group>
+            </xpath>
+            <field name="partner_bank_id" position="attributes">
+                <attribute
+                    name="invisible"
+                >not l10n_ve_apply_advance and (not show_partner_bank_account or not can_edit_wizard or (can_group_payments and not group_payment))</attribute>
+            </field>
+            <field name="communication" position="attributes">
+                <attribute
+                    name="invisible"
+                >not l10n_ve_apply_advance and (not can_edit_wizard or (can_group_payments and not group_payment))</attribute>
+            </field>
+            <xpath expr="//div[@name='amount_div']/field[@name='amount']" position="attributes">
+                <attribute
+                    name="readonly"
+                >not l10n_ve_apply_advance and (not can_edit_wizard or (can_group_payments and not group_payment))</attribute>
+            </xpath>
+            <xpath
+                expr="//div[@name='amount_div']/field[@name='currency_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="invisible"
+                >not l10n_ve_apply_advance and (not can_edit_wizard or (can_group_payments and not group_payment))</attribute>
+            </xpath>
+            <xpath expr="//label[@for='payment_difference']" position="attributes">
+                <attribute
+                    name="invisible"
+                >not show_payment_difference or l10n_ve_apply_advance</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_difference']/.." position="attributes">
+                <attribute
+                    name="invisible"
+                >not show_payment_difference or l10n_ve_apply_advance</attribute>
+            </xpath>
+            <field name="payment_difference_handling" position="attributes">
+                <attribute
+                    name="invisible"
+                >is_register_payment_on_draft or show_advance_difference_handling</attribute>
+            </field>
+            <field name="payment_difference_handling" position="after">
+                <field
+                    name="payment_difference_handling_overpay"
+                    widget="radio"
+                    nolabel="1"
+                    invisible="is_register_payment_on_draft or not show_advance_difference_handling"
+                />
+            </field>
+            <xpath
+                expr="//field[@name='writeoff_account_id']/ancestor::div[hasclass('o_inner_group')]"
+                position="attributes"
+            >
+                <attribute
+                    name="invisible"
+                >hide_writeoff_section or payment_difference_handling in ('open', 'advance')</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
