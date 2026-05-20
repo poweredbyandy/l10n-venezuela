@@ -18,6 +18,12 @@ PAGE_LENGTH_LINES = max(
     min(127, int(round(PAGE_HEIGHT_CM / 2.54 * _LPI_DEFAULT))),
 )
 
+_ESC_P_MATRIX_SLOWER = b"\x1b\x78\x01\x1b\x55\x01"
+_ESC_P_MATRIX_SPEED_RESTORE = b"\x1b\x78\x00\x1b\x55\x00"
+_ESC_P_DOUBLE_STRIKE_ON = b"\x1bG"
+_ESC_P_DOUBLE_STRIKE_OFF = b"\x1bH"
+_ESC_P_FONT_RESTORE = b"\x1b\x50\x1b\x32"
+
 
 def _document_title(move):
     if move.move_type == "out_refund" and move.reversed_entry_id:
@@ -456,6 +462,8 @@ def build_move_escp_bytes(move):
 
     buf = bytearray()
     buf += b"\x1b@"
+    buf += _ESC_P_MATRIX_SLOWER
+    buf += _ESC_P_DOUBLE_STRIKE_ON
     buf += b"\x1bt\x10"
     buf += b"\x1bC" + bytes([PAGE_LENGTH_LINES])
     buf += b"\x0f"
@@ -611,6 +619,9 @@ def build_move_escp_bytes(move):
         buf += _enc(_center_line("Copia fiel su original", lw)) + b"\n"
         buf += b"\x1bE\x00"
 
+    buf += _ESC_P_DOUBLE_STRIKE_OFF
+    buf += _ESC_P_MATRIX_SPEED_RESTORE
+    buf += _ESC_P_FONT_RESTORE
     buf += b"\n\n"
     buf += b"\x12"
     buf += b"\x0c"
