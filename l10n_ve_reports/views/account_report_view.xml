@@ -268,6 +268,7 @@
                                         <field name="filter_account_type" />
                                         <field name="filter_journals" />
                                         <field name="filter_partner" />
+                                        <field name="filter_salesperson" />
                                         <field name="filter_show_draft" />
                                         <field name="filter_unreconciled" />
                                         <field name="filter_aml_ir_filters" />

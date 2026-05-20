@@ -156,6 +156,22 @@
             </div>
         </t>
 
+        <t t-if="options.get('salesperson_ids') != None">
+            <div class="row">
+                <t
+                    t-set="salesperson_value"
+                    t-value="[salesperson for salesperson in options['selected_salesperson_ids']]"
+                />
+                <t t-if="salesperson_value">
+                    <div class="col-3">Vendedor:</div>
+                    <div
+                        class="col-9 o_text_muted"
+                        t-out="', '.join(salesperson_value)"
+                    />
+                </t>
+            </div>
+        </t>
+
         <!-- Partners categories -->
         <t t-if="options.get('partner_categories') != None">
             <div class="row">

@@ -116,6 +116,14 @@ class AccountReportAnnotation(models.Model):
 class AccountReport(models.Model):
     _inherit = "account.report"
 
+    filter_salesperson = fields.Boolean(
+        string="Salesperson",
+        compute=lambda x: x._compute_report_option_filter("filter_salesperson"),
+        readonly=False,
+        store=True,
+        depends=["root_report_id", "section_main_report_ids"],
+    )
+
     horizontal_group_ids = fields.Many2many(
         string="Horizontal Groups", comodel_name="account.report.horizontal.group.oca"
     )
@@ -1178,6 +1186,25 @@ class AccountReport(models.Model):
             "name"
         )
 
+    def _init_options_salesperson(self, options, previous_options):
+        if not self.filter_salesperson:
+            return
+
+        options["salesperson"] = True
+        previous_salesperson_ids = previous_options.get("salesperson_ids") or []
+        selected_salesperson_ids = [
+            int(user_id) for user_id in previous_salesperson_ids
+        ]
+        selected_salespersons = (
+            selected_salesperson_ids
+            and self.env["res.users"]
+            .with_context(active_test=False)
+            .search([("id", "in", selected_salesperson_ids)])
+            or self.env["res.users"]
+        )
+        options["selected_salesperson_ids"] = selected_salespersons.mapped("name")
+        options["salesperson_ids"] = selected_salespersons.ids
+
     @api.model
     def _get_options_partner_domain(self, options):
         domain = []
@@ -1189,6 +1216,14 @@ class AccountReport(models.Model):
                 int(category) for category in options["partner_categories"]
             ]
             domain.append(("partner_id.category_id", "in", partner_category_ids))
+        return domain
+
+    @api.model
+    def _get_options_salesperson_domain(self, options):
+        domain = []
+        if options.get("salesperson_ids"):
+            salesperson_ids = [int(user_id) for user_id in options["salesperson_ids"]]
+            domain.append(("partner_id.user_id", "in", salesperson_ids))
         return domain
 
     ####################################################
@@ -2805,6 +2840,7 @@ class AccountReport(models.Model):
         if date_scope:
             domain += self._get_options_date_domain(options, date_scope)
         domain += self._get_options_partner_domain(options)
+        domain += self._get_options_salesperson_domain(options)
         domain += self._get_options_all_entries_domain(options)
         domain += self._get_options_unreconciled_domain(options)
         domain += self._get_options_fiscal_position_domain(options)
@@ -9020,6 +9056,11 @@ class AccountReport(models.Model):
             y_offset = write_filter_lines(
                 _("Partner Categories"), partner_categories, y_offset
             )
+
+        if should_print_option("selected_salesperson_ids") and (
+            salesperson_names := options.get("selected_salesperson_ids")
+        ):
+            y_offset = write_filter_lines(_("Salesperson"), salesperson_names, y_offset)
 
         # Horizontal groups
         if should_print_option("selected_horizontal_group_id") and (
