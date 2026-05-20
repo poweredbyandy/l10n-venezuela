@@ -645,18 +645,12 @@ class AccountBookDocument(models.Model):
     @api.model
     def _selection_document_ref(self):
         selection = [
-            (
-                "account.move",
-                _("Invoice / credit note / debit note"),
-            ),
-            (
-                "l10n_ve.book.folio.void",
-                _("Anulación de folio (sin movimiento)"),
-            ),
+            ("account.move", "Invoice / credit note / debit note"),
+            ("l10n_ve.book.folio.void", "Anulación de folio (sin movimiento)"),
         ]
         if "stock.picking" in self.env:
             selection.append(
-                ("stock.picking", _("Dispatch guide (picking)")),
+                ("stock.picking", "Dispatch guide (picking)"),
             )
         return selection
 
