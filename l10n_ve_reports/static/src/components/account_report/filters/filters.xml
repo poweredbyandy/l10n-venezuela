@@ -63,6 +63,12 @@
             </div>
         </t>
 
+        <t t-if="'salesperson' in controller.options">
+            <div id="filter_salesperson" class="filter_salesperson">
+                <t t-call="l10n_ve_reports.AccountReportFilterSalesperson" />
+            </div>
+        </t>
+
         <!-- Extra options filter -->
         <t t-if="hasExtraOptionsFilter">
             <div id="filter_extra_options">
