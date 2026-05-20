@@ -926,6 +926,8 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertEqual(move.state, "posted")
         self.assertFalse((move.l10n_ve_control_number or "").strip())
+        self.assertFalse(move.l10n_ve_invoice_date)
+        self.assertTrue(move.invoice_date)
 
     def test_fiscal_machine_posts_without_machine_fields_or_control(self):
         journal = self.company_data["default_journal_sale"]
@@ -943,6 +945,8 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertEqual(move.state, "posted")
         self.assertFalse((move.l10n_ve_control_number or "").strip())
+        self.assertFalse(move.l10n_ve_invoice_date)
+        self.assertTrue(move.invoice_date)
         self.assertFalse((move.l10n_ve_serial_number or "").strip())
         move.write(
             {

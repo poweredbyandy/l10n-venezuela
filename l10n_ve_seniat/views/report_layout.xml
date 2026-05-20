@@ -143,7 +143,12 @@
                                 <div class="d-block text-uppercase">
                                     <strong>Fecha:</strong>
                                     <span
+                                        t-if="origin_affected.l10n_ve_invoice_date"
                                         t-field="origin_affected.l10n_ve_invoice_date"
+                                    />
+                                    <span
+                                        t-else=""
+                                        t-field="origin_affected.invoice_date"
                                     />
                                 </div>
                                 <div class="d-block text-uppercase">
@@ -169,7 +174,11 @@
                             </div>
                             <div class="d-block text-uppercase">
                                 <strong>Fecha:</strong>
-                                <span t-field="o.l10n_ve_invoice_date" />
+                                <span
+                                    t-if="o.l10n_ve_invoice_date"
+                                    t-field="o.l10n_ve_invoice_date"
+                                />
+                                <span t-else="" t-field="o.invoice_date" />
                             </div>
                             <div class="d-block text-uppercase">
                                 <strong>Vencimiento:</strong>
