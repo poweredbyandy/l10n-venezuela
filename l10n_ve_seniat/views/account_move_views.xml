@@ -12,9 +12,15 @@
                 />
             </xpath>
             <xpath expr="//group[@id='header_right_group']/label[@for='invoice_date'][1]" position="before">
+                <label
+                    for="l10n_ve_invoice_date"
+                    string="Fecha del documento"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or (state == 'draft' and l10n_ve_journal_emission_medium != 'contingency') or (state == 'posted' and not l10n_ve_invoice_date and l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine'))"
+                />
                 <field
                     name="l10n_ve_invoice_date"
-                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or (state == 'draft' and l10n_ve_journal_emission_medium != 'contingency') or (state == 'posted' and not l10n_ve_invoice_date)"
+                    nolabel="1"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or (state == 'draft' and l10n_ve_journal_emission_medium != 'contingency') or (state == 'posted' and not l10n_ve_invoice_date and l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine'))"
                     readonly="state == 'posted' or l10n_ve_journal_emission_medium != 'contingency'"
                 />
             </xpath>
@@ -36,12 +42,12 @@
             <xpath expr="//group[@id='header_right_group']/label[@for='invoice_date'][1]" position="attributes">
                 <attribute
                     name="invisible"
-                >move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (country_code == 'VE' and not (state == 'posted' and not l10n_ve_invoice_date))</attribute>
+                >move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (country_code == 'VE' and not ((state == 'draft' and not l10n_ve_journal_emission_medium) or (state == 'posted' and not l10n_ve_invoice_date and l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine'))))</attribute>
             </xpath>
             <xpath expr="//group[@id='header_right_group']/field[@name='invoice_date'][1]" position="attributes">
                 <attribute
                     name="invisible"
-                >move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (country_code == 'VE' and not (state == 'posted' and not l10n_ve_invoice_date))</attribute>
+                >move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (country_code == 'VE' and not ((state == 'draft' and not l10n_ve_journal_emission_medium) or (state == 'posted' and not l10n_ve_invoice_date and l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine'))))</attribute>
                 <attribute name="readonly">state == 'posted'</attribute>
             </xpath>
             <xpath expr="//button[@name='preview_invoice']" position="attributes">
