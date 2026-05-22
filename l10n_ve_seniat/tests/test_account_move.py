@@ -982,3 +982,64 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertFalse((move.l10n_ve_control_number or "").strip())
         self.assertEqual(move.l10n_ve_serial_number, "SN-1")
+
+    def _form_arch(self):
+        view = self.env.ref("l10n_ve_seniat.view_move_form")
+        return view.get_combined_arch()
+
+    def test_l10n_ve_invoice_date_ui_by_emission_medium(self):
+        arch = self._form_arch()
+        self.assertIn(
+            "state == 'draft' and l10n_ve_journal_emission_medium != 'contingency'",
+            arch,
+        )
+        self.assertIn(
+            "l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine')",
+            arch,
+        )
+
+    def test_free_posted_sets_l10n_ve_invoice_date(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write({"l10n_ve_emission_medium": "free"})
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        self.assertFalse(move.l10n_ve_invoice_date)
+        move.action_post()
+        self.assertTrue(move.l10n_ve_invoice_date)
+
+    def test_digital_posted_without_l10n_ve_invoice_date_until_print(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "digital",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        self.assertFalse(move.l10n_ve_invoice_date)
+
+    def test_draft_invoice_date_editable_without_emission_medium(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": False,
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        custom_date = date(2024, 6, 15)
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        self.assertFalse(move.l10n_ve_journal_emission_medium)
+        move.write({"invoice_date": custom_date})
+        self.assertEqual(move.invoice_date, custom_date)
+        move.action_post()
+        self.assertEqual(move.invoice_date, custom_date)
