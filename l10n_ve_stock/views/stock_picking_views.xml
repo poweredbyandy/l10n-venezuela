@@ -14,8 +14,8 @@
                     name="l10n_ve_internal_transfer_reason_id"
                     string="Motivo de traslado"
                     context="{'default_company_id': company_id}"
-                    invisible="not l10n_ve_is_ve_country or (picking_type_code not in ('internal', 'outgoing')) or (picking_type_code == 'outgoing' and sale_id)"
-                    required="l10n_ve_is_ve_country and state != 'draft' and (picking_type_code == 'internal' or (picking_type_code == 'outgoing' and not sale_id))"
+                    invisible="not l10n_ve_is_ve_country or return_id or (picking_type_code not in ('internal', 'outgoing')) or (picking_type_code == 'outgoing' and sale_id)"
+                    required="l10n_ve_is_ve_country and state != 'draft' and not return_id and (picking_type_code == 'internal' or (picking_type_code == 'outgoing' and not sale_id))"
                 />
             </xpath>
             <xpath
