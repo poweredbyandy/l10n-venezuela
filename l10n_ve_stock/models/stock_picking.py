@@ -108,6 +108,8 @@ class StockPicking(models.Model):
     def _l10n_ve_requires_internal_transfer_reason(self):
         """Motivo SENIAT: internos siempre; salidas sin pedido de venta (ni POS)."""
         self.ensure_one()
+        if self.return_id:
+            return False
         if self.picking_type_id.code == "internal":
             return True
         if self.picking_type_id.code != "outgoing" or self.sale_id:

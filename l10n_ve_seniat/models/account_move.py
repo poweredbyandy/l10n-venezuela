@@ -310,7 +310,7 @@ class AccountMove(models.Model):
         compute="_compute_l10n_ve_on_behalf_of_third_party",
         store=True,
         copy=False,
-        help=_(
+        help=(
             "Verdadero si hay un contacto en Por cuenta de Terceros en "
             "facturas de cliente. Según Art. 11 PA00071, esas operaciones "
             "deben emitirse en forma libre."

@@ -7,27 +7,15 @@ class AccountJournal(models.Model):
 
     l10n_ve_emission_medium = fields.Selection(
         selection=[
-            (
-                "free",
-                _("Forma libre (correlativo de talonario)"),
-            ),
-            (
-                "contingency",
-                _("Contingencia"),
-            ),
-            (
-                "fiscal_machine",
-                _("Máquina fiscal"),
-            ),
-            (
-                "digital",
-                _("Facturación digital"),
-            ),
+            ("free", "Forma libre (correlativo de talonario)"),
+            ("contingency", "Contingencia"),
+            ("fiscal_machine", "Máquina fiscal"),
+            ("digital", "Facturación digital"),
         ],
-        string=_("Medio de emisión"),
+        string="Medio de emisión",
         default="free",
         copy=False,
-        help=_(
+        help=(
             "Forma libre: asigna correlativo desde el talonario interno. "
             "Contingencia: no usa el talonario; el N° de control se indica en la "
             "factura antes de confirmar. Máquina fiscal y facturación digital: "
@@ -38,13 +26,13 @@ class AccountJournal(models.Model):
 
     l10n_ve_free_form_print_medium = fields.Selection(
         selection=[
-            ("pdf", _("PDF")),
-            ("continuous", _("Papel continuo (ESC/P USB)")),
+            ("pdf", "PDF"),
+            ("continuous", "Papel continuo (ESC/P USB)"),
         ],
-        string=_("Impresión en forma libre"),
+        string="Impresión en forma libre",
         default="pdf",
         copy=False,
-        help=_(
+        help=(
             "Solo aplica con medio de emisión «Forma libre». PDF usa el informe estándar. "
             "Papel continuo requiere el módulo «l10n_ve_invoice_escp» e imprime la factura "
             "en formato ESC/P Epson por WebUSB."
@@ -79,10 +67,10 @@ class AccountJournal(models.Model):
     )
 
     l10n_ve_fiscal_payment_code = fields.Char(
-        string=_("Código forma de pago fiscal"),
+        string="Código forma de pago fiscal",
         size=2,
         copy=False,
-        help=_(
+        help=(
             "Código numérico de forma de pago para máquina fiscal TFHKA (01–24). "
             "Se usa al enviar pagos en la impresión fiscal cuando el registro proviene "
             "de este diario."
@@ -90,10 +78,10 @@ class AccountJournal(models.Model):
     )
 
     l10n_ve_max_invoice_lines = fields.Integer(
-        string=_("Máximo de líneas por factura (diario)"),
+        string="Máximo de líneas por factura (diario)",
         default=10,
         copy=False,
-        help=_(
+        help=(
             "Si el medio de emisión no es «Forma libre», al facturar desde ventas se "
             "parte el pedido en varias facturas cuando supera este número de líneas de "
             "producto. Con «Forma libre» y tramo de talonario configurado, se usa el "
@@ -101,10 +89,10 @@ class AccountJournal(models.Model):
         ),
     )
     l10n_ve_max_picking_lines = fields.Integer(
-        string=_("Máximo de líneas por guía de despacho (diario)"),
+        string="Máximo de líneas por guía de despacho (diario)",
         default=10,
         copy=False,
-        help=_(
+        help=(
             "Si el medio de emisión no es «Forma libre», al confirmar el pedido se "
             "dividen los albaranes de salida que superen este número de movimientos de "
             "producto. Con «Forma libre» y talonario en el tramo del diario, se usa el "
