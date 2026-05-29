@@ -703,13 +703,20 @@ Please create a credit note instead.
                 and not rec.l10n_ve_control_number
             ):
                 rec._generate_control_number()
-        to_process_date = self.filtered(
+        posted_without_process_date = self.filtered(
             lambda move: move.state == "posted" and not move.l10n_ve_process_date
         )
-        if to_process_date:
-            to_process_date.write(
-                {"l10n_ve_process_date": fields.Date.context_today(self)}
-            )
+        if posted_without_process_date:
+            payment_moves = posted_without_process_date.filtered("origin_payment_id")
+            for move in payment_moves:
+                payment_date = move.origin_payment_id.l10n_ve_process_date
+                if payment_date:
+                    move.l10n_ve_process_date = payment_date
+            other_moves = posted_without_process_date - payment_moves
+            if other_moves:
+                other_moves.write(
+                    {"l10n_ve_process_date": fields.Date.context_today(self)}
+                )
         return res
 
     def _l10n_ve_journal_fiscal_book_section(self):
