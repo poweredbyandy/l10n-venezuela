@@ -34,7 +34,6 @@
             </t>
         </t>
         <t t-set="is_quote" t-value="o.state in ('draft', 'sent')" />
-        <t t-set="show_taxes_col" t-value="is_quote" />
         <t t-set="show_totals_block" t-value="is_quote" />
         <t t-set="show_section_subtotal" t-value="is_quote" />
         <t t-call="web.html_container">
@@ -211,6 +210,10 @@
                         t-value="o._get_order_lines_to_report()"
                     />
                     <t
+                        t-set="show_taxes_col"
+                        t-value="any(any(tax.amount > 0 for tax in line.tax_id) for line in lines_to_report if not line.display_type)"
+                    />
+                    <t
                         t-set="has_discount"
                         t-value="any(l.discount for l in lines_to_report)"
                     />
@@ -271,7 +274,7 @@
                                         <td class="text-center text-nowrap">
                                             <span t-out="l10n_ve_line_item" />
                                         </td>
-                                        <td>
+                                        <td class="text-nowrap">
                                             <span t-field="line.product_id.default_code" />
                                         </td>
                                         <td>
@@ -291,10 +294,10 @@
                                         <td class="text-end text-nowrap">
                                             <span t-field="line.price_unit" />
                                         </td>
-                                        <td t-if="has_discount" class="text-end">
+                                        <td t-if="has_discount" class="text-end text-nowrap">
                                             <span t-field="line.discount" /> %
                                         </td>
-                                        <td t-if="show_taxes_col" class="text-end">
+                                        <td t-if="show_taxes_col" class="text-end text-nowrap">
                                             <span
                                                 t-field="line.tax_id"
                                                 options="{'widget': 'many2many_tags'}"
@@ -302,7 +305,7 @@
                                         </td>
                                         <td
                                             t-if="not line.is_downpayment"
-                                            class="text-end"
+                                            class="text-end text-nowrap"
                                         >
                                             <span t-field="line.price_subtotal" />
                                         </td>
