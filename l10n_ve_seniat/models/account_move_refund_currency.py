@@ -6,6 +6,12 @@ from odoo.exceptions import ValidationError
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    def _l10n_ve_requires_refund_company_currency(self):
+        self.ensure_one()
+        if "l10n_ve_emission_medium" not in self.journal_id._fields:
+            return False
+        return bool(self.journal_id.l10n_ve_emission_medium)
+
     def _l10n_ve_company_price_unit_from_origin_line(self, line):
         if "price_subtotal_currency" in line._fields and line.price_subtotal_currency:
             subtotal = abs(line.price_subtotal_currency)
@@ -24,6 +30,7 @@ class AccountMove(models.Model):
                 move.country_code != ve_country
                 or move.move_type not in ("out_refund", "in_refund")
                 or move.currency_id == move.company_currency_id
+                or not move._l10n_ve_requires_refund_company_currency()
             ):
                 continue
             origin = move.reversed_entry_id
@@ -118,6 +125,7 @@ class AccountMove(models.Model):
             and m.currency_id != m.company_currency_id
             and m.reversed_entry_id.currency_id
             != m.reversed_entry_id.company_currency_id
+            and m._l10n_ve_requires_refund_company_currency()
         )
         if to_company_refund:
             to_company_refund._l10n_ve_force_refund_to_company_currency()
@@ -126,6 +134,7 @@ class AccountMove(models.Model):
                 move.country_code == ve_code
                 and move.move_type in ("out_refund", "in_refund")
                 and move.currency_id != move.company_currency_id
+                and move._l10n_ve_requires_refund_company_currency()
             ):
                 raise ValidationError(
                     _(
