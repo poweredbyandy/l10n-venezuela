@@ -1,0 +1,71 @@
+.daily_payments_report {
+    .o_content {
+        margin: 10px;
+    }
+
+    header {
+        padding: 6px;
+        margin-bottom: 6px;
+
+        .o_title {
+            font-size: 14px;
+        }
+
+        .o_header_font {
+            font-size: 10px;
+        }
+    }
+
+    .o_table {
+        font-size: 0.55rem;
+        padding: 8px;
+        margin: 0 0 12px;
+        table-layout: fixed;
+        width: 100%;
+
+        > :not(caption) > * > * {
+            padding: 0.15rem 0.3rem;
+        }
+
+        > thead {
+            white-space: normal;
+
+            > tr > th:first-child {
+                width: 12%;
+            }
+
+            > tr:last-child > th {
+                white-space: normal;
+                overflow-wrap: break-word;
+                vertical-align: bottom;
+                font-size: 0.5rem;
+            }
+        }
+
+        > tbody {
+            white-space: normal;
+
+            tr {
+                height: auto;
+            }
+
+            td {
+                max-width: none;
+                word-wrap: break-word;
+            }
+
+            td:first-child {
+                white-space: normal;
+                overflow-wrap: break-word;
+            }
+
+            .o_overflow_value {
+                max-width: none;
+            }
+
+            .o_line_cell_value_number {
+                white-space: nowrap;
+            }
+        }
+    }
+}

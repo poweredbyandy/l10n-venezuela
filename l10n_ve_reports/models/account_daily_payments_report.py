@@ -71,6 +71,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             },
         }
 
+    def export_to_pdf(self, options):
+        report = self.env["account.report"].browse(options["report_id"])
+        return type(report).export_to_pdf(
+            report.with_context(force_landscape_printing=True), options
+        )
+
     def _get_daily_payments_date_type(self, options):
         date_type = options.get("daily_payments_date_type", "validation")
         if date_type not in ("payment", "validation"):
