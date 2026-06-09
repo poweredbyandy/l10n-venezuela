@@ -8,23 +8,23 @@
         margin-bottom: 6px;
 
         .o_title {
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .o_header_font {
-            font-size: 10px;
+            font-size: 11px;
         }
     }
 
     .o_table {
-        font-size: 0.55rem;
+        font-size: 0.7rem;
         padding: 8px;
         margin: 0 0 12px;
         table-layout: fixed;
         width: 100%;
 
         > :not(caption) > * > * {
-            padding: 0.15rem 0.3rem;
+            padding: 0.2rem 0.4rem;
         }
 
         > thead {
@@ -38,7 +38,7 @@
                 white-space: normal;
                 overflow-wrap: break-word;
                 vertical-align: bottom;
-                font-size: 0.5rem;
+                font-size: 0.65rem;
             }
         }
 
