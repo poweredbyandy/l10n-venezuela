@@ -21,11 +21,17 @@ class AccountMove(models.Model):
         string="Show EDI Tab",
     )
 
-    @api.depends("journal_id", "journal_id.l10n_ve_edi_provider")
+    @api.depends("journal_id", "journal_id.l10n_ve_edi_provider", "journal_id.l10n_ve_emission_medium")
     def _compute_l10n_ve_edi_show_tab(self):
         for move in self:
-            provider = move.journal_id.l10n_ve_edi_provider
-            move.l10n_ve_edi_show_tab = bool(provider and provider != "none")
+            journal = move.journal_id
+            provider = journal.l10n_ve_edi_provider if journal else False
+            move.l10n_ve_edi_show_tab = bool(
+                journal
+                and journal.l10n_ve_emission_medium == "digital"
+                and provider
+                and provider != "none"
+            )
 
     def write(self, vals):
         res = super().write(vals)
@@ -122,6 +128,7 @@ class AccountMove(models.Model):
             self.state == "posted"
             and self.country_code == "VE"
             and self.move_type in ("out_invoice", "out_refund")
+            and self.l10n_ve_journal_emission_medium == "digital"
             and self.journal_id.l10n_ve_edi_provider
             and self.journal_id.l10n_ve_edi_provider != "none"
         )
