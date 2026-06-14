@@ -15,12 +15,12 @@
                 <label
                     for="l10n_ve_invoice_date"
                     string="Fecha del documento"
-                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or (state == 'draft' and l10n_ve_journal_emission_medium != 'contingency') or (state == 'posted' and not l10n_ve_invoice_date and l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine'))"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or (state == 'draft' and l10n_ve_journal_emission_medium != 'contingency')"
                 />
                 <field
                     name="l10n_ve_invoice_date"
                     nolabel="1"
-                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or (state == 'draft' and l10n_ve_journal_emission_medium != 'contingency') or (state == 'posted' and not l10n_ve_invoice_date and l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine'))"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or (state == 'draft' and l10n_ve_journal_emission_medium != 'contingency')"
                     readonly="state == 'posted' or l10n_ve_journal_emission_medium != 'contingency'"
                 />
             </xpath>
@@ -42,12 +42,12 @@
             <xpath expr="//group[@id='header_right_group']/label[@for='invoice_date'][1]" position="attributes">
                 <attribute
                     name="invisible"
-                >move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (country_code == 'VE' and not ((state == 'draft' and not l10n_ve_journal_emission_medium) or (state == 'posted' and not l10n_ve_invoice_date and l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine'))))</attribute>
+                >move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (country_code == 'VE' and (state == 'posted' or l10n_ve_journal_emission_medium or (state == 'draft' and l10n_ve_journal_emission_medium == 'contingency')))</attribute>
             </xpath>
             <xpath expr="//group[@id='header_right_group']/field[@name='invoice_date'][1]" position="attributes">
                 <attribute
                     name="invisible"
-                >move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (country_code == 'VE' and not ((state == 'draft' and not l10n_ve_journal_emission_medium) or (state == 'posted' and not l10n_ve_invoice_date and l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine'))))</attribute>
+                >move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (country_code == 'VE' and (state == 'posted' or l10n_ve_journal_emission_medium or (state == 'draft' and l10n_ve_journal_emission_medium == 'contingency')))</attribute>
                 <attribute name="readonly">state == 'posted'</attribute>
             </xpath>
             <xpath expr="//button[@name='preview_invoice']" position="attributes">
@@ -72,6 +72,25 @@
                 <attribute name="invisible">not id or state != 'draft' or move_type == 'entry' or (country_code == 'VE' and move_type in ('out_invoice', 'out_refund', 'out_receipt'))</attribute>
             </xpath>
 
+            <xpath expr="//field[@name='tax_lock_date_message']/parent::div" position="after">
+                <div
+                    class="alert alert-warning d-flex align-items-center flex-wrap gap-2"
+                    role="alert"
+                    invisible="state != 'draft' or move_type == 'entry' or currency_id == company_currency_id or not l10n_ve_currency_rate_outdated"
+                >
+                    <span>
+                        La tasa de cambio de esta factura no coincide con la tasa
+                        vigente para la fecha del documento.
+                    </span>
+                    <button
+                        type="object"
+                        name="refresh_invoice_currency_rate"
+                        string="Recalcular tasa"
+                        class="btn btn-link p-0"
+                    />
+                </div>
+                <field name="l10n_ve_currency_rate_outdated" invisible="1" />
+            </xpath>
             <xpath expr="//button[@name='button_cancel'][2]" position="after">
                 <button
                     name="action_l10n_ve_open_cancel_wizard"
@@ -83,6 +102,12 @@
                 />
             </xpath>
 
+            <xpath expr="//header//button[@name='action_reverse']" position="attributes">
+                <attribute
+                    name="invisible"
+                >move_type not in ('out_invoice', 'in_invoice') or state != 'posted' or (country_code == 'VE' and not l10n_ve_show_credit_debit_actions)</attribute>
+            </xpath>
+
             <xpath expr="//header//button[@name='action_reverse']" position="after">
                 <button
                     name="action_debit_note"
@@ -91,20 +116,21 @@
                     type="object"
                     class="btn-secondary"
                     groups="account.group_account_invoice"
-                    invisible="country_code != 'VE' or move_type != 'out_invoice' or state != 'posted' or debit_origin_id"
+                    invisible="country_code != 'VE' or move_type != 'out_invoice' or state != 'posted' or debit_origin_id or not l10n_ve_show_credit_debit_actions"
                 />
             </xpath>
             <xpath expr="//field[@name='country_code']" position="after">
                 <field name="l10n_ve_on_behalf_of_third_party_enabled" invisible="1" />
                 <field name="l10n_ve_journal_emission_medium" invisible="1" />
                 <field name="l10n_ve_show_control_number_ui" invisible="1" />
+                <field name="l10n_ve_show_credit_debit_actions" invisible="1" />
                 <field name="l10n_ve_invoice_original_printed" invisible="1" />
                 <field name="l10n_ve_hide_invoice_preview_send" invisible="1" />
                 <field name="l10n_ve_hide_invoice_print_pdf" invisible="1" />
                 <field name="l10n_ve_digital_invoice_sent" invisible="1" />
             </xpath>
             <xpath
-                expr="//div[@class='oe_title']/span[@class='o_form_label'][field[@name='move_type']]"
+                expr="//div[hasclass('oe_title')]/span[hasclass('o_form_label')][field[@name='move_type']]"
                 position="after"
             >
                 <span
@@ -419,10 +445,29 @@
                 <field name="country_code" column_invisible="1" />
                 <field name="debit_origin_id" column_invisible="1" />
             </xpath>
+            <xpath
+                expr="//field[@name='invoice_date'][@column_invisible=&quot;context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt')&quot;]"
+                position="replace"
+            >
+                <field
+                    name="l10n_ve_invoice_date"
+                    string="Fecha del documento"
+                    optional="show"
+                    column_invisible="context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt')"
+                />
+            </xpath>
             <xpath expr="//field[@name='currency_id']" position="attributes">
                 <attribute
                     name="readonly"
                 >state in ('cancel', 'posted') or (country_code == 'VE' and (move_type in ('out_refund', 'in_refund') or debit_origin_id))</attribute>
+            </xpath>
+            <xpath expr="//field[@name='status_in_payment']" position="before">
+                <field
+                    name="create_uid"
+                    string="Creado por"
+                    optional="show"
+                    widget="many2one_avatar_user"
+                />
             </xpath>
         </field>
     </record>

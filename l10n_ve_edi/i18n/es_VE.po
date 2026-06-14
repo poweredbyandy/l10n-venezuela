@@ -1,0 +1,243 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_edi
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:57+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.portal_invoice_page_inherit_l10n_ve_edi
+msgid ""
+"<i class=\"fa fa-external-link\" title=\"Abrir en imprenta digital\" role=\"img\"/>\n"
+"                Abrir en imprenta"
+msgstr ""
+"<i class=\"fa fa-externo-link\" título=\"Abrir en imprenta digital\" role=\"img\"/>\n"
+"                Abrir en imprenta"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_move_form_l10n_ve_edi
+msgid "<span> - </span>"
+msgstr "<span> - </span>"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_move_form_l10n_ve_edi
+msgid "<span> cuando corresponda.</span>"
+msgstr "<span> cuando corresponde.</span>"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_move_form_l10n_ve_edi
+msgid ""
+"<span>El envio a facturacion digital esta en cola; espere a que finalice el "
+"trabajo.</span>"
+msgstr ""
+"<span>El envio a facturacion digital esta en cola; espere a que finalice el "
+"trabajo.</span>"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_move_form_l10n_ve_edi
+msgid ""
+"<span>Esta factura aun no se ha enviado a facturacion digital. Pulse </span>"
+msgstr ""
+"<span>Esta factura aún no se ha enviado a facturacion digital. Pulso </span>"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_move_form_l10n_ve_edi
+msgid "<span>Fallo el envio a facturacion digital: </span>"
+msgstr "<span>Fallo el envio a facturacion digital: </span>"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.portal_invoice_page_inherit_l10n_ve_edi
+msgid "Abrir en imprenta digital"
+msgstr "Abrir en imprenta digital"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_last_error
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_last_error
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_l10n_ve_edi_mixin__l10n_ve_edi_last_error
+msgid "EDI Last Error"
+msgstr "Último error de EDI"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_payload_attachment_id
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_payload_attachment_id
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_l10n_ve_edi_mixin__l10n_ve_edi_payload_attachment_id
+msgid "EDI Payload Attachment"
+msgstr "EDI Carga útil Adjunto"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_payload_debug_json
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_payload_debug_json
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_l10n_ve_edi_mixin__l10n_ve_edi_payload_debug_json
+msgid "EDI Payload JSON"
+msgstr "EDI Carga útil JSON"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_response_json
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_response_json
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_l10n_ve_edi_mixin__l10n_ve_edi_response_json
+msgid "EDI Response JSON"
+msgstr "EDI Respuesta JSON"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_send_state
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_send_state
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_l10n_ve_edi_mixin__l10n_ve_edi_send_state
+msgid "EDI Send State"
+msgstr "EDI Enviar Estado"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_sent_at
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_sent_at
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_l10n_ve_edi_mixin__l10n_ve_edi_sent_at
+msgid "EDI Sent At"
+msgstr "EDI Enviado At"
+
+#. module: l10n_ve_edi
+#. odoo-python
+#: code:addons/l10n_ve_edi/models/account_move.py:0
+msgid ""
+"El diario no tiene proveedor de facturacion digital configurado o el "
+"documento no aplica."
+msgstr ""
+"El diario no tiene proveedor de facturación digital configurado o el "
+"documento no aplica."
+
+#. module: l10n_ve_edi
+#. odoo-python
+#: code:addons/l10n_ve_edi/models/account_move.py:0
+msgid "El documento ya fue enviado a facturacion digital."
+msgstr "El documento ya fue enviado a facturacion digital."
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_move_form_l10n_ve_edi
+msgid "Enviar facturacion digital"
+msgstr "Enviar facturacion digital"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_account_journal_form_l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_move_form_l10n_ve_edi
+msgid "Facturacion digital (EDI)"
+msgstr "Facturación digital (EDI)"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__account_move__l10n_ve_edi_send_state__failed
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__l10n_ve_edi_mixin__l10n_ve_edi_send_state__failed
+msgid "Failed"
+msgstr "Fallido"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,help:l10n_ve_edi.field_account_journal__l10n_ve_edi_provider
+msgid ""
+"Imprenta o conector para enviar facturas de cliente confirmadas de este "
+"diario."
+msgstr ""
+"Imprenta o conector para enviar facturas de cliente confirmadas de este "
+"diario."
+
+#. module: l10n_ve_edi
+#: model:ir.model,name:l10n_ve_edi.model_account_journal
+msgid "Journal"
+msgstr "Diario"
+
+#. module: l10n_ve_edi
+#: model:ir.model,name:l10n_ve_edi.model_account_move
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__account_journal__l10n_ve_edi_provider__none
+msgid "Ninguno"
+msgstr "Ninguno"
+
+#. module: l10n_ve_edi
+#. odoo-python
+#: code:addons/l10n_ve_edi/models/account_move.py:0
+msgid ""
+"No hay modulo instalado para el proveedor EDI %(code)s. Instale el conector "
+"correspondiente (por ejemplo l10n_ve_edi_tfhka para TFHKA)."
+msgstr ""
+"No hay módulo instalado para el proveedor EDI %(code)s. Instale el conector "
+"correspondiente (por ejemplo l10n_ve_edi_tfhka para TFHKA)."
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__account_move__l10n_ve_edi_send_state__not_sent
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__l10n_ve_edi_mixin__l10n_ve_edi_send_state__not_sent
+msgid "Not Sent"
+msgstr "Not Enviado"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_portal_digital_printer_url
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_portal_digital_printer_url
+msgid "Portal: URL imprenta digital"
+msgstr "Portal: URL imprenta digital"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_portal_show_abrir_imprenta
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_portal_show_abrir_imprenta
+msgid "Portal: mostrar Abrir en imprenta"
+msgstr "Portal: mostrar Abrir en imprenta"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_journal__l10n_ve_edi_provider
+msgid "Proveedor de facturacion digital"
+msgstr "Proveedor de facturacion digital"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__account_move__l10n_ve_edi_send_state__queued
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__l10n_ve_edi_mixin__l10n_ve_edi_send_state__queued
+msgid "Queued"
+msgstr "En cola"
+
+#. module: l10n_ve_edi
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi.view_move_form_l10n_ve_edi
+msgid "Reintentar envio"
+msgstr "Reintentar envio"
+
+#. module: l10n_ve_edi
+#. odoo-python
+#: code:addons/l10n_ve_edi/models/account_move.py:0
+msgid ""
+"Seleccione un proveedor de facturacion digital en el diario de la factura."
+msgstr ""
+"Seleccione un proveedor de facturacion digital en el diario de la factura."
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__account_move__l10n_ve_edi_send_state__sent
+#: model:ir.model.fields.selection,name:l10n_ve_edi.selection__l10n_ve_edi_mixin__l10n_ve_edi_send_state__sent
+msgid "Sent"
+msgstr "Enviado"
+
+#. module: l10n_ve_edi
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_bank_statement_line__l10n_ve_edi_show_tab
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_account_move__l10n_ve_edi_show_tab
+#: model:ir.model.fields,field_description:l10n_ve_edi.field_l10n_ve_edi_mixin__l10n_ve_edi_show_tab
+msgid "Show EDI Tab"
+msgstr "Mostrar EDI Tab"
+
+#. module: l10n_ve_edi
+#. odoo-python
+#: code:addons/l10n_ve_edi/models/account_move.py:0
+msgid "Solo se pueden enviar facturas confirmadas."
+msgstr "Solo se pueden enviar facturas confirmadas."
+
+#. module: l10n_ve_edi
+#: model:ir.model,name:l10n_ve_edi.model_l10n_ve_edi_mixin
+msgid "Venezuela digital invoicing tracking mixin"
+msgstr "Mixin de seguimiento de facturación digital de Venezuela"
+
+#. module: l10n_ve_edi
+#. odoo-python
+#: code:addons/l10n_ve_edi/models/account_move.py:0
+msgid "Ya hay una solicitud de envio en cola para este documento."
+msgstr "Ya hay una solicitud de envio en cola para este documento."

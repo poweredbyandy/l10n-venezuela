@@ -12,6 +12,10 @@ class AccountMove(models.Model):
         readonly=True,
     )
 
+    def l10n_ve_portal_control_number_display(self):
+        self.ensure_one()
+        return (self.sudo().l10n_ve_control_number or "").strip()
+
     def _l10n_ve_dispatch_guides_text_from_pickings(self):
         self.ensure_one()
         numbers = []

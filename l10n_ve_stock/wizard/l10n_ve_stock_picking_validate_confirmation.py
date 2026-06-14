@@ -1,0 +1,87 @@
+from markupsafe import Markup
+
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
+
+
+class L10nVeStockPickingValidateConfirmation(models.TransientModel):
+    _name = "l10n_ve.stock.picking.validate.confirmation"
+    _description = "Confirmación de validación de guía de despacho"
+
+    picking_ids = fields.Many2many(
+        comodel_name="stock.picking",
+        string="Entregas",
+        required=True,
+    )
+    l10n_ve_next_control_number = fields.Char(
+        string="Próximo N° de control",
+        compute="_compute_l10n_ve_next_control_number",
+    )
+    l10n_ve_confirmation_message = fields.Html(
+        string="Mensaje",
+        compute="_compute_l10n_ve_confirmation_message",
+        sanitize=False,
+    )
+
+    @api.depends("picking_ids", "picking_ids.l10n_ve_control_number_placeholder")
+    def _compute_l10n_ve_next_control_number(self):
+        for wizard in self:
+            numbers = [
+                (picking.l10n_ve_control_number_placeholder or "").strip()
+                for picking in wizard.picking_ids
+                if (picking.l10n_ve_control_number_placeholder or "").strip()
+            ]
+            wizard.l10n_ve_next_control_number = ", ".join(dict.fromkeys(numbers))
+
+    @api.depends("picking_ids", "l10n_ve_next_control_number")
+    def _compute_l10n_ve_confirmation_message(self):
+        for wizard in self:
+            if len(wizard.picking_ids) == 1:
+                picking_name = wizard.picking_ids.display_name
+                number = wizard.l10n_ve_next_control_number or "—"
+                wizard.l10n_ve_confirmation_message = Markup(
+                    "<p>%s</p><p>%s</p><p>%s</p>"
+                    % (
+                        _("¿Está seguro de confirmar la entrega <strong>%s</strong>?")
+                        % picking_name,
+                        _(
+                            "Esta entrega asignará el número correlativo "
+                            "<strong>%s</strong>."
+                        )
+                        % number,
+                        _(
+                            "Tras validar, el documento quedará registrado como guía "
+                            "de despacho y no podrá ajustarse próximamente."
+                        ),
+                    )
+                )
+            else:
+                lines = "".join(
+                    "<li>%s</li>" % picking.display_name
+                    for picking in wizard.picking_ids
+                )
+                number = wizard.l10n_ve_next_control_number or "—"
+                wizard.l10n_ve_confirmation_message = Markup(
+                    "<p>%s</p><ul>%s</ul><p>%s</p><p>%s</p>"
+                    % (
+                        _("¿Está seguro de confirmar estas entregas?"),
+                        lines,
+                        _(
+                            "Se asignarán los números correlativos: "
+                            "<strong>%s</strong>."
+                        )
+                        % number,
+                        _(
+                            "Tras validar, los documentos quedarán registrados como "
+                            "guías de despacho y no podrán ajustarse próximamente."
+                        ),
+                    )
+                )
+
+    def action_confirm(self):
+        pickings = self.picking_ids
+        if not pickings:
+            raise UserError(_("No hay entregas seleccionadas para validar."))
+        return pickings.with_context(
+            l10n_ve_dispatch_guide_validate_confirmed=True,
+        ).button_validate()

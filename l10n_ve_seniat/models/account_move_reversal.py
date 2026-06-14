@@ -9,6 +9,7 @@ class AccountMoveReversal(models.TransientModel):
 
     l10n_ve_fiscal_country_code = fields.Char(
         related="company_id.account_fiscal_country_id.code",
+        string="Fiscal Country Code",
     )
 
     @api.model
@@ -28,19 +29,26 @@ class AccountMoveReversal(models.TransientModel):
         cleaned = []
         for vals in vals_list:
             vals = dict(vals)
+            moves = self._l10n_ve_moves_from_create_vals(vals)
+            if (
+                not moves
+                and self.env.context.get("active_model") == "account.move"
+                and self.env.context.get("active_ids")
+            ):
+                moves = self.env["account.move"].browse(
+                    self.env.context["active_ids"]
+                )
+                vals["move_ids"] = [(6, 0, moves.ids)]
             company = None
             if vals.get("company_id"):
                 company = self.env["res.company"].browse(vals["company_id"])
-            elif vals.get("move_ids"):
-                moves = self._l10n_ve_moves_from_create_vals(vals)
-                if moves:
-                    company = moves[0].company_id
+            elif moves:
+                company = moves[0].company_id
+            if moves and not vals.get("journal_id"):
+                journals = moves.journal_id.filtered(lambda j: j.active)
+                if journals:
+                    vals["journal_id"] = journals[0].id
             if company and company.account_fiscal_country_id.code == "VE":
-                moves = self._l10n_ve_moves_from_create_vals(vals)
-                if moves:
-                    journals = moves.journal_id.filtered(lambda j: j.active)
-                    if journals:
-                        vals["journal_id"] = journals[0].id
                 vals["date"] = fields.Date.context_today(self)
             cleaned.append(vals)
         return super().create(cleaned)
@@ -60,6 +68,12 @@ class AccountMoveReversal(models.TransientModel):
         return super().write(vals)
 
     def reverse_moves(self, is_modify=False):
+        for rec in self:
+            if rec.move_type != "entry" and not (rec.reason or "").strip():
+                raise UserError(
+                    _("Debe indicar el motivo de reversión antes de continuar.")
+                )
+        self.move_ids._l10n_ve_check_credit_debit_allowed()
         action = super().reverse_moves(is_modify=is_modify)
         self.new_move_ids._l10n_ve_force_refund_to_company_currency()
         return action

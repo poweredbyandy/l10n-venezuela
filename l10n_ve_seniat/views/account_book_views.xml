@@ -81,9 +81,6 @@
                                 <span class="mx-1">–</span>
                                 <field name="number_to" class="oe_inline" />
                             </div>
-                            <field name="l10n_ve_max_invoice_lines" />
-                            <field name="l10n_ve_escp_invoice_margin_lines" />
-                            <field name="l10n_ve_max_picking_lines" />
                         </group>
                     </group>
                     <notebook>
@@ -101,14 +98,29 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Configuración" name="configuration">
+                            <group>
+                                <group>
+                                    <field name="l10n_ve_max_invoice_lines" />
+                                    <field name="l10n_ve_invoice_header_spacing" />
+                                    <field name="l10n_ve_escp_invoice_margin_lines" />
+                                </group>
+                                <group>
+                                    <field name="l10n_ve_max_picking_lines" />
+                                    <field name="paperformat_id" readonly="1" />
+                                </group>
+                            </group>
+                        </page>
                         <page string="Correlatives" name="documents">
                             <field name="document_ids" groups="account.group_account_manager">
                                 <list
                                     string="Correlatives"
                                     create="false"
                                     editable="bottom"
+                                    default_order="number desc, id desc"
                                 >
-                                    <field name="number" />
+                                    <field name="l10n_ve_control_number" string="Correlativo" readonly="1" />
+                                    <field name="number" column_invisible="True" />
                                     <field name="section_id" optional="hide" readonly="1" />
                                     <field name="l10n_ve_correlative_label" string="Documento / motivo" readonly="1" />
                                     <field name="source_record" column_invisible="True" />
@@ -121,8 +133,10 @@
                                     create="false"
                                     delete="false"
                                     edit="false"
+                                    default_order="number desc, id desc"
                                 >
-                                    <field name="number" />
+                                    <field name="l10n_ve_control_number" string="Correlativo" />
+                                    <field name="number" column_invisible="True" />
                                     <field name="section_id" optional="hide" />
                                     <field name="l10n_ve_correlative_label" string="Documento / motivo" />
                                     <field name="source_record" column_invisible="True" />

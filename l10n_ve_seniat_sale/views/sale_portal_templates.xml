@@ -28,6 +28,46 @@
         inherit_id="sale.sale_order_portal_content"
         name="VE portal: líneas sin impuesto/importe gravado, sin bloque totales, nota SENIAT"
     >
+        <xpath expr="//table[@id='sales_order_table']/parent::div" position="before">
+            <div
+                t-if="sale_order.country_code == 'VE' and report_type == 'html'"
+                class="text-uppercase fw-bold text-end mb-2"
+            >
+                Sin derecho a crédito fiscal
+            </div>
+        </xpath>
+        <xpath expr="//div[@id='content']" position="before">
+            <style t-if="sale_order.country_code == 'VE' and report_type == 'html'">
+                .o_l10n_ve_portal_no_fiscal_wrap {
+                    position: relative;
+                }
+                .o_l10n_ve_portal_no_fiscal_wrap::before {
+                    content: "NO FISCAL";
+                    position: absolute;
+                    top: 45%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(-35deg);
+                    font-size: 3.5rem;
+                    font-weight: 700;
+                    font-family: Helvetica, Arial, sans-serif;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                    color: rgba(220, 53, 69, 0.12);
+                    pointer-events: none;
+                    z-index: 0;
+                    white-space: nowrap;
+                }
+                .o_l10n_ve_portal_no_fiscal_wrap &gt; * {
+                    position: relative;
+                    z-index: 1;
+                }
+            </style>
+        </xpath>
+        <xpath expr="//div[@id='content']" position="attributes">
+            <attribute
+                name="t-att-class"
+            >'o_l10n_ve_portal_no_fiscal_wrap' if sale_order.country_code == 'VE' and report_type == 'html' else ''</attribute>
+        </xpath>
         <xpath expr="//th[@id='taxes_header']" position="attributes">
             <attribute name="t-if">sale_order.country_code != 'VE' or report_type != 'html'</attribute>
         </xpath>

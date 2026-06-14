@@ -128,9 +128,28 @@ class AccountMoveLine(models.Model):
         self.ensure_one()
         name = (self.name or "").strip()
         product = self.product_id
-        if not product:
-            return name
-        return (product.name or "").strip() or name
+        if product:
+            desc = (product.name or "").strip() or name
+        else:
+            desc = name
+        if self._l10n_ve_line_is_exempt_for_report():
+            desc = desc.rstrip()
+            if not desc.endswith("(E)"):
+                desc = f"{desc} (E)"
+        return desc
+
+    def _l10n_ve_line_is_exempt_for_report(self):
+        self.ensure_one()
+        if self.move_id.country_code != "VE":
+            return False
+        if self.display_type != "product":
+            return False
+        if not self.tax_ids:
+            return False
+        return all(
+            float_compare(tax.amount, 0.0, precision_digits=4) == 0
+            for tax in self.tax_ids
+        )
 
     def _l10n_ve_must_use_exempt_tax(self):
         self.ensure_one()

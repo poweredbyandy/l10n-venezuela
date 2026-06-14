@@ -12,3 +12,6 @@ from . import test_account_journal
 from . import test_account_payment
 from . import test_ir_actions_report
 from . import test_res_country_municipality
+from . import test_res_currency_rate
+from . import test_account_journal_dashboard
+from . import test_l10n_ve_dispatch_guide_email

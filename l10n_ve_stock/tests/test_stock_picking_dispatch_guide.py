@@ -40,12 +40,7 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
         )
         warehouse.l10n_ve_dispatch_guide_section_id = sec
 
-    def _create_ve_sale_and_validate_delivery(self):
-        product = self._create_product(
-            name="Prod guía despacho",
-            is_storable=True,
-            taxes_id=[Command.set(self.tax_sale_a.ids)],
-        )
+    def _prepare_outgoing_sale_picking(self, product, qty):
         so = self.env["sale.order"].create(
             {
                 "partner_id": self.partner_a.id,
@@ -53,7 +48,7 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
                     Command.create(
                         {
                             "product_id": product.id,
-                            "product_uom_qty": 1,
+                            "product_uom_qty": qty,
                         }
                     )
                 ],
@@ -62,15 +57,64 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
         so.action_confirm()
         picking = so.picking_ids.filtered(
             lambda p: p.picking_type_id.code == "outgoing" and p.state != "done"
-        )
-        self.assertTrue(len(picking) >= 1)
-        picking = picking[0]
+        )[:1]
+        self.assertTrue(picking)
         picking.action_assign()
+        return picking
+
+    def _button_validate_through_wizards(self, picking):
+        action = picking.button_validate()
+        while isinstance(action, dict) and action.get("res_model"):
+            model = action["res_model"]
+            if model == "l10n_ve.stock.picking.validate.confirmation":
+                wizard = self.env[model].with_context(
+                    **action["context"]
+                ).create({})
+                action = wizard.action_confirm()
+            elif model == "stock.backorder.confirmation":
+                wiz = Form(
+                    self.env[model].with_context(**action["context"])
+                ).save()
+                action = wiz.process()
+            else:
+                break
+        return action
+
+    def _create_ve_sale_and_validate_delivery(self):
+        product = self._create_product(
+            name="Prod guía despacho",
+            is_storable=True,
+            taxes_id=[Command.set(self.tax_sale_a.ids)],
+        )
+        picking = self._prepare_outgoing_sale_picking(product, 1)
         for move in picking.move_ids:
             move.quantity = move.product_uom_qty
             move.picked = True
-        picking._action_done()
+        self._button_validate_through_wizards(picking)
         return picking
+
+    def test_dispatch_guide_shows_confirmation_wizard_before_validate(self):
+        product = self._create_product(
+            name="Prod confirmación guía",
+            is_storable=True,
+            taxes_id=[Command.set(self.tax_sale_a.ids)],
+        )
+        picking = self._prepare_outgoing_sale_picking(product, 1)
+        picking.move_ids.quantity = picking.move_ids.product_uom_qty
+        picking.move_ids.picked = True
+        action = picking.button_validate()
+        self.assertEqual(
+            action.get("res_model"),
+            "l10n_ve.stock.picking.validate.confirmation",
+        )
+        wizard = self.env[action["res_model"]].with_context(
+            **action["context"]
+        ).create({})
+        self.assertTrue(wizard.l10n_ve_next_control_number)
+        self.assertRegex(wizard.l10n_ve_next_control_number, r"^01-\d{8}$")
+        wizard.action_confirm()
+        self.assertEqual(picking.state, "done")
+        self.assertTrue(picking.l10n_ve_control_number)
 
     def test_outgoing_sale_picking_gets_control_number_when_not_invoiced(self):
         picking = self._create_ve_sale_and_validate_delivery()
@@ -153,12 +197,7 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
         picking.action_assign()
         picking.move_ids.quantity = 5
         picking.move_ids.picked = True
-        action = picking.button_validate()
-        self.assertIsInstance(action, dict)
-        wiz = Form(
-            self.env["stock.backorder.confirmation"].with_context(**action["context"])
-        ).save()
-        wiz.process()
+        self._button_validate_through_wizards(picking)
         pick1 = so.picking_ids.filtered(
             lambda p: p.picking_type_id.code == "outgoing" and p.state == "done"
         )
@@ -175,7 +214,7 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
         pick2.action_assign()
         pick2.move_ids.quantity = pick2.move_ids.product_uom_qty
         pick2.move_ids.picked = True
-        pick2._action_done()
+        self._button_validate_through_wizards(pick2)
         self.assertTrue(pick2.l10n_ve_control_number)
         self.assertNotEqual(
             pick2.l10n_ve_control_number,

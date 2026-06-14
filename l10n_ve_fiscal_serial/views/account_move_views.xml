@@ -30,6 +30,8 @@
             <xpath expr="//header//button[@name='action_print_pdf'][1]" position="attributes">
                 <attribute name="invisible">
                     state != 'posted' or is_being_sent or invoice_pdf_report_id or move_type == 'entry' or (
+                    country_code == 'VE' and move_type in ('out_invoice', 'out_refund') and l10n_ve_hide_invoice_print_pdf
+                    ) or (
                     country_code == 'VE' and l10n_ve_journal_emission_medium == 'fiscal_machine' and
                     move_type in ('out_invoice', 'out_refund')
                     )
@@ -38,6 +40,8 @@
             <xpath expr="//header//button[@name='action_print_pdf'][2]" position="attributes">
                 <attribute name="invisible">
                     state != 'posted' or (not is_being_sent and not invoice_pdf_report_id) or (
+                    country_code == 'VE' and move_type in ('out_invoice', 'out_refund') and l10n_ve_hide_invoice_print_pdf
+                    ) or (
                     country_code == 'VE' and l10n_ve_journal_emission_medium == 'fiscal_machine' and
                     move_type in ('out_invoice', 'out_refund')
                     )

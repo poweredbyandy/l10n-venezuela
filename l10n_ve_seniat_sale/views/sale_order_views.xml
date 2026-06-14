@@ -27,7 +27,6 @@
                 <separator string="Términos y condiciones" invisible="country_code != 'VE'" />
             </xpath>
             <xpath expr="//field[@name='payment_term_id']" position="after">
-                <field name="invoicing_date"/>
                 <field
                     name="journal_id"
                     string="Diario de ventas"
@@ -72,6 +71,40 @@
                     data-hotkey="p"
                     invisible="country_code != 'VE'"
                 />
+            </xpath>
+            <xpath expr="//button[@id='create_invoice']" position="attributes">
+                <attribute
+                    name="invisible"
+                >invoice_status != 'to invoice' or country_code == 'VE'</attribute>
+            </xpath>
+            <xpath expr="//button[@id='create_invoice_percentage']" position="attributes">
+                <attribute
+                    name="invisible"
+                >invoice_status != 'no' or state != 'sale' or country_code == 'VE'</attribute>
+            </xpath>
+            <xpath expr="//button[@id='create_invoice']" position="after">
+                <button
+                    id="l10n_ve_create_invoice"
+                    name="action_l10n_ve_create_invoice"
+                    string="Crear factura"
+                    type="object"
+                    class="btn-primary"
+                    data-hotkey="q"
+                    invisible="invoice_status != 'to invoice' or country_code != 'VE'"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_tree_inherit_l10n_ve_seniat_sale" model="ir.ui.view">
+        <field name="name">sale.order.list.inherit.l10n.ve.seniat.sale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//list/header/button[@type='action']" position="attributes">
+                <attribute name="name">action_l10n_ve_create_invoice</attribute>
+                <attribute name="type">object</attribute>
+                <attribute name="string">Crear facturas</attribute>
             </xpath>
         </field>
     </record>

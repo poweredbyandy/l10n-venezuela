@@ -82,6 +82,61 @@
                             </group>
                         </div>
                     </div>
+                    <div
+                        id="l10n_ve_seniat_div_implementer"
+                        class="col-12 col-lg-6 o_setting_box"
+                    >
+                        <div class="o_setting_right_pane">
+                            <separator string="Implementador del sistema" />
+                            <group>
+                                <field name="l10n_ve_implementer_name" />
+                                <field name="l10n_ve_implementer_vat" />
+                                <field
+                                    name="l10n_ve_implementer_email"
+                                    placeholder="implementador@empresa.com"
+                                />
+                            </group>
+                        </div>
+                    </div>
+                    <div
+                        id="l10n_ve_seniat_div_dispatch_email"
+                        class="col-12 col-lg-6 o_setting_box"
+                    >
+                        <div class="o_setting_right_pane">
+                            <separator string="Guías de despacho no facturadas" />
+                            <group>
+                                <field
+                                    name="l10n_ve_unfactured_dispatch_email_recipient"
+                                    placeholder="proveedores.sistemas@seniat.gob.ve"
+                                />
+                                <field
+                                    name="l10n_ve_unfactured_dispatch_email_schedule_enabled"
+                                />
+                                <label
+                                    for="l10n_ve_unfactured_dispatch_email_interval_number"
+                                    string="Enviar cada"
+                                    invisible="not l10n_ve_unfactured_dispatch_email_schedule_enabled"
+                                />
+                                <div
+                                    class="o_row"
+                                    invisible="not l10n_ve_unfactured_dispatch_email_schedule_enabled"
+                                >
+                                    <field
+                                        name="l10n_ve_unfactured_dispatch_email_interval_number"
+                                        class="oe_inline"
+                                    />
+                                    <field
+                                        name="l10n_ve_unfactured_dispatch_email_interval_type"
+                                        class="oe_inline"
+                                    />
+                                </div>
+                                <field
+                                    name="l10n_ve_unfactured_dispatch_email_last_sent"
+                                    readonly="1"
+                                />
+                            </group>
+                        </div>
+                    </div>
                 </block>
                 <block
                     id="l10n_ve_extended_localization_settings"

@@ -18,25 +18,36 @@
 
     <menuitem id="menu_seniat_retention_municipal_supplier" name="Municipal Retention (Supplier)" parent="menu_seniat_retentions" action="action_retention_municipal_supplier" sequence="60" />
     <!-- Configuration sub-menu -->
-    <menuitem id="menu_seniat_configuration" name="Configuration" parent="l10n_ve_seniat.menu_seniat_root" sequence="40" />
+    <menuitem id="menu_seniat_configuration" name="Configuración" parent="l10n_ve_seniat.menu_seniat_root" sequence="40" />
 
-    <menuitem id="menu_seniat_withholding_type" name="IVA Retention Percentage" parent="menu_seniat_configuration" action="action_type_withholding" sequence="10" />
+    <menuitem id="menu_seniat_configuration_basic" name="Básico" parent="menu_seniat_configuration" sequence="10" />
 
-    <menuitem id="menu_seniat_fees" name="Fees" parent="menu_seniat_configuration" action="action_fees" sequence="20" />
+    <menuitem id="menu_seniat_type_person" name="Type Person" parent="menu_seniat_configuration_basic" action="action_type_person" sequence="10" />
 
-    <menuitem id="menu_seniat_payment_concept" name="Payment Concept" parent="menu_seniat_configuration" action="action_payment_concept_l10n_ve_withholding" sequence="30" />
+    <menuitem id="menu_seniat_economic_activity" name="Economic Activity" parent="menu_seniat_configuration_basic" action="action_economic_activity" sequence="20" />
 
-    <menuitem id="menu_seniat_payment_concept_line" name="Payment Concept Lines" parent="menu_seniat_configuration" action="action_payment_concept_line_l10n_ve_withholding" sequence="40" />
+    <menuitem id="menu_seniat_economic_branch" name="Economic Branch" parent="menu_seniat_configuration_basic" action="action_economic_branch" sequence="30" />
 
-    <menuitem id="menu_seniat_tax_unit" name="Tax Units" parent="menu_seniat_configuration" action="action_tax_unit_l10n_ve_withholding" sequence="50" />
+    <menuitem id="menu_seniat_configuration_retentions" name="Retenciones" parent="menu_seniat_configuration" sequence="20" />
 
-    <menuitem id="menu_seniat_economic_activity" name="Economic Activity" parent="menu_seniat_configuration" action="action_economic_activity" sequence="60" />
+    <menuitem id="menu_seniat_withholding_type" name="IVA Retention Percentage" parent="menu_seniat_configuration_retentions" action="action_type_withholding" sequence="10" />
 
-    <menuitem id="menu_seniat_economic_branch" name="Economic Branch" parent="menu_seniat_configuration" action="action_economic_branch" sequence="70" />
+    <menuitem id="menu_seniat_fees" name="Fees" parent="menu_seniat_configuration_retentions" action="action_fees" sequence="20" />
 
-    <menuitem id="menu_seniat_signature" name="Signature" parent="menu_seniat_configuration" action="action_configurate_signature" sequence="80" />
+    <menuitem id="menu_seniat_payment_concept" name="Payment Concept" parent="menu_seniat_configuration_retentions" action="action_payment_concept_l10n_ve_withholding" sequence="30" />
 
-    <menuitem id="menu_seniat_type_person" name="Type Person" parent="menu_seniat_configuration" action="action_type_person" sequence="90" />
+    <menuitem id="menu_seniat_payment_concept_line" name="Payment Concept Lines" parent="menu_seniat_configuration_retentions" action="action_payment_concept_line_l10n_ve_withholding" sequence="40" />
+
+    <menuitem id="menu_seniat_tax_unit" name="Tax Units" parent="menu_seniat_configuration_retentions" action="action_tax_unit_l10n_ve_withholding" sequence="50" />
+
+    <menuitem id="menu_seniat_signature" name="Signature" parent="menu_seniat_configuration_retentions" action="action_configurate_signature" sequence="60" />
+
+    <record id="l10n_ve_seniat.menu_seniat_sequences" model="ir.ui.menu">
+        <field name="parent_id" ref="menu_seniat_configuration" />
+        <field name="name">Secuencias</field>
+        <field name="sequence">30</field>
+    </record>
+
     <menuitem id="menu_seniat_txt_report" name="TXT Report" parent="l10n_ve_seniat.menu_seniat_reports" action="action_generate_txt" groups="account.group_account_manager" sequence="10" />
 
     <menuitem id="menu_seniat_xml_islr" name="XML ISLR Retention" parent="l10n_ve_seniat.menu_seniat_reports" action="action_retention_islr" sequence="20" />

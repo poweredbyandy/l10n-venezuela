@@ -548,8 +548,6 @@ def build_move_escp_bytes(move):
         elif line.display_type == "product":
             item += 1
             desc = line.l10n_ve_report_line_description()
-            if line.tax_ids and line.tax_ids[0].amount == 0:
-                desc = f"{desc} (E)"
             first_cell = desc[: layout["w_desc"]]
             buf += _enc(
                 _format_product_row(
@@ -614,7 +612,11 @@ def build_move_escp_bytes(move):
             buf += _enc(_pad_right(_clip(ln, lw), lw)) + b"\n"
 
     buf += b"\n"
-    if move.l10n_ve_invoice_original_printed:
+    if move.state == "cancel":
+        buf += b"\x1bE\x01"
+        buf += _enc(_center_line("ANULADA", lw)) + b"\n"
+        buf += b"\x1bE\x00"
+    elif move.l10n_ve_invoice_original_printed:
         buf += b"\x1bE\x01"
         buf += _enc(_center_line("Copia fiel su original", lw)) + b"\n"
         buf += b"\x1bE\x00"

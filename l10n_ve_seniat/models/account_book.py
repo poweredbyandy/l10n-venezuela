@@ -73,6 +73,22 @@ class AccountBook(models.Model):
             "requiere margen superior."
         ),
     )
+    l10n_ve_invoice_header_spacing = fields.Integer(
+        string="Espaciado de encabezado (factura PDF)",
+        default=30,
+        help=(
+            "Espaciado superior del encabezado al imprimir facturas en PDF. "
+            "Se aplica mediante el formato de papel asociado a este talonario."
+        ),
+    )
+    paperformat_id = fields.Many2one(
+        "report.paperformat",
+        string="Formato de papel (factura PDF)",
+        copy=False,
+        readonly=True,
+        help="Formato de papel generado automáticamente para imprimir facturas "
+        "asignadas a este talonario.",
+    )
     l10n_ve_max_picking_lines = fields.Integer(
         string="Máximo de líneas por guía de despacho",
         default=10,
@@ -138,6 +154,7 @@ class AccountBook(models.Model):
         "l10n_ve_max_invoice_lines",
         "l10n_ve_max_picking_lines",
         "l10n_ve_escp_invoice_margin_lines",
+        "l10n_ve_invoice_header_spacing",
     )
     def _check_l10n_ve_max_lines_positive(self):
         for book in self:
@@ -155,6 +172,67 @@ class AccountBook(models.Model):
                     raise ValidationError(
                         _("Las líneas de margen ESC/P deben estar entre 0 y 127.")
                     )
+            if book.l10n_ve_invoice_header_spacing is not None and book.l10n_ve_invoice_header_spacing < 0:
+                raise ValidationError(
+                    _("El espaciado de encabezado de la factura PDF debe ser positivo o cero.")
+                )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        books = super().create(vals_list)
+        books._l10n_ve_ensure_paperformat()
+        return books
+
+    def write(self, vals):
+        res = super().write(vals)
+        if any(
+            field in vals
+            for field in ("name", "l10n_ve_invoice_header_spacing", "company_id")
+        ):
+            self._l10n_ve_ensure_paperformat()
+        if "l10n_ve_series_prefix" in vals:
+            self._l10n_ve_sync_section_sequence_prefixes()
+        return res
+
+    def _l10n_ve_paperformat_template(self):
+        return self.env.ref(
+            "l10n_ve_seniat.paperformat_invoice_ve_small",
+            raise_if_not_found=False,
+        )
+
+    def _l10n_ve_paperformat_vals(self):
+        self.ensure_one()
+        template = self._l10n_ve_paperformat_template()
+        return {
+            "name": _("Factura VE - %(book)s (%(company)s)")
+            % {
+                "book": self.name,
+                "company": self.company_id.display_name,
+            },
+            "default": False,
+            "format": template.format if template else "A4",
+            "page_height": template.page_height if template else 0,
+            "page_width": template.page_width if template else 0,
+            "orientation": template.orientation if template else "Portrait",
+            "margin_top": template.margin_top if template else 30,
+            "margin_bottom": template.margin_bottom if template else 20,
+            "margin_left": template.margin_left if template else 0,
+            "margin_right": template.margin_right if template else 0,
+            "header_line": template.header_line if template else False,
+            "header_spacing": self.l10n_ve_invoice_header_spacing,
+            "dpi": template.dpi if template else 90,
+            "css_margins": template.css_margins if template else True,
+        }
+
+    def _l10n_ve_ensure_paperformat(self):
+        Paperformat = self.env["report.paperformat"].sudo()
+        for book in self:
+            vals = book._l10n_ve_paperformat_vals()
+            if book.paperformat_id:
+                book.paperformat_id.sudo().write(vals)
+            else:
+                paperformat = Paperformat.create(vals)
+                book.sudo().write({"paperformat_id": paperformat.id})
 
     @api.depends("active")
     def _compute_l10n_ve_setup_guide(self):
@@ -232,12 +310,6 @@ class AccountBook(models.Model):
         except ValidationError:
             return False
         return self._l10n_ve_format_control_number(number)
-
-    def write(self, vals):
-        res = super().write(vals)
-        if "l10n_ve_series_prefix" in vals:
-            self._l10n_ve_sync_section_sequence_prefixes()
-        return res
 
     def _l10n_ve_sync_section_sequence_prefixes(self):
         for book in self:
@@ -407,10 +479,13 @@ class AccountBook(models.Model):
                     )
 
     def unlink(self):
+        paperformats = self.mapped("paperformat_id")
         self.env["account.book.document"].with_context(
             l10n_ve_allow_book_document_unlink=True
         ).search([("book_id", "in", self.ids)]).unlink()
-        return super().unlink()
+        res = super().unlink()
+        paperformats.sudo().unlink()
+        return res
 
 
 class AccountBookSection(models.Model):
@@ -608,6 +683,10 @@ class AccountBookDocument(models.Model):
         required=True,
         index=True,
     )
+    l10n_ve_control_number = fields.Char(
+        string="N° de control",
+        compute="_compute_l10n_ve_control_number",
+    )
     res_model = fields.Char(
         string="Referenced model",
         required=True,
@@ -665,6 +744,16 @@ class AccountBookDocument(models.Model):
                 line.source_record = line.env[line.res_model].browse(line.res_id)
             else:
                 line.source_record = False
+
+    @api.depends("number", "book_id", "book_id.l10n_ve_series_prefix")
+    def _compute_l10n_ve_control_number(self):
+        for line in self:
+            if line.book_id and line.number:
+                line.l10n_ve_control_number = line.book_id._l10n_ve_format_control_number(
+                    line.number
+                )
+            else:
+                line.l10n_ve_control_number = False
 
     @api.depends("res_model", "res_id", "source_record")
     def _compute_l10n_ve_correlative_label(self):

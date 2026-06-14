@@ -71,3 +71,42 @@ class TestSaleOrderPortalNoteVe(L10nVeSeniatCommon):
             }
         )
         self.assertFalse(order.l10n_ve_seniat_note)
+
+    def test_l10n_ve_portal_preview_shows_no_fiscal_markers(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente portal VE",
+                "country_id": self.env.ref("base.ve").id,
+            }
+        )
+        product = self.env["product.product"].create(
+            {
+                "name": "Prod portal",
+                "list_price": 10.0,
+            }
+        )
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": partner.id,
+                "order_line": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": 1,
+                            "price_unit": 10.0,
+                        },
+                    )
+                ],
+            }
+        )
+        html = self.env["ir.qweb"]._render(
+            order._get_name_portal_content_view(),
+            {
+                "sale_order": order,
+                "report_type": "html",
+            },
+        )
+        self.assertIn("Sin derecho a crédito fiscal", html)
+        self.assertIn("NO FISCAL", html)

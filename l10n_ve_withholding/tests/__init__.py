@@ -1,0 +1,3 @@
+from . import test_account_move_iva_alert
+from . import test_type_person
+from . import test_withholding_type

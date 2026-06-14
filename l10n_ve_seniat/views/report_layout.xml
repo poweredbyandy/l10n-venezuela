@@ -185,8 +185,21 @@
                                 <span t-field="o.invoice_date_due" />
                             </div>
                             <div class="d-block text-uppercase">
+                                <strong>Condición de pago:</strong>
+                                <span
+                                    t-if="o.invoice_payment_term_id"
+                                    t-field="o.invoice_payment_term_id"
+                                />
+                                <span t-else="">de contado</span>
+                            </div>
+                            <t t-set="l10n_ve_exchange_rate_display" t-value="o.l10n_ve_report_exchange_rate_display()" />
+                            <div class="d-block text-uppercase">
                                 <strong>Moneda:</strong>
                                 <span t-out="o.currency_id.name" />
+                                <t t-if="l10n_ve_exchange_rate_display">
+                                    <span> - </span>
+                                    <span t-out="l10n_ve_exchange_rate_display" />
+                                </t>
                             </div>
                             <div
                                 t-if="o.company_id.taxpayer_type == 'formal'"
@@ -198,7 +211,17 @@
                     </div>
                     <div class="clearfix invoice_main" style="position: relative;">
                         <div
-                            t-if="o.company_id.account_fiscal_country_id.code == 'VE' and o.l10n_ve_invoice_original_printed"
+                            t-if="o.company_id.account_fiscal_country_id.code == 'VE' and o.move_type in ('out_invoice', 'out_refund') and o.state == 'cancel'"
+                            class="position-absolute w-100 text-center text-bold"
+                            style="top: 25%; left: 0; right: 0; pointer-events: none;"
+                        >
+                            <span
+                                class="text-uppercase opacity-25 text-danger"
+                                style="font-size: 40px !important;"
+                            >ANULADA</span>
+                        </div>
+                        <div
+                            t-elif="o.company_id.account_fiscal_country_id.code == 'VE' and o.l10n_ve_invoice_original_printed"
                             class="position-absolute w-100 text-center text-bold"
                             style="top: 25%; left: 0; right: 0; pointer-events: none;"
                         >
@@ -216,13 +239,6 @@
                                 t-set="l10n_ve_cn_nd_bs"
                                 t-value="o.company_id.account_fiscal_country_id.code == 'VE' and not show_company_currency and (o.move_type == 'out_refund' or (o.move_type == 'out_invoice' and o.debit_origin_id))"
                             />
-                            <style>
-                                .l10n_ve_invoice_lines th,
-                                .l10n_ve_invoice_lines td {
-                                    padding-left: 0.45rem !important;
-                                    padding-right: 0.45rem !important;
-                                }
-                            </style>
                             <table
                                 class="table table-striped table-sm table-borderless mt-2 table-light l10n_ve_invoice_lines"
                             >

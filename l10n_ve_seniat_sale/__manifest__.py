@@ -7,11 +7,9 @@
     "author": "Anderson Armeya, andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Sales/Localizations",
-    "version": "18.0.1.0.3",
-    "depends": ["base", "web", "sale","sale_management", "l10n_ve_seniat", "account", "announcement"],
+    "version": "18.0.1.0.4",
+    "depends": ["base", "web", "sale", "sale_management", "l10n_ve_seniat", "account"],
     "data": [
-        "data/sale_order_announcement_actions.xml",
-        "data/ir_cron_data.xml",
         "data/report_paperformat_presupuesto_data.xml",
         "data/report_sale_actions.xml",
         "report/report_saleorder_ve.xml",

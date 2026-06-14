@@ -29,11 +29,12 @@
                                 <label
                                     for="l10n_ve_igtf_account_id"
                                     class="col-lg-5 o_light_label"
-                                    string="IGTF Account"
+                                    string="Cuenta IGTF"
                                 />
                                 <field
                                     name="l10n_ve_igtf_account_id"
-                                    domain="[('account_type', '=', 'liability_payable')]"
+                                    domain="[('account_type', 'in', ('liability_current', 'liability_non_current'))]"
+                                    options="{'no_create': True}"
                                 />
                             </div>
                             <div class="row mt8">

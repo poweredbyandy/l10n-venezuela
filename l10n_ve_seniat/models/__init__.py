@@ -9,6 +9,8 @@ from . import res_country_parish
 from . import res_country_municipality
 from . import account_tax
 from . import res_company
+from . import l10n_ve_implementer
+from . import l10n_ve_dispatch_guide_email
 from . import res_config_settings
 from . import account_book
 from . import l10n_ve_book_folio_void
@@ -19,6 +21,7 @@ from . import account_debit_note
 from . import l10n_ve_invoice_cancel_reason
 from . import account_move_line
 from . import account_journal
+from . import account_journal_dashboard
 from . import account_payment
 from . import ir_actions_report
 from . import ir_actions_server

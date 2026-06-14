@@ -1,0 +1,34 @@
+.o_l10n_ve_invoice_dashboard {
+    .o_l10n_ve_invoice_dashboard_card {
+        color: inherit;
+        background: transparent;
+
+        & + .o_l10n_ve_invoice_dashboard_card {
+            border-left: 1px solid $border-color !important;
+        }
+
+        .btn:hover,
+        .btn:focus {
+            background-color: var(--o-view-background-color, #{$o-view-background-color});
+        }
+    }
+
+    .o_l10n_ve_invoice_dashboard_count {
+        color: $o-brand-primary;
+    }
+
+    .o_l10n_ve_invoice_dashboard_card--dispatch {
+        .o_l10n_ve_invoice_dashboard_mail {
+            margin-top: -0.25rem;
+        }
+    }
+
+    .o_l10n_ve_invoice_dashboard_reload {
+        color: $o-brand-primary;
+        line-height: 1;
+
+        &:disabled {
+            opacity: 0.45;
+        }
+    }
+}

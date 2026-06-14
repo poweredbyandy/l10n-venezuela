@@ -1,0 +1,1 @@
+from . import l10n_ve_stock_picking_validate_confirmation

@@ -1,7 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <template id="report_dispatch_guide_company_header">
+        <div class="row mb-3 l10n_ve_dispatch_company_header align-items-start">
+            <div class="col-3 text-center l10n_ve_dispatch_header_logo_col">
+                <img
+                    t-if="company.logo"
+                    t-att-src="image_data_uri(company.logo)"
+                    alt="Logo"
+                    style="max-height: 80px; max-width: 100%;"
+                />
+            </div>
+            <div class="col-5 text-uppercase l10n_ve_dispatch_header_legal_col">
+                <div class="fw-bold fs-5" t-field="company.name" />
+                <div class="mb-1" t-if="company.vat">
+                    <strong>RIF: </strong>
+                    <span t-field="company.vat" />
+                </div>
+                <div class="mb-1" t-if="company.company_registry">
+                    <strong>N° Registro / Información fiscal: </strong>
+                    <span t-field="company.company_registry" />
+                </div>
+                <div class="mb-1">
+                    <span
+                        t-field="company.partner_id"
+                        t-options='{"widget": "contact", "fields": ["address"], "no_marker": True}'
+                    />
+                </div>
+            </div>
+            <div class="col-4 l10n_ve_dispatch_header_contact_col">
+                <div class="mb-1" t-if="company.phone">
+                    <strong>Teléfono: </strong>
+                    <span t-field="company.phone" />
+                </div>
+                <div class="mb-1" t-if="company.email">
+                    <strong>Correo: </strong>
+                    <span t-field="company.email" />
+                </div>
+                <div class="mb-1" t-if="company.website">
+                    <strong>Web: </strong>
+                    <span t-field="company.website" />
+                </div>
+            </div>
+        </div>
+    </template>
+
     <template id="report_dispatch_guide_document">
         <t t-call="web.basic_layout">
+            <t
+                t-set="company"
+                t-value="o.company_id.sudo()"
+            />
             <t t-set="origin_p" t-value="o._l10n_ve_dispatch_origin_partner()" />
             <t
                 t-set="delivery_addr_p"
@@ -77,8 +125,26 @@
             .l10n_ve_dispatch_total_row {
                 font-size: 11pt !important;
             }
+            .l10n_ve_dispatch_company_header {
+                font-size: 10pt !important;
+                line-height: 1.35 !important;
+            }
+            .l10n_ve_dispatch_header_logo_col {
+                padding-right: 0.5rem !important;
+            }
+            .l10n_ve_dispatch_header_legal_col {
+                padding-right: 0.75rem !important;
+            }
+            .l10n_ve_dispatch_header_contact_col {
+                font-size: 10pt !important;
+                line-height: 1.35 !important;
+            }
             </style>
+            <t t-if="o._l10n_ve_dispatch_guide_shows_company_header()">
+                <t t-call="l10n_ve_stock.report_dispatch_guide_company_header" />
+            </t>
             <div
+                t-else=""
                 class="l10n_ve_dispatch_preprinted_spacer mb-2"
                 style="min-height: 28mm;"
             />
@@ -175,6 +241,16 @@
                         <div class="mb-1">
                             <strong>Albarán: </strong>
                             <span t-field="o.name" />
+                        </div>
+                        <div
+                            class="mb-1"
+                            t-if="o.l10n_ve_control_number"
+                        >
+                            <strong>N° de control: </strong>
+                            <span
+                                class="text-danger"
+                                t-field="o.l10n_ve_control_number"
+                            />
                         </div>
                         <div class="mb-1">
                             <strong>Fecha: </strong>

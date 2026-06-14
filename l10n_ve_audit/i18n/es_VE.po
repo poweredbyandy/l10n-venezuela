@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 03:26+0000\n"
-"PO-Revision-Date: 2026-03-24 03:26+0000\n"
+"POT-Creation-Date: 2026-06-14 01:53+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es_VE\n"
@@ -17,14 +17,41 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__access_date
+msgid "Access Date"
+msgstr "Fecha de acceso"
+
+#. module: l10n_ve_audit
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_account_report_access_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_account_report_access_search
+msgid "Accounting Report Access"
+msgstr "Acceso a reporte contable"
+
+#. module: l10n_ve_audit
+#: model:ir.actions.act_window,name:l10n_ve_audit.action_auditlog_account_report_access
+#: model:ir.ui.menu,name:l10n_ve_audit.menu_action_auditlog_account_report_access
+msgid "Accounting Report Consultations"
+msgstr "Consultas de reporte contable"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__ir_action_id
+msgid "Action id"
+msgstr "ID de acción"
+
+#. module: l10n_ve_audit
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__attempt_date
 msgid "Attempt Date"
-msgstr ""
+msgstr "Fecha de intento"
 
 #. module: l10n_ve_audit
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_form
 msgid "Attempt Details"
-msgstr ""
+msgstr "Intento Detalles"
+
+#. module: l10n_ve_audit
+#: model:ir.model,name:l10n_ve_audit.model_auditlog_account_report_access
+msgid "Auditlog - Accounting Report Consultation"
+msgstr "Auditlog - Reporte contable Consulta"
 
 #. module: l10n_ve_audit
 #: model:ir.model,name:l10n_ve_audit.model_auditlog_http_session
@@ -34,179 +61,103 @@ msgstr "Auditlog - Registro de sesión de usuario HTTP"
 #. module: l10n_ve_audit
 #: model:ir.model,name:l10n_ve_audit.model_auditlog_login_attempt
 msgid "Auditlog - Login Attempt"
-msgstr ""
+msgstr "Auditlog - Login Intento"
+
+#. module: l10n_ve_audit
+#: model:ir.model,name:l10n_ve_audit.model_auditlog_validation_exception
+msgid "Auditlog - Validation and Business Errors Shown"
+msgstr "Auditlog - Validación y Business Errors Shown"
 
 #. module: l10n_ve_audit
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_form
 msgid "Connection Details"
-msgstr ""
+msgstr "Conexión Detalles"
 
-#. modules: l10n_ve_audit, l10n_ve_igtf, l10n_ve_reports, l10n_ve_seniat,
-#. l10n_ve_withholding
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__create_uid
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__create_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__create_uid
 msgid "Created by"
 msgstr "Creado por"
 
-#. modules: l10n_ve_audit, l10n_ve_igtf, l10n_ve_reports, l10n_ve_seniat,
-#. l10n_ve_withholding
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__create_date
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__create_date
-#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__create_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__create_date
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__create_date
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__create_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__create_date
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__create_date
 msgid "Created on"
 msgstr "Creado el"
 
-#. modules: l10n_ve_audit, l10n_ve_reports, l10n_ve_withholding
-#. odoo-javascript
-#: code:addons/l10n_ve_reports/static/src/components/account_report/line_name/popover/annotations_popover.xml:0
-#: model:account.report.column,name:l10n_ve_reports.bank_reconciliation_report_date
-#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__payment_date
+#. module: l10n_ve_audit
+#: model:ir.model.fields,help:l10n_ve_audit.field_auditlog_account_report_access__ir_action_id
+msgid "Database id in ir_actions (shared sequence for all action types)."
+msgstr "Database id en ir_actions (shared secuencia para todos acción types)."
+
+#. module: l10n_ve_audit
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "Date"
 msgstr "Fecha"
 
-#. modules: l10n_ve_audit, l10n_ve_igtf, l10n_ve_reports, l10n_ve_seniat,
-#. l10n_ve_withholding
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__display_name
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__display_name
-#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__display_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__display_name
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__display_name
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__display_name
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__display_name
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__display_name
 msgid "Display Name"
-msgstr "Nombre a Mostrar"
+msgstr "Nombre para mostrar"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields.selection,name:l10n_ve_audit.selection__auditlog_account_report_access__source__account_report
+msgid "Engine export (legacy)"
+msgstr "Engine exportar (legacy)"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__exception_class
+msgid "Exception Type"
+msgstr "Tipo de excepción"
 
 #. module: l10n_ve_audit
 #: model:ir.model.fields.selection,name:l10n_ve_audit.selection__auditlog_login_attempt__result__failed
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "Failed"
-msgstr ""
+msgstr "Fallido"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__file_generator
+msgid "File Generator"
+msgstr "Archivo Generator"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__account_report_id
+msgid "Financial Report"
+msgstr "Financial Reporte"
+
+#. module: l10n_ve_audit
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_account_report_access_search
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_validation_exception_search
+msgid "Group By"
+msgstr "Agrupar por"
 
 #. module: l10n_ve_audit
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "Group By..."
-msgstr ""
+msgstr "Agrupar por..."
 
-#. modules: l10n_ve_audit, l10n_ve_igtf, l10n_ve_reports, l10n_ve_seniat,
-#. l10n_ve_withholding
+#. module: l10n_ve_audit
+#: model:ir.model,name:l10n_ve_audit.model_ir_http
+msgid "HTTP Routing"
+msgstr "Enrutamiento HTTP"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__http_path
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__http_path
+msgid "Http Path"
+msgstr "Ruta HTTP"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__id
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__id
-#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__id
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__id
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__id
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__id
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__id
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: l10n_ve_audit
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_http_session__ip_address
@@ -214,132 +165,149 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_http_session_search_ip
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "IP Address"
-msgstr ""
+msgstr "IP Dirección"
 
-#. modules: l10n_ve_audit, l10n_ve_igtf, l10n_ve_reports, l10n_ve_seniat,
-#. l10n_ve_withholding
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__ip_address
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__ip_address
+msgid "Ip Address"
+msgstr "Ip Dirección"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__write_uid
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__write_uid
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__write_uid
 msgid "Last Updated by"
 msgstr "Última actualización por"
 
-#. modules: l10n_ve_audit, l10n_ve_igtf, l10n_ve_reports, l10n_ve_seniat,
-#. l10n_ve_withholding
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__write_date
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__write_date
-#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__write_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__write_date
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__write_date
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__write_date
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__write_date
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__write_date
 msgid "Last Updated on"
 msgstr "Última actualización el"
 
 #. module: l10n_ve_audit
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "Login"
-msgstr ""
+msgstr "Acceso"
 
 #. module: l10n_ve_audit
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__login
 msgid "Login / Email"
-msgstr ""
+msgstr "Login / Correo electrónico"
 
 #. module: l10n_ve_audit
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_form
 msgid "Login Attempt"
-msgstr ""
+msgstr "Login Intento"
 
 #. module: l10n_ve_audit
 #: model:ir.actions.act_window,name:l10n_ve_audit.action_auditlog_login_attempt
 #: model:ir.ui.menu,name:l10n_ve_audit.menu_action_auditlog_login_attempt
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "Login Attempts"
-msgstr ""
+msgstr "Login Intentos"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__message
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_validation_exception_form
+msgid "Message"
+msgstr "Mensaje"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields.selection,name:l10n_ve_audit.selection__auditlog_account_report_access__source__action_access
+msgid "Open action (menu)"
+msgstr "Abierto acción (menú)"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields.selection,name:l10n_ve_audit.selection__auditlog_account_report_access__source__qweb
+msgid "QWeb render (legacy)"
+msgstr "Renderizado QWeb (heredado)"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__report_model
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_account_report_access_search
+msgid "Report Model"
+msgstr "Reporte Modelo"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__report_name
+msgid "Report Name"
+msgstr "Reporte Nombre"
 
 #. module: l10n_ve_audit
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__result
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "Result"
-msgstr ""
+msgstr "Resultado"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__rpc_method
+msgid "Rpc Method"
+msgstr "Método Rpc"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__rpc_model
+msgid "Rpc Model"
+msgstr "Rpc Modelo"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__source
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_account_report_access_search
+msgid "Source"
+msgstr "Origen"
 
 #. module: l10n_ve_audit
 #: model:ir.model.fields.selection,name:l10n_ve_audit.selection__auditlog_login_attempt__result__success
 msgid "Success"
-msgstr ""
+msgstr "Éxito"
 
 #. module: l10n_ve_audit
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "Successful"
-msgstr ""
+msgstr "Exitoso"
 
-#. modules: l10n_ve_audit, l10n_ve_reports
-#. odoo-javascript
-#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_date.xml:0
+#. module: l10n_ve_audit
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_account_report_access_search
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_validation_exception_search
 msgid "Today"
 msgstr "Hoy"
 
 #. module: l10n_ve_audit
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_validation_exception_search
+msgid "Type"
+msgstr "Tipo"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__user_id
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__user_id
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_validation_exception__user_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_account_report_access_search
 #: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_validation_exception_search
 msgid "User"
-msgstr ""
+msgstr "Usuario"
 
 #. module: l10n_ve_audit
 #: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_login_attempt__user_agent
 msgid "User Agent"
-msgstr ""
+msgstr "Usuario Agente"
+
+#. module: l10n_ve_audit
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_validation_exception_form
+msgid "Validation Exception"
+msgstr "Validación Exception"
+
+#. module: l10n_ve_audit
+#: model:ir.actions.act_window,name:l10n_ve_audit.action_auditlog_validation_exception
+#: model:ir.ui.menu,name:l10n_ve_audit.menu_action_auditlog_validation_exception
+#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_validation_exception_search
+msgid "Validation Exceptions"
+msgstr "Validación Exceptions"
+
+#. module: l10n_ve_audit
+#: model:ir.model.fields,field_description:l10n_ve_audit.field_auditlog_account_report_access__ir_action_type
+msgid "ir.actions type"
+msgstr "ir.acciones tipo"

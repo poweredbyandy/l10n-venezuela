@@ -303,3 +303,42 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         report_lines = move.l10n_ve_report_invoice_lines()
         product_lines = report_lines.filtered(lambda aml: aml.display_type == "product")
         self.assertEqual(product_lines[-1].product_id, product)
+
+    def test_report_line_description_marks_exempt_product(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Partner exento",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345678",
+            }
+        )
+        exempt_tax = self.env["product.template"]._l10n_ve_get_exent_sale_tax(
+            self.env.company
+        )
+        self.assertTrue(exempt_tax)
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Producto exento",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [(6, 0, [exempt_tax.id])],
+                        },
+                    )
+                ],
+            }
+        )
+        line = move.invoice_line_ids.filtered(
+            lambda aml: aml.display_type == "product"
+        )
+        line.ensure_one()
+        self.assertEqual(line.l10n_ve_report_line_description(), "Producto exento (E)")

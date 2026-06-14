@@ -148,6 +148,47 @@ class AccountRetention(models.Model):
             " that the one that just has been deleted."
         )
     )
+    l10n_ve_missing_iva_withholding_type = fields.Boolean(
+        compute="_compute_l10n_ve_missing_iva_withholding_type",
+    )
+
+    @api.depends(
+        "partner_id",
+        "partner_id.withholding_type_id",
+        "type_retention",
+        "type",
+        "state",
+    )
+    def _compute_l10n_ve_missing_iva_withholding_type(self):
+        for retention in self:
+            retention.l10n_ve_missing_iva_withholding_type = bool(
+                retention._l10n_ve_get_iva_withholding_type_warning()
+            )
+
+    def _l10n_ve_requires_iva_withholding_type(self):
+        self.ensure_one()
+        return (
+            self.state == "draft"
+            and self.type_retention == "iva"
+            and self.type == "in_invoice"
+            and bool(self.partner_id)
+        )
+
+    def _l10n_ve_get_iva_withholding_type_warning(self):
+        self.ensure_one()
+        if not self._l10n_ve_requires_iva_withholding_type():
+            return None
+        if self.partner_id._l10n_ve_get_withholding_type():
+            return None
+        return {
+            "title": _("Missing IVA withholding percentage"),
+            "message": _(
+                'The contact "%(partner)s" has no IVA withholding percentage '
+                "configured. Set the field \"Withholding Type\" on the partner "
+                "before confirming this operation.",
+                partner=self.partner_id.display_name,
+            ),
+        }
 
     @api.depends("type", "partner_id")
     def _compute_allowed_lines_move_ids(self):
@@ -224,10 +265,8 @@ class AccountRetention(models.Model):
             lambda r: (r.state, r.type_retention) == ("draft", "iva") and r.partner_id
         ):
             if retention.type == "in_invoice":
-                result = retention._load_retention_lines_for_iva_supplier_retention()
-            else:
-                result = retention._load_retention_lines_for_iva_customer_retention()
-            return result
+                return retention._load_retention_lines_for_iva_supplier_retention()
+            return retention._load_retention_lines_for_iva_customer_retention()
 
     def _load_retention_lines_for_iva_supplier_retention(self):
         self.ensure_one()
@@ -622,10 +661,10 @@ class AccountRetention(models.Model):
                         )
                     )
 
-            if not retention.partner_id.withholding_type_id:
+            if not retention.partner_id._l10n_ve_get_withholding_type():
                 errors.append(
                     _(
-                        "4) Partner: el proveedor '%(partner)s' no tiene tipo de retencion (withholding_type_id).",
+                        "4) Partner: el proveedor '%(partner)s' no tiene tipo de retencion configurado.",
                         partner=retention.partner_id.display_name,
                     )
                 )
@@ -1019,7 +1058,10 @@ class AccountRetention(models.Model):
             raise UserError(_("The invoice %s has no tax."), invoice_id.number)
 
         withholding_partner = invoice_id._l10n_ve_withholding_partner()
-        withholding_amount = withholding_partner.withholding_type_id.value
+        withholding_type = withholding_partner._l10n_ve_get_withholding_type()
+        if not withholding_type:
+            raise UserError(_("The partner has no withholding type."))
+        withholding_amount = withholding_type.value
         lines_data = []
 
         if len(invoice_id.tax_totals.get("subtotals", [])) < 1:

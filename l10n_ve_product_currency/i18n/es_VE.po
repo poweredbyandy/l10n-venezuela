@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 03:26+0000\n"
-"PO-Revision-Date: 2026-03-24 03:26+0000\n"
+"POT-Creation-Date: 2026-06-14 01:53+0000\n"
+"PO-Revision-Date: 2026-06-14 01:57+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es_VE\n"
@@ -16,12 +16,8 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
-#. modules: l10n_ve_product_currency, l10n_ve_reports, l10n_ve_withholding
-#. odoo-python
-#: code:addons/l10n_ve_reports/models/account_report.py:0
+#. module: l10n_ve_product_currency
 #: model:ir.model.fields,field_description:l10n_ve_product_currency.field_product_template__company_currency_id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__company_currency_id
-#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__company_currency_id
 msgid "Company Currency"
 msgstr "Moneda de la compañía"
 
@@ -32,14 +28,14 @@ msgid "Force Currency"
 msgstr "Forzar moneda"
 
 #. module: l10n_ve_product_currency
+#: model:ir.model,name:l10n_ve_product_currency.model_product_template
+msgid "Product"
+msgstr "Producto"
+
+#. module: l10n_ve_product_currency
 #: model:ir.model.fields,help:l10n_ve_product_currency.field_product_product__company_currency_id
-msgid ""
-"Technical field to correctly show the currently selected company's currency "
-"that corresponds to the totaled value of the product's valuation layers"
-msgstr ""
-"Campo técnico para mostrar correctamente la moneda seleccionada de la "
-"compañía que corresponde al valor totalizado de las capas de valoración del "
-"producto"
+msgid "Technical field to correctly show the currently selected company's currency that corresponds to the totaled value of the product's valuation layers"
+msgstr "Campo técnico para mostrar correctamente la moneda seleccionada de la compañía que corresponde al valor totalizado de las capas de valoración del producto"
 
 #. module: l10n_ve_product_currency
 #: model:ir.model.fields,help:l10n_ve_product_currency.field_product_product__force_currency_id

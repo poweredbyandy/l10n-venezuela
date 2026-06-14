@@ -16,6 +16,52 @@ class AccountMoveRetention(models.Model):
     generate_iva_retention = fields.Boolean(
         string="Generate IVA Retention?", default=False
     )
+    l10n_ve_missing_iva_withholding_type = fields.Boolean(
+        compute="_compute_l10n_ve_missing_iva_withholding_type",
+    )
+
+    @api.depends(
+        "partner_id",
+        "partner_id.withholding_type_id",
+        "l10n_ve_third_party_partner_id",
+        "l10n_ve_third_party_partner_id.withholding_type_id",
+        "move_type",
+        "country_code",
+        "generate_iva_retention",
+        "state",
+    )
+    def _compute_l10n_ve_missing_iva_withholding_type(self):
+        for move in self:
+            move.l10n_ve_missing_iva_withholding_type = bool(
+                move._l10n_ve_get_iva_withholding_type_warning()
+            )
+
+    def _l10n_ve_requires_iva_withholding_type(self):
+        self.ensure_one()
+        return (
+            self.state == "draft"
+            and self.generate_iva_retention
+            and self.country_code == "VE"
+            and self.move_type in ("in_invoice", "in_refund", "in_receipt")
+            and bool(self.partner_id)
+        )
+
+    def _l10n_ve_get_iva_withholding_type_warning(self):
+        self.ensure_one()
+        if not self._l10n_ve_requires_iva_withholding_type():
+            return None
+        partner = self._l10n_ve_withholding_partner()
+        if partner._l10n_ve_get_withholding_type():
+            return None
+        return {
+            "title": _("Missing IVA withholding percentage"),
+            "message": _(
+                'The contact "%(partner)s" has no IVA withholding percentage '
+                "configured. Set the field \"Withholding Type\" on the partner "
+                "before confirming this operation.",
+                partner=partner.display_name,
+            ),
+        }
 
     def _l10n_ve_withholding_partner(self):
         self.ensure_one()
@@ -220,6 +266,16 @@ class AccountMoveRetention(models.Model):
         be created.
         """
         self.ensure_one()
+        withholding_partner = self._l10n_ve_withholding_partner()
+        if not withholding_partner._l10n_ve_get_withholding_type():
+            raise UserError(
+                _(
+                    'The contact "%(partner)s" has no IVA withholding percentage '
+                    "configured. Set the field \"Withholding Type\" on the partner "
+                    "before confirming this operation.",
+                    partner=withholding_partner.display_name,
+                )
+            )
         if not self.env.company.iva_supplier_retention_journal_id:
             raise UserError(
                 _("The company must have a journal for IVA supplier retention.")
@@ -260,7 +316,7 @@ class AccountMoveRetention(models.Model):
         """
         self.ensure_one()
         withholding_partner = self._l10n_ve_withholding_partner()
-        if type_retention == "iva" and not withholding_partner.withholding_type_id:
+        if type_retention == "iva" and not withholding_partner._l10n_ve_get_withholding_type():
             raise UserError(_("The partner has no withholding type."))
 
         retention = self.env["account.retention"]

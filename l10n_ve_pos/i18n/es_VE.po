@@ -1,0 +1,286 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_pos
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:57+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/partner_list.js:0
+msgid "%s customer(s) found for \"%s\"."
+msgstr "%s cliente(s) found para \"%s\"."
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/store/pos_store.js:0
+msgid "A discount of 100% is not allowed."
+msgstr "A descuento de 100% es not allowed."
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Accounting invoice number"
+msgstr "Accounting factura número"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/payment_screen.js:0
+msgid "Amount without taxes"
+msgstr "Monto sin impuestos"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/order_summary.js:0
+msgid "Changing the price from the Point of Sale is not allowed."
+msgstr "Changing el precio desde el Punto de venta es not allowed."
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/payment_screen.js:0
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Control number"
+msgstr "Control número"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Could not download the invoice."
+msgstr "Could not descargar el factura."
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/store/pos_store.js:0
+msgid "Creating products from the Point of Sale is not allowed."
+msgstr "Creating products desde el Punto de venta es not allowed."
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Download free-form PDF"
+msgstr "Descargar free-formulario PDF"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/navbar/pos_exchange_rates_dropdown.js:0
+msgid "Exchange rates"
+msgstr "Tipos de cambio"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/navbar/pos_exchange_rates_dropdown.js:0
+msgid "Exchange rates (Ref: %s)"
+msgstr "Tipos de cambio (Ref: %s)"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/ticket_screen.js:0
+msgid "Finalize"
+msgstr "Finalizar"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/payment_screen.js:0
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Fiscal invoice number"
+msgstr "Número de factura fiscal"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/payment_screen.js:0
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Fiscal machine serial"
+msgstr "Serie de maquina fiscal"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,help:l10n_ve_pos.field_pos_config__l10n_ve_invoice_journal_emission_medium
+msgid ""
+"Forma libre: asigna correlativo desde el talonario interno. Contingencia: no"
+" usa el talonario; el N° de control se indica en la factura antes de "
+"confirmar. Máquina fiscal y facturación digital: tampoco generan correlativo"
+" automático del talonario; el N° de control debe consignarse manualmente "
+"antes de confirmar."
+msgstr ""
+"Forma libre: asigna correlativo desde el talonario interno. Contingencia: no"
+" usa el talonario; el N° de control se indica en la factura antes de "
+"confirmar. Máquina fiscal y facturación digital: tampoco generan correlativo"
+" automático del talonario; el N° de control debe consignarse manualmente "
+"antes de confirmar."
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/payment_screen.js:0
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/payment_screen.xml:0
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_config__l10n_ve_invoice_journal_display_name
+msgid "Invoice journal display name (VE POS)"
+msgstr "Factura diario display nombre (VE TPV)"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,help:l10n_ve_pos.field_pos_order__l10n_ve_pos_fiscal_invoice_number
+msgid "Invoice number from the fiscal machine"
+msgstr "Número de factura de la máquina fiscal"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/navbar/pos_exchange_rates_dropdown.js:0
+msgid "Loading rates..."
+msgstr "Cargando rates..."
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_config__l10n_ve_invoice_journal_emission_medium
+msgid "Medio de emisión"
+msgstr "Medio de emisión"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/payment_screen.js:0
+msgid "Next control number"
+msgstr "Siguiente control número"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/navbar/pos_exchange_rates_dropdown.js:0
+msgid "No active exchange rates are configured."
+msgstr "No se configuran tipos de cambio activos."
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_order__l10n_ve_pos_control_number
+msgid "N° de control SENIAT"
+msgstr "N° de control SENIAT"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_order__l10n_ve_pos_fiscal_invoice_number
+msgid "N° factura máquina fiscal"
+msgstr "N° factura máquina fiscal"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_order__l10n_ve_pos_fiscal_report_z
+msgid "N° reporte Z"
+msgstr "N° reporte Z"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_order__l10n_ve_pos_invoice_name
+msgid "Número de factura"
+msgstr "Número de factura"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/ticket_screen.js:0
+msgid "POS Reference"
+msgstr "TPV Referencia"
+
+#. module: l10n_ve_pos
+#: model:ir.model,name:l10n_ve_pos.model_pos_config
+msgid "Point of Sale Configuration"
+msgstr "Configuración del punto de venta"
+
+#. module: l10n_ve_pos
+#: model:ir.model,name:l10n_ve_pos.model_pos_order
+msgid "Point of Sale Orders"
+msgstr "Órdenes del punto de venta"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Print Basic Receipt"
+msgstr "Imprimir Basic Recibo"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Print Full Receipt"
+msgstr "Imprimir Full Recibo"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/ticket_screen.js:0
+msgid "Print Receipt"
+msgstr "Imprimir Recibo"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Print complete"
+msgstr "Imprimir complete"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/ticket_screen.js:0
+msgid "Print document"
+msgstr "Imprimir documento"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Print simplified"
+msgstr "Imprimir simplified"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_config__l10n_ve_pos_next_free_control_number
+msgid "Próximo N° control (forma libre)"
+msgstr "Próximo N° control (forma libre)"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/ticket_screen.js:0
+msgid "Receipt Number"
+msgstr "Recibo Número"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,help:l10n_ve_pos.field_pos_order__l10n_ve_pos_fiscal_report_z
+msgid "Report Z number from the fiscal machine"
+msgstr "Reportar número Z de la máquina fiscal"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_order__l10n_ve_pos_fiscal_serial
+msgid "Serial máquina fiscal"
+msgstr "Máquina fiscal serie"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,help:l10n_ve_pos.field_pos_order__l10n_ve_pos_fiscal_serial
+msgid "Serial number of the fiscal machine"
+msgstr "Número de serie de la máquina fiscal."
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/navbar/pos_exchange_rates_dropdown.js:0
+msgid "Tasas:"
+msgstr "Tasas:"
+
+#. module: l10n_ve_pos
+#: model:ir.model,name:l10n_ve_pos.model_stock_picking
+msgid "Transfer"
+msgstr "Transferencia"
+
+#. module: l10n_ve_pos
+#: model:ir.model.fields,field_description:l10n_ve_pos.field_pos_config__l10n_ve_pos_free_book_section_name
+msgid "VE talonario (forma libre)"
+msgstr "VE Talonario (forma libre)"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/payment_screen.js:0
+#: code:addons/l10n_ve_pos/static/src/overrides/screens/receipt_screen.js:0
+msgid "Z report number"
+msgstr "Z reporte número"
+
+#. module: l10n_ve_pos
+#. odoo-javascript
+#: code:addons/l10n_ve_pos/static/src/overrides/models/pos_order.js:0
+msgid "the invoice"
+msgstr "el factura"

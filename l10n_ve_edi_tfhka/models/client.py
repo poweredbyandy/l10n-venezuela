@@ -7,9 +7,12 @@ from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
-DEFAULT_BASE_URL = "https://demoemisionv2.thefactoryhka.com.ve"
+TFHKA_API_URL_TEST = "https://demoemisionv2.thefactoryhka.com.ve"
+DEFAULT_BASE_URL = TFHKA_API_URL_TEST
 DEFAULT_TIMEOUT = 30
 ICP_BASE_URL = "l10n_ve_edi_tfhka.base_url"
+ICP_API_ENVIRONMENT = "l10n_ve_edi_tfhka.api_environment"
+ICP_PRODUCTION_URL = "l10n_ve_edi_tfhka.production_url"
 ICP_TIMEOUT = "l10n_ve_edi_tfhka.timeout"
 
 HEADER_CONTENT_TYPE = "Content-Type"
@@ -234,11 +237,14 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
         )
 
     @api.model
-    def _raise_for_api_code(self, data, url=None):
+    def _raise_for_api_code(self, data, url=None, extra_success_codes=None):
         code = self._normalize_api_code(data)
         if code is None:
             return
-        if code in API_SUCCESS_CODES:
+        allowed = set(API_SUCCESS_CODES)
+        if extra_success_codes:
+            allowed |= set(extra_success_codes)
+        if code in allowed:
             return
         detail = self._extract_error_message(data)
         if code == 99 and detail:
@@ -269,7 +275,7 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
         raise UserError(body)
 
     @api.model
-    def _request(self, method, path, payload=None, token=None, timeout=None):
+    def _request(self, method, path, payload=None, token=None, timeout=None, extra_success_codes=None):
         url = f"{self._base_url()}{path}"
         request_timeout = timeout or self._timeout()
         body = payload or {}
@@ -292,7 +298,7 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
             data = {KEY_RAW: response.text}
 
         self._raise_for_http_status(response, data, url=url)
-        self._raise_for_api_code(data, url=url)
+        self._raise_for_api_code(data, url=url, extra_success_codes=extra_success_codes)
         return data
 
     @api.model
@@ -379,9 +385,14 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
         )
 
     @api.model
-    def issue_document(self, payload, token, timeout=None):
+    def issue_document(self, payload, token, timeout=None, extra_success_codes=None):
         return self._request(
-            METHOD_POST, PATH_EMISION, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_EMISION,
+            payload=payload,
+            token=token,
+            timeout=timeout,
+            extra_success_codes=extra_success_codes,
         )
 
     @api.model

@@ -182,3 +182,34 @@
 #total .l10n_ve_totals_single tr.o_total span {
     font-size: 11px !important;
 }
+
+#total .tax-totals-table td {
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+    line-height: 1.15 !important;
+}
+
+#total .tax-totals-table tr:first-child td {
+    padding-bottom: 2px !important;
+}
+
+.l10n_ve_invoice_lines th,
+.l10n_ve_invoice_lines td {
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+    padding-left: 0.45rem !important;
+    padding-right: 0.45rem !important;
+    line-height: 1.15 !important;
+}
+
+.l10n_ve_invoice_lines thead th {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
+
+.invoice_main .tax-totals-table td,
+.invoice_main .overflow-hidden .table-borderless.mb-0 td {
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+    line-height: 1.15 !important;
+}

@@ -10,6 +10,8 @@ from decimal import ROUND_HALF_UP, Decimal
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from odoo.addons.l10n_ve_edi.models.edi_mixin import STATE_SENT
+
 _logger = logging.getLogger(__name__)
 
 
@@ -309,6 +311,9 @@ class AccountMove(models.Model):
         vendedor = self._tfhka_build_vendedor()
         if vendedor:
             encabezado["vendedor"] = vendedor
+        factura_guia = self._tfhka_build_factura_guia()
+        if factura_guia:
+            encabezado["facturaGuia"] = factura_guia
         totales_otra = self._tfhka_build_totales_otra_moneda(totals_payload)
         if totales_otra:
             encabezado["totalesOtraMoneda"] = totales_otra
@@ -373,63 +378,12 @@ class AccountMove(models.Model):
         raw = (journal.l10n_ve_edi_tfhka_sucursal or "").strip()
         return re.sub(r"[^0-9A-Za-z]", "", raw)[:6]
 
-    def _tfhka_normalize_name_to_numero_documento(self, name, fallback_id=0):
-        name = (name or "").strip()
-        name = re.sub(r"^[^\d]*", "", name)
-        cleaned = re.sub(r"[^\d\-]", "", name)
-        if not cleaned:
-            cleaned = str(fallback_id or "")
-        if cleaned.count("-") > 1:
-            cleaned = re.sub(r"\D", "", cleaned)
-        if "-" in cleaned:
-            left, _, right = cleaned.partition("-")
-            left_digits = re.sub(r"\D", "", left)[:19]
-            right_digits = re.sub(r"\D", "", right)[:19]
-            if right_digits:
-                out = f"{left_digits}-{right_digits}"
-            else:
-                out = left_digits
-        else:
-            out = re.sub(r"\D", "", cleaned)[:19]
-        return out[:20] if len(out) > 20 else out
-
     def _tfhka_secuencia_for_numero_documento(self):
         self.ensure_one()
-        name = (self.name or "").strip()
         ref_date = self.invoice_date or self.date
-        fallback_year = ref_date.year if ref_date else fields.Date.context_today(self).year
-
-        year = None
-        seq_int = None
-        parts = [p.strip() for p in name.split("/") if p.strip()]
-        if len(parts) >= 2:
-            mid = parts[-2]
-            last = parts[-1]
-            if re.fullmatch(r"\d{4}", mid):
-                year = int(mid)
-                seq_int = int(re.sub(r"\D", "", last) or 0)
-
-        if year is None or seq_int is None:
-            normalized = self._tfhka_normalize_name_to_numero_documento(name, self.id)
-            digits_all = re.sub(r"\D", "", normalized)
-            if not digits_all:
-                digits_all = str(self.id or 0)
-            if len(digits_all) >= 5 and digits_all[:4].isdigit():
-                y = int(digits_all[:4])
-                if 2000 <= y <= 2099:
-                    year = y
-                    rest = digits_all[4:]
-                    seq_int = int(rest) if rest else 0
-            if year is None:
-                year = fallback_year
-            if seq_int is None:
-                seq_int = int(digits_all) if digits_all.isdigit() else (self.id or 0)
-
-        if seq_int == 0:
-            seq_int = self.id or 0
-
-        seq_fmt = f"{int(seq_int):06d}"
-        return f"{year}{seq_fmt}"
+        return self.env["l10n_ve.edi.tfhka.document.mixin"]._tfhka_build_secuencia_yyyy_mm_seq(
+            ref_date, self.name, self.id
+        )
 
     def _tfhka_get_document_number(self):
         self.ensure_one()
@@ -1244,6 +1198,54 @@ class AccountMove(models.Model):
             return None
         return {"nombre": seller_name, "codigo": "", "numCajero": ""}
 
+    def _tfhka_get_dispatch_pickings_for_factura_guia(self):
+        self.ensure_one()
+        pickings = self.picking_ids
+        if not pickings and self.invoice_origin:
+            sale = self.env["sale.order"].search(
+                [
+                    ("name", "=", self.invoice_origin),
+                    ("company_id", "=", self.company_id.id),
+                ],
+                limit=1,
+            )
+            if sale:
+                pickings = sale.picking_ids
+        return pickings.filtered(
+            lambda picking: picking.state == "done"
+            and picking._l10n_ve_is_ve_outgoing_dispatch_guide_picking()
+            and picking._l10n_ve_edi_dispatch_guide_qualifies_for_factura_guia()
+            and picking.sale_id
+            and picking.sale_id.journal_id == self.journal_id
+        ).sorted("id")
+
+    def _tfhka_build_factura_guia(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return None
+        rows = []
+        for picking in self._tfhka_get_dispatch_pickings_for_factura_guia()[:5]:
+            if hasattr(picking, "_tfhka_get_document_number_for_reference"):
+                numero = picking._tfhka_get_document_number_for_reference()
+                serie = picking._tfhka_get_serie() if hasattr(picking, "_tfhka_get_serie") else ""
+            elif hasattr(picking, "_tfhka_get_document_number"):
+                numero = picking._tfhka_get_document_number()
+                serie = picking._tfhka_get_serie() or ""
+            else:
+                serie = ""
+                numero = re.sub(r"\D", "", picking.name or str(picking.id or ""))
+            numero = (numero or "").strip()
+            if not numero:
+                continue
+            rows.append(
+                {
+                    "tipoDocumento": "04",
+                    "serie": re.sub(r"[^0-9A-Za-z]", "", serie)[:20],
+                    "numeroDocumento": numero[:19],
+                }
+            )
+        return rows or None
+
     def _tfhka_build_comprador(self):
         buyer = self._l10n_ve_edi_get_buyer_partner()
         buyer_prefix, buyer_number = self._l10n_ve_edi_get_buyer_identification()
@@ -1981,13 +1983,82 @@ class AccountMove(models.Model):
             if "TFHKA codigo 201" in msg or (
                 "TFHKA codigo 203" in msg and "MontoTotalIVAyOTI" in msg
             ):
-                fallback = self._tfhka_fetch_existing_document_data(client, token, prepared)
+                try:
+                    fallback = self._tfhka_fetch_existing_document_data(
+                        client, token, prepared
+                    )
+                except UserError as fetch_exc:
+                    return {"success": False, "error": str(fetch_exc)}
                 if fallback:
                     return {"success": True, "response": fallback}
             return {"success": False, "error": str(exc)}
         except Exception as exc:
             self._tfhka_log_emision_failure_analysis(payload, prepared, str(exc))
             return {"success": False, "error": str(exc)}
+
+    def _tfhka_normalize_numero_documento_digits(self, value):
+        return re.sub(r"\D", "", value or "")
+
+    def _tfhka_document_status_matches_invoice(self, prepared_payload, status_response):
+        if not isinstance(status_response, dict):
+            return False
+        estado = status_response.get("estado")
+        if not isinstance(estado, dict):
+            return False
+        ident = (
+            (prepared_payload or {})
+            .get("documentoElectronico", {})
+            .get("encabezado", {})
+            .get("identificacionDocumento", {})
+        )
+        payload_fecha = (ident.get("fechaEmision") or "").strip()
+        tfhka_fecha = (
+            estado.get("fechaAsignacion")
+            or estado.get("fechaAsignacionNumeroControl")
+            or ""
+        ).strip()
+        if payload_fecha and tfhka_fecha and payload_fecha != tfhka_fecha:
+            return False
+        payload_num = self._tfhka_normalize_numero_documento_digits(
+            ident.get("numeroDocumento")
+        )
+        tfhka_num = self._tfhka_normalize_numero_documento_digits(
+            estado.get("numeroDocumento")
+        )
+        if payload_num and tfhka_num and payload_num != tfhka_num:
+            payload_tail = payload_num.lstrip("0")
+            tfhka_tail = tfhka_num.lstrip("0")
+            if payload_tail != tfhka_tail and not (
+                payload_tail.endswith(tfhka_tail) or tfhka_tail.endswith(payload_tail)
+            ):
+                return False
+        return True
+
+    def _tfhka_raise_duplicate_document_collision(self, prepared_payload, status_response):
+        self.ensure_one()
+        ident = (
+            (prepared_payload or {})
+            .get("documentoElectronico", {})
+            .get("encabezado", {})
+            .get("identificacionDocumento", {})
+        )
+        estado = (status_response or {}).get("estado") or {}
+        numero = ident.get("numeroDocumento") or self._tfhka_get_document_number()
+        raise UserError(
+            _(
+                "TFHKA indica documento duplicado: el numeroDocumento %(num)s ya "
+                "existe (numero de control %(ctrl)s, asignado el %(tfhka_fecha)s), "
+                "pero ese registro no corresponde a esta factura "
+                "(fecha de emision %(inv_fecha)s). Avance la secuencia del diario "
+                "a un correlativo cuyo numeroDocumento aun no este registrado en TFHKA."
+            )
+            % {
+                "num": numero,
+                "ctrl": self._tfhka_extract_numero_control(status_response) or "?",
+                "tfhka_fecha": estado.get("fechaAsignacion") or "?",
+                "inv_fecha": ident.get("fechaEmision") or "?",
+            }
+        )
 
     def _tfhka_fetch_existing_document_data(self, client, token, prepared_payload):
         self.ensure_one()
@@ -2027,14 +2098,23 @@ class AccountMove(models.Model):
                 },
             ),
         ]
-        for call, query in consultas:
+        collision_response = False
+        for idx, (call, query) in enumerate(consultas):
             try:
                 resp = call(query, token)
             except Exception:
                 continue
             control = self._tfhka_extract_numero_control(resp)
-            if control:
+            if not control:
+                continue
+            if self._tfhka_document_status_matches_invoice(prepared_payload, resp):
                 return resp
+            if idx == 0:
+                collision_response = resp
+        if collision_response:
+            self._tfhka_raise_duplicate_document_collision(
+                prepared_payload, collision_response
+            )
         return {}
 
     def _l10n_ve_edi_tfhka_replace_invoice_report_with_digital_pdf(self):
@@ -2077,6 +2157,43 @@ class AccountMove(models.Model):
             return True
         return self._l10n_ve_edi_tfhka_try_attach_official_pdf()
 
+    def _tfhka_refresh_invoice_payload_factura_guia_before_send(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return
+        attachment = self.l10n_ve_edi_payload_attachment_id
+        if not attachment or not attachment.datas:
+            return
+        try:
+            payload = json.loads(base64.b64decode(attachment.datas).decode("utf-8"))
+        except (json.JSONDecodeError, TypeError, ValueError, binascii.Error):
+            return
+        factura_guia = self._tfhka_build_factura_guia()
+        if not factura_guia:
+            return
+        encabezado = payload.setdefault("documentoElectronico", {}).setdefault(
+            "encabezado", {}
+        )
+        if encabezado.get("facturaGuia") == factura_guia:
+            return
+        encabezado["facturaGuia"] = factura_guia
+        new_attachment = self._l10n_ve_edi_create_payload_attachment(payload)
+        self.write({"l10n_ve_edi_payload_attachment_id": new_attachment.id})
+
+    def _run_job(self):
+        self.ensure_one()
+        if self.journal_id.l10n_ve_edi_provider == "tfhka":
+            self._tfhka_refresh_invoice_payload_factura_guia_before_send()
+        result = super()._run_job()
+        if (
+            result
+            and self.move_type == "out_invoice"
+            and self.journal_id.l10n_ve_edi_provider == "tfhka"
+            and self.l10n_ve_edi_send_state == STATE_SENT
+        ):
+            self._l10n_ve_edi_tfhka_sync_dispatch_guides_with_invoice()
+        return result
+
     def _l10n_ve_edi_on_dispatch_success(self, response):
         super()._l10n_ve_edi_on_dispatch_success(response)
         self.ensure_one()
@@ -2090,9 +2207,29 @@ class AccountMove(models.Model):
             self.write(vals)
         self._l10n_ve_edi_tfhka_try_attach_official_pdf()
 
+    def _l10n_ve_edi_tfhka_sync_dispatch_guides_with_invoice(self):
+        self.ensure_one()
+        if (
+            self.move_type != "out_invoice"
+            or self.state != "posted"
+            or self.journal_id.l10n_ve_edi_provider != "tfhka"
+            or self.l10n_ve_edi_send_state != "sent"
+        ):
+            return
+        pickings = self._tfhka_get_dispatch_pickings_for_factura_guia().filtered(
+            lambda picking: picking.l10n_ve_edi_send_state == "sent"
+        )
+        for picking in pickings:
+            picking._l10n_ve_edi_tfhka_resend_with_invoice_links(self)
+
     def _tfhka_extract_numero_control(self, response):
         if not isinstance(response, dict):
             return ""
+        estado = response.get("estado")
+        if isinstance(estado, dict):
+            num = estado.get("numeroControl") or estado.get("numero_control")
+            if num:
+                return str(num).strip()
         resultado = response.get("resultado")
         if isinstance(resultado, dict):
             num = resultado.get("numeroControl") or resultado.get("numero_control")
