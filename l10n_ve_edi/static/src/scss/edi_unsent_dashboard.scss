@@ -1,0 +1,10 @@
+.o_l10n_ve_edi_unsent_dashboard {
+    .o_l10n_ve_edi_unsent_dashboard_title {
+        display: block;
+    }
+
+    .btn:hover,
+    .btn:focus {
+        background-color: var(--o-view-background-color, #{$o-view-background-color});
+    }
+}
