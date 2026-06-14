@@ -13,6 +13,20 @@ class AccountJournal(models.Model):
         return [STATE_NOT_SENT, STATE_FAILED]
 
     @api.model
+    def _l10n_ve_edi_digital_edi_available(self, companies):
+        return bool(
+            self.search_count(
+                [
+                    ("company_id", "in", companies.ids),
+                    ("type", "=", "sale"),
+                    ("l10n_ve_emission_medium", "=", "digital"),
+                    ("l10n_ve_edi_provider", "!=", False),
+                    ("l10n_ve_edi_provider", "!=", "none"),
+                ]
+            )
+        )
+
+    @api.model
     def _l10n_ve_edi_unsent_invoices(self, companies):
         invoices = self.env["account.move"].search(
             [
@@ -20,6 +34,7 @@ class AccountJournal(models.Model):
                 ("state", "=", "posted"),
                 ("move_type", "in", ("out_invoice", "out_refund")),
                 ("l10n_ve_edi_send_state", "in", self._l10n_ve_edi_unsent_send_states()),
+                ("journal_id.l10n_ve_emission_medium", "=", "digital"),
                 ("journal_id.l10n_ve_edi_provider", "!=", False),
                 ("journal_id.l10n_ve_edi_provider", "!=", "none"),
             ]
@@ -56,7 +71,7 @@ class AccountJournal(models.Model):
     @api.model
     def get_l10n_ve_edi_unsent_dashboard(self):
         ve_companies = self._l10n_ve_seniat_ve_companies()
-        if not ve_companies:
+        if not ve_companies or not self._l10n_ve_edi_digital_edi_available(ve_companies):
             return {"visible": False, "title": "", "items": []}
 
         invoices = self._l10n_ve_edi_unsent_invoices(ve_companies)
