@@ -58,7 +58,8 @@ class AccountRetention(models.Model):
             return False
         if self.type_retention not in ("iva", "islr"):
             return False
-        return bool(self._l10n_ve_edi_get_digital_emission_journal())
+        journal = self._l10n_ve_edi_get_edi_journal()
+        return bool(journal.l10n_ve_edi_provider and journal.l10n_ve_edi_provider != "none")
 
     def _l10n_ve_edi_get_retention_edi_provider(self):
         self.ensure_one()
@@ -82,7 +83,12 @@ class AccountRetention(models.Model):
         string="Show EDI Tab",
     )
 
-    @api.depends("type", "type_retention", "company_id")
+    @api.depends(
+        "type",
+        "type_retention",
+        "company_id.iva_supplier_retention_journal_id.l10n_ve_edi_provider",
+        "company_id.islr_supplier_retention_journal_id.l10n_ve_edi_provider",
+    )
     def _compute_l10n_ve_edi_show_tab(self):
         for retention in self:
             retention.l10n_ve_edi_show_tab = retention._l10n_ve_edi_retention_uses_digital()
