@@ -163,7 +163,10 @@ class AccountMove(models.Model):
             % {"code": provider}
         )
 
-    def _l10n_ve_edi_enqueue_send(self, reuse_payload=False):
+    def _l10n_ve_edi_send_uses_queue_job(self):
+        return False
+
+    def _l10n_ve_edi_prepare_send(self, reuse_payload=False):
         self.ensure_one()
         attachment = self.l10n_ve_edi_payload_attachment_id if reuse_payload else False
         if not attachment:
@@ -177,11 +180,16 @@ class AccountMove(models.Model):
                 "l10n_ve_edi_response_json": False,
             }
         )
-        self.message_post(body="Solicitud de envio a Facturacion Digital encolada.")
-        self.with_delay(
-            description=f"EDI VE send invoice {self.name or self.id}",
-            channel="root",
-        )._job_l10n_ve_edi_send_invoice(self.id)
+        return attachment
+
+    def _l10n_ve_edi_schedule_send(self):
+        self.ensure_one()
+        self._run_job()
+
+    def _l10n_ve_edi_enqueue_send(self, reuse_payload=False):
+        self.ensure_one()
+        self._l10n_ve_edi_prepare_send(reuse_payload=reuse_payload)
+        self._l10n_ve_edi_schedule_send()
 
     def action_l10n_ve_edi_send(self):
         for move in self:
