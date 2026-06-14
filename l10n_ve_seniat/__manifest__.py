@@ -22,7 +22,6 @@
         "data/res.country.state.csv",
         "data/res.country.municipality.csv",
         "data/res.country.parish.csv",
-        "data/ir_sequence_data.xml",
         "data/report_paperformat_data.xml",
         "data/mail_template_unfactured_dispatch_guides.xml",
         "data/ir_cron_unfactured_dispatch_guides.xml",
