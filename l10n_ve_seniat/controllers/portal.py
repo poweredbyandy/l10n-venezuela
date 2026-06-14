@@ -29,7 +29,19 @@ class PortalAccountL10nVeSeniat(PortalAccount):
             return request.redirect("/my")
         if invoice_sudo.state != "posted":
             return request.redirect("/my")
-        if invoice_sudo.country_code == "VE" and not invoice_sudo.l10n_ve_invoice_original_printed:
+        if (
+            invoice_sudo.country_code == "VE"
+            and invoice_sudo.move_type in ("out_invoice", "out_refund")
+            and not invoice_sudo._l10n_ve_allows_invoice_portal_view()
+        ):
+            return request.redirect("/my")
+        if (
+            download
+            and report_type == "pdf"
+            and invoice_sudo.country_code == "VE"
+            and invoice_sudo.move_type in ("out_invoice", "out_refund")
+            and not invoice_sudo._l10n_ve_allows_invoice_pdf_download()
+        ):
             return request.redirect("/my")
         return super().portal_my_invoice_detail(
             invoice_id,

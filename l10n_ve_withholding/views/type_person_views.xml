@@ -4,7 +4,8 @@
         <field name="name">type.person.list</field>
         <field name="model">type.person</field>
         <field name="arch" type="xml">
-            <list editable="bottom">
+            <list editable="bottom" default_order="sequence, id">
+                <field name="sequence" widget="handle" />
                 <field name="name" required="1" />
                 <field name="state" />
             </list>

@@ -1,5 +1,12 @@
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+
+from .client import (
+    ICP_API_ENVIRONMENT,
+    ICP_BASE_URL,
+    ICP_PRODUCTION_URL,
+    TFHKA_API_URL_TEST,
+)
 
 
 class ResConfigSettings(models.TransientModel):
@@ -171,6 +178,26 @@ class ResConfigSettings(models.TransientModel):
         }
     }
 
+    tfhka_api_environment = fields.Selection(
+        [
+            ("test", "Pruebas"),
+            ("production", "Producción"),
+        ],
+        string="Ambiente HKA",
+        default="test",
+        config_parameter=ICP_API_ENVIRONMENT,
+    )
+    tfhka_base_url = fields.Char(
+        string="URL API HKA",
+        compute="_compute_tfhka_base_url",
+        inverse="_inverse_tfhka_base_url",
+        readonly=False,
+    )
+    tfhka_production_url = fields.Char(
+        string="URL producción HKA",
+        config_parameter=ICP_PRODUCTION_URL,
+        help="URL del ambiente de producción de The Factory HKA.",
+    )
     tfhka_username = fields.Char(
         string="TFHKA Username",
         config_parameter="l10n_ve_edi_tfhka.username",
@@ -179,6 +206,41 @@ class ResConfigSettings(models.TransientModel):
         string="TFHKA Password",
         config_parameter="l10n_ve_edi_tfhka.password",
     )
+
+    @api.depends("tfhka_api_environment", "tfhka_production_url")
+    def _compute_tfhka_base_url(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        configured_url = icp.get_param(ICP_BASE_URL, default=TFHKA_API_URL_TEST)
+        for settings in self:
+            if settings.tfhka_api_environment == "production":
+                production_url = (settings.tfhka_production_url or "").strip().rstrip("/")
+                settings.tfhka_base_url = production_url or configured_url
+            else:
+                settings.tfhka_base_url = TFHKA_API_URL_TEST
+
+    def _inverse_tfhka_base_url(self):
+        for settings in self:
+            url = (settings.tfhka_base_url or "").strip().rstrip("/")
+            if not url:
+                continue
+            if settings.tfhka_api_environment == "production":
+                settings.tfhka_production_url = url
+
+    def set_values(self):
+        super().set_values()
+        icp = self.env["ir.config_parameter"].sudo()
+        if self.tfhka_api_environment == "production":
+            production_url = (self.tfhka_production_url or "").strip().rstrip("/")
+            if not production_url:
+                raise UserError(
+                    _(
+                        "Indique la URL de producción de The Factory HKA o seleccione "
+                        "el ambiente Pruebas."
+                    )
+                )
+            icp.set_param(ICP_BASE_URL, production_url)
+        else:
+            icp.set_param(ICP_BASE_URL, TFHKA_API_URL_TEST)
 
     def action_test_tfhka_connection(self):
         self.ensure_one()

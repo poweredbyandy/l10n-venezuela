@@ -1,0 +1,130 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_vat_seniat
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:58+0000\n"
+"PO-Revision-Date: 2026-06-14 02:06+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_vat_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_vat_seniat.view_partner_form_l10n_ve_vat_seniat
+msgid "Abrir consulta RIF en el SENIAT (nueva pestaña)"
+msgstr "Abrir consulta RIF en el SENIAT (nueva pestaña)"
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "Consulta no completada: %s"
+msgstr "Consulta no completada: %s"
+
+#. module: l10n_ve_vat_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_vat_seniat.view_partner_form_l10n_ve_vat_seniat
+msgid "Consultar RIF en el SENIAT"
+msgstr "Consultar RIF en el SENIAT"
+
+#. module: l10n_ve_vat_seniat
+#: model:ir.model,name:l10n_ve_vat_seniat.model_res_partner
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid ""
+"El RIF no tiene un formato reconocible para la consulta SENIAT (se espera "
+"letra J, G, P, V o E seguida de dígitos)."
+msgstr ""
+"El RIF no tiene un formato reconocible para la consulta SENIAT (se espera "
+"letra J, G, P, V o E seguida de dígitos)."
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "El enlace al SENIAT solo aplica a contactos de Venezuela."
+msgstr "El enlace al SENIAT solo aplica a contactos de Venezuela."
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "Indique el NIF/RIF en el contacto antes de consultar."
+msgstr "Indique el NIF/RIF en el contacto antes de consultar."
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "La consulta automática SENIAT solo aplica a contactos de Venezuela."
+msgstr "La consulta automática SENIAT solo aplica a contactos de Venezuela."
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "La respuesta del SENIAT no se pudo interpretar (formato inesperado)."
+msgstr "La respuesta del SENIAT no se pudo interpretar (formato inesperado)."
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "No determinado"
+msgstr "No determinado"
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "No existe el contribuyente solicitado para el RIF indicado."
+msgstr "No existe el contribuyente solicitado para el RIF indicado."
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "No se pudo contactar el portal del SENIAT: %s"
+msgstr "No se pudo contactar el portal del SENIAT: %s"
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid ""
+"No se pudo validar el captcha tras varios intentos. Compruebe que Tesseract "
+"esté instalado y que el servicio del SENIAT responda."
+msgstr ""
+"No se pudo validar el captcha tras varios intentos. Compruebe que Tesseract "
+"esté instalado y que el servicio del SENIAT responda."
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "Nombre: %s"
+msgstr "Nombre: %s"
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "SENIAT"
+msgstr "SENIAT"
+
+#. module: l10n_ve_vat_seniat
+#: model:ir.model.fields,field_description:l10n_ve_vat_seniat.field_res_partner__taxpayer_type
+#: model:ir.model.fields,field_description:l10n_ve_vat_seniat.field_res_users__taxpayer_type
+msgid "Taxpayer Type"
+msgstr "Tipo de contribuyente"
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "Tipo de contribuyente: %s"
+msgstr "Tipo de contribuyente: %s"
+
+#. module: l10n_ve_vat_seniat
+#. odoo-python
+#: code:addons/l10n_ve_vat_seniat/models/res_partner.py:0
+msgid "Tipo de retención: %s"
+msgstr "Tipo de retención: %s"

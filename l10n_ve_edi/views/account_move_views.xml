@@ -54,4 +54,26 @@
             </xpath>
         </field>
     </record>
+
+    <record id="view_move_form_l10n_ve_edi_vendor_fiscal" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.ve.edi.vendor.fiscal</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_ve_seniat.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_ve_control_number'][1]" position="after">
+                <label
+                    for="l10n_ve_invoice_number"
+                    string="N° Factura proveedor"
+                    invisible="move_type not in ('in_invoice', 'in_refund') or country_code != 'VE'"
+                />
+                <field
+                    name="l10n_ve_invoice_number"
+                    nolabel="1"
+                    placeholder="Numero impreso en la factura del proveedor"
+                    invisible="move_type not in ('in_invoice', 'in_refund') or country_code != 'VE'"
+                    readonly="state == 'cancel'"
+                />
+            </xpath>
+        </field>
+    </record>
 </odoo>

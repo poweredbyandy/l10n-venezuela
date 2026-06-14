@@ -202,37 +202,68 @@ class AccountRetentionLine(models.Model):
 
     @api.onchange(
         "invoice_amount",
+        "iva_amount",
+        "aliquot",
         "related_percentage_tax_base",
         "related_percentage_fees",
         "related_amount_subtract_fees",
+        "payment_concept_id",
     )
     @api.depends(
         "invoice_amount",
+        "iva_amount",
+        "aliquot",
         "related_percentage_tax_base",
         "related_percentage_fees",
         "related_amount_subtract_fees",
+        "payment_concept_id",
+        "economic_activity_id",
         "move_id",
+        "retention_id.type",
+        "retention_id.type_retention",
     )
     def _compute_retention_amount(self):
-        """
-        This compute is used to get the retention amount from the payment
-        concept of the partner to generate the ISLR retention line.
-        """
+        for record in self:
+            retention = record.retention_id
+            type_retention = retention.type_retention if retention else False
+            retention_type = retention.type if retention else False
 
-        islr_supplier_retention_lines = self.filtered(
-            lambda line: (not line.retention_id and line.payment_concept_id)
-            or (
-                line.retention_id.type_retention == "islr"
-                and line.retention_id.type == "in_invoice"
-            )
-        )
-        for record in islr_supplier_retention_lines:
-            calculated = (
-                record.invoice_amount
-                * (record.related_percentage_tax_base / 100)
-                * (record.related_percentage_fees / 100)
-            ) - record.related_amount_subtract_fees
-            record.retention_amount = max(0.0, calculated)
+            if not type_retention:
+                if record.payment_concept_id:
+                    type_retention = "islr"
+                elif record.economic_activity_id:
+                    type_retention = "municipal"
+
+            if type_retention == "iva" and retention_type == "out_invoice":
+                record.retention_amount = record.retention_amount or 0.0
+                continue
+
+            if type_retention == "islr" and (
+                retention_type == "in_invoice"
+                or (not retention and record.payment_concept_id)
+            ):
+                calculated = (
+                    record.invoice_amount
+                    * (record.related_percentage_tax_base / 100)
+                    * (record.related_percentage_fees / 100)
+                ) - record.related_amount_subtract_fees
+                record.retention_amount = max(0.0, calculated)
+                continue
+
+            if type_retention == "iva" and retention_type == "in_invoice":
+                record.retention_amount = record.iva_amount * (
+                    record.related_percentage_tax_base / 100
+                )
+                continue
+
+            if type_retention == "municipal" and (
+                retention_type == "in_invoice"
+                or (not retention and record.economic_activity_id)
+            ):
+                record.retention_amount = record.invoice_amount * record.aliquot / 100
+                continue
+
+            record.retention_amount = record.retention_amount or 0.0
 
     @api.onchange("economic_activity_id", "move_id")
     def onchange_economic_activity_id(self):

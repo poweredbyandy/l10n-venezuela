@@ -13,6 +13,7 @@ class AccountDebitNote(models.TransientModel):
     )
     l10n_ve_fiscal_country_code = fields.Char(
         related="company_id.account_fiscal_country_id.code",
+        string="Fiscal Country Code",
     )
 
     @api.depends("move_ids", "move_ids.company_id")
@@ -87,3 +88,7 @@ class AccountDebitNote(models.TransientModel):
                         )
                     )
         return super().write(vals)
+
+    def create_debit(self):
+        self.move_ids._l10n_ve_check_credit_debit_allowed()
+        return super().create_debit()

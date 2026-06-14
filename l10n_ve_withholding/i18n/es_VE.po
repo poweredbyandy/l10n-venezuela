@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 03:26+0000\n"
-"PO-Revision-Date: 2026-03-24 03:26+0000\n"
+"POT-Creation-Date: 2026-06-14 01:53+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es_VE\n"
@@ -30,6 +30,16 @@ msgid ""
 "                        Gravadas con el Impuesto Establecido en este Decreto con Rango,\n"
 "                        Valor y Fuerza de Ley."
 msgstr ""
+"\"Decreto con Rango, Valor y Fuerza de Ley de Reforma de la Ley del Impuesto\n"
+"                        al Valor agregado\n"
+"                        Nro 1.436 del 17 de Noviembre del 2014\"\n"
+"                        Articulo 11: La Administracion Tributaria podra Designar como Responsable\n"
+"                        del Pago del\n"
+"                        Impuesto, en calidad de Agentes de Retencion a quienes por sus\n"
+"                        Funciones Publicas o por Razón de sus Actividades Privadas intervengan en\n"
+"                        operaciones\n"
+"                        Gravadas con el Impuesto Establecido en este Decreto con Rango,\n"
+"                        Valor y Fuerza de Ley."
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__related_percentage_fees
@@ -47,9 +57,103 @@ msgid "(object.number)"
 msgstr "(object.number)"
 
 #. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"- Linea '%(name)s' | cuenta=%(account)s | tipo=%(type)s | "
+"balance=%(balance)s | reconciled=%(reconciled)s"
+msgstr ""
+"- Linea '%(name)s' | cuenta=%(account)s | tipo=%(type)s | saldo=%(balance)s "
+"| reconciled=%(reconciled)s"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid "- Sin lineas."
+msgstr "- Sin lineas."
+
+#. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_iva_customer
 msgid "/ Mes:"
 msgstr "/ Mes:"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid "1) Diario IVA: el diario '%(journal)s' debe ser de tipo Banco o Caja."
+msgstr "1) Diario IVA: el diario '%(journal)s' debe ser de tipo Banco o Caja."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"1) Diario IVA: el diario '%(journal)s' no tiene cuentas configuradas (cuenta"
+" por defecto o cuenta transitoria)."
+msgstr ""
+"1) Diario IVA: el diario '%(journal)s' no tiene cuentas configuradas (cuenta"
+" por defecto o cuenta transitoria)."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"1) Diario IVA: no hay diario de retencion IVA configurado para este tipo."
+msgstr ""
+"1) Diario IVA: no hay diario de retención IVA configurado para este tipo."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"2) Facturas: deben estar publicadas. Facturas no publicadas: %(invoices)s"
+msgstr ""
+"2) Facturas: deben estar publicadas. Facturas no publicadas: %(invoices)s"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"2) Facturas: deben tener impuestos > 0. Facturas sin impuestos validos: "
+"%(invoices)s"
+msgstr ""
+"2) Facturas: deben tener impuestos > 0. Facturas sin impuestos validos: "
+"%(invoices)s"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"2) Facturas: deben tener saldo pendiente > 0. Facturas sin saldo pendiente: "
+"%(invoices)s"
+msgstr ""
+"2) Facturas: deben tener saldo pendiente > 0. Facturas sin saldo pendiente: "
+"%(invoices)s"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid "2) Facturas: la retencion no tiene lineas con facturas asociadas."
+msgstr "2) Facturas: la retención no tiene líneas con facturas asociadas."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"3) Facturas: ya tienen una retencion IVA activa (draft/emitted). Facturas "
+"afectadas: %(invoices)s"
+msgstr ""
+"3) Facturas: ya tienen una retencion IVA activa (borrador/emitted). Facturas"
+" afectadas: %(invoices)s"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"4) Partner: el proveedor '%(partner)s' no tiene tipo de retencion "
+"(withholding_type_id)."
+msgstr ""
+"4) Socio: el proveedor '%(partner)s' no tiene tipo de retención "
+"(withholding_type_id)."
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
@@ -109,6 +213,8 @@ msgid ""
 "<span>Art. 24 del Drecreto 1808 Según G.O Nro 36.203 de fecha de mayo de\n"
 "                            1997</span>"
 msgstr ""
+"<span>Art. 24 del Drecreto 1808 Según G.O Nro 36.203 de fecha de mayo de\n"
+"                            1997</span>"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_iva_customer
@@ -276,9 +382,19 @@ msgid "ARCV Voucher"
 msgstr "Comprobante ARCV"
 
 #. module: l10n_ve_withholding
+#: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.account_move_form_l10n_ve_withholding
+msgid "Abrir retención de ISLR"
+msgstr "Abrir retención de ISLR"
+
+#. module: l10n_ve_withholding
+#: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.account_move_form_l10n_ve_withholding
+msgid "Abrir retención de IVA"
+msgstr "Abrir retención de IVA"
+
+#. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_account_chart_template
 msgid "Account Chart Template"
-msgstr "Plantilla de plan de cuentas"
+msgstr "Plantilla del plan de cuentas"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__date_accounting
@@ -302,8 +418,7 @@ msgstr "Tarifa Acumulada"
 msgid "Action Needed"
 msgstr "Se necesita acción"
 
-#. modules: l10n_ve_seniat, l10n_ve_withholding
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__active
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__state
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__active
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__status
@@ -341,7 +456,7 @@ msgstr "Estado"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "Icono de Tipo de Actividad"
+msgstr "Icono del tipo de actividad"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_iva_customer
@@ -354,13 +469,7 @@ msgstr "Agente de Retención"
 msgid "Aliquot"
 msgstr "Alícuota"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#. odoo-javascript
-#. odoo-python
-#: code:addons/l10n_ve_reports/models/account_report.py:0
-#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_fiscal_position.xml:0
-#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
-#: code:addons/l10n_ve_reports/static/src/components/sales_report/filters/filters.js:0
+#. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_payment_concept_line_search_l10n_ve_withholding
 msgid "All"
 msgstr "Todos"
@@ -418,7 +527,7 @@ msgstr "Concepto de pago asociado"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__message_attachment_count
 msgid "Attachment Count"
-msgstr ""
+msgstr "Adjunto Conteo"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -429,12 +538,12 @@ msgstr "Agosto"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_iva_customer
 msgid "Año :"
-msgstr ""
+msgstr "Año :"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Base de Retención"
-msgstr ""
+msgstr "Base de Retención"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_iva_search_l10n_ve_withholding
@@ -443,30 +552,29 @@ msgid "Business Name"
 msgstr "Razón Social"
 
 #. module: l10n_ve_withholding
+#: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_configuration_basic
+msgid "Básico"
+msgstr "Básico"
+
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_move_line__ciu_id
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_product_category__ciu_id
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_product_product__ciu_ids
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_product_template__ciu_ids
 msgid "CIU"
-msgstr ""
+msgstr "CIU"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "COMPROBANTE DE RETENCIÓN DE ISLR"
-msgstr ""
+msgstr "COMPROBANTE DE RETENCIÓN DE ISLR"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_iva_customer
 msgid "COMPROBANTE DE RETENCIÓN DEL IMPUESTO AL VALOR AGREGADO"
-msgstr ""
+msgstr "COMPROBANTE DE RETENCIÓN DEL IMPUESTO AL VALOR AGREGADO"
 
-#. modules: l10n_ve_igtf, l10n_ve_reports, l10n_ve_seniat, l10n_ve_withholding
-#. odoo-javascript
-#: code:addons/l10n_ve_reports/static/src/components/redirectAction/redirectAction.xml:0
-#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_l10n_ve_igtf_unreconcile_payment_wizard
-#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_send_form
-#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_report_export_wizard
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+#. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.arcv_report_form_view
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.library_rent_wizard_form
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_islr_form_l10n_ve_withholding
@@ -478,7 +586,7 @@ msgstr "Cancelar"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_retention__state__cancel
 msgid "Cancelled"
-msgstr "Anulado"
+msgstr "Cancelado"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -491,12 +599,7 @@ msgstr "Ret Municipal Cancelada"
 msgid "Check this box if this payment is a retention"
 msgstr "Valida si el pago es una retención"
 
-#. modules: l10n_ve_reports, l10n_ve_seniat, l10n_ve_withholding
-#. odoo-python
-#: code:addons/l10n_ve_reports/models/account_report.py:0
-#: model:account.report.column,name:l10n_ve_reports.journal_report_code
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__code
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__code
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__code
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__name
 msgid "Code"
@@ -507,18 +610,12 @@ msgstr "Código"
 msgid "Code of the withholding voucher"
 msgstr "Referencia del Comprobante"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#. odoo-python
-#: code:addons/l10n_ve_reports/models/account_report.py:0
+#. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_res_company
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__company_ids
 msgid "Companies"
-msgstr "Empresas"
+msgstr "Compañías"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#. odoo-python
-#: code:addons/l10n_ve_reports/models/account_report.py:0
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__company_id
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__company_id
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__company_id
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__company_id
@@ -527,14 +624,21 @@ msgstr "Empresas"
 msgid "Company"
 msgstr "Compañía"
 
-#. modules: l10n_ve_product_currency, l10n_ve_reports, l10n_ve_withholding
-#. odoo-python
-#: code:addons/l10n_ve_reports/models/account_report.py:0
-#: model:ir.model.fields,field_description:l10n_ve_product_currency.field_product_template__company_currency_id
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__company_currency_id
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__company_currency_id
 msgid "Company Currency"
 msgstr "Moneda de la compañía"
+
+#. module: l10n_ve_withholding
+#: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.account_move_form_l10n_ve_withholding
+msgid "Comprobante retención ISLR"
+msgstr "Comprobante retención ISLR"
+
+#. module: l10n_ve_withholding
+#: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.account_move_form_l10n_ve_withholding
+msgid "Comprobante retención IVA"
+msgstr "Comprobante retención IVA"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__code
@@ -545,22 +649,22 @@ msgstr "Código de concepto"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Concepto"
-msgstr ""
+msgstr "Concepto"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Conceptos de Pago"
-msgstr ""
+msgstr "Conceptos de Pago"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Condición de Retención"
-msgstr ""
+msgstr "Condición de Retención"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Condición utilizada para registrar las retenciones"
-msgstr ""
+msgstr "Condición utilizada para registrar las retenciones"
 
 #. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_res_config_settings
@@ -570,17 +674,17 @@ msgstr "Ajustes de configuración"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Configuraciones necesarias para registrar las retenciones de ISLR"
-msgstr ""
+msgstr "Configuraciones necesarias para registrar las retenciones de ISLR"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Configuraciones necesarias para registrar las retenciones de IVA"
-msgstr ""
+msgstr "Configuraciones necesarias para registrar las retenciones de IVA"
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_configuration
-msgid "Configuration"
-msgstr ""
+msgid "Configuración"
+msgstr "Configuración"
 
 #. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_res_partner
@@ -599,14 +703,49 @@ msgstr "Convertir en borrador"
 msgid "Correlative"
 msgstr "Correlativo"
 
-#. modules: l10n_ve_pricelist_by_rate, l10n_ve_reports, l10n_ve_withholding
-#. odoo-javascript
-#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
-#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_currency
-#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_currency
-#: model:account.report.column,name:l10n_ve_reports.bank_reconciliation_report_currency
-#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_amount_currency
-#: model:ir.model,name:l10n_ve_pricelist_by_rate.model_res_currency
+#. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__create_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__currency_id
 msgid "Currency"
 msgstr "Moneda"
@@ -619,17 +758,10 @@ msgstr "Diario del cliente"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Código"
-msgstr ""
+msgstr "Código"
 
-#. modules: l10n_ve_audit, l10n_ve_reports, l10n_ve_withholding
-#. odoo-javascript
-#: code:addons/l10n_ve_reports/static/src/components/account_report/line_name/popover/annotations_popover.xml:0
-#: model:account.report.column,name:l10n_ve_reports.bank_reconciliation_report_date
-#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__date
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__date
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__payment_date
-#: model_terms:ir.ui.view,arch_db:l10n_ve_audit.view_auditlog_login_attempt_search
 msgid "Date"
 msgstr "Fecha"
 
@@ -703,6 +835,27 @@ msgid "Description of the withholding voucher"
 msgstr "Descripción del comprobante de retención"
 
 #. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__display_name
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__display_name
+msgid "Display Name"
+msgstr "Nombre para mostrar"
+
+#. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.wizard_report_municipal_retention_report_patent_view
 msgid "Download Municipal Patent XLSX Report"
 msgstr "Descargar Reporte de Patente Municipal XLSX"
@@ -765,11 +918,28 @@ msgstr "Rama económica"
 msgid "Edit Retention Fields"
 msgstr "Editar campos de retención"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__checkbox_send_mail
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"El pago de retencion '%(payment)s' no genero asiento contable al publicar.\n"
+"\n"
+"Revise la configuracion del diario '%(journal)s':\n"
+"- Cuenta por defecto o cuenta transitoria\n"
+"- Cuentas de pagos/cobros pendientes\n"
+"- Metodo de pago manual"
+msgstr ""
+"El pago de retención '%(payment)s' no genero asiento contable al público.\n"
+"\n"
+"Revisar la configuración del diario '%(journal)s':\n"
+"- Cuenta por defecto o cuenta transitoria\n"
+"- Cuentas de pagos/cobros pendientes\n"
+"- Manual de método de pago."
+
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__email
 msgid "Email"
-msgstr "Correo Electrónico"
+msgstr "Correo electrónico"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_retention__state__emitted
@@ -780,7 +950,7 @@ msgstr "Emitido"
 #. odoo-python
 #: code:addons/l10n_ve_withholding/wizard/account_payment_register.py:0
 msgid "Error"
-msgstr ""
+msgstr "Error"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -797,7 +967,7 @@ msgstr "Error en el campo de porcentaje de tarifas"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Fact Nro"
-msgstr ""
+msgstr "Número de hecho"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -805,11 +975,10 @@ msgstr ""
 msgid "February"
 msgstr "Febrero"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#: model:account.report.column,name:l10n_ve_reports.diary_book_report_date
+#. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Fecha"
-msgstr ""
+msgstr "Fecha"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_iva_customer
@@ -817,27 +986,29 @@ msgid ""
 "Fecha\n"
 "                        de entrega:"
 msgstr ""
+"Fecha\n"
+"                        de entrega:"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_payment_register__voucher_date
 msgid "Fecha Comprobante"
-msgstr ""
+msgstr "Fecha Comprobante"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_iva_search_l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_municipal_search_l10n_ve_withholding
 msgid "Fecha Contable"
-msgstr ""
+msgstr "Fecha Contable"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__date_start
 msgid "Fecha Inicio"
-msgstr ""
+msgstr "Fecha Inicio"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__date_end
 msgid "Fecha fin"
-msgstr ""
+msgstr "Fecha fin"
 
 #. module: l10n_ve_withholding
 #: model:ir.actions.act_window,name:l10n_ve_withholding.action_fees
@@ -872,12 +1043,12 @@ msgstr "Nombre del archivo"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Firma del Agente Retenido"
-msgstr ""
+msgstr "Firma del Agente Retenido"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Firma del Agente de Retención"
-msgstr ""
+msgstr "Firma del Agente de Retención"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__message_follower_ids
@@ -887,12 +1058,12 @@ msgstr "Seguidores"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__message_partner_ids
 msgid "Followers (Partners)"
-msgstr ""
+msgstr "Seguidores (socios)"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr ""
+msgstr "Fuente awesome icono e.g. fa-tasks"
 
 #. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_arcv_report
@@ -917,9 +1088,7 @@ msgstr "¿Genera retención de IVA?"
 msgid "Generate TXT"
 msgstr "Generar TXT"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_line_form
-#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_search
+#. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_payment_concept_line_search_l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_iva_search_l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_municipal_search_l10n_ve_withholding
@@ -935,7 +1104,7 @@ msgstr "Agrupar por"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__has_message
 msgid "Has Message"
-msgstr ""
+msgstr "Has Mensaje"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_res_company__hide_patent_columns_extra
@@ -946,10 +1115,31 @@ msgstr ""
 " con anticipos"
 
 #. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__id
+msgid "ID"
+msgstr "ID"
+
+#. module: l10n_ve_withholding
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_payment__payment_type_retention__islr
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_retention__type_retention__islr
 msgid "ISLR"
-msgstr ""
+msgstr "ISLR"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_res_partner__islr_account
@@ -963,17 +1153,17 @@ msgstr "ISLR cuenta"
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_retention_islr_client
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_retention_islr_supplier
 msgid "ISLR Retention"
-msgstr "ISLR retención"
+msgstr "Retención de ISLR"
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_retention_islr_client
 msgid "ISLR Retention (Customer)"
-msgstr ""
+msgstr "ISLR Retención (Cliente)"
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_retention_islr_supplier
 msgid "ISLR Retention (Supplier)"
-msgstr ""
+msgstr "ISLR Retención (Proveedor)"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_bank_statement_line__retention_islr_line_ids
@@ -1002,23 +1192,29 @@ msgid "ISLR Retentions"
 msgstr "Retenciones de ISLR"
 
 #. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_bank_statement_line__islr_retention_id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_move__islr_retention_id
+msgid "ISLR retention document"
+msgstr "Documento de retención ISLR"
+
+#. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_chart_template.py:0
 msgid "ISLRC"
-msgstr ""
+msgstr "ISLRC"
 
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_chart_template.py:0
 msgid "ISLRP"
-msgstr ""
+msgstr "ISLRP"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__iva_amount
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_payment__payment_type_retention__iva
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_retention__type_retention__iva
 msgid "IVA"
-msgstr ""
+msgstr "IVA"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_res_partner__iva_account
@@ -1039,12 +1235,12 @@ msgstr "Retención de IVA"
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_retention_iva_client
 msgid "IVA Retention (Customer)"
-msgstr ""
+msgstr "IVA Retención (Cliente)"
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_retention_iva_supplier
 msgid "IVA Retention (Supplier)"
-msgstr ""
+msgstr "IVA Retención (Proveedor)"
 
 #. module: l10n_ve_withholding
 #: model:ir.actions.act_window,name:l10n_ve_withholding.action_retention_iva_client
@@ -1060,7 +1256,7 @@ msgstr "Lineas de Retención de IVA"
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_withholding_type
 msgid "IVA Retention Percentage"
-msgstr ""
+msgstr "IVA Retención Porcentaje"
 
 #. module: l10n_ve_withholding
 #: model:ir.actions.act_window,name:l10n_ve_withholding.action_retention_iva_supplier
@@ -1083,6 +1279,12 @@ msgid "IVA Retentions"
 msgstr "Retenciones de IVA"
 
 #. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_bank_statement_line__iva_retention_id
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_move__iva_retention_id
+msgid "IVA retention document"
+msgstr "Documento de retención de IVA"
+
+#. module: l10n_ve_withholding
 #: model:ir.actions.act_window,name:l10n_ve_withholding.action_type_withholding
 msgid "IVA retention percentage"
 msgstr "Porcentaje de retención de IVA"
@@ -1096,33 +1298,33 @@ msgstr "Retención IVA: El número debe tener exactamente 14 dígitos numéricos
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__activity_exception_icon
 msgid "Icon"
-msgstr "Ícono"
+msgstr "Icono"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__activity_exception_icon
 msgid "Icon to indicate an exception activity."
-msgstr ""
+msgstr "Icono hasta indicate an exception actividad."
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr ""
+msgstr "Si está marcado, los mensajes nuevos requieren su atención."
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__message_has_error
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr ""
+msgstr "Si está marcado, algunos mensajes tienen un error de entrega."
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Imp Retenido"
-msgstr ""
+msgstr "Imp. retenido"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.arcv_report_form_view
 msgid "Imprimir"
-msgstr ""
+msgstr "Imprimir"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_retention__type__in_contingence
@@ -1147,9 +1349,8 @@ msgstr "Factura de Proveedor"
 msgid "In refund"
 msgstr "Nota de Débito de Proveedor"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
+#. module: l10n_ve_withholding
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__economic_branch__status__inactive
-#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_search
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_search_tax_unit_l10n_ve_withholding
 msgid "Inactive"
 msgstr "Inactivo"
@@ -1236,8 +1437,7 @@ msgstr "Comprobante de Retención de IVA"
 msgid "January"
 msgstr "Enero"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_journal_code
+#. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_account_journal
 msgid "Journal"
 msgstr "Diario"
@@ -1301,6 +1501,48 @@ msgid "June"
 msgstr "Junio"
 
 #. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_patent_report__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_municipal_retention_xlsx_report__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_payment_concept_line__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_signature_config__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_islr__write_date
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_wizard_retention_iva__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_accumulated_fees__stop
 msgid "Leave blank to compare only with the value \"start\""
 msgstr "Dejar en blanco para comparar solo con el valor \"inicio\""
@@ -1325,12 +1567,12 @@ msgstr "Mayo"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__message_has_error
 msgid "Message Delivery error"
-msgstr ""
+msgstr "Error de entrega de mensaje"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__message_ids
 msgid "Messages"
-msgstr ""
+msgstr "Mensajes"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__minimum_monthly
@@ -1340,18 +1582,18 @@ msgstr "Mínimo Tributable Mensual"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Mostrar Código en Reportes"
-msgstr ""
+msgstr "Mostrar Código en Reportes"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Mostrar el código en los reportes de ISLR"
-msgstr ""
+msgstr "Mostrar el código en los reportes de ISLR"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_payment__payment_type_retention__municipal
 #: model:ir.model.fields.selection,name:l10n_ve_withholding.selection__account_retention__type_retention__municipal
 msgid "Municipal"
-msgstr ""
+msgstr "Municipal"
 
 #. module: l10n_ve_withholding
 #: model:ir.actions.act_window,name:l10n_ve_withholding.wizard_report_municipal_retention_report_patent_action
@@ -1385,12 +1627,12 @@ msgstr "Retención Municipal"
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_retention_municipal_client
 msgid "Municipal Retention (Customer)"
-msgstr ""
+msgstr "Municipal Retención (Cliente)"
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_retention_municipal_supplier
 msgid "Municipal Retention (Supplier)"
-msgstr ""
+msgstr "Municipal Retención (Proveedor)"
 
 #. module: l10n_ve_withholding
 #: model:ir.actions.act_window,name:l10n_ve_withholding.action_retention_municipal_client
@@ -1447,61 +1689,56 @@ msgid "Municipal retentions do not have PDF voucher. Please print the xslx"
 msgstr ""
 "Las retenciones municipales no tienen recibo PDF. Por favor imprima el excel"
 
-#. modules: l10n_ve_seniat, l10n_ve_withholding
-#: model:ir.model,name:l10n_ve_seniat.model_res_country_municipality
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__name
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__municipality_id
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__municipality_id
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_users__municipality_id
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_activity__municipality_id
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_partner_form
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_res_country_municipality_form
 msgid "Municipality"
 msgstr "Municipio"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__my_activity_date_deadline
 msgid "My Activity Deadline"
-msgstr ""
+msgstr "My Actividad Fecha límite"
 
-#. modules: l10n_ve_reports, l10n_ve_seniat, l10n_ve_withholding
-#. odoo-javascript
-#. odoo-python
-#: code:addons/l10n_ve_reports/models/account_general_ledger.py:0
-#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
-#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
-#: model:account.report.line,name:l10n_ve_reports.journal_report_line
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__name
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__name
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__name
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_economic_branch__name
-#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.duplicated_vat_partner_tree_view
-#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
 msgid "Name"
 msgstr "Nombre"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr ""
+msgstr "Siguiente Actividad Calendario Event"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr ""
+msgstr "Siguiente Actividad Fecha límite"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__activity_summary
 msgid "Next Activity Summary"
-msgstr ""
+msgstr "Siguiente Actividad Resumen"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__activity_type_id
 msgid "Next Activity Type"
+msgstr "Siguiente tipo de actividad"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_move.py:0
+msgid "No ISLR retention document linked to this vendor bill."
 msgstr ""
+"No hay comprobante de retención de ISLR asociado a esta factura de "
+"proveedor."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_move.py:0
+msgid "No IVA retention document linked to this vendor bill."
+msgstr ""
+"No hay comprobante de retención de IVA asociado a esta factura de proveedor."
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -1512,14 +1749,46 @@ msgstr "No hay datos para exportar"
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_retention.py:0
-msgid "No registered lines found in the move to reconcile."
-msgstr "No existen líneas registradas en el movimiento"
+msgid ""
+"No existen lineas conciliables en el asiento del pago de retencion.\n"
+"\n"
+"Pago: %(payment)s\n"
+"Asiento: %(move)s\n"
+"Tipo esperado de cuenta: %(account_type)s\n"
+"Diario: %(journal)s\n"
+"Monto pago: %(amount)s\n"
+"\n"
+"Lineas del asiento:\n"
+"%(lines)s"
+msgstr ""
+"No existen líneas conciliables en el asiento del pago de retención.\n"
+"\n"
+"Pago: %(payment)s\n"
+"Asiento: %(move)s\n"
+"Tipo esperado de cuenta: %(account_type)s\n"
+"Diario: %(journal)s\n"
+"Monto pago: %(amount)s\n"
+"\n"
+"Líneas del asiento:\n"
+"%(lines)s"
 
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/wizard/wizard_retention_iva.py:0
 msgid "No retentions found for the selected period"
 msgstr "No se encontraron retenciones para el periodo seleccionado"
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"No se puede confirmar la retencion IVA porque fallaron estas validaciones:\n"
+"\n"
+"%(errors)s"
+msgstr ""
+"No se puede confirmar la retención IVA porque fallaron estas validaciones:\n"
+"\n"
+"%(errors)s"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -1536,7 +1805,7 @@ msgstr "Noviembre"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Nro de Control"
-msgstr ""
+msgstr "Nro de Control"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_iva_search_l10n_ve_withholding
@@ -1547,22 +1816,22 @@ msgstr "Número"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__message_needaction_counter
 msgid "Number of Actions"
-msgstr ""
+msgstr "Número de Acciones"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__message_has_error_counter
 msgid "Number of errors"
-msgstr ""
+msgstr "Número de errors"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "Número de mensajes requiring acción"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr ""
+msgstr "Número de mensajes con error de entrega"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -1598,27 +1867,21 @@ msgstr "Factura de Cliente"
 msgid "Out refund"
 msgstr "Nota de Crédito Cliente"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#. odoo-javascript
-#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/line_name/line_name.xml:0
-#: code:addons/l10n_ve_reports/static/src/components/partner_ledger/line_name.xml:0
-#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_partner_name
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__partner_ids
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_arcv_report__partner_id
 msgid "Partner"
-msgstr "Socio"
+msgstr "Contacto"
 
 #. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_account_payment_register
 msgid "Pay"
 msgstr "Pagar"
 
-#. modules: l10n_ve_igtf, l10n_ve_withholding
-#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__payment_id
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__payment_ids
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__payment_id
 msgid "Payment"
-msgstr "Pagos"
+msgstr "Pago"
 
 #. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_payment_concept
@@ -1641,7 +1904,7 @@ msgstr "Linea de Concepto de Pago"
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_payment_concept_line
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_payment_concept_line_list_l10n_ve_withholding
 msgid "Payment Concept Lines"
-msgstr ""
+msgstr "Pago Concept Líneas"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_payment__payment_type_retention
@@ -1734,13 +1997,13 @@ msgstr "Monto a restar en Tarifas"
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_chart_template.py:0
 msgid "RIC"
-msgstr ""
+msgstr "RIC"
 
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_chart_template.py:0
 msgid "RIP"
-msgstr ""
+msgstr "ROTURA"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__accumulated_rate
@@ -1750,7 +2013,7 @@ msgstr "¿Tarifa Acumulada?"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_iva_customer
 msgid "Recibido por:"
-msgstr ""
+msgstr "Recibido por:"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -1771,7 +2034,7 @@ msgstr "Tipo de reporte"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__activity_user_id
 msgid "Responsible User"
-msgstr ""
+msgstr "Responsable Usuario"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__total_retention_amount
@@ -1792,35 +2055,40 @@ msgstr "Tarifa Retenida"
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_chart_template.py:0
 msgid "Retencion de ISLR de Clientes"
-msgstr ""
+msgstr "Retencion de ISLR de Clientes"
 
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_chart_template.py:0
 msgid "Retencion de ISLR de proveedores"
-msgstr ""
+msgstr "Retencion de ISLR de proveedores"
+
+#. module: l10n_ve_withholding
+#: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_configuration_retentions
+msgid "Retenciones"
+msgstr "Retenciones"
 
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_chart_template.py:0
 msgid "Retenciones IVA Clientes"
-msgstr ""
+msgstr "Retenciones IVA Clientes"
 
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_chart_template.py:0
 msgid "Retenciones IVA Proveedores"
-msgstr ""
+msgstr "Retenciones IVA Proveedores"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Retenciones de ISLR"
-msgstr ""
+msgstr "Retenciones de ISLR"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Retenciones de IVA"
-msgstr ""
+msgstr "Retenciones de IVA"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -1894,7 +2162,7 @@ msgstr "Retenciones"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr ""
+msgstr "Error de entrega de SMS"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__code_visible
@@ -1926,6 +2194,11 @@ msgstr "Reportes del Seniat"
 #: code:addons/l10n_ve_withholding/utils/utils_retention.py:0
 msgid "September"
 msgstr "Septiembre"
+
+#. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_type_person__sequence
+msgid "Sequence"
+msgstr "Secuencia"
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_retention_islr_sequence
@@ -1966,7 +2239,7 @@ msgstr "Secuencias Municipales"
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_signature_config_form_l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_signature_config_search_l10n_ve_withholding
 msgid "Signature"
-msgstr "Firma Electrónica"
+msgstr "Firma"
 
 #. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_signature_config
@@ -1989,8 +2262,7 @@ msgstr "Razón Social"
 msgid "Start"
 msgstr "Inicio"
 
-#. modules: l10n_ve_seniat, l10n_ve_withholding
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__state_id
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__state
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__state
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_iva_search_l10n_ve_withholding
@@ -2013,6 +2285,10 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
+"Estado based en actividades\n"
+"Vencido: Vencido fecha es already passed\n"
+"Today: Actividad fecha es today\n"
+"Planned: Future actividades."
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__state
@@ -2048,22 +2324,22 @@ msgstr "Diario del Proveedor"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Sustraendo"
-msgstr ""
+msgstr "Sustraendo"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "TD"
-msgstr ""
+msgstr "DT"
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_txt_report
 msgid "TXT Report"
-msgstr ""
+msgstr "TXT Reporte"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Tarifa Ret"
-msgstr ""
+msgstr "Tarifa Ret"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_accumulated_fees__fees_id
@@ -2094,10 +2370,9 @@ msgstr "Nombre de Hacienda"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__amount_tax
 msgid "Tax Total"
-msgstr ""
+msgstr "Total de impuestos"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#: model:ir.model,name:l10n_ve_reports.model_account_tax_unit
+#. module: l10n_ve_withholding
 #: model:ir.model,name:l10n_ve_withholding.model_tax_unit
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_fees_retention__tax_unit_id
 msgid "Tax Unit"
@@ -2106,29 +2381,26 @@ msgstr "Unidad Fiscal"
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_tax_unit__name
 msgid "Tax Unit Description"
-msgstr ""
+msgstr "Impuesto Unidad Descripción"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#: model:ir.actions.act_window,name:l10n_ve_reports.action_view_tax_units
-#: model:ir.model.fields,field_description:l10n_ve_reports.field_res_company__account_tax_unit_ids
-#: model:ir.ui.menu,name:l10n_ve_reports.menu_view_tax_units
+#. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_seniat_tax_unit
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_tax_unit
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_tax_unit_list_l10n_ve_withholding
 msgid "Tax Units"
-msgstr ""
+msgstr "Impuesto Unidades"
 
 #. module: l10n_ve_withholding
 #: model:ir.actions.act_window,name:l10n_ve_withholding.action_tax_unit_l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_search_tax_unit_l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_tax_unit_form_l10n_ve_withholding
 msgid "Tax unit"
-msgstr ""
+msgstr "Impuesto unidad"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_tax_unit__value
 msgid "Tax unit value"
-msgstr ""
+msgstr "Impuesto unidad valor"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__total_invoice_amount
@@ -2376,12 +2648,12 @@ msgstr "No hay datos que mostrar."
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Tipo de Persona"
-msgstr ""
+msgstr "Tipo de Persona"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Tipo de persona de la compañía"
-msgstr ""
+msgstr "Tipo de persona de la compañía"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_retention__type
@@ -2391,7 +2663,7 @@ msgstr "TIpo del Comprobante"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "Total Factura"
-msgstr ""
+msgstr "Factura Total"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__total_retention_amount
@@ -2446,11 +2718,9 @@ msgstr "Tipo de retención"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.res_config_settings_l10n_ve_withholding
 msgid "Unidades Tributarias"
-msgstr ""
+msgstr "Unidades Tributarias"
 
-#. modules: l10n_ve_reports, l10n_ve_withholding
-#. odoo-javascript
-#: code:addons/l10n_ve_reports/static/src/components/account_report/line/popover/debug_popover.xml:0
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_withholding_type__value
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_tax_unit__value
 msgid "Value"
@@ -2599,39 +2869,39 @@ msgstr "Rama Económica"
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
 msgid "información impuesto retenido"
-msgstr "información impuesto retenido"
+msgstr "Información del impuesto retenido"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__move_id
 msgid "move"
-msgstr "movimiento"
+msgstr "Movimiento"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_islr_form_l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_iva_form_l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_municipal_form_l10n_ve_withholding
 msgid "payments"
-msgstr "pagos"
+msgstr "Pagos"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention__retention_line_ids
 msgid "retention line"
-msgstr "línea de retención"
+msgstr "Línea de retención"
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_retention_signature_config
 msgid "signature"
-msgstr "firma"
+msgstr "Firma"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_fees_retention_search_l10n_ve_withholding
 msgid "status"
-msgstr "estado"
+msgstr "Estado"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_retention_line__amount_tax_incurred
 msgid "tax incurred"
-msgstr "impuesto retenido"
+msgstr "Impuesto retenido"
 
 #. module: l10n_ve_withholding
 #. odoo-python
@@ -2643,23 +2913,34 @@ msgstr ""
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_move.py:0
-msgid "No IVA retention document linked to this vendor bill."
-msgstr ""
-"No hay comprobante de retención de IVA asociado a esta factura de proveedor."
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid "Missing IVA withholding percentage"
+msgstr "Falta el porcentaje de retención de IVA"
 
 #. module: l10n_ve_withholding
 #. odoo-python
 #: code:addons/l10n_ve_withholding/models/account_move.py:0
-msgid "No ISLR retention document linked to this vendor bill."
+#: code:addons/l10n_ve_withholding/models/account_retention.py:0
+msgid ""
+"The contact \"%(partner)s\" has no IVA withholding percentage configured. "
+"Set the field \"Withholding Type\" on the partner before confirming this "
+"operation."
 msgstr ""
-"No hay comprobante de retención de ISLR asociado a esta factura de proveedor."
+"El contacto \"%(partner)s\" no tiene configurado el porcentaje de retención "
+"de IVA. Configure el campo «Tipo de retención» en la ficha del contacto "
+"antes de confirmar la operación."
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.account_move_form_l10n_ve_withholding
-msgid "Abrir retención de IVA"
-msgstr "Abrir retención de IVA"
+#: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.view_retention_iva_form_l10n_ve_withholding
+msgid ""
+"El contacto seleccionado no tiene configurado el porcentaje de retención de "
+"IVA. Configure el campo «Tipo de retención» en la ficha del contacto antes "
+"de confirmar la operación."
+msgstr ""
+"El contacto seleccionado no tiene configurado el porcentaje de retención de "
+"IVA. Configure el campo «Tipo de retención» en la ficha del contacto antes "
+"de confirmar la operación."
 
-#. module: l10n_ve_withholding
-#: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.account_move_form_l10n_ve_withholding
-msgid "Abrir retención de ISLR"
-msgstr "Abrir retención de ISLR"
+#~ msgid "No registered lines found in the move to reconcile."
+#~ msgstr "No existen líneas registradas en el movimiento"

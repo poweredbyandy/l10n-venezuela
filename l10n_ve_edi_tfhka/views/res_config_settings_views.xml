@@ -9,7 +9,31 @@
                 <block name="l10n_ve_edi_tfhka_block" title="Facturacion Digital The Factory HKA">
                     <div class="col-12 col-lg-6 o_setting_box">
                         <div class="o_setting_right_pane">
+                            <div class="alert alert-info mb-3" role="alert">
+                                <p class="mb-1 fw-bold">URLs The Factory HKA</p>
+                                <ul class="mb-0">
+                                    <li>
+                                        Pruebas:
+                                        <code>https://demoemisionv2.thefactoryhka.com.ve</code>
+                                    </li>
+                                    <li>
+                                        Producción:
+                                        <span class="text-muted">pendiente de configuración</span>
+                                    </li>
+                                </ul>
+                            </div>
                             <group>
+                                <field name="tfhka_api_environment"/>
+                                <field
+                                    name="tfhka_production_url"
+                                    invisible="tfhka_api_environment != 'production'"
+                                    placeholder="https://..."
+                                    required="tfhka_api_environment == 'production'"
+                                />
+                                <field
+                                    name="tfhka_base_url"
+                                    readonly="tfhka_api_environment == 'test'"
+                                />
                                 <field name="tfhka_username"/>
                                 <field name="tfhka_password" password="True"/>
                                 <button
@@ -23,6 +47,33 @@
                                     type="object"
                                     string="Test Invoice Send"
                                 />
+                            </group>
+                        </div>
+                    </div>
+                </block>
+                <block name="l10n_ve_edi_tfhka_retention_block" title="Retenciones proveedor (TFHKA)">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <p class="text-muted">
+                                Configure el proveedor TFHKA, serie y sucursal en los diarios de
+                                retencion de proveedor usados para emitir comprobantes por
+                                <code>/api/Emision</code>.
+                            </p>
+                            <group string="Retencion IVA proveedor">
+                                <field name="tfhka_iva_supplier_retention_journal_id"/>
+                                <field name="tfhka_iva_supplier_retention_edi_provider"/>
+                                <field name="tfhka_iva_supplier_retention_edi_serie"
+                                    invisible="tfhka_iva_supplier_retention_edi_provider != 'tfhka'"/>
+                                <field name="tfhka_iva_supplier_retention_edi_sucursal"
+                                    invisible="tfhka_iva_supplier_retention_edi_provider != 'tfhka'"/>
+                            </group>
+                            <group string="Retencion ISLR proveedor">
+                                <field name="tfhka_islr_supplier_retention_journal_id"/>
+                                <field name="tfhka_islr_supplier_retention_edi_provider"/>
+                                <field name="tfhka_islr_supplier_retention_edi_serie"
+                                    invisible="tfhka_islr_supplier_retention_edi_provider != 'tfhka'"/>
+                                <field name="tfhka_islr_supplier_retention_edi_sucursal"
+                                    invisible="tfhka_islr_supplier_retention_edi_provider != 'tfhka'"/>
                             </group>
                         </div>
                     </div>

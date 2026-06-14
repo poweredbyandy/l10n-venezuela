@@ -8,7 +8,7 @@
     "maintainers": ["andyengit"],
     "description": """
 Libro de Inventario
-==================
+===================
 Entradas y salidas de inventarios según Reglamento ISLR Art. 177.
     """,
     "depends": [

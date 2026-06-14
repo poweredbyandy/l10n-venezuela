@@ -9,7 +9,7 @@
                 <field name="islr_retention_id" invisible="1" />
                 <field
                     name="generate_iva_retention"
-                    invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')"
+                    invisible="state != 'draft' or move_type not in ('in_invoice', 'in_receipt', 'in_refund')"
                 />
                 <label
                     for="iva_voucher_number"
@@ -65,6 +65,19 @@
                     invisible="not municipal_voucher_number"
                 />
                 <field name="company_currency_id" invisible="1" />
+            </xpath>
+
+            <xpath expr="//field[@name='tax_lock_date_message']/parent::div" position="after">
+                <field name="l10n_ve_missing_iva_withholding_type" invisible="1" />
+                <div
+                    class="alert alert-warning d-flex align-items-center mb-0"
+                    role="alert"
+                    invisible="not l10n_ve_missing_iva_withholding_type"
+                >
+                    El contacto seleccionado no tiene configurado el porcentaje de
+                    retención de IVA. Configure el campo «Tipo de retención» en la
+                    ficha del contacto antes de confirmar la operación.
+                </div>
             </xpath>
 
             <xpath expr="//notebook" position="inside">

@@ -1,0 +1,321 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_payment_advance
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:57+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model,name:l10n_ve_payment_advance.model_account_chart_template
+msgid "Account Chart Template"
+msgstr "Plantilla del plan de cuentas"
+
+#. module: l10n_ve_payment_advance
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_advance.view_account_payment_register_form_advance
+msgid "Anticipo a aplicar"
+msgstr "Anticipo a aplicar"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "Anticipo de cliente"
+msgstr "Anticipo de cliente"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "Anticipo de proveedor"
+msgstr "Anticipo de proveedor"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment_register__l10n_ve_advance_amount_available
+msgid "Anticipo disponible"
+msgstr "Anticipo disponible"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_move.py:0
+msgid "Anticipos disponibles"
+msgstr "Anticipos disponibles"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment__l10n_ve_is_advance_application
+msgid "Aplicación de anticipo"
+msgstr "Aplicación de anticipo"
+
+#. module: l10n_ve_payment_advance
+#. odoo-javascript
+#: code:addons/l10n_ve_payment_advance/static/src/components/account_advance_payment_field/account_advance_payment.xml:0
+msgid "Aplicar"
+msgstr "Aplicar"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_move.py:0
+msgid "Aplicar anticipo"
+msgstr "Aplicar anticipo"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment_register__l10n_ve_apply_advance
+msgid "Aplicar anticipo a factura"
+msgstr "Aplicar anticipo a factura"
+
+#. module: l10n_ve_payment_advance
+#. odoo-javascript
+#: code:addons/l10n_ve_payment_advance/static/src/components/account_advance_payment_field/account_advance_payment.xml:0
+msgid "Aplicar anticipo a la factura"
+msgstr "Aplicar anticipo a la factura"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model,name:l10n_ve_payment_advance.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model,name:l10n_ve_payment_advance.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_move.py:0
+msgid "Configure una cuenta de anticipos en el contacto o en la compañía."
+msgstr "Configure una cuenta de anticipos en el contacto o en la compañía."
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid ""
+"Configure una cuenta de anticipos en el contacto o en los ajustes de la "
+"compañía."
+msgstr ""
+"Configure una cuenta de anticipos en el contacto o en los ajustes de la "
+"compañía."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model,name:l10n_ve_payment_advance.model_res_partner
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_res_company__account_supplier_advance_id
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_res_config_settings__account_supplier_advance_id
+msgid ""
+"Cuenta de activo por defecto para anticipos a proveedores cuando el contacto"
+" no tiene una cuenta configurada."
+msgstr ""
+"Cuenta de activo por defecto para anticipados a proveedores cuando el "
+"contacto no tiene una cuenta configurada."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_res_partner__property_account_supplier_advance_id
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_res_users__property_account_supplier_advance_id
+msgid ""
+"Cuenta de activo usada para anticipos a proveedores en pagos sin factura y "
+"para el monto que excede una factura al registrar el pago."
+msgstr ""
+"Cuenta de activo usada para anticipos a proveedores en pagos sin factura y "
+"para el monto que excede una factura al registrar el pago."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_res_company__account_customer_advance_id
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_res_config_settings__account_customer_advance_id
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_res_partner__property_account_customer_advance_id
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_res_users__property_account_customer_advance_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_advance.res_config_settings_view_form_advance
+msgid "Cuenta de anticipos de cliente"
+msgstr "Cuenta de anticipos de cliente"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_res_company__account_supplier_advance_id
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_res_config_settings__account_supplier_advance_id
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_res_partner__property_account_supplier_advance_id
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_res_users__property_account_supplier_advance_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_advance.res_config_settings_view_form_advance
+msgid "Cuenta de anticipos de proveedor"
+msgstr "Cuenta de anticipos de proveedor"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_res_company__account_customer_advance_id
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_res_config_settings__account_customer_advance_id
+msgid ""
+"Cuenta de pasivo por defecto para anticipos de clientes cuando el contacto "
+"no tiene una cuenta configurada."
+msgstr ""
+"Cuenta de pasivo por defecto para anticipos de clientes cuando el contacto "
+"no tiene una cuenta configurada."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_res_partner__property_account_customer_advance_id
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_res_users__property_account_customer_advance_id
+msgid ""
+"Cuenta de pasivo usada para anticipos de clientes en pagos sin factura y "
+"para el monto que excede una factura al registrar el pago."
+msgstr ""
+"Cuenta de pasivo usada para anticipos de clientes en pagos sin factura y "
+"para el monto que excede una factura al registrar el pago."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment__destination_account_id
+msgid "Destination Account"
+msgstr "Cuenta de destino"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "El importe a aplicar debe ser mayor que cero."
+msgstr "El importe a aplicar debe ser mayor que cero."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment_register__payment_difference_handling_overpay
+msgid "Gestión de la diferencia de pago"
+msgstr "Gestión de la diferencia de pago"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment_register__l10n_ve_invoice_amount_residual
+msgid "Importe pendiente factura"
+msgstr "Importe pendiente factura"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,help:l10n_ve_payment_advance.field_account_payment__payment_has_invoice_lines
+msgid ""
+"Indica que el pago se creó desde el asistente de registro de pagos contra "
+"líneas de factura."
+msgstr ""
+"Indica que el pago se creó desde el asistente de registro de pagos contra "
+"líneas de factura."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_bank_statement_line__invoice_has_outstanding_advances
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_move__invoice_has_outstanding_advances
+msgid "Invoice Has Outstanding Advances"
+msgstr "Factura Has Outstanding Advances"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_bank_statement_line__invoice_outstanding_advances_widget
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_move__invoice_outstanding_advances_widget
+msgid "Invoice Outstanding Advances Widget"
+msgstr "Factura Outstanding Advances Widget"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_bank_statement_line__invoice_show_advances_widget
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_move__invoice_show_advances_widget
+msgid "Invoice Show Advances Widget"
+msgstr "Factura Mostrar Advances Widget"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model,name:l10n_ve_payment_advance.model_account_move
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "La línea de anticipo no corresponde al %(partner)s de la factura."
+msgstr "La línea de anticipo no corresponde al %(partner)s de la factura."
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid ""
+"La línea seleccionada no pertenece a la cuenta de anticipos del %(partner)s."
+msgstr ""
+"La línea seleccionada no pertenece a la cuenta de anticipados del "
+"%(partner)s."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment_register__l10n_ve_advance_line_id
+msgid "Línea de anticipo"
+msgstr "Línea de anticipo"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment__l10n_ve_advance_line_ids
+msgid "Líneas de anticipo"
+msgstr "Líneas de anticipo"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields.selection,name:l10n_ve_payment_advance.selection__account_payment_register__payment_difference_handling__advance
+#: model:ir.model.fields.selection,name:l10n_ve_payment_advance.selection__account_payment_register__payment_difference_handling_overpay__advance
+msgid "Mantener como anticipo"
+msgstr "Mantener como anticipo"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields.selection,name:l10n_ve_payment_advance.selection__account_payment_register__payment_difference_handling_overpay__reconcile
+msgid "Marcar como totalmente pagado"
+msgstr "Marcar como totalmente pagado"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "No puede aplicar más del anticipo disponible (%(amount)s)."
+msgstr "No se puede aplicar más del anticipo disponible (%(amount)s)."
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "No puede aplicar más del importe pendiente de la factura (%(amount)s)."
+msgstr ""
+"No se puede aplicar más de la importación pendiente de la factura "
+"(%(amount)s)."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment__payment_has_invoice_lines
+msgid "Pago contra líneas de factura"
+msgstr "Pago contra líneas de factura"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model,name:l10n_ve_payment_advance.model_account_payment_register
+msgid "Pay"
+msgstr "Pagar"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment_register__payment_difference_handling
+msgid "Payment Difference Handling"
+msgstr "Manejo de diferencias de pago"
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model,name:l10n_ve_payment_advance.model_account_payment
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "Seleccione la línea de anticipo a aplicar."
+msgstr "Seleccione la línea de anticipo a aplicar."
+
+#. module: l10n_ve_payment_advance
+#: model:ir.model.fields,field_description:l10n_ve_payment_advance.field_account_payment_register__show_advance_difference_handling
+msgid "Show Advance Difference Handling"
+msgstr "Mostrar Anticipo Difference Handling"
+
+#. module: l10n_ve_payment_advance
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_move.py:0
+#: code:addons/l10n_ve_payment_advance/static/src/components/account_advance_payment_field/account_advance_payment_field.js:0
+msgid "Sin anticipos pendientes"
+msgstr "Sin anticipos pendientes"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "cliente"
+msgstr "cliente"
+
+#. module: l10n_ve_payment_advance
+#. odoo-python
+#: code:addons/l10n_ve_payment_advance/models/account_payment_register.py:0
+msgid "proveedor"
+msgstr "proveedor"

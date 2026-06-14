@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 03:26+0000\n"
-"PO-Revision-Date: 2026-03-24 03:26+0000\n"
+"POT-Creation-Date: 2026-06-14 01:53+0000\n"
+"PO-Revision-Date: 2026-06-14 02:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es_VE\n"
@@ -25,6 +25,11 @@ msgid ""
 "                        Las columnas pueden ser números (1-based) o letras (como 'E').\n"
 "                    </span>"
 msgstr ""
+"<span class=\"fa fa-info-circle\">\n"
+"                        Indica la fila y columna donde se encuentran los saldos inicial y final.\n"
+"                        Las filas son 1-based (la primera fila es 1).\n"
+"                        Las columnas pueden ser números (1-based) o letras (como 'E').\n"
+"                    </span>"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model,name:l10n_ve_bank_statement_import.model_account_statement_import_sheet_mapping
@@ -39,12 +44,12 @@ msgstr "Analizador de hojas de importación de extractos bancarios"
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,field_description:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__final_balance_column
 msgid "Columna del Saldo Final"
-msgstr ""
+msgstr "Columna del Saldo Final"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,field_description:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__initial_balance_column
 msgid "Columna del Saldo Inicial"
-msgstr ""
+msgstr "Columna del Saldo Inicial"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,help:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__final_balance_column
@@ -52,6 +57,8 @@ msgid ""
 "Columna donde se encuentra el saldo final (puede ser número 1-based o letra "
 "como 'E')"
 msgstr ""
+"Columna donde se encuentra el saldo final (puede ser número 1-based o letra "
+"como 'E')"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,help:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__initial_balance_column
@@ -59,32 +66,41 @@ msgid ""
 "Columna donde se encuentra el saldo inicial (puede ser número 1-based o "
 "letra como 'E')"
 msgstr ""
+"Columna donde se encuentra el saldo inicial (puede ser número 1-based o "
+"letra como 'E')"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,field_description:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__final_balance_row
 msgid "Fila del Saldo Final"
-msgstr ""
+msgstr "Fila del Saldo Final"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,field_description:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__initial_balance_row
 msgid "Fila del Saldo Inicial"
-msgstr ""
+msgstr "Fila del Saldo Inicial"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,help:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__final_balance_row
 msgid "Fila donde se encuentra el saldo final (1-based, la primera fila es 1)"
 msgstr ""
+"Fila donde se encuentra el saldo final (1-based, la primera fila es 1)"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,help:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__initial_balance_row
 msgid ""
 "Fila donde se encuentra el saldo inicial (1-based, la primera fila es 1)"
 msgstr ""
+"Fila donde se encuentra el saldo inicial (1-based, la primera fila es 1)"
+
+#. module: l10n_ve_bank_statement_import
+#: model:ir.model.fields,field_description:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__csv_leading_rows_skip
+msgid "Filas iniciales a omitir (CSV sin cabecera)"
+msgstr "Filas iniciales a omitir (CSV sin cabecera)"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,field_description:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__lines_skip_after_header
 msgid "Líneas a omitir después del header"
-msgstr ""
+msgstr "Líneas a omitir después del encabezado"
 
 #. module: l10n_ve_bank_statement_import
 #: model:ir.model.fields,help:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__lines_skip_after_header
@@ -92,3 +108,16 @@ msgid ""
 "Número de líneas a omitir después del header antes de comenzar a leer las "
 "transacciones"
 msgstr ""
+"Número de líneas a omitir después del encabezado antes de comenzar a leer "
+"las transacciones"
+
+#. module: l10n_ve_bank_statement_import
+#: model:ir.model.fields,help:l10n_ve_bank_statement_import.field_account_statement_import_sheet_mapping__csv_leading_rows_skip
+msgid ""
+"Solo CSV: número de filas al inicio del archivo (sin cabecera de columnas) "
+"que se descartan antes de leer movimientos, por ejemplo línea de número de "
+"cuenta."
+msgstr ""
+"Solo CSV: número de filas al inicio del archivo (sin cabecera de columnas) "
+"que se descartan antes de leer movimientos, por ejemplo línea de número de "
+"cuenta."

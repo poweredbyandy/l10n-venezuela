@@ -151,7 +151,7 @@ def match_type_person_record(env, seniat_text):
                 _logger.debug("l10n_ve_vat_seniat xml_id no encontrado %s", xml_id)
                 continue
     Person = env["type.person"].sudo()
-    for rec in Person.search([("state", "=", True)]):
+    for rec in Person.search([("state", "=", True)], order="sequence, id"):
         if _fold_lower(rec.name) in folded or folded in _fold_lower(rec.name):
             return rec
     tokens = [t for t in re.split(r"\W+", folded) if len(t) > 3]

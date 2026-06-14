@@ -5,7 +5,9 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools.float_utils import float_compare
 from odoo.tools.mail import html2plaintext
+from odoo.tools.misc import formatLang
 
 _logger = logging.getLogger(__name__)
 
@@ -222,6 +224,74 @@ class AccountMove(models.Model):
             send = getattr(move, "l10n_ve_edi_send_state", None)
             move.l10n_ve_digital_invoice_sent = send == "sent"
 
+    l10n_ve_show_credit_debit_actions = fields.Boolean(
+        compute="_compute_l10n_ve_show_credit_debit_actions",
+    )
+
+    @api.depends(
+        "country_code",
+        "move_type",
+        "state",
+        "l10n_ve_journal_emission_medium",
+        "l10n_ve_invoice_original_printed",
+        "l10n_ve_digital_invoice_sent",
+    )
+    def _compute_l10n_ve_show_credit_debit_actions(self):
+        for move in self:
+            move.l10n_ve_show_credit_debit_actions = (
+                move._l10n_ve_allows_credit_debit_actions()
+            )
+
+    def _l10n_ve_invoice_emitted_for_credit_debit(self):
+        self.ensure_one()
+        medium = self.l10n_ve_journal_emission_medium
+        if not medium or medium == "contingency":
+            return True
+        if medium == "free":
+            return bool(self.l10n_ve_invoice_original_printed)
+        if medium == "digital":
+            return bool(self.l10n_ve_digital_invoice_sent)
+        if medium == "fiscal_machine":
+            return bool(self.l10n_ve_invoice_original_printed)
+        return True
+
+    def _l10n_ve_allows_credit_debit_actions(self):
+        self.ensure_one()
+        if self.country_code != "VE":
+            return True
+        if self.move_type not in ("out_invoice", "in_invoice"):
+            return True
+        if self.state != "posted":
+            return False
+        return self._l10n_ve_invoice_emitted_for_credit_debit()
+
+    def _l10n_ve_check_credit_debit_allowed(self):
+        for move in self:
+            if move._l10n_ve_allows_credit_debit_actions():
+                continue
+            medium = move.l10n_ve_journal_emission_medium
+            if medium == "free":
+                message = _(
+                    "No puede crear una nota de crédito o débito: la factura debe "
+                    "imprimirse en forma libre antes de revertirla."
+                )
+            elif medium == "digital":
+                message = _(
+                    "No puede crear una nota de crédito o débito: la factura debe "
+                    "enviarse por facturación digital antes de revertirla."
+                )
+            elif medium == "fiscal_machine":
+                message = _(
+                    "No puede crear una nota de crédito o débito: la factura debe "
+                    "imprimirse en máquina fiscal antes de revertirla."
+                )
+            else:
+                message = _(
+                    "No puede crear una nota de crédito o débito: la factura aún "
+                    "no fue emitida."
+                )
+            raise UserError(message)
+
     def _l10n_ve_block_invoice_pdf_contingency(self):
         self.ensure_one()
         return (
@@ -240,14 +310,8 @@ class AccountMove(models.Model):
             return False
         if self.l10n_ve_journal_emission_medium != "digital":
             return False
-        journal = self.journal_id
-        if "l10n_ve_edi_provider" not in journal._fields:
-            return False
-        provider = journal.l10n_ve_edi_provider
-        if not provider or provider == "none":
-            return False
         if "l10n_ve_edi_send_state" not in self._fields:
-            return False
+            return True
         return self.l10n_ve_edi_send_state != "sent"
 
     reception_date = fields.Date(
@@ -694,7 +758,7 @@ Please create a credit note instead.
             if (
                 rec.country_code == ve_code
                 and rec.move_type in ("out_invoice", "out_refund")
-                and rec.l10n_ve_journal_emission_medium == "free"
+                and not rec.l10n_ve_invoice_date
             ):
                 rec.write({"l10n_ve_invoice_date": fields.Datetime.now()})
             if (
@@ -731,6 +795,27 @@ Please create a credit note instead.
         if self.move_type == "out_refund":
             return journal.l10n_ve_credit_note_section_id
         return self.env["account.book.section"]
+
+    def _l10n_ve_fiscal_book(self):
+        self.ensure_one()
+        doc = self.env["account.book.document"].search(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "=", self.id),
+            ],
+            limit=1,
+        )
+        if doc:
+            return doc.book_id
+        section = self._l10n_ve_journal_fiscal_book_section()
+        return section.book_id if section else self.env["account.book"]
+
+    def _l10n_ve_get_invoice_paperformat(self):
+        self.ensure_one()
+        if self.country_code != "VE" or self.move_type not in ("out_invoice", "out_refund"):
+            return self.env["report.paperformat"]
+        book = self._l10n_ve_fiscal_book()
+        return book.paperformat_id if book else self.env["report.paperformat"]
 
     @api.depends(
         "l10n_ve_control_number",
@@ -847,6 +932,26 @@ Please create a credit note instead.
                 "el correlativo y el número de control SENIAT."
             )
         )
+
+    @api.constrains("invoice_date", "invoice_date_due", "move_type")
+    def _check_l10n_ve_invoice_date_due_not_before_invoice_date(self):
+        for move in self:
+            if move.move_type not in (
+                "out_invoice",
+                "out_refund",
+                "in_invoice",
+                "in_refund",
+            ):
+                continue
+            if not move.invoice_date or not move.invoice_date_due:
+                continue
+            if move.invoice_date_due < move.invoice_date:
+                raise ValidationError(
+                    _(
+                        "La fecha de vencimiento no puede ser anterior a la fecha "
+                        "de la factura."
+                    )
+                )
 
     @api.constrains("l10n_ve_control_number", "journal_id")
     def _check_l10n_ve_control_number_journal_unique(self):
@@ -1200,6 +1305,37 @@ Please create a credit note instead.
             "para la fecha de la factura"
         ),
     )
+    l10n_ve_currency_rate_outdated = fields.Boolean(
+        string="Tasa de cambio desactualizada",
+        compute="_compute_l10n_ve_currency_rate_outdated",
+    )
+
+    @api.depends(
+        "state",
+        "move_type",
+        "currency_id",
+        "company_currency_id",
+        "invoice_currency_rate",
+        "expected_currency_rate",
+        "invoice_date",
+    )
+    def _compute_l10n_ve_currency_rate_outdated(self):
+        for move in self:
+            if (
+                move.state != "draft"
+                or move.move_type == "entry"
+                or not move.currency_id
+                or move.currency_id == move.company_currency_id
+            ):
+                move.l10n_ve_currency_rate_outdated = False
+                continue
+            move.l10n_ve_currency_rate_outdated = bool(
+                float_compare(
+                    move.invoice_currency_rate,
+                    move.expected_currency_rate,
+                    precision_digits=6,
+                )
+            )
 
     @api.depends("currency_id", "date", "company_id")
     def _compute_l10n_ve_inverse_rate(self):
@@ -1282,7 +1418,63 @@ Please create a credit note instead.
             )
         return super().action_invoice_sent()
 
+    def _l10n_ve_allows_invoice_pdf_download(self):
+        self.ensure_one()
+        if self.state != "posted":
+            return False
+        medium = self.l10n_ve_journal_emission_medium
+        if medium != "free":
+            return False
+        if self.journal_id.l10n_ve_free_form_print_medium == "continuous":
+            return False
+        if not self.l10n_ve_invoice_original_printed:
+            return False
+        return True
+
+    def _l10n_ve_allows_invoice_portal_view(self):
+        self.ensure_one()
+        if self.state != "posted":
+            return False
+        if self.country_code != "VE" or self.move_type not in ("out_invoice", "out_refund"):
+            return True
+        if self._l10n_ve_block_invoice_pdf_contingency():
+            return False
+        if self._l10n_ve_blocking_invoice_report_before_digital_sent():
+            return False
+        return True
+
+    def _l10n_ve_show_download_pdf_action(self):
+        self.ensure_one()
+        if self.country_code != "VE":
+            return True
+        if self.move_type not in ("out_invoice", "out_refund"):
+            return True
+        return self._l10n_ve_allows_invoice_pdf_download()
+
+    def get_extra_print_items(self):
+        ve_invoices = self.filtered(
+            lambda move: move.country_code == "VE"
+            and move.move_type in ("out_invoice", "out_refund")
+        )
+        if ve_invoices and any(
+            not move._l10n_ve_show_download_pdf_action() for move in ve_invoices
+        ):
+            return []
+        return super().get_extra_print_items()
+
+    def _l10n_ve_check_invoice_print_allowed(self):
+        for move in self:
+            if move.country_code != "VE":
+                continue
+            if move.move_type not in ("out_invoice", "out_refund"):
+                continue
+            if move.state == "cancel":
+                raise UserError(_("No se puede imprimir una factura anulada."))
+            if move.state != "posted":
+                raise UserError(_("Debe confirmar la factura antes de imprimirla."))
+
     def preview_invoice(self):
+        self._l10n_ve_check_invoice_print_allowed()
         self.ensure_one()
         if self._l10n_ve_block_invoice_pdf_contingency():
             raise UserError(
@@ -1292,11 +1484,94 @@ Please create a credit note instead.
             )
         return super().preview_invoice()
 
+    def _l10n_ve_sanitize_pdf_filename_part(self, value):
+        value = (value or "").strip()
+        return re.sub(r'[\\/:*?"<>|\s]+', "_", value).strip("._")
+
+    def _l10n_ve_is_ve_customer_invoice_pdf(self):
+        self.ensure_one()
+        return (
+            self.country_code == "VE"
+            and self.move_type in ("out_invoice", "out_refund")
+        )
+
+    def _l10n_ve_get_invoice_pdf_basename(self):
+        self.ensure_one()
+        invoice_name = self._l10n_ve_sanitize_pdf_filename_part(self.name)
+        if not invoice_name or invoice_name == "/":
+            invoice_name = str(self.id)
+        vat = self._l10n_ve_sanitize_pdf_filename_part(self.partner_id.vat)
+        if vat:
+            return f"{invoice_name}_{vat}"
+        return invoice_name
+
+    def _get_report_base_filename(self):
+        self.ensure_one()
+        if self._l10n_ve_is_ve_customer_invoice_pdf():
+            return self._l10n_ve_get_invoice_pdf_basename()
+        return super()._get_report_base_filename()
+
+    def _get_invoice_report_filename(self, extension="pdf"):
+        self.ensure_one()
+        if self._l10n_ve_is_ve_customer_invoice_pdf():
+            return f"{self._l10n_ve_get_invoice_pdf_basename()}.{extension}"
+        return super()._get_invoice_report_filename(extension=extension)
+
+    def _get_invoice_proforma_pdf_report_filename(self):
+        self.ensure_one()
+        if self._l10n_ve_is_ve_customer_invoice_pdf():
+            return self._get_invoice_report_filename()
+        return super()._get_invoice_proforma_pdf_report_filename()
+
+    def _get_invoice_legal_documents(self, filetype, allow_fallback=False):
+        document = super()._get_invoice_legal_documents(
+            filetype, allow_fallback=allow_fallback
+        )
+        if (
+            document
+            and filetype == "pdf"
+            and self._l10n_ve_is_ve_customer_invoice_pdf()
+        ):
+            document["filename"] = self._get_invoice_report_filename()
+        return document
+
     def _l10n_ve_get_free_form_continuous_print_action(self):
         self.ensure_one()
         return False
 
+    def _l10n_ve_should_attach_first_free_form_print_pdf(self):
+        self.ensure_one()
+        return (
+            self.country_code == "VE"
+            and self.move_type in ("out_invoice", "out_refund")
+            and self.state == "posted"
+            and self.l10n_ve_journal_emission_medium == "free"
+            and not self.l10n_ve_invoice_original_printed
+            and not self.invoice_pdf_report_id
+        )
+
+    def _l10n_ve_attach_invoice_pdf_report(self, pdf_content):
+        self.ensure_one()
+        if self.invoice_pdf_report_id:
+            return
+        filename = self._get_invoice_report_filename()
+        if not filename:
+            filename = f"{(self.name or 'invoice').replace('/', '_')}.pdf"
+        attachment = self.env["ir.attachment"].sudo().create(
+            {
+                "name": filename,
+                "raw": pdf_content,
+                "mimetype": "application/pdf",
+                "res_model": self._name,
+                "res_id": self.id,
+                "res_field": "invoice_pdf_report_file",
+            }
+        )
+        self.message_main_attachment_id = attachment
+        self.invalidate_recordset(["invoice_pdf_report_id", "invoice_pdf_report_file"])
+
     def action_print_pdf(self):
+        self._l10n_ve_check_invoice_print_allowed()
         self.ensure_one()
         if (
             self.company_id.account_fiscal_country_id.code == "VE"
@@ -1304,10 +1579,6 @@ Please create a credit note instead.
             and self.l10n_ve_journal_emission_medium == "free"
             and self.journal_id.l10n_ve_free_form_print_medium == "continuous"
         ):
-            if self.state != "posted":
-                raise UserError(
-                    _("Debe confirmar la factura para imprimir en papel continuo.")
-                )
             action = self._l10n_ve_get_free_form_continuous_print_action()
             if action:
                 if action.get("type") == "ir.actions.client":
@@ -1361,6 +1632,14 @@ Please create a credit note instead.
                 move.with_context(
                     l10n_ve_skip_credit_debit_journal_lock=True
                 ).write(updates)
+
+    def action_reverse(self):
+        self._l10n_ve_check_credit_debit_allowed()
+        return super().action_reverse()
+
+    def action_debit_note(self):
+        self._l10n_ve_check_credit_debit_allowed()
+        return super().action_debit_note()
 
     def _l10n_ve_check_credit_debit_journal_matches_origin(self):
         for move in self:
@@ -1441,6 +1720,20 @@ Please create a credit note instead.
                     text=text,
                 )
             )
+
+    def l10n_ve_report_exchange_rate_display(self):
+        self.ensure_one()
+        if self.currency_id == self.company_currency_id:
+            return False
+        if not self.l10n_ve_inverse_rate:
+            return False
+        amount = formatLang(
+            self.env,
+            self.l10n_ve_inverse_rate,
+            digits=min(2, self.company_currency_id.decimal_places),
+        )
+        symbol = (self.company_currency_id.symbol or "Bs").strip()
+        return f"{amount} {symbol}"
 
     def l10n_ve_report_invoice_lines(self):
         self.ensure_one()

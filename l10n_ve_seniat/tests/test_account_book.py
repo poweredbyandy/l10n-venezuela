@@ -66,6 +66,11 @@ class TestAccountBook(L10nVeSeniatCommon):
                 "number_to": 1000,
             }
         )
+        self.assertTrue(book.paperformat_id)
+        self.assertEqual(book.paperformat_id.header_spacing, 30)
+        book.write({"l10n_ve_invoice_header_spacing": 55})
+        book.paperformat_id.invalidate_recordset()
+        self.assertEqual(book.paperformat_id.header_spacing, 55)
         sec = self.env["account.book.section"].create(
             {
                 "book_id": book.id,

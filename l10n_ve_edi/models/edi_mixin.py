@@ -29,34 +29,54 @@ class L10nVeEdiMixin(models.AbstractModel):
         copy=False,
         readonly=True,
         string="EDI Send State",
-        oldname="tfhka_send_state",
     )
     l10n_ve_edi_sent_at = fields.Datetime(
-        copy=False, readonly=True, string="EDI Sent At", oldname="tfhka_sent_at"
+        copy=False, readonly=True, string="EDI Sent At"
     )
     l10n_ve_edi_payload_attachment_id = fields.Many2one(
         "ir.attachment",
         copy=False,
         readonly=True,
         string="EDI Payload Attachment",
-        oldname="tfhka_payload_attachment_id",
     )
     l10n_ve_edi_payload_debug_json = fields.Text(
         compute="_compute_l10n_ve_edi_payload_debug_json",
         string="EDI Payload JSON",
     )
     l10n_ve_edi_last_error = fields.Text(
-        copy=False, readonly=True, string="EDI Last Error", oldname="tfhka_last_error"
+        copy=False, readonly=True, string="EDI Last Error"
     )
     l10n_ve_edi_response_json = fields.Text(
-        copy=False, readonly=True, string="EDI Response JSON", oldname="tfhka_response_json"
+        copy=False, readonly=True, string="EDI Response JSON"
     )
 
-    @api.depends("journal_id.l10n_ve_edi_provider")
+    l10n_ve_edi_journal_id = fields.Many2one(
+        "account.journal",
+        compute="_compute_l10n_ve_edi_journal_id",
+        string="EDI Journal",
+    )
+
+    @api.depends()
+    def _compute_l10n_ve_edi_journal_id(self):
+        for record in self:
+            record.l10n_ve_edi_journal_id = record._l10n_ve_edi_get_edi_journal()
+
+    def _l10n_ve_edi_get_edi_journal(self):
+        self.ensure_one()
+        if "journal_id" in self._fields and self.journal_id:
+            return self.journal_id
+        return self.env["account.journal"]
+
+    def _l10n_ve_edi_compute_show_tab(self):
+        self.ensure_one()
+        journal = self._l10n_ve_edi_get_edi_journal()
+        provider = journal.l10n_ve_edi_provider if journal else False
+        return bool(provider and provider != "none")
+
+    @api.depends()
     def _compute_l10n_ve_edi_show_tab(self):
         for record in self:
-            p = record.journal_id.l10n_ve_edi_provider
-            record.l10n_ve_edi_show_tab = bool(p and p != "none")
+            record.l10n_ve_edi_show_tab = record._l10n_ve_edi_compute_show_tab()
 
     @api.depends("l10n_ve_edi_payload_attachment_id")
     def _compute_l10n_ve_edi_payload_debug_json(self):

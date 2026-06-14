@@ -93,6 +93,37 @@ class StockPicking(models.Model):
         string="Teléfono (contacto)",
         compute="_compute_l10n_ve_partner_contact_phone_display",
     )
+    l10n_ve_dispatch_guide_date = fields.Date(
+        string="Fecha guía",
+        compute="_compute_l10n_ve_dispatch_guide_listing_data",
+        store=True,
+    )
+    l10n_ve_dispatch_guide_time = fields.Char(
+        string="Hora guía",
+        compute="_compute_l10n_ve_dispatch_guide_listing_data",
+        store=True,
+    )
+    l10n_ve_dispatch_guide_user_id = fields.Many2one(
+        "res.users",
+        string="Usuario guía",
+        compute="_compute_l10n_ve_dispatch_guide_listing_data",
+        store=True,
+    )
+
+    @api.depends("date_done", "write_uid", "state")
+    def _compute_l10n_ve_dispatch_guide_listing_data(self):
+        for picking in self:
+            if picking.state == "done" and picking.date_done:
+                localized = fields.Datetime.context_timestamp(
+                    picking, picking.date_done
+                )
+                picking.l10n_ve_dispatch_guide_date = localized.date()
+                picking.l10n_ve_dispatch_guide_time = localized.strftime("%H:%M")
+                picking.l10n_ve_dispatch_guide_user_id = picking.write_uid
+            else:
+                picking.l10n_ve_dispatch_guide_date = False
+                picking.l10n_ve_dispatch_guide_time = False
+                picking.l10n_ve_dispatch_guide_user_id = False
 
     @api.depends("partner_id", "partner_id.phone", "partner_id.mobile")
     def _compute_l10n_ve_partner_contact_phone_display(self):
@@ -240,10 +271,35 @@ class StockPicking(models.Model):
             return False
         return bool(self.move_ids.filtered("product_id"))
 
+    def _l10n_ve_dispatch_guide_print_available(self):
+        self.ensure_one()
+        if not self._l10n_ve_is_ve_outgoing_dispatch_guide_picking():
+            return False
+        if self.state != "done":
+            return False
+        if (
+            self._l10n_ve_requires_internal_transfer_reason()
+            and not self.l10n_ve_internal_transfer_reason_id
+        ):
+            return False
+        if self._l10n_ve_dispatch_needs_manual_pricing() and (
+            not self.l10n_ve_dispatch_pricelist_id
+            or not self.l10n_ve_dispatch_currency_id
+        ):
+            return False
+        return True
+
     def l10n_ve_dispatch_guide_report_check(self):
         for picking in self:
             if picking.company_id.account_fiscal_country_id.code != "VE":
                 continue
+            if (
+                picking._l10n_ve_is_ve_outgoing_dispatch_guide_picking()
+                and picking.state != "done"
+            ):
+                raise UserError(
+                    _("Confirme la entrega antes de imprimir la guía de despacho.")
+                )
             if picking._l10n_ve_requires_internal_transfer_reason():
                 if not picking.l10n_ve_internal_transfer_reason_id:
                     raise UserError(
@@ -510,6 +566,104 @@ class StockPicking(models.Model):
         if self.l10n_ve_control_number_placeholder:
             return True
         return False
+
+    def _l10n_ve_dispatch_guide_shows_company_header(self):
+        self.ensure_one()
+        if self.picking_type_id.code != "outgoing" or not self.l10n_ve_is_ve_country:
+            return False
+        if (self.l10n_ve_control_number or "").strip():
+            return False
+        if self._l10n_ve_dispatch_requires_control_number():
+            return False
+        return True
+
+    def _l10n_ve_dispatch_guide_paperformat(self):
+        self.ensure_one()
+        if self._l10n_ve_dispatch_guide_shows_company_header():
+            return self.env.ref(
+                "l10n_ve_stock.paperformat_l10n_ve_dispatch_guide_letter"
+            )
+        section = self._l10n_ve_dispatch_guide_section()
+        if section and section.book_id:
+            book = section.book_id.sudo()
+            book._l10n_ve_ensure_paperformat()
+            if book.paperformat_id:
+                return book.paperformat_id
+        return self.env.ref("l10n_ve_stock.paperformat_l10n_ve_dispatch_guide")
+
+    def _l10n_ve_is_ve_outgoing_dispatch_guide_picking(self):
+        self.ensure_one()
+        return (
+            self.l10n_ve_is_ve_country
+            and self.picking_type_id.code == "outgoing"
+        )
+
+    def _l10n_ve_get_portal_pdf_report_xmlid(self):
+        self.ensure_one()
+        if self._l10n_ve_is_ve_outgoing_dispatch_guide_picking():
+            return "l10n_ve_stock.action_report_l10n_ve_dispatch_guide"
+        return "stock.action_report_delivery"
+
+    def l10n_ve_portal_pdf_url(self):
+        self.ensure_one()
+        sale = self.sudo().sale_id
+        token = sale.access_token if sale else ""
+        return "/my/picking/pdf/%s?access_token=%s" % (self.id, token)
+
+    def l10n_ve_portal_control_number_display(self):
+        self.ensure_one()
+        return (self.sudo().l10n_ve_control_number or "").strip()
+
+    def _l10n_ve_will_assign_dispatch_control_number_on_validate(self):
+        self.ensure_one()
+        if (self.l10n_ve_control_number or "").strip():
+            return False
+        if not self._l10n_ve_dispatch_requires_control_number():
+            return False
+        return bool(self._l10n_ve_dispatch_guide_section())
+
+    def action_l10n_ve_print_dispatch_guide(self):
+        report = self.env.ref("l10n_ve_stock.action_report_l10n_ve_dispatch_guide")
+        self.write({"printed": True})
+        return report.report_action(self)
+
+    def do_print_picking(self):
+        ve_outgoing = self.filtered(
+            lambda picking: picking._l10n_ve_is_ve_outgoing_dispatch_guide_picking()
+        )
+        if ve_outgoing:
+            if len(ve_outgoing) != len(self):
+                raise UserError(
+                    _(
+                        "No puede imprimir operaciones de picking mezclando entregas "
+                        "venezolanas con otros albaranes."
+                    )
+                )
+            return ve_outgoing.action_l10n_ve_print_dispatch_guide()
+        return super().do_print_picking()
+
+    def _action_open_dispatch_guide_validate_confirmation_wizard(self):
+        self.ensure_one()
+        return {
+            "name": _("Confirmar guía de despacho"),
+            "type": "ir.actions.act_window",
+            "res_model": "l10n_ve.stock.picking.validate.confirmation",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                **self.env.context,
+                "default_picking_ids": [fields.Command.set(self.ids)],
+            },
+        }
+
+    def _pre_action_done_hook(self):
+        if not self.env.context.get("l10n_ve_dispatch_guide_validate_confirmed"):
+            pickings = self.filtered(
+                lambda picking: picking._l10n_ve_will_assign_dispatch_control_number_on_validate()
+            )
+            if pickings:
+                return pickings._action_open_dispatch_guide_validate_confirmation_wizard()
+        return super()._pre_action_done_hook()
 
     def _action_done(self):
         res = super()._action_done()

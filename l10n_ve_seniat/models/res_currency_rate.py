@@ -7,6 +7,16 @@ from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
 
 
+_L10N_VE_INVOICE_MOVE_TYPES = (
+    "out_invoice",
+    "out_refund",
+    "in_invoice",
+    "in_refund",
+    "out_receipt",
+    "in_receipt",
+)
+
+
 class ResCurrencyRate(models.Model):
     _name = "res.currency.rate"
     _inherit = ["res.currency.rate", "mail.thread"]
@@ -50,6 +60,43 @@ class ResCurrencyRate(models.Model):
     def _l10n_ve_allow_historical_rate_write(self):
         return bool(self.env.context.get("l10n_ve_allow_historical_rate_write"))
 
+    def _l10n_ve_company_uses_rate_rules(self):
+        self.ensure_one()
+        return self.company_id.account_fiscal_country_id.code == "VE"
+
+    def _l10n_ve_get_posted_moves_using_rate(self):
+        self.ensure_one()
+        if not self.currency_id or not self.name:
+            return self.env["account.move"]
+        return self.env["account.move"].search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("currency_id", "=", self.currency_id.id),
+                ("invoice_date", "=", self.name),
+                ("state", "=", "posted"),
+                ("move_type", "in", _L10N_VE_INVOICE_MOVE_TYPES),
+            ]
+        )
+
+    def _l10n_ve_check_posted_moves_before_rate_change(self):
+        for rec in self:
+            if not rec._l10n_ve_company_uses_rate_rules():
+                continue
+            posted_moves = rec._l10n_ve_get_posted_moves_using_rate()
+            if not posted_moves:
+                continue
+            raise UserError(
+                _(
+                    "No se puede modificar la tasa del %(date)s para %(currency)s "
+                    "porque existen facturas confirmadas que la utilizan: "
+                    "%(invoices)s. Vuelva esas facturas a borrador para poder "
+                    "actualizar la tasa.",
+                    date=rec.name,
+                    currency=rec.currency_id.display_name,
+                    invoices=", ".join(posted_moves.mapped("name")),
+                )
+            )
+
     def write(self, vals):
         if self._l10n_ve_skip_validation():
             return super().write(vals)
@@ -77,6 +124,7 @@ class ResCurrencyRate(models.Model):
 
         rate_update = self._l10n_ve_rate_keys_in_vals(vals)
         if rate_update:
+            self._l10n_ve_check_posted_moves_before_rate_change()
             for rec in self:
                 if rec.l10n_ve_rate_edit_count >= 2:
                     raise UserError(

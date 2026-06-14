@@ -11,6 +11,22 @@ class AccountMove(models.Model):
     _name = "account.move"
     _inherit = ["account.move", "l10n_ve.edi.mixin"]
 
+    l10n_ve_edi_journal_id = fields.Many2one(
+        related="journal_id",
+        string="EDI Journal",
+    )
+
+    l10n_ve_edi_show_tab = fields.Boolean(
+        compute="_compute_l10n_ve_edi_show_tab",
+        string="Show EDI Tab",
+    )
+
+    @api.depends("journal_id", "journal_id.l10n_ve_edi_provider")
+    def _compute_l10n_ve_edi_show_tab(self):
+        for move in self:
+            provider = move.journal_id.l10n_ve_edi_provider
+            move.l10n_ve_edi_show_tab = bool(provider and provider != "none")
+
     def write(self, vals):
         res = super().write(vals)
         if vals.get("l10n_ve_edi_send_state") == STATE_SENT:
@@ -81,6 +97,24 @@ class AccountMove(models.Model):
         ):
             return
         return super()._generate_control_number()
+
+    def _l10n_ve_should_show_control_number_ui(self):
+        if super()._l10n_ve_should_show_control_number_ui():
+            return True
+        self.ensure_one()
+        ve_code = self.env.ref("base.ve").code
+        if (
+            self.country_code == ve_code
+            and self.move_type in ("in_invoice", "in_refund")
+            and self.state == "posted"
+        ):
+            if not (self.l10n_ve_control_number or "").strip():
+                return True
+            if "l10n_ve_invoice_number" in self._fields and not (
+                self.l10n_ve_invoice_number or self.ref or ""
+            ).strip():
+                return True
+        return False
 
     def _l10n_ve_edi_is_invoice_target(self):
         self.ensure_one()

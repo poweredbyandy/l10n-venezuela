@@ -30,41 +30,54 @@
                     <field name="state" widget="statusbar" nolabel="1" />
                 </header>
                 <sheet>
-                    <group colspan="4" col="4">
-                        <!-- Invisible fields -->
-                        <field
-                            name="original_lines_per_invoice_counter"
-                            invisible="1"
-                        />
-                        <field name="company_currency_id" invisible="1" />
-                        <field name="type_retention" invisible="1" force_save="1" />
-                        <field name="type" force_save="1" select="2" />
-                        <field name="company_id" invisible="1" />
-                        <field
-                            name="partner_id"
-                            on_change="onchange_partner_id(type,partner_id)"
-                            select="1"
-                            invisible="not type"
-                            readonly="state in ['emitted', 'cancel']"
-                        />
-                        <field
-                            name="date_accounting"
-                            select="1"
-                            readonly="state in ['emitted', 'cancel']"
-                        />
-                        <field
-                            name="number"
-                            force_save="1"
-                            readonly="type == 'in_invoice' or state in ['emitted', 'cancel']"
-                            required="type == 'out_invoice'"
-                        />
-                        <field
-                            name="correlative"
-                            force_save="1"
-                            invisible="1"
-                            readonly="type == 'in_invoice'"
-                        />
-                        <field name="date" readonly="state in ['emitted', 'cancel']" />
+                    <field name="l10n_ve_missing_iva_withholding_type" invisible="1" />
+                    <div
+                        class="alert alert-warning mb-3"
+                        role="alert"
+                        invisible="not l10n_ve_missing_iva_withholding_type"
+                    >
+                        El contacto seleccionado no tiene configurado el porcentaje de
+                        retención de IVA. Configure el campo «Tipo de retención» en la
+                        ficha del contacto antes de confirmar la operación.
+                    </div>
+                    <group>
+                        <group>
+                            <field
+                                name="original_lines_per_invoice_counter"
+                                invisible="1"
+                            />
+                            <field name="company_currency_id" invisible="1" />
+                            <field name="type_retention" invisible="1" force_save="1" />
+                            <field name="company_id" invisible="1" />
+                            <field name="type" force_save="1" select="2" />
+                            <field
+                                name="partner_id"
+                                on_change="onchange_partner_id(type,partner_id)"
+                                select="1"
+                                invisible="not type"
+                                readonly="state in ['emitted', 'cancel']"
+                            />
+                            <field
+                                name="number"
+                                force_save="1"
+                                readonly="type == 'in_invoice' or state in ['emitted', 'cancel']"
+                                required="type == 'out_invoice'"
+                            />
+                            <field
+                                name="correlative"
+                                force_save="1"
+                                invisible="1"
+                                readonly="type == 'in_invoice'"
+                            />
+                        </group>
+                        <group>
+                            <field
+                                name="date_accounting"
+                                select="1"
+                                readonly="state in ['emitted', 'cancel']"
+                            />
+                            <field name="date" readonly="state in ['emitted', 'cancel']" />
+                        </group>
                     </group>
                     <notebook>
                         <page name="retention_lines" string="Retention Lines">

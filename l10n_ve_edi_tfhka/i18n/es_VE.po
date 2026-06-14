@@ -1,0 +1,300 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_edi_tfhka
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:57+0000\n"
+"PO-Revision-Date: 2026-06-14 02:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.view_move_form_l10n_ve_edi_tfhka
+msgid "Abrir URL del documento fiscal"
+msgstr "Abrir URL del documento fiscal"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model,name:l10n_ve_edi_tfhka.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid "Configure usuario y clave TFHKA en Ajustes."
+msgstr "Configure usuario y clave TFHKA en Ajustes."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/res_config_settings.py:0
+msgid "Connection with The Factory HKA was successful."
+msgstr "Conexión con El Factory HKA was successful."
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,help:l10n_ve_edi_tfhka.field_account_journal__l10n_ve_edi_tfhka_sucursal
+msgid ""
+"Código de sucursal en identificacionDocumento (máx. 6 caracteres). Debe "
+"coincidir con el rango en el portal TFHKA; si su integración válida usa "
+"sucursal vacía en el JSON, deje este campo vacío (no use 00 salvo que en HKA"
+" el rango esté dado de alta con 00)."
+msgstr ""
+"Código de sucursal en identificacionDocumento (máx. 6 caracteres). Debe "
+"coincidir con el rango en el portal TFHKA; si su integración válida usa "
+"sucursal vacía en el JSON, deje este campo vacío (no use 00 salvo que en HKA"
+" el rango esté dado de alta con 00)."
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,help:l10n_ve_edi_tfhka.field_account_journal__l10n_ve_edi_tfhka_serie
+msgid ""
+"Debe coincidir exactamente con la serie del rango en The Factory HKA. Deje "
+"vacío para enviar serie vacía al API (numeración unificada / sin serie en "
+"HKA). Para forzar vacío si existe series_correlative en el diario, guarde un"
+" guion (-) en este campo."
+msgstr ""
+"Debe coincidir exactamente con la serie del rango en El Factory HKA. Deje "
+"vacío para enviar serie vacía al API (numeración unificada / sin serie en "
+"HKA). Para forzar vacío si existe series_correlative en el diario, guarde un"
+" guion (-) en este campo."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid ""
+"Descarga por API (/api/DescargaArchivo) no disponible: %(err)s Tampoco hay "
+"urlPdf en la respuesta guardada."
+msgstr ""
+"Descarga por API (/api/DescargaArchivo) no disponible: %(err)s Tampoco hay "
+"urlPdf en la respuesta guardada."
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.view_move_form_l10n_ve_edi_tfhka
+msgid "Descargar / ver PDF"
+msgstr "Descargar / ver PDF"
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.view_move_form_l10n_ve_edi_tfhka
+msgid "Documento transmitido (TFHKA)"
+msgstr "Documento transmitido (TFHKA)"
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/ir_actions_report.py:0
+msgid "El adjunto PDF de facturacion digital no esta disponible."
+msgstr "El adjunto PDF de facturacion digital no esta disponible."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid "El diario debe usar el proveedor TFHKA."
+msgstr "El diario debe usar el proveedor TFHKA."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid ""
+"El documento debe estar enviado a facturacion digital (estado: enviado)."
+msgstr ""
+"El documento debe estar enviado a facturacion digital (estado: enviado)."
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.res_config_settings_l10n_ve_edi_tfhka
+msgid "Facturacion Digital The Factory HKA"
+msgstr "Facturacion Digital El Factory HKA"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,help:l10n_ve_edi_tfhka.field_account_journal__l10n_ve_edi_provider
+msgid ""
+"Imprenta o conector para enviar facturas de cliente confirmadas de este "
+"diario."
+msgstr ""
+"Imprenta o conector para enviar facturas de cliente confirmadas de este "
+"diario."
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model,name:l10n_ve_edi_tfhka.model_account_journal
+msgid "Journal"
+msgstr "Diario"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model,name:l10n_ve_edi_tfhka.model_account_move
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid "La API TFHKA no devolvio token JWT."
+msgstr "La API TFHKA no incluye token JWT."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid ""
+"La respuesta de DescargaArchivo no incluye un PDF en base64 reconocible."
+msgstr ""
+"La respuesta de DescargaArchivo no incluye un PDF en base64 reconocible."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/ir_actions_report.py:0
+msgid ""
+"No hay PDF de facturacion digital para imprimir. Verifique credenciales "
+"TFHKA en Ajustes y que la emision en TFHKA haya generado el documento."
+msgstr ""
+"No hay PDF de facturacion digital para imprimir. Verifique credenciales "
+"TFHKA en Ajustes y que la emisión en TFHKA haya generado el documento."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid ""
+"No hay URL de consulta del documento en la respuesta guardada de TFHKA. "
+"Revise el JSON de respuesta."
+msgstr ""
+"No hay URL de consulta del documento en la respuesta guardada de TFHKA. "
+"Revisa el JSON de respuesta."
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.view_move_form_l10n_ve_edi_tfhka
+msgid ""
+"No se detectaron enlaces (urlPdf, urlDocumento, etc.) en la respuesta "
+"guardada; revise el bloque JSON de respuesta o use los botones del "
+"encabezado y valide el mensaje si falta la URL."
+msgstr ""
+"No se detectaron enlaces (urlPdf, urlDocumento, etc.) en la respuesta "
+"guardada; revise el bloque JSON de respuesta o use los botones del "
+"encabezado y valide el mensaje si falta la URL."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid "No se pudo obtener el PDF."
+msgstr "No se pudo obtener el PDF."
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.view_move_form_l10n_ve_edi_tfhka
+msgid "PDF TFHKA"
+msgstr "PDF TFHKA"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_bank_statement_line__l10n_ve_edi_tfhka_pdf_attachment_id
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_move__l10n_ve_edi_tfhka_pdf_attachment_id
+msgid "PDF TFHKA (DescargaArchivo)"
+msgstr "PDF TFHKA (DescargaArchivo)"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_bank_statement_line__l10n_ve_edi_tfhka_portal_iframe_report_type
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_move__l10n_ve_edi_tfhka_portal_iframe_report_type
+msgid "Portal: tipo de informe embebido (pdf/html)"
+msgstr "Portal: tipo de informe embebido (pdf/html)"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_journal__l10n_ve_edi_provider
+msgid "Proveedor de facturacion digital"
+msgstr "Proveedor de facturacion digital"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model,name:l10n_ve_edi_tfhka.model_ir_actions_report
+msgid "Report Action"
+msgstr "Acción de reporte"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_journal__l10n_ve_edi_tfhka_serie
+msgid "Serie (TFHKA)"
+msgstr "Serie (TFHKA)"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model,name:l10n_ve_edi_tfhka.model_l10n_ve_edi_tfhka_api_service
+msgid "Servicio API TFHKA Venezuela"
+msgstr "Servicio API TFHKA Venezuela"
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/account_move.py:0
+msgid "Solo aplica a facturas o notas de cliente confirmadas."
+msgstr "Solo aplica a facturas o notas de cliente confirmadas."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/res_config_settings.py:0
+msgid "Success"
+msgstr "Éxito"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_journal__l10n_ve_edi_tfhka_sucursal
+msgid "Sucursal / establecimiento (TFHKA)"
+msgstr "Sucursal / establecimiento (TFHKA)"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_res_config_settings__tfhka_password
+msgid "TFHKA Password"
+msgstr "Contraseña TFHKA"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_res_config_settings__tfhka_username
+msgid "TFHKA Username"
+msgstr "Nombre de usuario"
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/res_config_settings.py:0
+msgid "TFHKA token was not returned."
+msgstr "El token TFHKA no fue devuelto."
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/res_config_settings.py:0
+msgid "TFHKA username and password are required."
+msgstr "TFHKA username y password son requerido."
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_bank_statement_line__l10n_ve_edi_tfhka_show_sent_link_buttons
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_move__l10n_ve_edi_tfhka_show_sent_link_buttons
+msgid "TFHKA: documento EDI enviado"
+msgstr "TFHKA: documento EDI enviado"
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.res_config_settings_l10n_ve_edi_tfhka
+msgid "Test Connection"
+msgstr "Test Conexión"
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.res_config_settings_l10n_ve_edi_tfhka
+msgid "Test Invoice Send"
+msgstr "Test Factura Enviar"
+
+#. module: l10n_ve_edi_tfhka
+#. odoo-python
+#: code:addons/l10n_ve_edi_tfhka/models/res_config_settings.py:0
+msgid "Test invoice payload sent successfully."
+msgstr "Test factura carga útil enviado successfully."
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields.selection,name:l10n_ve_edi_tfhka.selection__account_journal__l10n_ve_edi_provider__tfhka
+msgid "The Factory HKA"
+msgstr "El Factory HKA"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_bank_statement_line__l10n_ve_edi_tfhka_sent_pdf_url
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_move__l10n_ve_edi_tfhka_sent_pdf_url
+msgid "URL PDF (TFHKA)"
+msgstr "URL PDF (TFHKA)"
+
+#. module: l10n_ve_edi_tfhka
+#: model_terms:ir.ui.view,arch_db:l10n_ve_edi_tfhka.view_move_form_l10n_ve_edi_tfhka
+msgid "URL documento TFHKA"
+msgstr "URL documento TFHKA"
+
+#. module: l10n_ve_edi_tfhka
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_bank_statement_line__l10n_ve_edi_tfhka_sent_invoice_url
+#: model:ir.model.fields,field_description:l10n_ve_edi_tfhka.field_account_move__l10n_ve_edi_tfhka_sent_invoice_url
+msgid "URL documento fiscal (TFHKA)"
+msgstr "URL documento fiscal (TFHKA)"

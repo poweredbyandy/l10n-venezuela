@@ -1,0 +1,40 @@
+from odoo.tests import tagged
+
+from odoo.addons.l10n_ve_stock.tests.test_stock_picking_dispatch_guide import (
+    TestL10nVeStockDispatchGuide,
+)
+
+
+@tagged("post_install", "-at_install")
+class TestL10nVeSeniatInvoiceDashboardDispatch(TestL10nVeStockDispatchGuide):
+    def test_dashboard_shows_unfactured_dispatch_guides(self):
+        picking = self._create_ve_sale_and_validate_delivery()
+        self.assertTrue(picking.l10n_ve_control_number)
+
+        data = self.env["account.journal"].get_l10n_ve_invoice_dashboard()
+        self.assertTrue(data["visible"])
+        keys = [item["key"] for item in data["items"]]
+        self.assertIn("unfactured_dispatch_guides", keys)
+
+        counts = {item["key"]: item["count"] for item in data["items"]}
+        self.assertGreaterEqual(counts["unfactured_dispatch_guides"], 1)
+
+        action = self.env["account.journal"].action_l10n_ve_invoice_dashboard_open(
+            "unfactured_dispatch_guides"
+        )
+        self.assertEqual(action["res_model"], "stock.picking")
+        self.assertIn(picking.id, action["domain"][0][2])
+        list_view = self.env.ref(
+            "l10n_ve_stock.stock_picking_unfactured_dispatch_guide_tree"
+        )
+        self.assertEqual(action.get("view_id"), list_view.id)
+        picking.invalidate_recordset(
+            [
+                "l10n_ve_dispatch_guide_date",
+                "l10n_ve_dispatch_guide_time",
+                "l10n_ve_dispatch_guide_user_id",
+            ]
+        )
+        self.assertTrue(picking.l10n_ve_dispatch_guide_date)
+        self.assertTrue(picking.l10n_ve_dispatch_guide_time)
+        self.assertTrue(picking.l10n_ve_dispatch_guide_user_id)

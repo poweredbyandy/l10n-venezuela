@@ -30,8 +30,8 @@ class TestL10nVeIgtfCommon(AccountTestInvoicingCommon):
             cls.igtf_account = cls.env["account.account"].with_company(cls.company).create(
                 {
                     "name": "IGTF Payable Test",
-                    "code": "2139009",
-                    "account_type": "liability_payable",
+                    "code": "2102099",
+                    "account_type": "liability_current",
                     "company_id": cls.company.id,
                     "reconcile": True,
                 }

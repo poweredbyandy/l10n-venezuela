@@ -37,7 +37,7 @@ class AccountMove(models.Model):
     def l10n_ve_invoice_escp_get_payload(self):
         self.ensure_one()
         self.check_access("read")
-        if self.state != "posted":
+        if self.state not in ("posted", "cancel"):
             raise UserError(_("Solo documentos confirmados pueden imprimirse por USB."))
         if not self._l10n_ve_escp_is_continuous_eligible():
             raise UserError(
@@ -54,7 +54,7 @@ class AccountMove(models.Model):
     def l10n_ve_invoice_escp_confirm_printed(self):
         self.ensure_one()
         self.check_access("read")
-        if self.state != "posted":
+        if self.state not in ("posted", "cancel"):
             raise UserError(_("Solo documentos confirmados."))
         if not self._l10n_ve_escp_is_continuous_eligible():
             raise UserError(_("Operación no aplicable a este documento."))

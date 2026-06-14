@@ -4,7 +4,8 @@
         <field name="name">IVA Retention</field>
         <field name="model">account.withholding.type</field>
         <field name="arch" type="xml">
-            <list>
+            <list editable="bottom" default_order="sequence, id">
+                <field name="sequence" widget="handle" />
                 <field name="name" required="1" />
                 <field name="value" required="1" />
                 <field name="state" />

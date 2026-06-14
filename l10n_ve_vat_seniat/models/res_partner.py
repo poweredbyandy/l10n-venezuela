@@ -29,8 +29,6 @@ class ResPartner(models.Model):
     def _prepare_create_values(self, vals_list):
         vals_list = super()._prepare_create_values(vals_list)
         for vals in vals_list:
-            if vals.get("type_person_id"):
-                continue
             cid = vals.get("country_id")
             if not cid:
                 continue

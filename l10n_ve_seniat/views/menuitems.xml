@@ -22,7 +22,7 @@
     />
     <menuitem
         id="menu_seniat_sequences"
-        name="Sequences"
+        name="Secuencias"
         parent="l10n_ve_seniat.menu_seniat_root"
         sequence="25"
         groups="base.group_no_one"

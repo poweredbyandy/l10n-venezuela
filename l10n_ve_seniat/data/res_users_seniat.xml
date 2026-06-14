@@ -2,6 +2,7 @@
 <odoo noupdate="1">
     <record id="partner_seniat" model="res.partner">
         <field name="name">SENIAT</field>
+        <field name="vat">G200003030</field>
         <field name="email">seniat</field>
         <field
             name="image_1920"

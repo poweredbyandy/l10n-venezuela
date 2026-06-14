@@ -2,6 +2,7 @@
 
 from datetime import date
 
+from dateutil.relativedelta import relativedelta
 from odoo import Command, fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
@@ -431,6 +432,56 @@ class TestAccountMove(L10nVeSeniatCommon):
             move.action_post()
         self.assertIn("documento origen", str(cm.exception))
 
+    def test_reversal_wizard_requires_reason(self):
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.action_post()
+        wiz = (
+            self.env["account.move.reversal"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create({"reason": ""})
+        )
+        with self.assertRaises(UserError) as cm:
+            wiz.reverse_moves()
+        self.assertIn("motivo de reversión", str(cm.exception))
+
+    def test_credit_debit_blocked_until_free_form_printed(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write({"l10n_ve_emission_medium": "free"})
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.action_post()
+        self.assertFalse(invoice.l10n_ve_show_credit_debit_actions)
+        with self.assertRaises(UserError) as cm:
+            invoice.action_reverse()
+        self.assertIn("forma libre", str(cm.exception))
+        invoice.l10n_ve_invoice_original_printed = True
+        self.assertTrue(invoice.l10n_ve_show_credit_debit_actions)
+
+    def test_credit_debit_allowed_for_contingency_without_print(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.write(
+            {
+                "l10n_ve_control_number": "99-00000099",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        invoice.action_post()
+        self.assertTrue(invoice.l10n_ve_show_credit_debit_actions)
+
     def test_out_refund_post_with_reversed_entry_success(self):
         invoice = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
@@ -783,6 +834,124 @@ class TestAccountMove(L10nVeSeniatCommon):
             move.action_print_pdf()
         self.assertIn("confirmar", str(cm.exception).lower())
 
+    def test_action_print_pdf_draft_raises(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_free_form_print_medium = "pdf"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        with self.assertRaises(UserError) as cm:
+            move.action_print_pdf()
+        self.assertIn("confirmar", str(cm.exception).lower())
+
+    def test_get_extra_print_items_draft_hides_pdf_download(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        self.assertEqual(move.get_extra_print_items(), [])
+
+    def test_get_extra_print_items_posted_hides_pdf_download_without_original_print(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        self.assertEqual(move.get_extra_print_items(), [])
+        self.assertTrue(move._l10n_ve_allows_invoice_portal_view())
+
+    def test_portal_view_allowed_before_original_print_free_form(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_emission_medium = "free"
+        journal.l10n_ve_free_form_print_medium = "pdf"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        self.assertFalse(move.l10n_ve_invoice_original_printed)
+        self.assertFalse(move._l10n_ve_allows_invoice_pdf_download())
+        self.assertTrue(move._l10n_ve_allows_invoice_portal_view())
+
+    def test_get_extra_print_items_posted_shows_pdf_download_after_original_print(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_emission_medium = "free"
+        journal.l10n_ve_free_form_print_medium = "pdf"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        move.l10n_ve_invoice_original_printed = True
+        items = move.get_extra_print_items()
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["key"], "download_pdf")
+        self.assertEqual(items[0]["type"], "ir.actions.act_url")
+
+    def test_get_extra_print_items_hides_pdf_download_for_continuous(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_emission_medium = "free"
+        journal.l10n_ve_free_form_print_medium = "continuous"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        move.l10n_ve_invoice_original_printed = True
+        self.assertEqual(move.get_extra_print_items(), [])
+
+    def test_get_extra_print_items_hides_pdf_download_for_digital(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_emission_medium = "digital"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        move.l10n_ve_invoice_original_printed = True
+        self.assertEqual(move.get_extra_print_items(), [])
+
+    def test_hide_invoice_print_pdf_digital_not_sent(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_emission_medium = "digital"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        self.assertTrue(move._l10n_ve_blocking_invoice_report_before_digital_sent())
+        self.assertTrue(move.l10n_ve_hide_invoice_print_pdf)
+        if "l10n_ve_edi_send_state" in move._fields:
+            move.l10n_ve_edi_send_state = "sent"
+            self.assertFalse(move.l10n_ve_hide_invoice_print_pdf)
+
+    def test_get_extra_print_items_hides_pdf_download_for_fiscal_machine(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.l10n_ve_emission_medium = "fiscal_machine"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        move.l10n_ve_invoice_original_printed = True
+        self.assertEqual(move.get_extra_print_items(), [])
+
+    def test_invoice_pdf_filename_uses_name_and_vat(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        self.assertEqual(
+            move._get_invoice_report_filename(),
+            f"{move.name.replace('/', '_')}_{self.partner_ve.vat}.pdf",
+        )
+        self.assertEqual(
+            move._get_report_base_filename(),
+            f"{move.name.replace('/', '_')}_{self.partner_ve.vat}",
+        )
+        self.assertNotIn("proforma", move._get_invoice_report_filename().lower())
+        self.assertNotIn("draft", move._get_invoice_report_filename().lower())
+
+    def test_invoice_pdf_filename_without_vat(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.name = "FAC-00099"
+        move.partner_id.vat = False
+        self.assertEqual(move._get_invoice_report_filename(), "FAC-00099.pdf")
+
     def test_action_print_pdf_free_form_pdf_uses_pdf_report(self):
         layout = self.env.ref("web.external_layout_standard", raise_if_not_found=False)
         if layout:
@@ -926,7 +1095,7 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertEqual(move.state, "posted")
         self.assertFalse((move.l10n_ve_control_number or "").strip())
-        self.assertFalse(move.l10n_ve_invoice_date)
+        self.assertTrue(move.l10n_ve_invoice_date)
         self.assertTrue(move.invoice_date)
 
     def test_fiscal_machine_posts_without_machine_fields_or_control(self):
@@ -945,7 +1114,7 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertEqual(move.state, "posted")
         self.assertFalse((move.l10n_ve_control_number or "").strip())
-        self.assertFalse(move.l10n_ve_invoice_date)
+        self.assertTrue(move.l10n_ve_invoice_date)
         self.assertTrue(move.invoice_date)
         self.assertFalse((move.l10n_ve_serial_number or "").strip())
         move.write(
@@ -993,10 +1162,9 @@ class TestAccountMove(L10nVeSeniatCommon):
             "state == 'draft' and l10n_ve_journal_emission_medium != 'contingency'",
             arch,
         )
-        self.assertIn(
-            "l10n_ve_journal_emission_medium not in ('free', 'digital', 'fiscal_machine')",
-            arch,
-        )
+        list_arch = self.env.ref("l10n_ve_seniat.view_invoice_tree").get_combined_arch()
+        self.assertIn('name="l10n_ve_invoice_date"', list_arch)
+        self.assertNotIn('string="Invoice Date"', list_arch)
 
     def test_free_posted_sets_l10n_ve_invoice_date(self):
         journal = self.company_data["default_journal_sale"]
@@ -1008,7 +1176,7 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertTrue(move.l10n_ve_invoice_date)
 
-    def test_digital_posted_without_l10n_ve_invoice_date_until_print(self):
+    def test_digital_posted_sets_l10n_ve_invoice_date(self):
         journal = self.company_data["default_journal_sale"]
         journal.write(
             {
@@ -1022,7 +1190,7 @@ class TestAccountMove(L10nVeSeniatCommon):
             self._create_invoice_vals(self.partner_ve)
         )
         move.action_post()
-        self.assertFalse(move.l10n_ve_invoice_date)
+        self.assertTrue(move.l10n_ve_invoice_date)
 
     def test_draft_invoice_date_editable_without_emission_medium(self):
         journal = self.company_data["default_journal_sale"]
@@ -1043,3 +1211,11 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertEqual(move.invoice_date, custom_date)
         move.action_post()
         self.assertEqual(move.invoice_date, custom_date)
+
+    def test_invoice_date_due_cannot_be_before_invoice_date(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.invoice_date = fields.Date.today()
+        with self.assertRaises(ValidationError):
+            move.invoice_date_due = fields.Date.today() - relativedelta(days=1)

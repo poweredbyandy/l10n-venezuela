@@ -1,0 +1,151 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_reports_stock
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:57+0000\n"
+"PO-Revision-Date: 2026-06-14 02:03+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_reports_stock
+#. odoo-javascript
+#: code:addons/l10n_ve_reports_stock/static/src/components/inventory_book_report/filters.xml:0
+msgid "Almacenes"
+msgstr "Almacenes"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_autoconsumos_qty
+msgid "Autoconsumos (Ud)"
+msgstr "Autoconsumos (Ud)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_autoconsumos_val
+msgid "Autoconsumos (Valor)"
+msgstr "Autoconsumos (Valor)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_cost
+msgid "Costo Promedio"
+msgstr "Costo Promedio"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_code
+msgid "Código"
+msgstr "Código"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_entradas_qty
+msgid "Entradas (Ud)"
+msgstr "Entradas (Ud)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_entradas_val
+msgid "Entradas (Valor)"
+msgstr "Entradas (Valor)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_inv_final_qty
+msgid "Inv. Final (Ud)"
+msgstr "Inv. Final (Ud)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_inv_final_val
+msgid "Inv. Final (Valor)"
+msgstr "Inv. Final (Valor)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_inv_initial_qty
+msgid "Inv. Inicial (Ud)"
+msgstr "Inv. Inicial (Ud)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_inv_initial_val
+msgid "Inv. Inicial (Valor)"
+msgstr "Inv. Inicial (Valor)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report,name:l10n_ve_reports_stock.inventory_book_report
+#: model:ir.actions.client,name:l10n_ve_reports_stock.action_inventory_book_report
+#: model:ir.ui.menu,name:l10n_ve_reports_stock.menu_seniat_report_inventory_book
+#: model:ir.ui.menu,name:l10n_ve_reports_stock.menu_stock_report_inventory_book
+msgid "Libro de Inventario"
+msgstr "Libro de Inventario"
+
+#. module: l10n_ve_reports_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports_stock.view_warehouse_inherit_l10n_ve_reports_stock
+msgid "Libro de Inventario SENIAT"
+msgstr "Libro de Inventario SENIAT"
+
+#. module: l10n_ve_reports_stock
+#. odoo-javascript
+#: code:addons/l10n_ve_reports_stock/static/src/components/inventory_book_report/filters.xml:0
+msgid "Ocultar productos con cantidades en 0"
+msgstr "Ocultar productos con cantidades en 0"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_product
+msgid "Producto"
+msgstr "Producto"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_retiros_qty
+msgid "Retiros (Ud)"
+msgstr "Retiros (Ud)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_retiros_val
+msgid "Retiros (Valor)"
+msgstr "Retiros (Valor)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_salidas_qty
+msgid "Salidas (Ud)"
+msgstr "Salidas (Ud)"
+
+#. module: l10n_ve_reports_stock
+#: model:account.report.column,name:l10n_ve_reports_stock.inventory_book_report_salidas_val
+msgid "Salidas (Valor)"
+msgstr "Salidas (Valor)"
+
+#. module: l10n_ve_reports_stock
+#: model:ir.model,name:l10n_ve_reports_stock.model_stock_inventory_book_report_handler_oca
+msgid "Stock Inventory Book Report Handler"
+msgstr "Inventario Inventario Libro Reporte Handler"
+
+#. module: l10n_ve_reports_stock
+#: model:ir.model.fields,field_description:l10n_ve_reports_stock.field_stock_warehouse__l10n_ve_location_autoconsumos_id
+msgid "Ubicación Autoconsumos"
+msgstr "Ubicación Autoconsumos"
+
+#. module: l10n_ve_reports_stock
+#: model:ir.model.fields,field_description:l10n_ve_reports_stock.field_stock_warehouse__l10n_ve_location_retiros_id
+msgid "Ubicación Retiros"
+msgstr "Ubicación Retiros"
+
+#. module: l10n_ve_reports_stock
+#: model:ir.model.fields,help:l10n_ve_reports_stock.field_stock_warehouse__l10n_ve_location_autoconsumos_id
+msgid "Ubicación destino para movimientos de autoconsumo (consumo interno)."
+msgstr "Ubicación destino para movimientos de autoconsumo (consumo interno)."
+
+#. module: l10n_ve_reports_stock
+#: model:ir.model.fields,help:l10n_ve_reports_stock.field_stock_warehouse__l10n_ve_location_retiros_id
+msgid ""
+"Ubicación destino para movimientos de retiros (uso personal o del "
+"propietario)."
+msgstr ""
+"Ubicación destino para movimientos de retiros (uso personal o del "
+"propietario)."
+
+#. module: l10n_ve_reports_stock
+#: model:ir.model,name:l10n_ve_reports_stock.model_stock_warehouse
+msgid "Warehouse"
+msgstr "Almacén"
