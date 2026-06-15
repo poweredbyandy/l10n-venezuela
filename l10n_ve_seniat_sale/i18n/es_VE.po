@@ -188,7 +188,7 @@ msgstr ""
 #. module: l10n_ve_seniat_sale
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat_sale.report_saleorder_document_ve
 msgid "NO FISCAL"
-msgstr "SIN FISCAL"
+msgstr "NO FISCAL"
 
 #. module: l10n_ve_seniat_sale
 #. odoo-python

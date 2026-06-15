@@ -392,7 +392,7 @@ msgstr ""
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
 msgid "Cant."
-msgstr "No poder."
+msgstr "Cant."
 
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.l10n_ve_account_move_cancel_wizard_view_form
@@ -2367,7 +2367,7 @@ msgstr "Error de entrega de SMS"
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
 msgid "SUBTOTAL"
-msgstr "TOTAL PARCIAL"
+msgstr "SUBTOTAL"
 
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
@@ -2566,7 +2566,7 @@ msgstr "Subtotal moneda de la empresa"
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_footer_cn_bs
 msgid "Subtotal:"
-msgstr "Total parcial:"
+msgstr "Subtotal:"
 
 #. module: l10n_ve_seniat
 #: model:res.groups,name:l10n_ve_seniat.group_support_user
