@@ -216,7 +216,7 @@ msgstr ""
 #. module: l10n_ve_stock
 #: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
 msgid "Cant."
-msgstr "No poder."
+msgstr "Cant."
 
 #. module: l10n_ve_stock
 #: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__company_id
