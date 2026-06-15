@@ -86,7 +86,7 @@ msgstr "Buscar nombre o RIF..."
 #. module: l10n_ve_seniat_sale
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat_sale.report_saleorder_document_ve
 msgid "Cant."
-msgstr "No poder."
+msgstr "Cant."
 
 #. module: l10n_ve_seniat_sale
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat_sale.report_saleorder_document_ve
