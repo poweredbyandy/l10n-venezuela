@@ -26,8 +26,7 @@ class ProductTemplate(models.Model):
         if not ve or not templates:
             return set()
         candidates = templates.filtered(
-            lambda t: (t.company_id or self.env.company).account_fiscal_country_id
-            == ve
+            lambda t: (t.company_id or self.env.company).account_fiscal_country_id == ve
         )
         if not candidates:
             return set()
@@ -56,13 +55,10 @@ class ProductTemplate(models.Model):
         )
 
     def write(self, vals):
-        if (
-            "taxes_id" in vals
-            and not self._l10n_ve_user_can_override_sale_tax_lock()
-        ):
-            locked = self.env["product.template"]._l10n_ve_locked_sale_tax_template_id_set(
-                self
-            )
+        if "taxes_id" in vals and not self._l10n_ve_user_can_override_sale_tax_lock():
+            locked = self.env[
+                "product.template"
+            ]._l10n_ve_locked_sale_tax_template_id_set(self)
             if set(self.ids) & locked:
                 raise ValidationError(
                     _(
@@ -76,11 +72,15 @@ class ProductTemplate(models.Model):
             ve_country = self.env.ref("base.ve", raise_if_not_found=False)
             if ve_country:
                 ve_templates = self.filtered(
-                    lambda t: (t.company_id or self.env.company).account_fiscal_country_id
+                    lambda t: (
+                        t.company_id or self.env.company
+                    ).account_fiscal_country_id
                     == ve_country
                 )
                 if ve_templates:
-                    self._l10n_ve_normalize_list_price_in_vals(vals, templates=ve_templates)
+                    self._l10n_ve_normalize_list_price_in_vals(
+                        vals, templates=ve_templates
+                    )
         return super().write(vals)
 
     @api.model_create_multi
@@ -99,7 +99,7 @@ class ProductTemplate(models.Model):
             return self.env["res.company"].browse(cid)
         if isinstance(cid, models.Model):
             return cid
-        if isinstance(cid, (list, tuple)) and len(cid) >= 2:
+        if isinstance(cid, list | tuple) and len(cid) >= 2:
             if cid[0] == 4:
                 return self.env["res.company"].browse(cid[1])
             if cid[0] == 1 and len(cid) >= 2:
@@ -127,7 +127,7 @@ class ProductTemplate(models.Model):
     @api.model
     def _l10n_ve_get_exent_sale_tax(self, company):
         tax = company.exent_aliquot_sale
-        if tax:
+        if tax and float_compare(tax.amount, 0.0, precision_digits=4) == 0:
             return tax
         return self.env["account.tax"].search(
             [
@@ -141,7 +141,7 @@ class ProductTemplate(models.Model):
     @api.model
     def _l10n_ve_get_exent_purchase_tax(self, company):
         tax = company.exent_aliquot_purchase
-        if tax:
+        if tax and float_compare(tax.amount, 0.0, precision_digits=4) == 0:
             return tax
         return self.env["account.tax"].search(
             [
@@ -164,9 +164,10 @@ class ProductTemplate(models.Model):
             if "standard_price" in vals:
                 costs.append(float(vals.get("standard_price") or 0.0))
             cost_max = max(costs) if costs else 0.0
-            if "list_price" in vals and float_compare(
-                vals["list_price"], 0.0, precision_digits=prec
-            ) <= 0:
+            if (
+                "list_price" in vals
+                and float_compare(vals["list_price"], 0.0, precision_digits=prec) <= 0
+            ):
                 vals["list_price"] = max(1.0, cost_max)
             return
 
@@ -174,9 +175,10 @@ class ProductTemplate(models.Model):
         if company.account_fiscal_country_id != ve_country:
             return
         cost = float(vals.get("standard_price", 0.0) or 0.0)
-        if "list_price" in vals and float_compare(
-            vals["list_price"], 0.0, precision_digits=prec
-        ) <= 0:
+        if (
+            "list_price" in vals
+            and float_compare(vals["list_price"], 0.0, precision_digits=prec) <= 0
+        ):
             vals["list_price"] = max(1.0, cost)
 
     @api.model
@@ -262,9 +264,9 @@ class ProductTemplate(models.Model):
 
     @api.constrains("taxes_id", "supplier_taxes_id")
     def _l10n_ve_check_exactly_one_tax_per_use(self):
-        if self.env.context.get(
-            "install_mode"
-        ) or self.env.context.get("l10n_ve_skip_product_tax_constraint"):
+        if self.env.context.get("install_mode") or self.env.context.get(
+            "l10n_ve_skip_product_tax_constraint"
+        ):
             return
         ve_country = self.env.ref("base.ve", raise_if_not_found=False)
         if not ve_country:

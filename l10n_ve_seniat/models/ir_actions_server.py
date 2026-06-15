@@ -36,4 +36,6 @@ class IrActionsServer(models.Model):
         move_model = self.env["ir.model"]._get("account.move")
         if not move_model:
             return
-        self.sudo().search([("binding_model_id", "=", move_model.id)])._l10n_ve_unbind_account_move_bindings()
+        self.sudo().search(
+            [("binding_model_id", "=", move_model.id)]
+        )._l10n_ve_unbind_account_move_bindings()

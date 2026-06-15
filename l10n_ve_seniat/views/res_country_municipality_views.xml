@@ -1,6 +1,6 @@
 <odoo>
     <!-- TREE -->
-    <record id="view_res_country_municipality_tree" model="ir.ui.view">
+    <record id="res_country_municipality_view_list" model="ir.ui.view">
         <field name="name">Municipality</field>
         <field name="model">res.country.municipality</field>
         <field name="arch" type="xml">
@@ -19,7 +19,7 @@
     </record>
 
     <!-- FORM -->
-    <record id="view_res_country_municipality_form" model="ir.ui.view">
+    <record id="res_country_municipality_view_form" model="ir.ui.view">
         <field name="name">Municipality</field>
         <field name="model">res.country.municipality</field>
         <field name="arch" type="xml">
@@ -42,7 +42,7 @@
     </record>
 
     <!-- ACTION -->
-    <record id="action_res_country_municipality" model="ir.actions.act_window">
+    <record id="res_country_municipality_action" model="ir.actions.act_window">
         <field name="name">Municipalities</field>
         <field name="res_model">res.country.municipality</field>
         <field name="type">ir.actions.act_window</field>

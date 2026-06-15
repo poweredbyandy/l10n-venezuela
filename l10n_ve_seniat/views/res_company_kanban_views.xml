@@ -45,7 +45,7 @@
         </field>
     </record>
     <!-- Window Action -->
-    <record id="action_seniat_companies" model="ir.actions.act_window">
+    <record id="res_company_action_seniat" model="ir.actions.act_window">
         <field name="name">Empresas</field>
         <field name="res_model">res.company</field>
         <field name="view_mode">kanban,list,form</field>
@@ -63,7 +63,7 @@
         id="menu_seniat_companies"
         name="Empresas"
         parent="menu_seniat_root"
-        action="action_seniat_companies"
+        action="res_company_action_seniat"
         sequence="10"
     />
 </odoo>

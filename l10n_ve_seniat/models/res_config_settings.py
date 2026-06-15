@@ -1,7 +1,7 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
-from .l10n_ve_dispatch_guide_email import _EMAIL_RE
+from .res_company import _EMAIL_RE
 
 
 class ResConfigSettings(models.TransientModel):
@@ -94,7 +94,10 @@ class ResConfigSettings(models.TransientModel):
             email = (settings.l10n_ve_implementer_email or "").strip()
             if email and not _EMAIL_RE.match(email):
                 raise ValidationError(
-                    _("El correo del implementador “%(email)s” no tiene un formato válido.")
+                    _(
+                        "El correo del implementador “%(email)s” no tiene un "
+                        "formato válido."
+                    )
                     % {"email": email}
                 )
 

@@ -14,7 +14,10 @@
                 t-set="rows"
                 t-value="object.l10n_ve_unfactured_dispatch_guides_for_email()"
             />
-            <t t-set="guide_count" t-value="object.l10n_ve_unfactured_dispatch_email_count()" />
+            <t
+                t-set="guide_count"
+                t-value="object.l10n_ve_unfactured_dispatch_email_count()"
+            />
             <div
                 style="margin: 0; padding: 0; background-color: #eef2f7; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1f2937;"
             >
@@ -66,21 +69,31 @@
                                 </td>
                             </tr>
                             <tr t-if="object.vat">
-                                <td style="padding: 0 0 8px 0; color: #64748b; font-weight: 600;">RIF</td>
+                                <td
+                                    style="padding: 0 0 8px 0; color: #64748b; font-weight: 600;"
+                                >RIF</td>
                                 <td style="padding: 0 0 8px 0;">
                                     <t t-out="object.vat" />
                                 </td>
                             </tr>
                             <tr>
-                                <td style="padding: 0 0 8px 0; color: #64748b; font-weight: 600;">Fecha del reporte</td>
+                                <td
+                                    style="padding: 0 0 8px 0; color: #64748b; font-weight: 600;"
+                                >Fecha del reporte</td>
                                 <td style="padding: 0 0 8px 0;">
-                                    <t t-out="object.l10n_ve_unfactured_dispatch_email_issue_date()" />
+                                    <t
+                                        t-out="object.l10n_ve_unfactured_dispatch_email_issue_date()"
+                                    />
                                 </td>
                             </tr>
                             <tr>
-                                <td style="padding: 0; color: #64748b; font-weight: 600;">Generado el</td>
+                                <td
+                                    style="padding: 0; color: #64748b; font-weight: 600;"
+                                >Generado el</td>
                                 <td style="padding: 0;">
-                                    <t t-out="object.l10n_ve_unfactured_dispatch_email_report_date()" />
+                                    <t
+                                        t-out="object.l10n_ve_unfactured_dispatch_email_report_date()"
+                                    />
                                 </td>
                             </tr>
                         </table>
@@ -105,7 +118,9 @@
                             </div>
                         </div>
 
-                        <p style="font-size: 14px; line-height: 1.65; margin: 0 0 20px 0; color: #334155;">
+                        <p
+                            style="font-size: 14px; line-height: 1.65; margin: 0 0 20px 0; color: #334155;"
+                        >
                             Listado de guías de despacho pendientes de facturación:
                         </p>
 
@@ -119,7 +134,9 @@
                                 style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 24px;"
                             >
                                 <thead>
-                                    <tr style="background-color: #0b2e59; color: #ffffff;">
+                                    <tr
+                                        style="background-color: #0b2e59; color: #ffffff;"
+                                    >
                                         <th
                                             style="border: 1px solid #0b2e59; padding: 10px 8px; text-align: left;"
                                         >N° documento</th>
@@ -168,7 +185,9 @@
                             </table>
                         </t>
 
-                        <p style="font-size: 12px; line-height: 1.6; color: #64748b; margin: 0;">
+                        <p
+                            style="font-size: 12px; line-height: 1.6; color: #64748b; margin: 0;"
+                        >
                             <t t-if="object.l10n_ve_implementer_is_configured()">
                                 Correo generado por
                                 <strong t-out="object.l10n_ve_implementer_name()" />

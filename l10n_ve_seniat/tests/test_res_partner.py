@@ -220,7 +220,7 @@ class TestResPartner(L10nVeSeniatCommon):
         user = new_test_user(
             self.env,
             login="l10n_ve_partner_lock_disabled_user",
-            groups="account.group_account_invoice",
+            groups="account.group_account_invoice,base.group_partner_manager",
         )
         partner.with_user(user).write({"name": "Otro nombre", "vat": "V87654321"})
         self.assertEqual(partner.name, "Otro nombre")

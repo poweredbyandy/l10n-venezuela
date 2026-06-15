@@ -146,7 +146,10 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         )
         line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertEqual(len(line.tax_ids), 1)
-        self.assertEqual(line.tax_ids, self.company_data["default_tax_purchase"])
+        expected_tax = self.env["product.template"]._l10n_ve_get_exent_purchase_tax(
+            self.env.company
+        )
+        self.assertEqual(line.tax_ids, expected_tax)
 
     def test_subtotal_refund(self):
         partner = self.env["res.partner"].create(
@@ -263,14 +266,23 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                 "vat": "J12345680",
             }
         )
-        product = self.env["product.product"].create(
+        product = self.env["product.template"].with_context(
+            l10n_ve_skip_auto_exent_taxes=True
+        ).create(
             {
                 "name": "Producto reporte",
+                "company_id": self.env.company.id,
                 "list_price": 100.0,
                 "taxes_id": [(6, 0, [self.company_data["default_tax_sale"].id])],
+                "supplier_taxes_id": [
+                    (6, 0, [self.company_data["default_tax_purchase"].id])
+                ],
             }
-        )
-        self.env.company.sale_discount_product_id = product
+        ).product_variant_id
+        company = self.env.company
+        if "sale_discount_product_id" not in company._fields:
+            self.skipTest("sale_discount_product_id requires sale module")
+        company.sale_discount_product_id = product
         move = self.env["account.move"].create(
             {
                 "move_type": "out_invoice",
@@ -282,8 +294,12 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                             "name": "Descuento",
                             "quantity": 1.0,
                             "price_unit": -10.0,
-                            "account_id": self.company_data["default_account_revenue"].id,
-                            "tax_ids": [(6, 0, [self.company_data["default_tax_sale"].id])],
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                (6, 0, [self.company_data["default_tax_sale"].id])
+                            ],
                             "sequence": 5,
                         }
                     ),
@@ -292,8 +308,12 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                             "name": "Producto",
                             "quantity": 1.0,
                             "price_unit": 100.0,
-                            "account_id": self.company_data["default_account_revenue"].id,
-                            "tax_ids": [(6, 0, [self.company_data["default_tax_sale"].id])],
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                (6, 0, [self.company_data["default_tax_sale"].id])
+                            ],
                             "sequence": 10,
                         }
                     ),
@@ -337,8 +357,6 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                 ],
             }
         )
-        line = move.invoice_line_ids.filtered(
-            lambda aml: aml.display_type == "product"
-        )
+        line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
         line.ensure_one()
         self.assertEqual(line.l10n_ve_report_line_description(), "Producto exento (E)")

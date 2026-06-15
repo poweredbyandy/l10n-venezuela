@@ -5,6 +5,7 @@
     "summary": "View and create reports",
     "category": "Accounting/Accounting",
     "author": "andyengit",
+    "website": "https://github.com/OCA/l10n-venezuela",
     "maintainers": ["andyengit"],
     "description": """
 Accounting Reports

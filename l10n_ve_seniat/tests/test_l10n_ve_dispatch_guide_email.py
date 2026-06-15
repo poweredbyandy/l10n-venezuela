@@ -21,7 +21,9 @@ class TestL10nVeDispatchGuideEmail(L10nVeSeniatCommon):
     def test_send_dispatch_email_updates_last_sent(self):
         if "stock.picking" not in self.env:
             self.skipTest("stock no instalado")
-        if not self.env["account.journal"]._l10n_ve_seniat_dispatch_guide_dashboard_available():
+        if not self.env[
+            "account.journal"
+        ]._l10n_ve_seniat_dispatch_guide_dashboard_available():
             self.skipTest("l10n_ve_stock no instalado")
 
         self.assertFalse(self.company.l10n_ve_unfactured_dispatch_email_last_sent)
@@ -69,9 +71,13 @@ class TestL10nVeDispatchGuideEmail(L10nVeSeniatCommon):
             self.assertTrue(data["dispatch_email"]["can_send"])
 
     def test_manual_send_action_returns_last_sent(self):
-        if not self.env["account.journal"]._l10n_ve_seniat_dispatch_guide_dashboard_available():
+        if not self.env[
+            "account.journal"
+        ]._l10n_ve_seniat_dispatch_guide_dashboard_available():
             self.skipTest("l10n_ve_stock no instalado")
-        result = self.env["account.journal"].action_l10n_ve_send_unfactured_dispatch_guides_email()
+        result = self.env[
+            "account.journal"
+        ].action_l10n_ve_send_unfactured_dispatch_guides_email()
         self.assertTrue(result["last_sent_label"])
         self.assertIn("message", result)
 
@@ -95,7 +101,9 @@ class TestL10nVeDispatchGuideEmail(L10nVeSeniatCommon):
             self.company.l10n_ve_implementer_email_from(),
         )
 
-        if not self.env["account.journal"]._l10n_ve_seniat_dispatch_guide_dashboard_available():
+        if not self.env[
+            "account.journal"
+        ]._l10n_ve_seniat_dispatch_guide_dashboard_available():
             self.skipTest("l10n_ve_stock no instalado")
 
         self.company._l10n_ve_send_unfactured_dispatch_guides_email()

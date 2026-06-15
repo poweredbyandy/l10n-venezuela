@@ -95,8 +95,8 @@ class AccountMoveLine(models.Model):
                 _(
                     "No se permiten líneas con precio menor o igual a cero. "
                     'La línea "%(line)s" tiene precio %(price)s. Use el producto de '
-                    "descuento de la compañía (asistente Descuento en pedidos) o corrija "
-                    "el importe."
+                    "descuento de la compañía (asistente Descuento en pedidos) o "
+                    "corrija el importe."
                 )
                 % {"line": self.name or _("Sin nombre"), "price": price}
             )
@@ -182,7 +182,7 @@ class AccountMoveLine(models.Model):
         "move_id.fiscal_position_id",
     )
     def _compute_tax_ids(self):
-        super()._compute_tax_ids()
+        res = super()._compute_tax_ids()
         for line in self:
             if not line.move_id:
                 continue
@@ -195,6 +195,7 @@ class AccountMoveLine(models.Model):
                 tax = line.move_id.fiscal_position_id.map_tax(tax)
             if tax:
                 line.tax_ids = tax
+        return res
 
     def _l10n_ve_get_exempt_tax_for_line(self):
         self.ensure_one()

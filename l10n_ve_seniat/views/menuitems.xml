@@ -8,10 +8,10 @@
         sequence="20"
     />
     <menuitem
-        id="menu_seniat_account_book"
+        id="account_book_menu"
         name="Talonarios"
         parent="l10n_ve_seniat.menu_seniat_root"
-        action="action_account_book"
+        action="account_book_action"
         sequence="30"
     />
     <menuitem
@@ -32,7 +32,7 @@
         id="menu_config_invoicing_account_book"
         name="Talonarios (N° control)"
         parent="account.account_invoicing_menu"
-        action="action_account_book"
+        action="account_book_action"
         sequence="15"
         groups="account.group_account_invoice,account.group_account_readonly"
     />

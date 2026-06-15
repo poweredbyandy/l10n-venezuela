@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.fields import Command
 from odoo.tools.float_utils import float_compare
 from odoo.tools.mail import html2plaintext
 from odoo.tools.misc import formatLang
@@ -82,7 +83,8 @@ class AccountMove(models.Model):
                     texts.append(
                         "<span>Este pago estará sujeto al cobro adicional del 3% del "
                         "Impuesto a las Grandes Transacciones Financieras (IGTF), de "
-                        "conformidad con la Providencia Administrativa SNAT/2022/000013 "
+                        "conformidad con la Providencia Administrativa "
+                        "SNAT/2022/000013 "
                         "publicada en la G.O N 42.339 del 17-03-2022, en caso de ser "
                         "cancelado en divisas. No aplica en pago en Bs.</span> "
                     )
@@ -108,10 +110,11 @@ class AccountMove(models.Model):
                     move.move_type == "out_refund" or move.debit_origin_id
                 ):
                     texts.append(
-                        "<span>%s</span>"
-                        % _(
-                            "Este documento se expresa conforme a la normativa "
-                            "tributaria vigente (SENIAT)."
+                        "<span>{}</span>".format(
+                            _(
+                                "Este documento se expresa conforme a la normativa "
+                                "tributaria vigente (SENIAT)."
+                            )
                         )
                     )
                 move.seniat_invoice_tag = "".join(texts) if texts else False
@@ -436,11 +439,113 @@ class AccountMove(models.Model):
         company_cur = self.company_currency_id
         amount = abs(self.amount_total)
         if self.currency_id == company_cur:
-            return company_cur.round(amount)
-        date = self.invoice_date or self.date or fields.Date.context_today(self)
-        return company_cur.round(
-            self.currency_id._convert(amount, company_cur, self.company_id, date)
+            result = company_cur.round(amount)
+        else:
+            date = self.invoice_date or self.date or fields.Date.context_today(self)
+            result = company_cur.round(
+                self.currency_id._convert(amount, company_cur, self.company_id, date)
+            )
+        if (
+            self.move_type != "out_refund"
+            or not self.reversed_entry_id
+            or self.currency_id == self.company_currency_id
+            or self.country_code != self.env.ref("base.ve").code
+        ):
+            return result
+        origin = self.reversed_entry_id
+        origin_date = (
+            origin.invoice_date or origin.date or fields.Date.context_today(self)
         )
+        return self.company_currency_id.round(
+            self.currency_id._convert(
+                abs(self.amount_total),
+                self.company_currency_id,
+                self.company_id,
+                origin_date,
+            )
+        )
+
+    def _l10n_ve_requires_refund_company_currency(self):
+        self.ensure_one()
+        if "l10n_ve_emission_medium" not in self.journal_id._fields:
+            return False
+        return bool(self.journal_id.l10n_ve_emission_medium)
+
+    def _l10n_ve_company_price_unit_from_origin_line(self, line):
+        if "price_subtotal_currency" in line._fields and line.price_subtotal_currency:
+            subtotal = abs(line.price_subtotal_currency)
+        else:
+            subtotal = abs(line.balance)
+        quantity = abs(line.quantity) or 1.0
+        discount_factor = 1.0 - (line.discount or 0.0) / 100.0
+        if discount_factor <= 0.0:
+            return 0.0
+        return subtotal / quantity / discount_factor
+
+    def _l10n_ve_force_refund_to_company_currency(self):
+        ve_country = self.env.ref("base.ve").code
+        for move in self:
+            if (
+                move.country_code != ve_country
+                or move.move_type not in ("out_refund", "in_refund")
+                or move.currency_id == move.company_currency_id
+                or not move._l10n_ve_requires_refund_company_currency()
+            ):
+                continue
+            origin = move.reversed_entry_id
+            if not origin or origin.currency_id == origin.company_currency_id:
+                continue
+            cc = move.company_currency_id
+            orig_lines = origin.invoice_line_ids.sorted(
+                lambda line: (line.sequence, line.id)
+            )
+            cred_lines = move.invoice_line_ids.sorted(
+                lambda line: (line.sequence, line.id)
+            )
+            if len(orig_lines) != len(cred_lines):
+                raise ValidationError(
+                    _(
+                        "La nota de crédito '%(credit)s' no coincide en líneas "
+                        "con la factura origen '%(origin)s'. Revise el borrador "
+                        "o cree la reversión desde el asistente estándar."
+                    )
+                    % {
+                        "credit": move.display_name,
+                        "origin": origin.display_name,
+                    }
+                )
+            line_cmds = []
+            for ol, cl in zip(orig_lines, cred_lines, strict=False):
+                if ol.display_type != cl.display_type:
+                    raise ValidationError(
+                        _(
+                            "Las líneas de la nota de crédito no coinciden con "
+                            "la factura origen (tipo de línea distinto)."
+                        )
+                    )
+                if ol.display_type in ("product", "cogs"):
+                    price_unit = move._l10n_ve_company_price_unit_from_origin_line(ol)
+                    line_cmds.append(
+                        Command.update(
+                            cl.id,
+                            {
+                                "price_unit": price_unit,
+                            },
+                        )
+                    )
+                elif ol.display_type == "rounding":
+                    line_cmds.append(
+                        Command.update(
+                            cl.id,
+                            {
+                                "amount_currency": abs(ol.balance),
+                            },
+                        )
+                    )
+            vals = {"currency_id": cc.id}
+            if line_cmds:
+                vals["invoice_line_ids"] = line_cmds
+            move.write(vals)
 
     def _l10n_ve_credit_note_limit_company_amount(self):
         self.ensure_one()
@@ -521,9 +626,10 @@ class AccountMove(models.Model):
                     )
         elif medium == "digital":
             return
-        elif medium != "fiscal_machine" and not (
-            self.l10n_ve_control_number or ""
-        ).strip():
+        elif (
+            medium != "fiscal_machine"
+            and not (self.l10n_ve_control_number or "").strip()
+        ):
             if medium == "contingency":
                 raise ValidationError(
                     _(
@@ -639,8 +745,8 @@ class AccountMove(models.Model):
                             % {"move": move_id.name or _("Borrador")}
                         )
                     third = move_id.l10n_ve_third_party_partner_id
-                    third_requires_rif = move_id._l10n_ve_partner_requires_rif_validation(
-                        third
+                    third_requires_rif = (
+                        move_id._l10n_ve_partner_requires_rif_validation(third)
                     )
                     if third_requires_rif and not third.vat:
                         raise ValidationError(
@@ -672,22 +778,87 @@ class AccountMove(models.Model):
                             }
                         )
 
-            lines = []
-            for line in self.line_ids:
-                if len(line.tax_ids) > 1:
-                    tax_mapped = ", ".join(line.tax_ids.mapped("name"))
-                    lines.append(f" - {line.name}: {tax_mapped}")
+                lines = []
+                for line in move_id.invoice_line_ids.filtered(
+                    lambda aml: aml.display_type == "product"
+                ):
+                    if len(line.tax_ids) > 1:
+                        tax_mapped = ", ".join(line.tax_ids.mapped("name"))
+                        lines.append(f" - {line.name}: {tax_mapped}")
 
-            if lines:
-                raise UserError(
-                    _(
-                        "You cannot assign more than one tax to a single invoice line. "
-                        "Please create separate lines for each tax. \n"
-                        "%s"
+                if lines:
+                    raise UserError(
+                        _(
+                            "You cannot assign more than one tax to a single invoice line. "
+                            "Please create separate lines for each tax. \n"
+                            "%s"
+                        )
+                        % ("\n".join(lines))
                     )
-                    % ("\n".join(lines))
+        ve_code = self.env.ref("base.ve").code
+        to_company_refund = self.filtered(
+            lambda m: m.country_code == ve_code
+            and m.move_type in ("out_refund", "in_refund")
+            and m.state == "draft"
+            and m.reversed_entry_id
+            and m.currency_id != m.company_currency_id
+            and m.reversed_entry_id.currency_id
+            != m.reversed_entry_id.company_currency_id
+            and m._l10n_ve_requires_refund_company_currency()
+        )
+        if to_company_refund:
+            to_company_refund._l10n_ve_force_refund_to_company_currency()
+        for move in self:
+            if (
+                move.country_code == ve_code
+                and move.move_type in ("out_refund", "in_refund")
+                and move.currency_id != move.company_currency_id
+                and move._l10n_ve_requires_refund_company_currency()
+            ):
+                raise ValidationError(
+                    _(
+                        "No se puede confirmar la nota de crédito '%(move)s'. "
+                        "Las notas de crédito deben registrarse en bolívares "
+                        "(moneda de la compañía)."
+                    )
+                    % {"move": move.name or _("Borrador")}
                 )
+        self._l10n_ve_validate_credit_note_company_limits()
         return super().action_post()
+
+    def _l10n_ve_validate_credit_note_company_limits(self):
+        ve_code = self.env.ref("base.ve").code
+        for move in self:
+            if (
+                move.country_code != ve_code
+                or move.move_type != "out_refund"
+                or not move.reversed_entry_id
+            ):
+                continue
+            limit = move._l10n_ve_credit_note_limit_company_amount()
+            total = move._l10n_ve_credit_note_accumulated_company_amount(
+                include_current=True
+            )
+            if (
+                float_compare(
+                    total,
+                    limit,
+                    precision_rounding=move.company_currency_id.rounding,
+                )
+                > 0
+            ):
+                raise ValidationError(
+                    _(
+                        "No se puede confirmar la nota de crédito '%(move)s'. "
+                        "El monto máximo permitido sobre la factura origen es "
+                        "%(limit)s; el acumulado sería %(total)s."
+                    )
+                    % {
+                        "move": move.name or _("Borrador"),
+                        "limit": limit,
+                        "total": total,
+                    }
+                )
 
     def action_l10n_ve_open_cancel_wizard(self):
         self.ensure_one()
@@ -812,7 +983,10 @@ Please create a credit note instead.
 
     def _l10n_ve_get_invoice_paperformat(self):
         self.ensure_one()
-        if self.country_code != "VE" or self.move_type not in ("out_invoice", "out_refund"):
+        if self.country_code != "VE" or self.move_type not in (
+            "out_invoice",
+            "out_refund",
+        ):
             return self.env["report.paperformat"]
         book = self._l10n_ve_fiscal_book()
         return book.paperformat_id if book else self.env["report.paperformat"]
@@ -864,7 +1038,9 @@ Please create a credit note instead.
     )
     def _compute_l10n_ve_show_control_number_ui(self):
         for move in self:
-            move.l10n_ve_show_control_number_ui = move._l10n_ve_should_show_control_number_ui()
+            move.l10n_ve_show_control_number_ui = (
+                move._l10n_ve_should_show_control_number_ui()
+            )
 
     def _l10n_ve_should_show_control_number_ui(self):
         self.ensure_one()
@@ -1402,8 +1578,8 @@ Please create a credit note instead.
             if move._l10n_ve_block_invoice_pdf_contingency():
                 raise UserError(
                     _(
-                        "En contingencia no esta permitido imprimir ni enviar el documento "
-                        "desde esta acción."
+                        "En contingencia no esta permitido imprimir ni enviar el "
+                        "documento desde esta acción."
                     )
                 )
         return super().action_send_and_print()
@@ -1412,9 +1588,7 @@ Please create a credit note instead.
         self.ensure_one()
         if self._l10n_ve_block_invoice_pdf_contingency():
             raise UserError(
-                _(
-                    "En contingencia no esta permitido enviar el documento por correo."
-                )
+                _("En contingencia no esta permitido enviar el documento por correo.")
             )
         return super().action_invoice_sent()
 
@@ -1435,7 +1609,10 @@ Please create a credit note instead.
         self.ensure_one()
         if self.state != "posted":
             return False
-        if self.country_code != "VE" or self.move_type not in ("out_invoice", "out_refund"):
+        if self.country_code != "VE" or self.move_type not in (
+            "out_invoice",
+            "out_refund",
+        ):
             return True
         if self._l10n_ve_block_invoice_pdf_contingency():
             return False
@@ -1479,7 +1656,8 @@ Please create a credit note instead.
         if self._l10n_ve_block_invoice_pdf_contingency():
             raise UserError(
                 _(
-                    "En contingencia no esta permitido abrir la vista previa del documento."
+                    "En contingencia no esta permitido abrir la vista previa del "
+                    "documento."
                 )
             )
         return super().preview_invoice()
@@ -1490,9 +1668,9 @@ Please create a credit note instead.
 
     def _l10n_ve_is_ve_customer_invoice_pdf(self):
         self.ensure_one()
-        return (
-            self.country_code == "VE"
-            and self.move_type in ("out_invoice", "out_refund")
+        return self.country_code == "VE" and self.move_type in (
+            "out_invoice",
+            "out_refund",
         )
 
     def _l10n_ve_get_invoice_pdf_basename(self):
@@ -1557,15 +1735,19 @@ Please create a credit note instead.
         filename = self._get_invoice_report_filename()
         if not filename:
             filename = f"{(self.name or 'invoice').replace('/', '_')}.pdf"
-        attachment = self.env["ir.attachment"].sudo().create(
-            {
-                "name": filename,
-                "raw": pdf_content,
-                "mimetype": "application/pdf",
-                "res_model": self._name,
-                "res_id": self.id,
-                "res_field": "invoice_pdf_report_file",
-            }
+        attachment = (
+            self.env["ir.attachment"]
+            .sudo()
+            .create(
+                {
+                    "name": filename,
+                    "raw": pdf_content,
+                    "mimetype": "application/pdf",
+                    "res_model": self._name,
+                    "res_id": self.id,
+                    "res_field": "invoice_pdf_report_file",
+                }
+            )
         )
         self.message_main_attachment_id = attachment
         self.invalidate_recordset(["invoice_pdf_report_id", "invoice_pdf_report_file"])
@@ -1583,14 +1765,13 @@ Please create a credit note instead.
             if action:
                 if action.get("type") == "ir.actions.client":
                     return action
-                return self._get_action_with_base_document_layout_configurator(
-                    action
-                )
+                return self._get_action_with_base_document_layout_configurator(action)
             raise UserError(
                 _(
                     "El diario está configurado para papel continuo. Instale el módulo "
-                    "«l10n_ve_invoice_escp» para imprimir la factura en formato ESC/P por "
-                    "USB (WebUSB), o cambie la impresión en forma libre a PDF en el diario."
+                    "«l10n_ve_invoice_escp» para imprimir la factura en formato ESC/P "
+                    "por USB (WebUSB), o cambie la impresión en forma libre a PDF "
+                    "en el diario."
                 )
             )
         return super(
@@ -1629,9 +1810,9 @@ Please create a credit note instead.
             if move.partner_id != origin.partner_id:
                 updates["partner_id"] = origin.partner_id.id
             if updates:
-                move.with_context(
-                    l10n_ve_skip_credit_debit_journal_lock=True
-                ).write(updates)
+                move.with_context(l10n_ve_skip_credit_debit_journal_lock=True).write(
+                    updates
+                )
 
     def action_reverse(self):
         self._l10n_ve_check_credit_debit_allowed()
@@ -1652,8 +1833,8 @@ Please create a credit note instead.
                 raise UserError(
                     _(
                         "No puede confirmar esta nota de crédito o débito: el diario "
-                        "(%(journal)s) debe ser el mismo que el de la factura de origen "
-                        "(%(origin_journal)s).",
+                        "(%(journal)s) debe ser el mismo que el de la factura de "
+                        "origen (%(origin_journal)s).",
                         journal=move.journal_id.display_name,
                         origin_journal=origin.journal_id.display_name,
                     )
@@ -1680,8 +1861,10 @@ Please create a credit note instead.
                 continue
             origin_product_ids = set(
                 origin.invoice_line_ids.filtered(
-                    lambda l: l.display_type == "product" and l.product_id
-                ).mapped("product_id").ids
+                    lambda line: line.display_type == "product" and line.product_id
+                )
+                .mapped("product_id")
+                .ids
             )
             for line in move.invoice_line_ids:
                 if line.display_type == "line_section":
@@ -1707,7 +1890,9 @@ Please create a credit note instead.
                         line, Product
                     )
 
-    def _l10n_ve_credit_note_line_check_description_not_product_name(self, line, product_model):
+    def _l10n_ve_credit_note_line_check_description_not_product_name(
+        self, line, product_model
+    ):
         text = html2plaintext(line.name or "").strip()
         if not text:
             return
@@ -1735,10 +1920,19 @@ Please create a credit note instead.
         symbol = (self.company_currency_id.symbol or "Bs").strip()
         return f"{amount} {symbol}"
 
+    def _l10n_ve_report_igtf_percent(self):
+        self.ensure_one()
+        company = self.company_id
+        if "l10n_ve_igtf_percent" in company._fields:
+            return company.l10n_ve_igtf_percent or 3.0
+        return 3.0
+
     def l10n_ve_report_invoice_lines(self):
         self.ensure_one()
         lines = self.invoice_line_ids.sorted(key=lambda line: (line.sequence, line.id))
         if self.company_id.account_fiscal_country_id.code != "VE":
+            return lines
+        if "sale_discount_product_id" not in self.company_id._fields:
             return lines
         disc = self.company_id.sale_discount_product_id
         if not disc:
@@ -1750,4 +1944,7 @@ Please create a credit note instead.
         discount_lines = lines.filtered(_is_discount_product_line)
         if not discount_lines:
             return lines
-        return lines.filtered(lambda line: not _is_discount_product_line(line)) + discount_lines
+        return (
+            lines.filtered(lambda line: not _is_discount_product_line(line))
+            + discount_lines
+        )

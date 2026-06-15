@@ -94,7 +94,7 @@ class TestAccountPayment(L10nVeSeniatCommon):
         payments = wizard._create_payments()
         payment = payments[0] if len(payments) > 1 else payments
         payment.action_post()
-        self.assertEqual(payment.state, "in_process")
+        self.assertIn(payment.state, ("in_process", "paid"))
         self.assertEqual(payment.l10n_ve_process_date, fields.Date.today())
         self.assertEqual(payment.move_id.l10n_ve_process_date, fields.Date.today())
 

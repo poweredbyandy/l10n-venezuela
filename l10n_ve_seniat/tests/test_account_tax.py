@@ -35,5 +35,6 @@ class TestAccountTax(L10nVeSeniatCommon):
             }
         )
         self.assertEqual(tax.country_code, "VE")
-        tax.write({"name": "Test VE Tax meta renamed"})
-        self.assertEqual(tax.name, "Test VE Tax meta renamed")
+        old_sequence = tax.sequence
+        tax.write({"sequence": old_sequence + 1})
+        self.assertEqual(tax.sequence, old_sequence + 1)

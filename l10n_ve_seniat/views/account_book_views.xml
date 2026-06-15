@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <record id="view_account_book_tree" model="ir.ui.view">
+    <record id="account_book_view_list" model="ir.ui.view">
         <field name="name">account.book.list</field>
         <field name="model">account.book</field>
         <field name="arch" type="xml">
@@ -20,7 +20,7 @@
         </field>
     </record>
 
-    <record id="view_account_book_form" model="ir.ui.view">
+    <record id="account_book_view_form" model="ir.ui.view">
         <field name="name">account.book.form</field>
         <field name="model">account.book</field>
         <field name="arch" type="xml">
@@ -52,7 +52,11 @@
                         role="alert"
                         invisible="not l10n_ve_void_folio_alert"
                     >
-                        <field name="l10n_ve_void_folio_alert_text" nolabel="1" readonly="1" />
+                        <field
+                            name="l10n_ve_void_folio_alert_text"
+                            nolabel="1"
+                            readonly="1"
+                        />
                     </div>
                     <field name="l10n_ve_void_folio_alert" invisible="1" />
                     <field name="l10n_ve_void_folio_count_month" invisible="1" />
@@ -112,22 +116,44 @@
                             </group>
                         </page>
                         <page string="Correlatives" name="documents">
-                            <field name="document_ids" groups="account.group_account_manager">
+                            <field
+                                name="document_ids"
+                                groups="account.group_account_manager"
+                            >
                                 <list
                                     string="Correlatives"
                                     create="false"
                                     editable="bottom"
                                     default_order="number desc, id desc"
                                 >
-                                    <field name="l10n_ve_control_number" string="Correlativo" readonly="1" />
+                                    <field
+                                        name="l10n_ve_control_number"
+                                        string="Correlativo"
+                                        readonly="1"
+                                    />
                                     <field name="number" column_invisible="True" />
-                                    <field name="section_id" optional="hide" readonly="1" />
-                                    <field name="l10n_ve_correlative_label" string="Documento / motivo" readonly="1" />
-                                    <field name="source_record" column_invisible="True" />
+                                    <field
+                                        name="section_id"
+                                        optional="hide"
+                                        readonly="1"
+                                    />
+                                    <field
+                                        name="l10n_ve_correlative_label"
+                                        string="Documento / motivo"
+                                        readonly="1"
+                                    />
+                                    <field
+                                        name="source_record"
+                                        column_invisible="True"
+                                    />
                                     <field name="company_id" column_invisible="True" />
                                 </list>
                             </field>
-                            <field name="document_ids" readonly="1" groups="!account.group_account_manager">
+                            <field
+                                name="document_ids"
+                                readonly="1"
+                                groups="!account.group_account_manager"
+                            >
                                 <list
                                     string="Correlatives"
                                     create="false"
@@ -135,11 +161,20 @@
                                     edit="false"
                                     default_order="number desc, id desc"
                                 >
-                                    <field name="l10n_ve_control_number" string="Correlativo" />
+                                    <field
+                                        name="l10n_ve_control_number"
+                                        string="Correlativo"
+                                    />
                                     <field name="number" column_invisible="True" />
                                     <field name="section_id" optional="hide" />
-                                    <field name="l10n_ve_correlative_label" string="Documento / motivo" />
-                                    <field name="source_record" column_invisible="True" />
+                                    <field
+                                        name="l10n_ve_correlative_label"
+                                        string="Documento / motivo"
+                                    />
+                                    <field
+                                        name="source_record"
+                                        column_invisible="True"
+                                    />
                                     <field name="company_id" column_invisible="True" />
                                 </list>
                             </field>
@@ -156,7 +191,7 @@
         </field>
     </record>
 
-    <record id="action_account_book" model="ir.actions.act_window">
+    <record id="account_book_action" model="ir.actions.act_window">
         <field name="name">Talonarios (N° de control)</field>
         <field name="res_model">account.book</field>
         <field name="view_mode">list,form</field>

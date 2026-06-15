@@ -10,7 +10,7 @@ class IrActionsReport(models.Model):
     def _l10n_ve_is_account_invoice_pdf_report(self, report):
         if report.model != "account.move":
             return False
-        rname = (report.report_name or "")
+        rname = report.report_name or ""
         if "report_invoice" in rname:
             return True
         return "invoice" in rname.lower() and "payment" not in rname.lower()
@@ -47,8 +47,8 @@ class IrActionsReport(models.Model):
             if move._l10n_ve_block_invoice_pdf_contingency():
                 raise UserError(
                     _(
-                        "En contingencia no esta permitido imprimir ni descargar el PDF "
-                        "de la factura (ni en borrador ni confirmada)."
+                        "En contingencia no esta permitido imprimir ni descargar el "
+                        "PDF de la factura (ni en borrador ni confirmada)."
                     )
                 )
         if data.get("proforma"):
@@ -57,12 +57,15 @@ class IrActionsReport(models.Model):
             if move._l10n_ve_blocking_invoice_report_before_digital_sent():
                 raise UserError(
                     _(
-                        "No puede imprimir ni descargar la factura hasta que el envio a la "
-                        "imprenta digital finalice correctamente (estado EDI: enviado)."
+                        "No puede imprimir ni descargar la factura hasta que el "
+                        "envio a la imprenta digital finalice correctamente "
+                        "(estado EDI: enviado)."
                     )
                 )
 
-    def _l10n_ve_check_block_invoice_pdf_before_digital_sent(self, report_ref, res_ids, data):
+    def _l10n_ve_check_block_invoice_pdf_before_digital_sent(
+        self, report_ref, res_ids, data
+    ):
         data = data or {}
         if not res_ids:
             return
@@ -90,7 +93,9 @@ class IrActionsReport(models.Model):
         }
         if not blocked_report_ids:
             return valid_ids
-        return [report_id for report_id in valid_ids if report_id not in blocked_report_ids]
+        return [
+            report_id for report_id in valid_ids if report_id not in blocked_report_ids
+        ]
 
     def report_action(self, docids, data=None, config=True):
         if self.model == "account.move" and self._l10n_ve_is_account_invoice_pdf_report(
@@ -118,8 +123,7 @@ class IrActionsReport(models.Model):
 
         moves = self.env["account.move"].browse(res_ids)
         paperformat_by_move = {
-            move.id: move._l10n_ve_get_invoice_paperformat().id
-            for move in moves
+            move.id: move._l10n_ve_get_invoice_paperformat().id for move in moves
         }
         paperformat_ids = {
             paperformat_id
@@ -131,7 +135,9 @@ class IrActionsReport(models.Model):
                 report_ref, data, res_ids=res_ids
             )
 
-        if len(paperformat_ids) == 1 and len(paperformat_ids) == len(paperformat_by_move):
+        if len(paperformat_ids) == 1 and len(paperformat_ids) == len(
+            paperformat_by_move
+        ):
             return super(
                 IrActionsReport,
                 self.with_context(
@@ -149,9 +155,7 @@ class IrActionsReport(models.Model):
             )
             sub_streams = super(
                 IrActionsReport, self.with_context(**ctx)
-            )._render_qweb_pdf_prepare_streams(
-                report_ref, data, res_ids=[res_id]
-            )
+            )._render_qweb_pdf_prepare_streams(report_ref, data, res_ids=[res_id])
             collected_streams[res_id] = sub_streams[res_id]
         return collected_streams
 
@@ -170,15 +174,19 @@ class IrActionsReport(models.Model):
         data = data or {}
         if data.get("proforma"):
             return
-        moves = self.env["account.move"].browse(res_ids).filtered(
-            lambda move: move._l10n_ve_should_attach_first_free_form_print_pdf()
+        moves = (
+            self.env["account.move"]
+            .browse(res_ids)
+            .filtered(
+                lambda move: move._l10n_ve_should_attach_first_free_form_print_pdf()
+            )
         )
         if not moves:
             return
         self._l10n_ve_mark_ve_invoice_printed(moves)
         moves.invalidate_recordset(["l10n_ve_invoice_original_printed"])
         for move in moves:
-            faithful_pdf, _report_type = super(IrActionsReport, self)._render_qweb_pdf(
+            faithful_pdf, _report_type = super()._render_qweb_pdf(
                 report_ref, res_ids=[move.id], data=data
             )
             move._l10n_ve_attach_invoice_pdf_report(faithful_pdf)

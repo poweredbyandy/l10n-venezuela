@@ -370,20 +370,443 @@ ul.auto-toc {
 !! source digest: sha256:20610e54e0876592eceb0584fff7441a83aafa68b183642a3bd24e1e25a75b1e
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Beta" src="https://img.shields.io/badge/maturity-Beta-yellow.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/OCA/l10n-venezuela/tree/18.0/l10n_ve_seniat"><img alt="OCA/l10n-venezuela" src="https://img.shields.io/badge/github-OCA%2Fl10n--venezuela-lightgray.png?logo=github" /></a> <a class="reference external image-reference" href="https://translation.odoo-community.org/projects/l10n-venezuela-18-0/l10n-venezuela-18-0-l10n_ve_seniat"><img alt="Translate me on Weblate" src="https://img.shields.io/badge/weblate-Translate%20me-F47D42.png" /></a> <a class="reference external image-reference" href="https://runboat.odoo-community.org/builds?repo=OCA/l10n-venezuela&amp;target_branch=18.0"><img alt="Try me on Runboat" src="https://img.shields.io/badge/runboat-Try%20me-875A7B.png" /></a></p>
-<p>Configuracion de Account l10n_ve</p>
+<p>Localización contable venezolana orientada al cumplimiento de las normas
+del <strong>SENIAT</strong> y al proceso de <strong>homologación</strong> del sistema de
+facturación ante el organismo fiscal.</p>
+<p>Este módulo implementa el plan de cuentas, la gestión de talonarios
+fiscales (números de control), las validaciones de emisión de
+documentos, la localización de contactos (RIF, municipios y parroquias),
+las restricciones sobre impuestos y productos, así como reportes e
+integraciones auxiliares requeridas para operar conforme a la
+legislación venezolana.</p>
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-1">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-2">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-3">Authors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-4">Maintainers</a></li>
+<li><a class="reference internal" href="#use-cases-context" id="toc-entry-1">Use Cases / Context</a></li>
+<li><a class="reference internal" href="#installation" id="toc-entry-2">Installation</a></li>
+<li><a class="reference internal" href="#configuration" id="toc-entry-3">Configuration</a></li>
+<li><a class="reference internal" href="#usage" id="toc-entry-4">Usage</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-5">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-6">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-7">Authors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-8">Maintainers</a></li>
 </ul>
 </li>
 </ul>
 </div>
+<div class="section" id="use-cases-context">
+<h1><a class="toc-backref" href="#toc-entry-1">Use Cases / Context</a></h1>
+<p><strong>Objetivo de homologación</strong></p>
+<p>La homologación ante el SENIAT exige que el software de facturación
+garantice la integridad de los documentos fiscales, el control de
+correlativos, la trazabilidad de anulaciones y el cumplimiento de reglas
+de negocio que eviten emisión incorrecta de facturas, notas de crédito y
+notas de débito. Este módulo incorpora dichas reglas como <strong>validaciones
+automáticas</strong> en el flujo estándar de Odoo, de modo que el
+comportamiento del sistema pueda ser verificado y demostrado durante las
+pruebas de homologación.</p>
+<p>Las validaciones descritas a continuación están respaldadas por pruebas
+automatizadas en <tt class="docutils literal">l10n_ve_seniat/tests/</tt>.</p>
+<p><strong>Validaciones por área</strong></p>
+<p><strong>Contactos y datos fiscales</strong></p>
+<ul class="simple">
+<li><strong>Formato de RIF/CI</strong>: validación del patrón venezolano (<tt class="docutils literal">V</tt>, <tt class="docutils literal">E</tt>,
+<tt class="docutils literal">J</tt>, <tt class="docutils literal">C</tt>, <tt class="docutils literal">P</tt> o <tt class="docutils literal">G</tt> seguido del número de identificación).
+Aplicable a clientes y proveedores venezolanos cuando la opción
+<em>Validar formato de RIF/CI</em> está activa.</li>
+<li><strong>Prefijo automático de RIF</strong>: normalización al guardar contactos
+venezolanos.</li>
+<li><strong>Tipo de contribuyente</strong>: obligatorio en contactos con país
+Venezuela.</li>
+<li><strong>Bloqueo de datos fiscales</strong>: cuando está habilitado, impide
+modificar nombre y RIF de contactos que ya tienen movimientos
+contables publicados.</li>
+<li><strong>Municipios y parroquias</strong>: catálogo local y restricción de unicidad
+por estado.</li>
+</ul>
+<p><strong>Configuración de impuestos</strong></p>
+<ul class="simple">
+<li><strong>Alícuotas inmutables</strong>: en compañías venezolanas no se permite
+modificar el porcentaje de impuestos ya creados; las alícuotas se
+referencian desde la configuración de la empresa (exento, general,
+reducido, extendido) para ventas y compras.</li>
+<li><strong>Un impuesto por línea</strong>: al confirmar facturas de cliente o
+proveedor, cada línea solo puede tener un impuesto asignado.</li>
+<li><strong>Un impuesto por producto</strong>: los productos deben tener exactamente un
+impuesto de venta y uno de compra; no se permiten múltiples impuestos
+del mismo tipo.</li>
+</ul>
+<p><strong>Productos</strong></p>
+<ul class="simple">
+<li><strong>Precio de venta positivo</strong>: no se permiten precios menores o iguales
+a cero en líneas de factura venezolanas.</li>
+<li><strong>Descuento del 100 %</strong>: rechazado en líneas de factura (equivalente a
+precio cero).</li>
+<li><strong>Precio de venta vs. coste</strong>: opcionalmente se exige que el precio de
+venta sea mayor o igual al coste estándar.</li>
+</ul>
+<p><strong>Emisión de facturas de cliente</strong></p>
+<ul class="simple">
+<li><strong>RIF obligatorio</strong>: el cliente venezolano debe tener RIF configurado
+para confirmar la factura.</li>
+<li><strong>Total distinto de cero</strong>: no se permite confirmar facturas con
+importe total nulo.</li>
+<li><strong>Fecha de vencimiento</strong>: no puede ser anterior a la fecha de la
+factura.</li>
+<li><strong>Medio de emisión</strong> (configurado en el diario de ventas):<ul>
+<li><em>Forma libre</em>: exige tramos de talonario configurados; asigna
+correlativo automático de número de control.</li>
+<li><em>Contingencia</em>: exige fecha del documento y número de control manual
+antes de confirmar; no usa correlativo del talonario.</li>
+<li><em>Máquina fiscal</em>: el número de control es manual; en facturación por
+cuenta de terceros es obligatorio.</li>
+<li><em>Facturación digital</em>: no exige número de control previo a la
+confirmación (la numeración la gestiona el flujo digital).</li>
+</ul>
+</li>
+<li><strong>Impresión en forma libre</strong>: control de acceso a PDF y notas de
+crédito/débito hasta que se imprima el original; soporte para PDF o
+papel continuo (ESC/P).</li>
+<li><strong>Fecha de proceso SENIAT</strong>: registro automático al confirmar
+documentos fiscales.</li>
+</ul>
+<p><strong>Talonarios (números de control)</strong></p>
+<ul class="simple">
+<li><strong>Integridad de tramos</strong>: rangos numéricos coherentes, sin
+solapamiento ni huecos en correlativos.</li>
+<li><strong>Unicidad del número de control</strong>: único por diario; no se permiten
+correlativos inferiores al último emitido.</li>
+<li><strong>Anulación de folios</strong>: requiere motivo y queda registrada; el
+correlativo liberado no se reutiliza automáticamente.</li>
+<li><strong>Secuencias independientes</strong> por tramo para facturas, notas de
+crédito y notas de débito.</li>
+</ul>
+<p><strong>Notas de crédito y débito</strong></p>
+<ul class="simple">
+<li><strong>Documento origen obligatorio</strong>: toda nota de crédito debe
+referenciar la factura afectada.</li>
+<li><strong>Motivo de anulación/reversión</strong>: obligatorio al cancelar facturas o
+crear notas de crédito desde el asistente.</li>
+<li><strong>Límite acumulado</strong>: las notas de crédito no pueden superar el total
+de la factura origen (incluyendo notas de débito asociadas).</li>
+<li><strong>Mismo diario que el origen</strong>: las notas de crédito/débito deben usar
+el diario de la factura original.</li>
+<li><strong>Productos y descripciones</strong>: validación de coherencia con la factura
+origen en notas de crédito.</li>
+<li><strong>Moneda extranjera</strong>: conversión a moneda de la compañía cuando
+aplica, usando la tasa de la factura origen.</li>
+<li><strong>Bloqueo de borrador</strong>: las facturas de cliente confirmadas no pueden
+volver a borrador (salvo contexto administrativo explícito).</li>
+</ul>
+<p><strong>Facturación por cuenta de terceros</strong></p>
+<ul class="simple">
+<li>Debe estar habilitada en configuración de la compañía.</li>
+<li>El tercero venezolano debe tener RIF válido.</li>
+<li>Plazo de copia certificada calculado automáticamente según normativa.</li>
+</ul>
+<p><strong>Tasas de cambio</strong></p>
+<ul class="simple">
+<li><strong>Bloqueo de modificación</strong>: no se puede alterar una tasa de cambio si
+ya fue usada en facturas publicadas.</li>
+<li><strong>Alerta de tasa desactualizada</strong> en borradores con moneda distinta a
+la de la compañía.</li>
+</ul>
+<p><strong>Pagos y retenciones</strong></p>
+<ul class="simple">
+<li>Registro de <strong>fecha de proceso</strong> al validar pagos.</li>
+<li>Soporte de campo de retención en pagos (integración con módulos de
+retenciones).</li>
+</ul>
+<p><strong>Guías de despacho no facturadas</strong></p>
+<ul class="simple">
+<li>Envío manual o programado de correo al destinatario configurado (por
+defecto SENIAT), con datos del implementador del sistema.</li>
+<li>Intervalo configurable y registro del último envío.</li>
+</ul>
+<p><strong>Reportes e impresión</strong></p>
+<ul class="simple">
+<li>Formato de factura venezolano con datos fiscales, alícuotas y tasas.</li>
+<li>Nombre de archivo PDF según convención SENIAT.</li>
+<li>Control de visibilidad de acciones de impresión según medio de emisión
+y estado del documento.</li>
+</ul>
+<p><strong>Trazabilidad para auditoría</strong></p>
+<ul class="simple">
+<li>Marca de versión del módulo en pantalla de inicio de sesión y sesión
+web.</li>
+<li>Dashboard de facturación en el tablero contable con indicadores del
+mes vigente.</li>
+</ul>
+<p><strong>Alcance y módulos relacionados</strong></p>
+<p>Este módulo cubre la base contable y fiscal SENIAT. Funcionalidades
+complementarias de homologación se implementan en módulos hermanos del
+repositorio, entre ellos:</p>
+<ul class="simple">
+<li><tt class="docutils literal">l10n_ve_edi</tt>: facturación digital.</li>
+<li><tt class="docutils literal">l10n_ve_withholding</tt>: retenciones de IVA e ISLR.</li>
+<li><tt class="docutils literal">l10n_ve_igtf</tt>: impuesto a las grandes transacciones financieras.</li>
+<li><tt class="docutils literal">l10n_ve_stock</tt>: guías de despacho e inventario fiscal.</li>
+</ul>
+<p>La instalación conjunta de estos módulos permite completar el escenario
+de pruebas exigido en un proceso integral de homologación.</p>
+</div>
+<div class="section" id="installation">
+<h1><a class="toc-backref" href="#toc-entry-2">Installation</a></h1>
+<ol class="arabic simple">
+<li>Instale el módulo <strong>Venezuela SENIAT - Accounting</strong>
+(<tt class="docutils literal">l10n_ve_seniat</tt>).</li>
+<li>En <strong>Ajustes → Compañías</strong>, configure la compañía con país
+<strong>Venezuela</strong>.</li>
+<li>En <strong>Ajustes → Contabilidad → Localización fiscal</strong>, seleccione el
+plan de cuentas venezolano (plantilla SENIAT).</li>
+<li>Si utilizará facturación digital, retenciones, IGTF o inventario
+fiscal, instale también los módulos complementarios (<tt class="docutils literal">l10n_ve_edi</tt>,
+<tt class="docutils literal">l10n_ve_withholding</tt>, <tt class="docutils literal">l10n_ve_igtf</tt>, <tt class="docutils literal">l10n_ve_stock</tt>).</li>
+</ol>
+</div>
+<div class="section" id="configuration">
+<h1><a class="toc-backref" href="#toc-entry-3">Configuration</a></h1>
+<p><strong>Configuración de la compañía</strong></p>
+<p>Vaya a <strong>Contabilidad → Configuración → Ajustes</strong> y abra el bloque
+<strong>Venezuela - Tax Configuration</strong>.</p>
+<p><strong>Datos fiscales de la compañía</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Campo</th>
+<th class="head">Descripción</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><strong>Taxpayer Type</strong></td>
+<td>Tipo de contribuyente de la
+empresa (ordinario, especial,
+etc.).</td>
+</tr>
+<tr><td><strong>Facturación por cuenta de
+terceros</strong></td>
+<td>Habilita la emisión de facturas
+donde un tercero es el
+beneficiario fiscal.</td>
+</tr>
+<tr><td><strong>Validar formato de RIF/CI</strong></td>
+<td>Activa la validación estricta
+del RIF en contactos y al
+confirmar facturas.</td>
+</tr>
+<tr><td><strong>Bloquear datos fiscales con
+movimientos</strong></td>
+<td>Impide cambiar nombre y RIF de
+contactos con documentos
+publicados.</td>
+</tr>
+<tr><td><strong>Exigir precio de venta ≥
+coste</strong></td>
+<td>Rechaza productos cuyo precio de
+venta sea inferior al coste
+estándar.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Alícuotas de impuestos</strong></p>
+<p>Asigne los impuestos de venta y compra que representan cada tipo de
+alícuota según la normativa vigente:</p>
+<ul class="simple">
+<li>Exento</li>
+<li>General (16 % u otra según configuración)</li>
+<li>Reducido</li>
+<li>Extendido</li>
+</ul>
+<p>Estos impuestos se usan en productos, reportes y cálculos fiscales. Una
+vez creados en una compañía venezolana, <strong>no se puede modificar su
+porcentaje</strong> desde la interfaz.</p>
+<p><strong>Implementador del sistema</strong></p>
+<p>Complete los datos del implementador (requeridos para comunicaciones con
+el SENIAT, como el envío de guías de despacho no facturadas):</p>
+<ul class="simple">
+<li>Razón social</li>
+<li>RIF</li>
+<li>Correo electrónico</li>
+</ul>
+<p><strong>Guías de despacho no facturadas</strong></p>
+<p>Requiere el módulo <tt class="docutils literal">l10n_ve_stock</tt> para el listado de guías
+pendientes.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="64%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Campo</th>
+<th class="head">Descripción</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><strong>Correo destinatario</strong></td>
+<td>Por defecto
+<tt class="docutils literal">proveedores.sistemas&#64;seniat.gob.ve</tt>.</td>
+</tr>
+<tr><td><strong>Envío automático</strong></td>
+<td>Activa el cron que envía el reporte
+periódicamente.</td>
+</tr>
+<tr><td><strong>Intervalo</strong></td>
+<td>Frecuencia del envío automático (días,
+horas, etc.).</td>
+</tr>
+</tbody>
+</table>
+<p>El envío manual también está disponible desde el <strong>dashboard de
+facturación</strong> en el tablero contable.</p>
+<p><strong>Talonarios (números de control)</strong></p>
+<p>Menú: <strong>SENIAT → Talonarios</strong> o <strong>Contabilidad → Clientes → Talonarios
+(N° control)</strong>.</p>
+<ol class="arabic simple">
+<li>Cree un <strong>talonario</strong> indicando el rango autorizado por el SENIAT
+(desde / hasta).</li>
+<li>Defina uno o más <strong>tramos</strong> dentro del rango. Cada tramo tendrá su
+propia secuencia de correlativos.</li>
+<li>Configure el formato de impresión (espaciado de cabecera, etc.) si
+aplica.</li>
+</ol>
+<p>Reglas importantes:</p>
+<ul class="simple">
+<li>Los tramos no pueden solaparse ni dejar huecos en los correlativos
+emitidos.</li>
+<li>La anulación de un folio requiere motivo y no reutiliza el número
+automáticamente.</li>
+<li>Solo usuarios con permisos de administración de correlativos pueden
+modificar o eliminar registros de control.</li>
+</ul>
+<p><strong>Diarios de ventas</strong></p>
+<p>En <strong>Contabilidad → Configuración → Diarios</strong>, abra el diario de ventas
+y vaya a la pestaña <strong>SENIAT</strong>.</p>
+<p><strong>Medio de emisión</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="64%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Valor</th>
+<th class="head">Comportamiento</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><strong>Forma libre</strong></td>
+<td>Asigna número de control desde el
+talonario. Requiere tramos configurados.</td>
+</tr>
+<tr><td><strong>Contingencia</strong></td>
+<td>Número de control y fecha del documento
+manuales; no usa talonario.</td>
+</tr>
+<tr><td><strong>Máquina fiscal</strong></td>
+<td>Número de control manual; integración con
+impresora fiscal.</td>
+</tr>
+<tr><td><strong>Facturación digital</strong></td>
+<td>Sin correlativo previo; numeración
+gestionada por el flujo EDI.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tramos del talonario (forma libre)</strong></p>
+<p>Asigne los tramos para:</p>
+<ul class="simple">
+<li>Facturas de cliente (obligatorio en forma libre)</li>
+<li>Notas de crédito (obligatorio en forma libre)</li>
+<li>Notas de débito (opcional; si no se indica, usa el tramo de facturas)</li>
+</ul>
+<p><strong>Impresión en forma libre</strong></p>
+<ul class="simple">
+<li><strong>PDF</strong>: informe estándar de factura venezolana.</li>
+<li><strong>Papel continuo (ESC/P USB)</strong>: requiere el módulo
+<tt class="docutils literal">l10n_ve_invoice_escp</tt>.</li>
+</ul>
+<p>Hasta imprimir el original en forma libre, el sistema bloquea la
+creación de notas de crédito y débito asociadas.</p>
+<p><strong>Límites por pedido</strong></p>
+<p>Para medios distintos de forma libre, configure el máximo de líneas por
+factura y por guía de despacho (valor por defecto: 10).</p>
+<p><strong>Código de forma de pago fiscal</strong></p>
+<p>En diarios de banco, caja o tarjeta, indique el código numérico (01–24)
+usado por la máquina fiscal TFHKA al registrar pagos.</p>
+<p><strong>Contactos</strong></p>
+<p>En la ficha del contacto venezolano:</p>
+<ol class="arabic simple">
+<li>Indique el <strong>RIF</strong> con formato válido (ej. <tt class="docutils literal"><span class="pre">J-12345678-9</span></tt> o
+<tt class="docutils literal">V12345678</tt>).</li>
+<li>Seleccione el <strong>tipo de contribuyente</strong>.</li>
+<li>Complete <strong>estado</strong>, <strong>municipio</strong> y <strong>parroquia</strong> en la dirección.</li>
+</ol>
+<p>Para facturación por cuenta de terceros, cree el contacto del tercero
+con su RIF y asígnelo en la factura.</p>
+<p><strong>Productos</strong></p>
+<ol class="arabic simple">
+<li>Asigne <strong>un impuesto de venta</strong> y <strong>un impuesto de compra</strong> por
+producto.</li>
+<li>Verifique que el precio de venta sea mayor que cero.</li>
+<li>Si activó <em>Exigir precio de venta ≥ coste</em>, ajuste precios antes de
+vender.</li>
+</ol>
+<p>Los productos nuevos sin impuestos reciben automáticamente la alícuota
+exenta configurada en la compañía.</p>
+</div>
+<div class="section" id="usage">
+<h1><a class="toc-backref" href="#toc-entry-4">Usage</a></h1>
+<p><strong>Emisión de facturas</strong></p>
+<ol class="arabic simple">
+<li>Cree la factura de cliente en el diario configurado.</li>
+<li>Verifique cliente, RIF, líneas con un solo impuesto cada una y total
+&gt; 0.</li>
+<li>En <strong>contingencia</strong> o <strong>máquina fiscal</strong>, ingrese el número de
+control antes de confirmar.</li>
+<li>Confirme la factura. El sistema asignará correlativo (forma libre) o
+validará el control manual según el medio de emisión.</li>
+<li>Imprima el original (forma libre PDF o continuo) cuando corresponda.</li>
+</ol>
+<p><strong>Notas de crédito y débito</strong></p>
+<ul class="simple">
+<li>Use el asistente de reversión o nota de débito indicando el
+<strong>motivo</strong>.</li>
+<li>La nota de crédito debe referenciar la factura origen.</li>
+<li>El total acumulado de notas de crédito no puede superar el de la
+factura.</li>
+<li>Use el mismo diario de la factura original.</li>
+</ul>
+<p><strong>Cancelación de facturas</strong></p>
+<p>Al cancelar una factura de cliente, el sistema solicita un <strong>motivo de
+anulación</strong> registrado para auditoría SENIAT.</p>
+<p><strong>Dashboard de facturación</strong></p>
+<p>En el tablero contable (<strong>Contabilidad → Tablero</strong>), el panel SENIAT
+muestra indicadores del mes en curso:</p>
+<ul class="simple">
+<li>Facturas emitidas</li>
+<li>Notas de crédito</li>
+<li>Facturas vencidas sin cobrar</li>
+<li>Acceso rápido a listados filtrados</li>
+<li>Envío de guías de despacho no facturadas (si <tt class="docutils literal">l10n_ve_stock</tt> está
+instalado)</li>
+</ul>
+<p><strong>Verificación previa a homologación</strong></p>
+<p>Antes de las pruebas ante el SENIAT, confirme:</p>
+<ul class="simple">
+<li>☐ Compañía venezolana con plan de cuentas y alícuotas configuradas.</li>
+<li>☐ Talonario y tramos creados con rangos autorizados.</li>
+<li>☐ Diario de ventas con medio de emisión y tramos correctos.</li>
+<li>☐ Contactos de prueba con RIF válido y tipo de contribuyente.</li>
+<li>☐ Productos con un impuesto de venta y uno de compra.</li>
+<li>☐ Flujo completo: factura → impresión → nota de crédito → anulación.</li>
+<li>☐ Datos del implementador completos.</li>
+<li>☐ (Opcional) Envío de guías no facturadas configurado.</li>
+</ul>
+</div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-1">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-5">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/OCA/l10n-venezuela/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -391,15 +814,15 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-2">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-6">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-3">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-7">Authors</a></h2>
 <ul class="simple">
-<li>Anderson Armeya</li>
+<li>andyengit</li>
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-4">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-8">Maintainers</a></h2>
 <p>This module is maintained by the OCA.</p>
 <a class="reference external image-reference" href="https://odoo-community.org">
 <img alt="Odoo Community Association" src="https://odoo-community.org/logo.png" />
@@ -407,6 +830,8 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>OCA, or the Odoo Community Association, is a nonprofit organization whose
 mission is to support the collaborative development of Odoo features and
 promote its widespread use.</p>
+<p>Current <a class="reference external" href="https://odoo-community.org/page/maintainer-role">maintainer</a>:</p>
+<p><a class="reference external image-reference" href="https://github.com/andyengit"><img alt="andyengit" src="https://github.com/andyengit.png?size=40px" /></a></p>
 <p>This module is part of the <a class="reference external" href="https://github.com/OCA/l10n-venezuela/tree/18.0/l10n_ve_seniat">OCA/l10n-venezuela</a> project on GitHub.</p>
 <p>You are welcome to contribute. To learn how please visit <a class="reference external" href="https://odoo-community.org/page/Contribute">https://odoo-community.org/page/Contribute</a>.</p>
 </div>

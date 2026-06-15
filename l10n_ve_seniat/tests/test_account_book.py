@@ -1,8 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields
-from odoo.exceptions import ValidationError
+from odoo import Command, fields
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import L10nVeSeniatCommon
 
@@ -85,7 +86,8 @@ class TestAccountBook(L10nVeSeniatCommon):
                 "section_id": sec.id,
                 "number": 10,
                 "res_model": "account.move",
-                "res_id": self.env["account.move"].create(
+                "res_id": self.env["account.move"]
+                .create(
                     {
                         "move_type": "entry",
                         "line_ids": [
@@ -115,7 +117,8 @@ class TestAccountBook(L10nVeSeniatCommon):
                             ),
                         ],
                     }
-                ).id,
+                )
+                .id,
             }
         )
         book.invalidate_recordset(
@@ -563,8 +566,13 @@ class TestAccountBook(L10nVeSeniatCommon):
                 "res_id": move.id,
             }
         )
+        user = new_test_user(
+            self.env,
+            login="l10n_ve_book_doc_write_user",
+            groups="account.group_account_invoice",
+        )
         with self.assertRaises(ValidationError):
-            doc.write({"number": 2})
+            doc.with_user(user).write({"number": 2})
 
     def test_document_unlink_without_context_raises(self):
         book = self.env["account.book"].create(
@@ -623,8 +631,13 @@ class TestAccountBook(L10nVeSeniatCommon):
                 "res_id": move.id,
             }
         )
-        with self.assertRaises(ValidationError):
-            doc.unlink()
+        user = new_test_user(
+            self.env,
+            login="l10n_ve_book_doc_unlink_user",
+            groups="account.group_account_invoice",
+        )
+        with self.assertRaises(AccessError):
+            doc.with_user(user).unlink()
 
     def test_correlative_gap_in_section_raises(self):
         book = self.env["account.book"].create(
@@ -792,7 +805,9 @@ class TestAccountBook(L10nVeSeniatCommon):
                 "number_to": 10,
             }
         )
-        bad_id = self.env["account.move"].search([], order="id desc", limit=1).id + 999_999
+        bad_id = (
+            self.env["account.move"].search([], order="id desc", limit=1).id + 999_999
+        )
         doc = self.env["account.book.document"].create(
             {
                 "book_id": book.id,

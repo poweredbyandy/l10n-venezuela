@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <record id="view_currency_form_l10n_ve_chatter" model="ir.ui.view">
+    <record id="res_currency_view_form_chatter" model="ir.ui.view">
         <field name="name">res.currency.form.l10n.ve.chatter</field>
         <field name="model">res.currency</field>
         <field name="inherit_id" ref="base.view_currency_form" />
@@ -11,7 +11,7 @@
         </field>
     </record>
 
-    <record id="view_currency_rate_form_l10n_ve" model="ir.ui.view">
+    <record id="res_currency_rate_view_form" model="ir.ui.view">
         <field name="name">res.currency.rate.form.l10n.ve</field>
         <field name="model">res.currency.rate</field>
         <field name="inherit_id" ref="base.view_currency_rate_form" />
@@ -29,7 +29,7 @@
         </field>
     </record>
 
-    <record id="view_currency_form_l10n_ve_rate_list" model="ir.ui.view">
+    <record id="res_currency_view_form_rate_list" model="ir.ui.view">
         <field name="name">res.currency.form.l10n.ve.rate.list</field>
         <field name="model">res.currency</field>
         <field name="inherit_id" ref="base.view_currency_form" />

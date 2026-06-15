@@ -5,6 +5,7 @@
     "summary": "Libro de Inventario para reportes SENIAT",
     "category": "Inventory/Inventory",
     "author": "andyengit",
+    "website": "https://github.com/OCA/l10n-venezuela",
     "maintainers": ["andyengit"],
     "description": """
 Libro de Inventario

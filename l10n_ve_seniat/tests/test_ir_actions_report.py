@@ -95,7 +95,9 @@ class TestIrActionsReport(L10nVeSeniatCommon):
 
         report = self.env.ref("account.account_invoices", raise_if_not_found=False)
         if report:
-            report = report.with_context(l10n_ve_book_paperformat_id=book.paperformat_id.id)
+            report = report.with_context(
+                l10n_ve_book_paperformat_id=book.paperformat_id.id
+            )
             self.assertEqual(report.get_paperformat(), book.paperformat_id)
 
     def test_get_valid_action_reports_hides_invoice_pdf_for_draft(self):
@@ -140,5 +142,6 @@ class TestIrActionsReport(L10nVeSeniatCommon):
         valid_ids = report.get_valid_action_reports("account.move", move.ids)
         self.assertNotIn(report.id, valid_ids)
         move.action_post()
+        self._mark_invoice_printed(move)
         valid_ids = report.get_valid_action_reports("account.move", move.ids)
         self.assertIn(report.id, valid_ids)

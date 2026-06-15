@@ -1,9 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import http
-from odoo.addons.account.controllers.portal import PortalAccount
 from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
+
+from odoo.addons.account.controllers.portal import PortalAccount
 
 
 class PortalAccountL10nVeSeniat(PortalAccount):

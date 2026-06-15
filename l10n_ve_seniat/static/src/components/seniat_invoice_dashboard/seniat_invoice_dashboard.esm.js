@@ -1,8 +1,8 @@
 /** @odoo-module */
 
-import { Component, onWillStart, useState } from "@odoo/owl";
-import { useService } from "@web/core/utils/hooks";
-import { _t } from "@web/core/l10n/translation";
+import {Component, onWillStart, useState} from "@odoo/owl";
+import {_t} from "@web/core/l10n/translation";
+import {useService} from "@web/core/utils/hooks";
 
 export class SeniatInvoiceDashboard extends Component {
     static template = "l10n_ve_seniat.SeniatInvoiceDashboard";

@@ -3,6 +3,7 @@
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
+
 from odoo import Command, fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
@@ -188,9 +189,7 @@ class TestAccountMove(L10nVeSeniatCommon):
                 }
             )
         )
-        move = self.env["account.move"].create(
-            self._create_invoice_vals(partner)
-        )
+        move = self.env["account.move"].create(self._create_invoice_vals(partner))
         move.action_post()
         self.assertEqual(move.state, "posted")
 
@@ -254,6 +253,7 @@ class TestAccountMove(L10nVeSeniatCommon):
                         0,
                         0,
                         {
+                            "product_id": self.product_a.id,
                             "name": "Line with 2 taxes",
                             "quantity": 1.0,
                             "price_unit": 100.0,
@@ -391,9 +391,7 @@ class TestAccountMove(L10nVeSeniatCommon):
             raise_if_not_found=False,
         )
         if not reason:
-            reason = self.env["l10n_ve.invoice.cancel.reason"].search(
-                [], limit=1
-            )
+            reason = self.env["l10n_ve.invoice.cancel.reason"].search([], limit=1)
         self.assertTrue(reason)
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
@@ -702,9 +700,7 @@ class TestAccountMove(L10nVeSeniatCommon):
             raise_if_not_found=False,
         )
         if not reason:
-            reason = self.env["l10n_ve.invoice.cancel.reason"].search(
-                [], limit=1
-            )
+            reason = self.env["l10n_ve.invoice.cancel.reason"].search([], limit=1)
         self.assertTrue(reason)
         invoice = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
@@ -850,7 +846,9 @@ class TestAccountMove(L10nVeSeniatCommon):
         )
         self.assertEqual(move.get_extra_print_items(), [])
 
-    def test_get_extra_print_items_posted_hides_pdf_download_without_original_print(self):
+    def test_get_extra_print_items_posted_hides_pdf_download_without_original_print(
+        self,
+    ):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
         )
@@ -1162,7 +1160,8 @@ class TestAccountMove(L10nVeSeniatCommon):
             "state == 'draft' and l10n_ve_journal_emission_medium != 'contingency'",
             arch,
         )
-        list_arch = self.env.ref("l10n_ve_seniat.view_invoice_tree").get_combined_arch()
+        list_view = self.env.ref("l10n_ve_seniat.account_move_view_list")
+        list_arch = list_view.get_combined_arch()
         self.assertIn('name="l10n_ve_invoice_date"', list_arch)
         self.assertNotIn('string="Invoice Date"', list_arch)
 

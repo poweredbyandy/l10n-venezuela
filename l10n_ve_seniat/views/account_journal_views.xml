@@ -13,7 +13,11 @@
                 />
             </xpath>
             <xpath expr="//notebook" position="inside">
-                <page name="l10n_ve_seniat_page" string="SENIAT" invisible="type != 'sale'">
+                <page
+                    name="l10n_ve_seniat_page"
+                    string="SENIAT"
+                    invisible="type != 'sale'"
+                >
                     <group string="Configuración">
                         <field name="l10n_ve_emission_medium" />
                         <field
