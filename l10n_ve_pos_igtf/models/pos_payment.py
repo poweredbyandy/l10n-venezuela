@@ -1,4 +1,4 @@
-from odoo import fields, models, _
+from odoo import _, fields, models
 from odoo.tools import float_is_zero, float_round
 
 
@@ -53,7 +53,10 @@ class PosPayment(models.Model):
         from_move = self._l10n_ve_pos_get_igtf_amount_from_posted_move()
         if not float_is_zero(from_move, precision_rounding=prec):
             return from_move
-        if not self.include_igtf and not self._l10n_ve_pos_payment_applies_igtf_by_currency():
+        if (
+            not self.include_igtf
+            and not self._l10n_ve_pos_payment_applies_igtf_by_currency()
+        ):
             return 0.0
         pct = (self.company_id.l10n_ve_igtf_percent or 0.0) / 100.0
         if not pct:

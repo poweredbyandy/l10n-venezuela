@@ -52,7 +52,9 @@ class AccountRetention(models.Model):
                 or not retention.l10n_ve_edi_response_json
             ):
                 continue
-            pdf_url, doc_url = retention._tfhka_extract_public_urls_from_stored_response()
+            pdf_url, doc_url = (
+                retention._tfhka_extract_public_urls_from_stored_response()
+            )
             retention.l10n_ve_edi_tfhka_sent_pdf_url = pdf_url
             retention.l10n_ve_edi_tfhka_sent_document_url = doc_url
 
@@ -221,7 +223,7 @@ class AccountRetention(models.Model):
             self.sudo().write({"l10n_ve_edi_tfhka_pdf_attachment_id": attachment.id})
         return {
             "type": "ir.actions.act_url",
-            "url": "/web/content/%s?download=true" % attachment.id,
+            "url": f"/web/content/{attachment.id}?download=true",
             "target": "self",
         }
 
@@ -264,12 +266,12 @@ class AccountRetention(models.Model):
         if attachment and attachment.datas:
             return {
                 "type": "ir.actions.act_url",
-                "url": "/web/content/%s?download=true" % attachment.id,
+                "url": f"/web/content/{attachment.id}?download=true",
                 "target": "self",
             }
         pdf_url = self.l10n_ve_edi_tfhka_sent_pdf_url
         if not pdf_url:
-            _, pdf_url = self._tfhka_extract_public_urls_from_stored_response()
+            _ignored, pdf_url = self._tfhka_extract_public_urls_from_stored_response()
         if pdf_url:
             return {"type": "ir.actions.act_url", "url": pdf_url, "target": "new"}
         msg = api_err or _("No se pudo obtener el PDF.")
@@ -285,7 +287,7 @@ class AccountRetention(models.Model):
         self.ensure_one()
         doc_url = self.l10n_ve_edi_tfhka_sent_document_url
         if not doc_url:
-            _, doc_url = self._tfhka_extract_public_urls_from_stored_response()
+            _ignored, doc_url = self._tfhka_extract_public_urls_from_stored_response()
         if not doc_url:
             raise UserError(
                 _(
@@ -321,7 +323,10 @@ class AccountRetention(models.Model):
             auth = client.authenticate(username, password)
             token = auth.get("token")
             if not token:
-                return {"success": False, "error": _("La API TFHKA no devolvio token JWT.")}
+                return {
+                    "success": False,
+                    "error": _("La API TFHKA no devolvio token JWT."),
+                }
             response = client.issue_document(payload, token)
             return {"success": True, "response": response}
         except UserError as exc:
@@ -432,7 +437,9 @@ class AccountRetention(models.Model):
             "tipoIdentificacion": prefix,
             "numeroIdentificacion": number,
             "razonSocial": (partner.name or "")[:255],
-            "direccion": (partner.street or partner.contact_address_inline or "N/A")[:255],
+            "direccion": (partner.street or partner.contact_address_inline or "N/A")[
+                :255
+            ],
             "pais": (partner.country_id.code or "VE")[:2],
             "telefono": phone_list or None,
             "correo": email_list or None,
@@ -467,7 +474,8 @@ class AccountRetention(models.Model):
         self.ensure_one()
         if self.type_retention == "islr":
             invoice_total = sum(
-                line.invoice_total or (line.move_id.amount_total if line.move_id else 0.0)
+                line.invoice_total
+                or (line.move_id.amount_total if line.move_id else 0.0)
                 for line in self.retention_line_ids
             )
             return {
@@ -496,7 +504,9 @@ class AccountRetention(models.Model):
     def _tfhka_build_totales_retencion(self):
         self.ensure_one()
         totals = {
-            "totalBaseImponible": self._l10n_ve_edi_format_decimal(self.total_invoice_amount),
+            "totalBaseImponible": self._l10n_ve_edi_format_decimal(
+                self.total_invoice_amount
+            ),
             "numeroCompRetencion": self._tfhka_get_numero_comp_retencion(),
             "fechaEmisionCR": self._tfhka_format_date(self.date),
         }
@@ -593,7 +603,10 @@ class AccountRetention(models.Model):
         fee_rate = (line.related_percentage_fees or 0.0) / 100.0
         subtract = line.related_amount_subtract_fees or 0.0
         computed = max(0.0, (base * tax_base_rate * fee_rate) - subtract)
-        if line.retention_amount is not None and abs(line.retention_amount - computed) < 0.05:
+        if (
+            line.retention_amount is not None
+            and abs(line.retention_amount - computed) < 0.05
+        ):
             return line.retention_amount
         return computed
 
@@ -602,7 +615,9 @@ class AccountRetention(models.Model):
         code = line.code
         if not code and line.payment_concept_id:
             concept_lines = line.payment_concept_id.line_payment_concept_ids
-            partner = line.move_id._l10n_ve_withholding_partner() if line.move_id else None
+            partner = (
+                line.move_id._l10n_ve_withholding_partner() if line.move_id else None
+            )
             if partner and partner.type_person_id:
                 matched = concept_lines.filtered(
                     lambda cl: cl.type_person_id.id == partner.type_person_id.id
@@ -634,15 +649,21 @@ class AccountRetention(models.Model):
                 retenido = self._tfhka_line_retenido_islr(line)
                 detail = {
                     "numeroLinea": str(index),
-                    "fechaDocumento": self._tfhka_format_date(move.invoice_date or move.date),
+                    "fechaDocumento": self._tfhka_format_date(
+                        move.invoice_date or move.date
+                    ),
                     "serieDocumento": "",
                     "tipoDocumento": self._tfhka_invoice_document_type_from_move(move),
-                    "numeroDocumento": self._tfhka_invoice_document_number_from_move(move),
+                    "numeroDocumento": self._tfhka_invoice_document_number_from_move(
+                        move
+                    ),
                     "numeroControl": self._tfhka_get_move_control_number(move),
                     "tipoTransaccion": None,
                     "montoTotal": None,
                     "montoExento": None,
-                    "baseImponible": self._l10n_ve_edi_format_decimal(line.invoice_amount),
+                    "baseImponible": self._l10n_ve_edi_format_decimal(
+                        line.invoice_amount
+                    ),
                     "porcentaje": self._tfhka_format_rate(line.related_percentage_fees),
                     "porcentajeRetencion": self._tfhka_format_rate(
                         line.related_percentage_fees
@@ -663,7 +684,9 @@ class AccountRetention(models.Model):
             retenido = self._tfhka_line_retenido(line)
             detail = {
                 "numeroLinea": str(index),
-                "fechaDocumento": self._tfhka_format_date(move.invoice_date or move.date),
+                "fechaDocumento": self._tfhka_format_date(
+                    move.invoice_date or move.date
+                ),
                 "tipoDocumento": self._tfhka_invoice_document_type_from_move(move),
                 "numeroDocumento": self._tfhka_invoice_document_number_from_move(move),
                 "tipoTransaccion": None,

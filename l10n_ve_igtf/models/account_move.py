@@ -16,16 +16,11 @@ class AccountMove(models.Model):
 
     def _l10n_ve_igtf_aml(self):
         self.ensure_one()
-        return self.line_ids.filtered(
-            lambda line: line.display_type == "l10n_ve_igtf"
-        )
+        return self.line_ids.filtered(lambda line: line.display_type == "l10n_ve_igtf")
 
     def _l10n_ve_igtf_move_applies(self):
         self.ensure_one()
-        return (
-            self.country_code == "VE"
-            and self.company_id.l10n_ve_igtf_feature_active
-        )
+        return self.country_code == "VE" and self.company_id.l10n_ve_igtf_feature_active
 
     @api.depends(
         "line_ids.matched_debit_ids.debit_move_id.move_id.origin_payment_id.is_matched",
@@ -75,6 +70,8 @@ class AccountMove(models.Model):
             if move.move_type != "entry":
                 move.amount_total_signed = move.amount_total_signed - d_bal
             move.amount_tax_signed = move.amount_tax_signed - d_bal
+
+        return
 
     l10n_ve_igtf_collected_amount_currency = fields.Monetary(
         string="IGTF %",
@@ -245,18 +242,14 @@ class AccountMove(models.Model):
             elif move.state != "posted":
                 h = False
                 reason = "not_posted"
-            elif not move.currency_id or move.currency_id.is_zero(
-                move.amount_residual
-            ):
+            elif not move.currency_id or move.currency_id.is_zero(move.amount_residual):
                 h = True
                 reason = "amount_residual_zero"
             else:
                 res_wo = (
                     move.l10n_ve_igtf_get_residual_excluding_igtf_in_document_currency()
                 )
-                residual_igtf_payable_bs = (
-                    move.l10n_ve_igtf_get_bs_payable_igtf_residual_in_document_currency()
-                )
+                residual_igtf_payable_bs = move.l10n_ve_igtf_get_bs_payable_igtf_residual_in_document_currency()
                 if move.currency_id.is_zero(res_wo) and move.currency_id.is_zero(
                     residual_igtf_payable_bs
                 ):
@@ -269,9 +262,10 @@ class AccountMove(models.Model):
                         n_partial,
                         n_bs_partial,
                     ) = move._l10n_ve_igtf_cumulative_bs_paid_in_document_currency_with_stats()
-                    if not move.currency_id.is_zero(
-                        ceiling
-                    ) and move.currency_id.compare_amounts(used_bs, ceiling) >= 0:
+                    if (
+                        not move.currency_id.is_zero(ceiling)
+                        and move.currency_id.compare_amounts(used_bs, ceiling) >= 0
+                    ):
                         h = True
                         reason = "cumulative_bs_ge_wo_igtf_total"
                     else:
@@ -311,9 +305,7 @@ class AccountMove(models.Model):
         )
         if not lines:
             return 0.0
-        return self.currency_id.round(
-            sum(abs(line.price_total) for line in lines)
-        )
+        return self.currency_id.round(sum(abs(line.price_total) for line in lines))
 
     def _l10n_ve_igtf_should_add_move_lines(self):
         self.ensure_one()
@@ -327,9 +319,14 @@ class AccountMove(models.Model):
             return False
         if not self.company_id.l10n_ve_igtf_allow_invoice_accrual:
             return False
-        if not self.currency_id or self.currency_id not in self.company_id.l10n_ve_igtf_currency_ids:
+        if (
+            not self.currency_id
+            or self.currency_id not in self.company_id.l10n_ve_igtf_currency_ids
+        ):
             return False
-        if not self.company_id.l10n_ve_igtf_account_id or not (self.company_id.l10n_ve_igtf_percent or 0.0):
+        if not self.company_id.l10n_ve_igtf_account_id or not (
+            self.company_id.l10n_ve_igtf_percent or 0.0
+        ):
             return False
         return bool(self._l10n_ve_igtf_get_document_base_total_in_currency())
 
@@ -349,7 +346,9 @@ class AccountMove(models.Model):
                 continue
             if not move.needed_terms or len(move.needed_terms) != 1:
                 continue
-            igtf_amount_currency = sum(move._l10n_ve_igtf_aml().mapped("amount_currency"))
+            igtf_amount_currency = sum(
+                move._l10n_ve_igtf_aml().mapped("amount_currency")
+            )
             if move.currency_id.is_zero(igtf_amount_currency):
                 continue
             key = next(iter(move.needed_terms))
@@ -358,6 +357,8 @@ class AccountMove(models.Model):
                 values["amount_currency"] - igtf_amount_currency
             )
             move.needed_terms = {key: values}
+
+        return
 
     def _l10n_ve_igtf_get_from_invoice_igtf_lines(self, include_base=False):
         self.ensure_one()
@@ -383,19 +384,23 @@ class AccountMove(models.Model):
                 )
                 return b, bc, 0.0, 0.0
             return 0.0, 0.0
-        igtf_currency = self.currency_id.round(sum(igtf_lines.mapped("amount_currency")))
-        igtf_company = self.company_currency_id.round(
-            sum(igtf_lines.mapped("balance"))
+        igtf_currency = self.currency_id.round(
+            sum(igtf_lines.mapped("amount_currency"))
         )
+        igtf_company = self.company_currency_id.round(sum(igtf_lines.mapped("balance")))
         base_s = self.currency_id.round(sign * doc_base) if doc_base else 0.0
-        base_c = self.company_currency_id.round(
-            self.currency_id._convert(
-                sign * doc_base,
-                self.company_currency_id,
-                self.company_id,
-                self.date,
+        base_c = (
+            self.company_currency_id.round(
+                self.currency_id._convert(
+                    sign * doc_base,
+                    self.company_currency_id,
+                    self.company_id,
+                    self.date,
+                )
             )
-        ) if doc_base else 0.0
+            if doc_base
+            else 0.0
+        )
         if include_base:
             return (base_s, base_c, igtf_currency, igtf_company)
         return igtf_currency, igtf_company
@@ -419,9 +424,9 @@ class AccountMove(models.Model):
                     for fk, v in need.items():
                         if not fk:
                             continue
-                        if fields.Date.to_date(
-                            line.date_maturity
-                        ) != fk.get("date_maturity"):
+                        if fields.Date.to_date(line.date_maturity) != fk.get(
+                            "date_maturity"
+                        ):
                             continue
                         mid = fk.get("move_id")
                         if mid not in (None, False) and mid not in (
@@ -463,7 +468,9 @@ class AccountMove(models.Model):
                     _logger.info(
                         "l10n_ve_igtf recompute: move=%s skip (should_add=%s or no id)",
                         move.id,
-                        move._l10n_ve_igtf_should_add_move_lines() if move.id else False,
+                        move._l10n_ve_igtf_should_add_move_lines()
+                        if move.id
+                        else False,
                     )
                 if to_remove:
                     move._l10n_ve_igtf_resync_payment_term_lines()
@@ -517,9 +524,9 @@ class AccountMove(models.Model):
                     move.id,
                     sum_bal,
                     [
-                    (ln.id, ln.account_id.code, ln.debit, ln.credit, ln.balance)
-                    for ln in amls
-                ],
+                        (ln.id, ln.account_id.code, ln.debit, ln.credit, ln.balance)
+                        for ln in amls
+                    ],
                 )
 
     def _recompute_cash_rounding_lines(self):
@@ -547,7 +554,10 @@ class AccountMove(models.Model):
             include_receipts=True
         ):
             return False
-        if not self.currency_id or self.currency_id not in self.company_id.l10n_ve_igtf_currency_ids:
+        if (
+            not self.currency_id
+            or self.currency_id not in self.company_id.l10n_ve_igtf_currency_ids
+        ):
             return False
         lines = self._l10n_ve_igtf_aml()
         if not lines:
@@ -656,7 +666,9 @@ class AccountMove(models.Model):
         return r, n_partial, n_included
 
     def l10n_ve_igtf_get_cumulative_bs_paid_in_document_currency(self):
-        r, _p, _i = self._l10n_ve_igtf_cumulative_bs_paid_in_document_currency_with_stats()
+        r, _p, _i = (
+            self._l10n_ve_igtf_cumulative_bs_paid_in_document_currency_with_stats()
+        )
         return r
 
     def l10n_ve_igtf_get_cumulative_base_paid_in_document_currency(self):
@@ -707,7 +719,9 @@ class AccountMove(models.Model):
         base_paid_bs = min(total_bs, base_left_for_bs)
         result["base_paid_outside_bs"] = self.currency_id.round(base_paid_outside_bs)
         result["base_paid_bs"] = self.currency_id.round(base_paid_bs)
-        result["igtf_paid_bs"] = self.currency_id.round(max(total_bs - base_paid_bs, 0.0))
+        result["igtf_paid_bs"] = self.currency_id.round(
+            max(total_bs - base_paid_bs, 0.0)
+        )
         result["base_paid"] = self.currency_id.round(
             min(base_paid_outside_bs + base_paid_bs, base_total)
         )
@@ -888,12 +902,14 @@ class AccountMove(models.Model):
                 self.date,
             )
         )
-        igtf_company_currency = company.currency_id.round(sign * (base_total_company * p))
+        igtf_company_currency = company.currency_id.round(
+            sign * (base_total_company * p)
+        )
         base_total_signed = invoice_currency.round(sign * base_total)
         base_total_company_signed = company.currency_id.round(sign * base_total_company)
-        if invoice_currency.is_zero(igtf_invoice_currency) and company.currency_id.is_zero(
-            igtf_company_currency
-        ):
+        if invoice_currency.is_zero(
+            igtf_invoice_currency
+        ) and company.currency_id.is_zero(igtf_company_currency):
             if include_base:
                 return base_total_signed, base_total_company_signed, 0.0, 0.0
             return 0.0, 0.0
@@ -1023,9 +1039,7 @@ class AccountMove(models.Model):
         doc = self._l10n_ve_igtf_get_document_base_total_in_currency()
         m_sign = -1.0 if self.move_type == "out_refund" else 1.0
         if self._l10n_ve_igtf_aml():
-            return self._l10n_ve_igtf_get_from_invoice_igtf_lines(
-                include_base=True
-            )
+            return self._l10n_ve_igtf_get_from_invoice_igtf_lines(include_base=True)
         if self._l10n_ve_igtf_should_add_move_lines() and doc and p:
             b_loc = self.currency_id.round(m_sign * doc)
             b_comp = self.company_currency_id.round(
@@ -1040,7 +1054,7 @@ class AccountMove(models.Model):
                 )
             )
             return (b_loc, b_comp, am_cur, am_b)
-        pos_tuple = self._l10n_ve_igtf_get_display_tax_group_amounts_from_pos()
+        pos_tuple = self._l10n_ve_igtf_get_display_tax_group_amounts_from_pos()  # pylint: disable=assignment-from-none
         if pos_tuple is not None:
             return pos_tuple
         return self._l10n_ve_igtf_get_collected_amounts(include_base=True)
@@ -1063,9 +1077,7 @@ class AccountMove(models.Model):
             return True
         if bool(self._l10n_ve_igtf_tax_totals_should_show_igtf_row_extra()):
             return True
-        amt_cur, amt_comp = self._l10n_ve_igtf_get_collected_amounts(
-            include_base=False
-        )
+        amt_cur, amt_comp = self._l10n_ve_igtf_get_collected_amounts(include_base=False)
         return (not self.currency_id.is_zero(amt_cur)) or (
             not self.company_currency_id.is_zero(amt_comp)
         )
@@ -1226,6 +1238,8 @@ class AccountMove(models.Model):
             if merged is not False:
                 move.tax_totals = merged
 
+        return
+
     @api.depends(
         "move_type",
         "line_ids.amount_residual",
@@ -1264,7 +1278,9 @@ class AccountMove(models.Model):
                 continue
 
             content = widget["content"]
-            lines = list(content.values()) if isinstance(content, dict) else (content or [])
+            lines = (
+                list(content.values()) if isinstance(content, dict) else (content or [])
+            )
 
             for line in lines:
                 if line.get("is_exchange"):
@@ -1292,7 +1308,7 @@ class AccountMove(models.Model):
 
                 total_igtf_company_currency = 0.0
                 igtf_amls = payment.move_id.line_ids.filtered(
-                    lambda line: line.account_id == igtf_account
+                    lambda line, account=igtf_account: line.account_id == account
                 )
                 if not igtf_amls:
                     igtf_amls = payment.move_id.line_ids.filtered(
@@ -1436,6 +1452,8 @@ class AccountMove(models.Model):
                     }
                 )
 
+        return
+
     @api.depends(
         "company_id",
         "company_id.taxpayer_type",
@@ -1447,4 +1465,4 @@ class AccountMove(models.Model):
     )
     def _compute_seniat_invoice_tag(self):
         super()._compute_seniat_invoice_tag()
-
+        return

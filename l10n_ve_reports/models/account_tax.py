@@ -8,7 +8,7 @@ class AccountTaxUnit(models.Model):
     _name = "account.tax.unit"
     _description = "Tax Unit"
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(required=True)
     country_id = fields.Many2one(
         string="Country",
         comodel_name="res.country",
@@ -128,7 +128,7 @@ class AccountTaxUnit(models.Model):
         )
         for unit in self:
             for company in companies:
-                fp_identifier = "account.tax_unit_%s_fp_%s" % (unit.id, company.id)
+                fp_identifier = f"account.tax_unit_{unit.id}_fp_{company.id}"
                 existing_fp = self.env.ref(fp_identifier, raise_if_not_found=False)
                 if create_or_refresh:
                     taxes_to_map = (

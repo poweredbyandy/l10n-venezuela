@@ -295,9 +295,11 @@ class ResCompany(models.Model):
                 )
 
             if state_codes:
-                region_string = " (%s - %s)" % (country_code, ", ".join(state_codes))
+                region_string = " ({} - {})".format(
+                    country_code, ", ".join(state_codes)
+                )
             else:
-                region_string = " (%s)" % country_code
+                region_string = f" ({country_code})"
         else:
             # Don't add region information in case there is no foreign VAT fpos
             region_string = ""

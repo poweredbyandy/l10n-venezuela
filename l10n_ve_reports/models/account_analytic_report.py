@@ -1,6 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+# pylint: disable=consider-merging-classes-inherited
 
-from odoo import api, fields, models, osv
+from odoo import _, api, fields, models, osv
+from odoo.exceptions import UserError
 from odoo.tools import SQL, Query
 
 from odoo.addons.web.controllers.utils import clean_action
@@ -70,6 +72,8 @@ class AccountReport(models.AbstractModel):
         options["readonly_query"] = options["readonly_query"] and not options.get(
             "analytic_groupby_option"
         )
+
+        return
 
     def _create_column_analytic(self, options):
         """Creates the analytic columns for each plan or account in the filters.
@@ -338,6 +342,29 @@ class AccountReport(models.AbstractModel):
             )
 
         return domain
+
+    def _report_custom_engine_executive_summary_ndays(
+        self,
+        expressions,
+        options,
+        date_scope,
+        current_groupby,
+        next_groupby,
+        offset=0,
+        limit=None,
+        warnings=None,
+    ):
+        if current_groupby or next_groupby:
+            raise UserError(
+                _(
+                    "NDays expressions of executive summary report don't support the 'group by' feature."
+                )
+            )
+
+        date_diff = fields.Date.from_string(
+            options["date"]["date_to"]
+        ) - fields.Date.from_string(options["date"]["date_from"])
+        return {"result": date_diff.days}
 
 
 class AccountMoveLine(models.Model):

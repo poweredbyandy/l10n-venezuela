@@ -107,8 +107,8 @@ class TestBalanceSheetReport(TestAccountReportsCommon):
                 {
                     "move_type": "out_invoice",
                     "partner_id": self.partner_a.id,
-                    "date": "2020-0%s-15" % i,
-                    "invoice_date": "2020-0%s-15" % i,
+                    "date": f"2020-0{i}-15",
+                    "invoice_date": f"2020-0{i}-15",
                     "invoice_line_ids": [
                         (
                             0,

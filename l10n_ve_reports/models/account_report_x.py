@@ -25,6 +25,8 @@ class AccountVeReportXHandler(models.AbstractModel):
             options["date"]["filter"] = "this_today"
             options["date"]["period"] = 0
 
+        return
+
     def _get_custom_display_config(self):
         return {
             "css_custom_class": "ve_report_x",
@@ -226,7 +228,9 @@ class AccountVeReportXHandler(models.AbstractModel):
         daily = self._daily()
         date_type = daily._get_daily_payments_date_type(options)
         bank_cash_journals = daily._get_selected_bank_cash_journals(report, options)
-        add_row(_("Arqueo por forma de cobro / diario"), "", None, level=0, markup="rx_arc")
+        add_row(
+            _("Arqueo por forma de cobro / diario"), "", None, level=0, markup="rx_arc"
+        )
 
         total_cash = 0.0
         total_ops = 0
@@ -308,7 +312,12 @@ class AccountVeReportXHandler(models.AbstractModel):
                 level=1,
             )
         else:
-            add_row(_("Base imponible — alícuota general"), "", sale_agg["base_general"], level=1)
+            add_row(
+                _("Base imponible — alícuota general"),
+                "",
+                sale_agg["base_general"],
+                level=1,
+            )
             add_row(_("IVA — general"), "", sale_agg["amount_general"], level=1)
 
         if hasattr(company, "reduced_aliquot_sale") and company.reduced_aliquot_sale:
@@ -326,7 +335,9 @@ class AccountVeReportXHandler(models.AbstractModel):
                 level=1,
             )
         else:
-            add_row(_("Base imponible — reducida"), "", sale_agg["base_reduced"], level=1)
+            add_row(
+                _("Base imponible — reducida"), "", sale_agg["base_reduced"], level=1
+            )
             add_row(_("IVA — reducida"), "", sale_agg["amount_reduced"], level=1)
 
         if hasattr(company, "extend_aliquot_sale") and company.extend_aliquot_sale:
@@ -344,7 +355,9 @@ class AccountVeReportXHandler(models.AbstractModel):
                 level=1,
             )
         else:
-            add_row(_("Base imponible — adicional"), "", sale_agg["base_extend"], level=1)
+            add_row(
+                _("Base imponible — adicional"), "", sale_agg["base_extend"], level=1
+            )
             add_row(_("IVA — adicional"), "", sale_agg["amount_extend"], level=1)
 
         ttl_base_ventas = (
@@ -358,8 +371,12 @@ class AccountVeReportXHandler(models.AbstractModel):
             + sale_agg["amount_reduced"]
             + sale_agg["amount_extend"]
         )
-        add_row(_("Total bases (ventas)"), "", ttl_base_ventas, level=1, line_class="total")
-        add_row(_("Total IVA (ventas)"), "", ttl_iva_ventas, level=1, line_class="total")
+        add_row(
+            _("Total bases (ventas)"), "", ttl_base_ventas, level=1, line_class="total"
+        )
+        add_row(
+            _("Total IVA (ventas)"), "", ttl_iva_ventas, level=1, line_class="total"
+        )
 
         add_row(_("Notas de débito"), "", None, level=0, markup="rx_nd")
         add_row(
@@ -453,12 +470,31 @@ class AccountVeReportXHandler(models.AbstractModel):
 
         add_row(_("Notas de crédito / devoluciones"), "", None, level=0, markup="rx_nc")
         add_row(_("Exento (NC)"), "", abs(refund_agg["total_exempt"]), level=1)
-        add_row(_("Base imponible — general (NC)"), "", abs(refund_agg["base_general"]), level=1)
+        add_row(
+            _("Base imponible — general (NC)"),
+            "",
+            abs(refund_agg["base_general"]),
+            level=1,
+        )
         add_row(_("IVA — general (NC)"), "", abs(refund_agg["amount_general"]), level=1)
-        add_row(_("Base imponible — reducida (NC)"), "", abs(refund_agg["base_reduced"]), level=1)
-        add_row(_("IVA — reducida (NC)"), "", abs(refund_agg["amount_reduced"]), level=1)
-        add_row(_("Base imponible — adicional (NC)"), "", abs(refund_agg["base_extend"]), level=1)
-        add_row(_("IVA — adicional (NC)"), "", abs(refund_agg["amount_extend"]), level=1)
+        add_row(
+            _("Base imponible — reducida (NC)"),
+            "",
+            abs(refund_agg["base_reduced"]),
+            level=1,
+        )
+        add_row(
+            _("IVA — reducida (NC)"), "", abs(refund_agg["amount_reduced"]), level=1
+        )
+        add_row(
+            _("Base imponible — adicional (NC)"),
+            "",
+            abs(refund_agg["base_extend"]),
+            level=1,
+        )
+        add_row(
+            _("IVA — adicional (NC)"), "", abs(refund_agg["amount_extend"]), level=1
+        )
         ttl_base_nc = (
             abs(refund_agg["total_exempt"])
             + abs(refund_agg["base_general"])
@@ -476,7 +512,9 @@ class AccountVeReportXHandler(models.AbstractModel):
         disc = self._discount_total_company(invoices | debit_notes)
         add_row(_("Descuentos (estimado en líneas de factura)"), "", disc, level=0)
 
-        add_row(_("Anulaciones (documentos cancelados en el período)"), "", None, level=0)
+        add_row(
+            _("Anulaciones (documentos cancelados en el período)"), "", None, level=0
+        )
         add_row(
             _("Documentos cancelados"),
             _("%(n)s documentos", n=len(cancelled)),
@@ -500,9 +538,7 @@ class AccountVeReportXHandler(models.AbstractModel):
             level=1,
         )
         if debit_notes:
-            last_nd = max(
-                debit_notes, key=lambda m: (m.invoice_date or m.date, m.id)
-            )
+            last_nd = max(debit_notes, key=lambda m: (m.invoice_date or m.date, m.id))
             add_row(
                 _("Última nota de débito"),
                 last_nd.name or "",

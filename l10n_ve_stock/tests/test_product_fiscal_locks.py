@@ -11,9 +11,7 @@ class TestL10nVeStockProductFiscalLocks(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.company.write(
-            {"account_fiscal_country_id": cls.env.ref("base.ve").id}
-        )
+        cls.env.company.write({"account_fiscal_country_id": cls.env.ref("base.ve").id})
         if not cls.tax_sale_b:
             cls.tax_sale_b = cls.tax_sale_a.copy({"name": "sale_tax_b_dup"})
 
@@ -31,9 +29,7 @@ class TestL10nVeStockProductFiscalLocks(AccountTestInvoicingCommon):
                 {
                     "name": "Dos impuestos",
                     "is_storable": True,
-                    "taxes_id": [
-                        Command.set((self.tax_sale_a + self.tax_sale_b).ids)
-                    ],
+                    "taxes_id": [Command.set((self.tax_sale_a + self.tax_sale_b).ids)],
                 }
             )
 

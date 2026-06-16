@@ -90,6 +90,8 @@ class SaleOrder(models.Model):
             if not order.journal_id:
                 order.journal_id = order._l10n_ve_default_sale_journal()
 
+        return
+
     def _l10n_ve_default_sale_journal(self):
         self.ensure_one()
         return self.env["account.journal"].search(
@@ -220,7 +222,8 @@ class SaleOrder(models.Model):
         max_lines = self._l10n_ve_get_max_invoice_lines_from_book()
         if (
             max_lines <= 0
-            or self._l10n_ve_product_line_count_invoiceable(invoiceable_lines) <= max_lines
+            or self._l10n_ve_product_line_count_invoiceable(invoiceable_lines)
+            <= max_lines
         ):
             return [(invoiceable_lines, {})]
         disc_lines = self._l10n_ve_global_discount_lines(invoiceable_lines)
@@ -250,7 +253,9 @@ class SaleOrder(models.Model):
                 if not parts:
                     continue
                 part = parts[i]
-                if float_is_zero(part, precision_rounding=10 ** (-self.currency_id.decimal_places)):
+                if float_is_zero(
+                    part, precision_rounding=10 ** (-self.currency_id.decimal_places)
+                ):
                     continue
                 alloc[dline.id] = part
                 extra_ids.append(dline.id)
@@ -357,13 +362,18 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         precision = self.env["decimal.precision"].precision_get("Product Price")
         for order in self:
-            if float_is_zero(order.amount_total, precision_digits=order.currency_id.decimal_places):
+            if float_is_zero(
+                order.amount_total, precision_digits=order.currency_id.decimal_places
+            ):
                 raise UserError(
-                    "No se puede confirmar el pedido con un total de 0. "
-                    "Agregue productos con precio o corrija los importes."
+                    _(
+                        "No se puede confirmar el pedido con un total de 0. "
+                        "Agregue productos con precio o corrija los importes."
+                    )
                 )
             invalid_lines = order.order_line.filtered(
-                lambda line: not line.display_type and float_is_zero(line.price_unit, precision_digits=precision)
+                lambda line: not line.display_type
+                and float_is_zero(line.price_unit, precision_digits=precision)
             )
             if invalid_lines:
                 products = [
@@ -371,23 +381,31 @@ class SaleOrder(models.Model):
                     for line in invalid_lines
                 ]
                 raise UserError(
-                    "No se puede confirmar el pedido con líneas en precio 0. "
-                    "Corrija los precios de los siguientes productos: %s"
+                    _(
+                        "No se puede confirmar el pedido con líneas en precio 0. "
+                        "Corrija los precios de los siguientes productos: %s"
+                    )
                     % ", ".join(products)
                 )
             if order.country_code == "VE":
                 if not order.journal_id:
                     raise UserError(
-                        _("Debe indicar el diario de ventas antes de confirmar el pedido.")
+                        _(
+                            "Debe indicar el diario de ventas antes de confirmar el pedido."
+                        )
                     )
                 order._l10n_ve_check_free_emission_correlatives()
                 default_tax = order.company_id.account_sale_tax_id
-                for line in order.order_line.filtered(lambda line: not line.display_type):
+                for line in order.order_line.filtered(
+                    lambda line: not line.display_type
+                ):
                     if len(line.tax_id) == 0:
                         if default_tax:
                             line.tax_id = [Command.link(default_tax.id)]
                             order.message_post(
-                                body=_("Se agregó el impuesto por defecto a la línea: %s.")
+                                body=_(
+                                    "Se agregó el impuesto por defecto a la línea: %s."
+                                )
                                 % (line.name or _("Sin nombre"))
                             )
                         else:
@@ -399,10 +417,14 @@ class SaleOrder(models.Model):
                                 % (line.name or _("Sin nombre"))
                             )
                 lines_with_multi_tax = []
-                for line in order.order_line.filtered(lambda line: not line.display_type):
+                for line in order.order_line.filtered(
+                    lambda line: not line.display_type
+                ):
                     if len(line.tax_id) > 1:
                         tax_mapped = ", ".join(line.tax_id.mapped("name"))
-                        lines_with_multi_tax.append(" - %s: %s" % (line.name or _("Sin nombre"), tax_mapped))
+                        lines_with_multi_tax.append(
+                            " - {}: {}".format(line.name or _("Sin nombre"), tax_mapped)
+                        )
                 if lines_with_multi_tax:
                     raise UserError(
                         _(

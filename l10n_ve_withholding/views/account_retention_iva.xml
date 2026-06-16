@@ -76,7 +76,10 @@
                                 select="1"
                                 readonly="state in ['emitted', 'cancel']"
                             />
-                            <field name="date" readonly="state in ['emitted', 'cancel']" />
+                            <field
+                                name="date"
+                                readonly="state in ['emitted', 'cancel']"
+                            />
                         </group>
                     </group>
                     <notebook>

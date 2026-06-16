@@ -13,7 +13,10 @@ class SaleOrderDiscount(models.TransientModel):
             if wizard.company_id.account_fiscal_country_id.code != "VE":
                 continue
             if wizard.discount_type in ("sol_discount", "so_discount"):
-                if float_compare(wizard.discount_percentage, 1.0, precision_digits=10) >= 0:
+                if (
+                    float_compare(wizard.discount_percentage, 1.0, precision_digits=10)
+                    >= 0
+                ):
                     raise ValidationError(
                         _("No se permite un descuento global del 100%% en el pedido.")
                     )
@@ -32,13 +35,19 @@ class SaleOrderDiscount(models.TransientModel):
                         for tax in taxes.filtered(lambda t: t.amount_type == "fixed"):
                             fixed_taxes_amount += tax.amount * line.product_uom_qty
                     so_amount -= fixed_taxes_amount
-                if so_amount and float_compare(
-                    wizard.discount_amount,
-                    so_amount,
-                    precision_digits=wizard.currency_id.decimal_places,
-                ) >= 0:
+                if (
+                    so_amount
+                    and float_compare(
+                        wizard.discount_amount,
+                        so_amount,
+                        precision_digits=wizard.currency_id.decimal_places,
+                    )
+                    >= 0
+                ):
                     raise ValidationError(
-                        _("No se permite un descuento del 100%% del importe del pedido.")
+                        _(
+                            "No se permite un descuento del 100%% del importe del pedido."
+                        )
                     )
         return super().action_apply_discount()
 

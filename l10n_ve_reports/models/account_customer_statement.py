@@ -22,3 +22,4 @@ class CustomerStatementCustomHandler(models.AbstractModel):
                 "always_show": True,
             }
         )
+        return

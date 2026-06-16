@@ -2,7 +2,8 @@ import json
 import logging
 
 import requests
-from odoo import api, models
+
+from odoo import _, api, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -84,15 +85,19 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
 
     @api.model
     def _base_url(self):
-        value = self.env["ir.config_parameter"].sudo().get_param(
-            ICP_BASE_URL, default=DEFAULT_BASE_URL
+        value = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param(ICP_BASE_URL, default=DEFAULT_BASE_URL)
         )
         return value.rstrip("/")
 
     @api.model
     def _timeout(self):
-        value = self.env["ir.config_parameter"].sudo().get_param(
-            ICP_TIMEOUT, default=str(DEFAULT_TIMEOUT)
+        value = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param(ICP_TIMEOUT, default=str(DEFAULT_TIMEOUT))
         )
         try:
             return int(value)
@@ -162,7 +167,9 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
                         base = json.dumps(error, ensure_ascii=False)
                     except TypeError:
                         base = str(error)
-        elif data.get(KEY_VALIDACIONES) and isinstance(data.get(KEY_VALIDACIONES), list):
+        elif data.get(KEY_VALIDACIONES) and isinstance(
+            data.get(KEY_VALIDACIONES), list
+        ):
             base = self._join_validaciones(data[KEY_VALIDACIONES])
         else:
             try:
@@ -216,11 +223,17 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
     def _raise_for_http_status(self, response, data, url=None):
         if response.ok:
             return
-        base_message = HTTP_ERROR_MESSAGES.get(response.status_code) or "Error HTTP en TFHKA."
+        base_message = (
+            HTTP_ERROR_MESSAGES.get(response.status_code) or "Error HTTP en TFHKA."
+        )
         api_message = self._extract_error_message(data) or response.text
         req_url = url or getattr(response, "url", "") or ""
         try:
-            body = json.dumps(data, ensure_ascii=False) if isinstance(data, dict) else str(data)
+            body = (
+                json.dumps(data, ensure_ascii=False)
+                if isinstance(data, dict)
+                else str(data)
+            )
         except TypeError:
             body = str(data)
         if len(body) > 16000:
@@ -251,9 +264,15 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
             normalized = detail.lower()
             if "ya ha sido enviado previamente" in normalized:
                 return
-        message = API_ERROR_MESSAGES.get(code) or "Codigo de respuesta API no documentado."
+        message = (
+            API_ERROR_MESSAGES.get(code) or "Codigo de respuesta API no documentado."
+        )
         try:
-            raw = json.dumps(data, ensure_ascii=False) if isinstance(data, dict) else str(data)
+            raw = (
+                json.dumps(data, ensure_ascii=False)
+                if isinstance(data, dict)
+                else str(data)
+            )
         except TypeError:
             raw = str(data)
         if len(raw) > 20000:
@@ -275,7 +294,15 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
         raise UserError(body)
 
     @api.model
-    def _request(self, method, path, payload=None, token=None, timeout=None, extra_success_codes=None):
+    def _request(
+        self,
+        method,
+        path,
+        payload=None,
+        token=None,
+        timeout=None,
+        extra_success_codes=None,
+    ):
         url = f"{self._base_url()}{path}"
         request_timeout = timeout or self._timeout()
         body = payload or {}
@@ -288,7 +315,7 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
                 timeout=request_timeout,
             )
         except requests.Timeout as exc:
-            raise UserError("Tiempo de espera agotado en la API de TFHKA.") from exc
+            raise UserError(_("Tiempo de espera agotado en la API de TFHKA.")) from exc
         except requests.RequestException as exc:
             raise UserError(f"Error de conexion con TFHKA: {exc}") from exc
 
@@ -327,61 +354,101 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
     @api.model
     def apply_retention(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_APLICAR_RETENCION, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_APLICAR_RETENCION,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def delete_retention(self, payload, token, timeout=None):
         return self._request(
-            METHOD_DELETE, PATH_APLICAR_RETENCION, payload=payload, token=token, timeout=timeout
+            METHOD_DELETE,
+            PATH_APLICAR_RETENCION,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def get_retention(self, payload, token, timeout=None):
         return self._request(
-            METHOD_GET, PATH_APLICAR_RETENCION, payload=payload, token=token, timeout=timeout
+            METHOD_GET,
+            PATH_APLICAR_RETENCION,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def assign_numerations(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_ASIGNAR_NUMERACIONES, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_ASIGNAR_NUMERACIONES,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def query_numerations(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_CONSULTA_NUMERACIONES, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_CONSULTA_NUMERACIONES,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def send_email(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_CORREO_ENVIAR, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_CORREO_ENVIAR,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def track_email(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_CORREO_RASTREO, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_CORREO_RASTREO,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def send_order_email(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_CORREO_ENVIA_ORDEN, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_CORREO_ENVIA_ORDEN,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def track_order_email(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_CORREO_RASTREO_ORDEN, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_CORREO_RASTREO_ORDEN,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def download_file(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_DESCARGA_ARCHIVO, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_DESCARGA_ARCHIVO,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
@@ -404,7 +471,11 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
     @api.model
     def get_document_status(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_ESTADO_DOCUMENTO, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_ESTADO_DOCUMENTO,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
@@ -416,17 +487,29 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
     @api.model
     def list_documents(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_LISTADO_DOCUMENTOS, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_LISTADO_DOCUMENTOS,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def list_assignments(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_LISTADO_ASIGNACIONES, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_LISTADO_ASIGNACIONES,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )
 
     @api.model
     def get_last_document(self, payload, token, timeout=None):
         return self._request(
-            METHOD_POST, PATH_ULTIMO_DOCUMENTO, payload=payload, token=token, timeout=timeout
+            METHOD_POST,
+            PATH_ULTIMO_DOCUMENTO,
+            payload=payload,
+            token=token,
+            timeout=timeout,
         )

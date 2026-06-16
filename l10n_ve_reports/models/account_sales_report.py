@@ -181,6 +181,8 @@ class ECSalesReportCustomHandler(models.AbstractModel):
 
         options["enable_export_buttons_for_common_vat_in_branches"] = True
 
+        return
+
     def _init_core_custom_options(self, report, options, previous_options):
         """
         Add the invoice lines search domain that is common to all countries.

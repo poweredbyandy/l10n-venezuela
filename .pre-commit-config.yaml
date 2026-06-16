@@ -20,6 +20,10 @@ exclude: |
   /tests/samples/.*|
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)
+  # Repository maintenance scripts (not Odoo modules)
+  ^complete_i18n\.py$|
+  ^export_i18n\.py$|
+  ^fix_i18n\.py$
 default_language_version:
   python: python3
   node: "22.9.0"
@@ -133,5 +137,7 @@ repos:
           - --exit-zero
         verbose: true
       - id: pylint_odoo
+        name: Check for Odoo modules using pylint
+        files: ^l10n_ve_
         args:
           - --rcfile=.pylintrc-mandatory

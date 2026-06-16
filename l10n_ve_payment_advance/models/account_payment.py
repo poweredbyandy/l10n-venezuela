@@ -14,8 +14,7 @@ class AccountPayment(models.Model):
     _inherit = "account.payment"
 
     destination_account_id = fields.Many2one(
-        domain="[('account_type', 'in', %s), ('deprecated', '=', False)]"
-        % (_DESTINATION_ACCOUNT_TYPES,)
+        domain=f"[('account_type', 'in', {_DESTINATION_ACCOUNT_TYPES}), ('deprecated', '=', False)]"
     )
     payment_has_invoice_lines = fields.Boolean(
         string="Pago contra líneas de factura",
@@ -108,6 +107,8 @@ class AccountPayment(models.Model):
             elif payment._should_post_to_supplier_advance_account():
                 payment.destination_account_id = payment._get_supplier_advance_account()
 
+        return
+
     def _l10n_ve_get_advance_liquidity_lines(self):
         self.ensure_one()
         advance_account = self.outstanding_account_id
@@ -130,8 +131,10 @@ class AccountPayment(models.Model):
             )
             if not advance_lines:
                 continue
-            payment_advance_lines = payment._l10n_ve_get_advance_liquidity_lines().filtered(
-                lambda line: not line.reconciled
+            payment_advance_lines = (
+                payment._l10n_ve_get_advance_liquidity_lines().filtered(
+                    lambda line: not line.reconciled
+                )
             )
             if payment_advance_lines and advance_lines:
                 (payment_advance_lines + advance_lines).reconcile()

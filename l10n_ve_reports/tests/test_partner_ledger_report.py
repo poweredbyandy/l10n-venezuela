@@ -670,7 +670,7 @@ class TestPartnerLedgerReport(TestAccountReportsCommon):
         for name in partner_names:
             partner = self.env["res.partner"].create({"name": name})
             test_partners += partner
-            invoice = self.init_invoice(
+            self.init_invoice(
                 "out_invoice",
                 partner=partner,
                 invoice_date=test_date,

@@ -49,9 +49,11 @@ class BankReconciliationReportCustomHandler(models.AbstractModel):
                 if column["expression_label"] not in ("amount_currency", "currency")
             ]
 
-    ######################
-    # Getter
-    ######################
+        ######################
+        # Getter
+        ######################
+        return
+
     def _get_bank_journal_and_currencies(self, options):
         journal = self.env["account.journal"].browse(
             options.get("bank_reconciliation_report_journal_id")

@@ -248,6 +248,8 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
                 }
             )
 
+        return
+
     def _custom_unfold_all_batch_data_generator(
         self, report, options, lines_to_expand_by_function
     ):
@@ -659,7 +661,7 @@ class PartnerLedgerCustomHandler(models.AbstractModel):
             )
 
         prefix_groups_count = 0
-        for markup, dummy1, dummy2 in report._parse_line_id(line_dict_id):
+        for markup, _dummy1, _dummy2 in report._parse_line_id(line_dict_id):
             if isinstance(markup, dict) and "groupby_prefix_group" in markup:
                 prefix_groups_count += 1
         level_shift = prefix_groups_count * 2

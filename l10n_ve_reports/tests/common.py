@@ -11,7 +11,7 @@ try:
 except ImportError:
     load_workbook = None
 
-from odoo import Command, fields
+from odoo import Command, _, fields
 from odoo.exceptions import UserError
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 from odoo.tools.misc import file_open, formatLang
@@ -197,7 +197,7 @@ class TestAccountReportsCommon(AccountTestInvoicingCommon):
             )
 
         if not reports:
-            raise UserError("There are no reports to compare.")
+            raise UserError(_("There are no reports to compare."))
         visited_line_codes = set()
         for line in reports.line_ids:
             if not line.code or line.code in visited_line_codes:
@@ -279,9 +279,9 @@ class TestAccountReportsCommon(AccountTestInvoicingCommon):
                         used_currency = self.env["res.currency"].search(
                             [("name", "=", currency_code)], limit=1
                         )
-                        assert used_currency, (
-                            "Currency having name=%s not found." % currency_code
-                        )
+                        assert (
+                            used_currency
+                        ), f"Currency having name={currency_code} not found."
                 if not used_currency:
                     used_currency = self.env.company.currency_id
 
@@ -308,9 +308,9 @@ class TestAccountReportsCommon(AccountTestInvoicingCommon):
         for i, to_compare in enumerate(to_compare_list):
             if to_compare[0] != to_compare[1]:
                 errors += [
-                    "\n==== Differences at index %s ====" % str(i),
-                    "Current Values:  %s" % str(to_compare[0]),
-                    "Expected Values: %s" % str(to_compare[1]),
+                    f"\n==== Differences at index {str(i)} ====",
+                    f"Current Values:  {str(to_compare[0])}",
+                    f"Expected Values: {str(to_compare[1])}",
                 ]
 
         id_counts = Counter(line["id"] for line in lines)
@@ -371,7 +371,7 @@ class TestAccountReportsCommon(AccountTestInvoicingCommon):
         }
         if tag_name and formula:
             raise UserError(
-                "Can't use this helper to create a line with both tags and formula"
+                _("Can't use this helper to create a line with both tags and formula")
             )
         if tag_name:
             create_vals["expression_ids"].append(

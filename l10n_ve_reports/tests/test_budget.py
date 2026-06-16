@@ -446,7 +446,9 @@ class TestBudgetReport(TestAccountReportsCommon):
                 date_to=options["date"]["date_to"],
             )
 
-        budget_2024 = self.env["account.report.budget.oca"].create({"name": "Budget 2024"})
+        budget_2024 = self.env["account.report.budget.oca"].create(
+            {"name": "Budget 2024"}
+        )
         self._create_moves({self.account_1.id: 200}, "2024-01-01", "2024-12-31")
 
         options = self._generate_options(

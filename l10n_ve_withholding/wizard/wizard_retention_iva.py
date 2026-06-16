@@ -63,7 +63,9 @@ class TxtWizard(models.TransientModel):
             line_data["Tipo de documento"] = document_types[line.move_id.move_type]
             if line.move_id.journal_id.is_debit and line.move_id.debit_origin_id:
                 orig = line.move_id.debit_origin_id
-                line_data["Número del documento afectado"] = orig.ref or orig.name or "0"
+                line_data["Número del documento afectado"] = (
+                    orig.ref or orig.name or "0"
+                )
             else:
                 rev = line.move_id.reversed_entry_id
                 line_data["Número del documento afectado"] = (

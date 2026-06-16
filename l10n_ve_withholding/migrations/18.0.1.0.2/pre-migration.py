@@ -57,9 +57,7 @@ def _cleanup_res_config_settings(cr):
     )
     for view_id, view_name, module_name, xmlid_name in cr.fetchall():
         xmlid = (
-            f"{module_name}.{xmlid_name}"
-            if module_name and xmlid_name
-            else "no_xmlid"
+            f"{module_name}.{xmlid_name}" if module_name and xmlid_name else "no_xmlid"
         )
         if xmlid == "no_xmlid":
             cr.execute(
@@ -135,9 +133,7 @@ def _cleanup_res_company(cr):
     )
     for view_id, view_name, module_name, xmlid_name in cr.fetchall():
         xmlid = (
-            f"{module_name}.{xmlid_name}"
-            if module_name and xmlid_name
-            else "no_xmlid"
+            f"{module_name}.{xmlid_name}" if module_name and xmlid_name else "no_xmlid"
         )
         if xmlid == "no_xmlid":
             cr.execute(

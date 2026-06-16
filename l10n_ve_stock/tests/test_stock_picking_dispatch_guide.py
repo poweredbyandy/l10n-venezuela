@@ -10,9 +10,7 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.company.write(
-            {"account_fiscal_country_id": cls.env.ref("base.ve").id}
-        )
+        cls.env.company.write({"account_fiscal_country_id": cls.env.ref("base.ve").id})
         cls._setup_l10n_ve_dispatch_section()
 
     @classmethod
@@ -67,14 +65,10 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
         while isinstance(action, dict) and action.get("res_model"):
             model = action["res_model"]
             if model == "l10n_ve.stock.picking.validate.confirmation":
-                wizard = self.env[model].with_context(
-                    **action["context"]
-                ).create({})
+                wizard = self.env[model].with_context(**action["context"]).create({})
                 action = wizard.action_confirm()
             elif model == "stock.backorder.confirmation":
-                wiz = Form(
-                    self.env[model].with_context(**action["context"])
-                ).save()
+                wiz = Form(self.env[model].with_context(**action["context"])).save()
                 action = wiz.process()
             else:
                 break
@@ -107,9 +101,9 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
             action.get("res_model"),
             "l10n_ve.stock.picking.validate.confirmation",
         )
-        wizard = self.env[action["res_model"]].with_context(
-            **action["context"]
-        ).create({})
+        wizard = (
+            self.env[action["res_model"]].with_context(**action["context"]).create({})
+        )
         self.assertTrue(wizard.l10n_ve_next_control_number)
         self.assertRegex(wizard.l10n_ve_next_control_number, r"^01-\d{8}$")
         wizard.action_confirm()

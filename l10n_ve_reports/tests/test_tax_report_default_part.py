@@ -660,7 +660,7 @@ class TestTaxReportDefaultPart(TestAccountReportsCommon):
             self.env["account.move"].with_context(default_move_type="entry")
         )
         move_form.date = fields.Date.from_string("2019-01-01")
-        for dummy in range(2):
+        for _dummy in range(2):
             for tax in tax_10 + tax_20 + tax_30:
                 with move_form.line_ids.new() as line_form:
                     line_form.name = "debit line"
@@ -1107,8 +1107,8 @@ class TestTaxReportDefaultPart(TestAccountReportsCommon):
             [0, 1, 2],
             [
                 ("Sales", "", 108.2),
-                ("%s (42.0%%)" % affecting_tax.name, 200, 84),
-                ("%s (10.0%%)" % affected_tax.name, 242, 24.2),
+                (f"{affecting_tax.name} (42.0%)", 200, 84),
+                (f"{affected_tax.name} (10.0%)", 242, 24.2),
                 ("Total Sales", "", 108.2),
             ],
             options,

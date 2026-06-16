@@ -39,6 +39,8 @@ class AccountMoveLine(models.Model):
         (self - lines_to_compute).tax_ids = False
         super(AccountMoveLine, lines_to_compute)._compute_tax_ids()
 
+        return
+
     @api.model
     def _prepare_aml_shadowing_for_report(self, change_equivalence_dict):
         """Prepares the fields lists for creating a temporary table shadowing the account_move_line one.

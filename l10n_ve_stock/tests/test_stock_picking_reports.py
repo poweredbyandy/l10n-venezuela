@@ -1,9 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from lxml import etree
+
 from odoo import Command
 from odoo.exceptions import UserError
 from odoo.tests import tagged
-from lxml import etree
 
 from .test_stock_picking_dispatch_guide import TestL10nVeStockDispatchGuide
 
@@ -51,8 +52,7 @@ class TestL10nVeStockPickingReports(TestL10nVeStockDispatchGuide):
         )
         self.assertIn(dispatch_report.id, valid_ids)
         blocked = domain_reports.filtered(
-            lambda report: report.id in valid_ids
-            and report.id != dispatch_report.id
+            lambda report: report.id in valid_ids and report.id != dispatch_report.id
         )
         self.assertFalse(blocked)
 
@@ -182,7 +182,7 @@ class TestL10nVeStockPickingReports(TestL10nVeStockDispatchGuide):
         self.assertGreater(delivery_idx, -1)
         self.assertLess(invoice_idx, delivery_idx)
         invoice_block = html_text[invoice_idx:delivery_idx]
-        delivery_block = html_text[delivery_idx:delivery_idx + 1000]
+        delivery_block = html_text[delivery_idx : delivery_idx + 1000]
         self.assertIn(invoice.l10n_ve_control_number, invoice_block)
         self.assertNotIn("N° de control", delivery_block)
 

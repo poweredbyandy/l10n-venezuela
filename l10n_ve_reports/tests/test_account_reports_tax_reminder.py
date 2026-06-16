@@ -20,7 +20,7 @@ class TestAccountReportsTaxReminder(TestAccountReportsCommon):
         cls.options = cls._generate_options(cls.report, "2024-08-01", "2024-08-31")
         action = (
             cls.env["account.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(cls.options)
         )
         cls.tax_return_move = cls.env["account.move"].browse(action["res_id"])
@@ -109,7 +109,7 @@ class TestAccountReportsTaxReminder(TestAccountReportsCommon):
         options = self._generate_options(self.report, "2024-09-01", "2024-09-30")
         action = (
             self.env["account.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         next_tax_return_move = self.env["account.move"].browse(action["res_id"])
@@ -176,10 +176,10 @@ class TestAccountReportsTaxReminder(TestAccountReportsCommon):
         """
         # Cancel the main one to be able to create new ones for this closing
         self.tax_return_move.button_cancel()
-        for i in range(0, 2):
+        for _i in range(0, 2):
             action = (
                 self.env["account.tax.report.handler"]
-                .with_context({"override_tax_closing_warning": True})
+                .with_context(override_tax_closing_warning=True)
                 .action_periodic_vat_entries(self.options)
             )
             move = self.env["account.move"].browse(action["res_id"])

@@ -12,19 +12,19 @@ from deep_translator import GoogleTranslator
 REPO_ROOT = Path(__file__).resolve().parent
 
 PH_PATTERN = re.compile(
-    r'%\([a-zA-Z_][a-zA-Z0-9_]*\)[a-zA-ZdiouxXeEfFgGcrs%]'
-    r'|\{[a-zA-Z_][a-zA-Z0-9_]*\}'
-    r'|\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\}'
+    r"%\([a-zA-Z_][a-zA-Z0-9_]*\)[a-zA-ZdiouxXeEfFgGcrs%]"
+    r"|\{[a-zA-Z_][a-zA-Z0-9_]*\}"
+    r"|\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\}"
 )
 
 ENGLISH_WORDS = re.compile(
-    r'\b(the|and|for|with|from|this|that|your|specify|necessary|please|display|'
-    r'custom|groupby|warning|exception|entry|item|items|chart|template|settings|'
-    r'config|type|icon|activity|next|name|reconciled|specify|necessary|cierre|'
-    r'closing|revise|publicar|published|expected|errors|lines|options|report|'
-    r'expression|formula|subformula|token|child|parent|label|line|book|section|'
-    r'country|company|code|already|this|currency|partner|amount|payment|journal|'
-    r'invoice|invoices|warehouse|price|discount|picking|order|move|account)\b',
+    r"\b(the|and|for|with|from|this|that|your|specify|necessary|please|display|"
+    r"custom|groupby|warning|exception|entry|item|items|chart|template|settings|"
+    r"config|type|icon|activity|next|name|reconciled|specify|necessary|cierre|"
+    r"closing|revise|publicar|published|expected|errors|lines|options|report|"
+    r"expression|formula|subformula|token|child|parent|label|line|book|section|"
+    r"country|company|code|already|this|currency|partner|amount|payment|journal|"
+    r"invoice|invoices|warehouse|price|discount|picking|order|move|account)\b",
     re.IGNORECASE,
 )
 
@@ -516,7 +516,9 @@ def protect_placeholders(text):
 
 
 def restore_placeholders(text, tokens):
-    for token, original in sorted(tokens.items(), key=lambda x: len(x[0]), reverse=True):
+    for token, original in sorted(
+        tokens.items(), key=lambda x: len(x[0]), reverse=True
+    ):
         text = text.replace(token, original)
     return text
 
@@ -533,7 +535,7 @@ def fix_placeholder_names(msgid, msgstr):
     if len(src) != len(dst):
         return None
     result = msgstr
-    for source, target in zip(src, dst):
+    for source, target in zip(src, dst, strict=False):
         if source != target:
             result = result.replace(target, source, 1)
     return result
@@ -616,7 +618,9 @@ def fix_po_file(po_path, translator, cache, dry_run=False):
             fixed += 1
 
     if fixed and not dry_run:
-        po.metadata["PO-Revision-Date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M%z")
+        po.metadata["PO-Revision-Date"] = datetime.now(timezone.utc).strftime(
+            "%Y-%m-%d %H:%M%z"
+        )
         po.metadata["Language"] = "es_VE"
         po.save(str(po_path))
 
@@ -624,7 +628,9 @@ def fix_po_file(po_path, translator, cache, dry_run=False):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Corrige placeholders y traducciones en es_VE.po.")
+    parser = argparse.ArgumentParser(
+        description="Corrige placeholders y traducciones en es_VE.po."
+    )
     parser.add_argument("-m", "--modules", nargs="*", help="Módulos específicos.")
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
@@ -649,7 +655,9 @@ def main():
         else:
             print(f"[SKIP] {module}: sin correcciones")
 
-    print(f"\nTotal: {total} entradas {'a corregir' if args.dry_run else 'corregidas'}.")
+    print(
+        f"\nTotal: {total} entradas {'a corregir' if args.dry_run else 'corregidas'}."
+    )
     return 0
 
 

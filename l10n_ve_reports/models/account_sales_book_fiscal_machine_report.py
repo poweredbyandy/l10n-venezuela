@@ -134,6 +134,8 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
 
         options["columns"] = columns_to_keep
 
+        return
+
     def _caret_options_initializer(self):
         return {
             "sales_book_fiscal_machine_group": [
@@ -196,7 +198,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
 
         # Get the date key in the same format as used in _dynamic_lines_generator
         if first_move.create_date:
-            date_key = first_move.create_date.strftime("%d-%m-%Y")
+            first_move.create_date.strftime("%d-%m-%Y")
             # For create_date (datetime field), filter by date range for the same day
             date_start = first_move.create_date.replace(
                 hour=0, minute=0, second=0, microsecond=0
@@ -210,7 +212,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
             ]
             _logger.info("Using create_date filter: %s to %s", date_start, date_end)
         elif first_move.invoice_date:
-            date_key = first_move.invoice_date.strftime("%d-%m-%Y")
+            first_move.invoice_date.strftime("%d-%m-%Y")
             # For invoice_date (date field), filter by exact date
             date_domain = [("invoice_date", "=", first_move.invoice_date)]
             _logger.info("Using invoice_date filter: %s", first_move.invoice_date)
@@ -382,7 +384,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
             if tax_group_id_str.startswith("_"):
                 continue
             try:
-                tax_group_id = int(tax_group_id_str)
+                int(tax_group_id_str)
             except (ValueError, TypeError):
                 continue
             tax_type = tax_info.get("tax_type")
@@ -566,7 +568,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
             else:
                 agrouped_by_date[key].append(move)
 
-        for date_key, date_moves in agrouped_by_date.items():
+        for _date_key, date_moves in agrouped_by_date.items():
             agrouped_by_report_z = {}
             for move in sorted(
                 date_moves,
@@ -584,7 +586,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
                 else:
                     agrouped_by_report_z[key].append(move)
 
-            for report_key, report_moves in agrouped_by_report_z.items():
+            for _report_key, report_moves in agrouped_by_report_z.items():
                 range_start = 0
                 range_last = 0
                 cumulative = {

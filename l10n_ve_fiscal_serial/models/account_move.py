@@ -35,9 +35,13 @@ class AccountMove(models.Model):
         if self.country_code != "VE":
             raise ValidationError(_("Esta acción solo aplica para compañías VE."))
         if self.l10n_ve_journal_emission_medium != "fiscal_machine":
-            raise ValidationError(_("El diario no está configurado como máquina fiscal."))
+            raise ValidationError(
+                _("El diario no está configurado como máquina fiscal.")
+            )
         if self.state != "posted":
-            raise ValidationError(_("Debe confirmar la factura antes de imprimirla fiscalmente."))
+            raise ValidationError(
+                _("Debe confirmar la factura antes de imprimirla fiscalmente.")
+            )
 
     def _l10n_ve_fiscal_serial_map_tax_code(self, line):
         tax = line.tax_ids[:1]
@@ -73,12 +77,16 @@ class AccountMove(models.Model):
         for line in self.invoice_line_ids.filtered(
             lambda line_item: line_item.display_type in (False, "product")
         ):
-            display_name, default_code = self._l10n_ve_fiscal_serial_prepare_line_name_and_code(line)
+            display_name, default_code = (
+                self._l10n_ve_fiscal_serial_prepare_line_name_and_code(line)
+            )
             lines.append(
                 {
                     "tax": self._l10n_ve_fiscal_serial_map_tax_code(line),
                     "tax_percent": line.tax_ids[:1].amount if line.tax_ids[:1] else 0.0,
-                    "price_unit": self._l10n_ve_fiscal_serial_line_price_unit_for_print(line),
+                    "price_unit": self._l10n_ve_fiscal_serial_line_price_unit_for_print(
+                        line
+                    ),
                     "quantity": line.quantity,
                     "default_code": default_code,
                     "name": display_name,
@@ -157,7 +165,11 @@ class AccountMove(models.Model):
             except Exception:
                 payments_widget = {}
 
-        reconciled = payments_widget.get("content", []) if isinstance(payments_widget, dict) else []
+        reconciled = (
+            payments_widget.get("content", [])
+            if isinstance(payments_widget, dict)
+            else []
+        )
 
         for item in reconciled:
             if item.get("is_exchange"):
@@ -195,7 +207,9 @@ class AccountMove(models.Model):
             else:
                 counterpart_move = self.env["account.move"].browse(item.get("move_id"))
                 journal = counterpart_move.journal_id
-            payment_method = self._l10n_ve_fiscal_serial_journal_fiscal_payment_code(journal)
+            payment_method = self._l10n_ve_fiscal_serial_journal_fiscal_payment_code(
+                journal
+            )
             lines.append(
                 {
                     "amount": amount_company,
@@ -255,7 +269,9 @@ class AccountMove(models.Model):
         if self.move_type != "out_refund":
             raise ValidationError(_("Solo puede imprimir notas de crédito de cliente."))
         if self.l10n_ve_invoice_number:
-            raise ValidationError(_("La nota de crédito ya fue impresa en máquina fiscal."))
+            raise ValidationError(
+                _("La nota de crédito ya fue impresa en máquina fiscal.")
+            )
         if not self.reversed_entry_id:
             raise ValidationError(_("La nota de crédito debe tener factura afectada."))
         if not self.reversed_entry_id.l10n_ve_invoice_number:
@@ -274,7 +290,8 @@ class AccountMove(models.Model):
                     "number": self.reversed_entry_id.l10n_ve_invoice_number,
                     "serial_machine": self.reversed_entry_id.l10n_ve_serial_number,
                     "date": self._l10n_ve_fiscal_serial_date_ddmmyyyy(
-                        self.reversed_entry_id.invoice_date or self.reversed_entry_id.date
+                        self.reversed_entry_id.invoice_date
+                        or self.reversed_entry_id.date
                     ),
                 },
             }
@@ -287,7 +304,9 @@ class AccountMove(models.Model):
         if self.move_type != "out_invoice" or not self.debit_origin_id:
             raise ValidationError(_("Solo puede imprimir notas de débito de cliente."))
         if self.l10n_ve_invoice_number:
-            raise ValidationError(_("La nota de débito ya fue impresa en máquina fiscal."))
+            raise ValidationError(
+                _("La nota de débito ya fue impresa en máquina fiscal.")
+            )
         if not self.debit_origin_id.l10n_ve_invoice_number:
             raise ValidationError(
                 _(
@@ -315,7 +334,9 @@ class AccountMove(models.Model):
         self.ensure_one()
         self._l10n_ve_fiscal_serial_validate_print_base()
         if not self.l10n_ve_invoice_number:
-            raise ValidationError(_("El documento no tiene número fiscal para reimprimir."))
+            raise ValidationError(
+                _("El documento no tiene número fiscal para reimprimir.")
+            )
         return {
             "type": self.move_type,
             "mf_number": str(self.l10n_ve_invoice_number),
@@ -324,7 +345,11 @@ class AccountMove(models.Model):
 
     def _l10n_ve_fiscal_serial_write_print_result(self, values):
         self.ensure_one()
-        data = values.get("data") if isinstance(values, dict) and values.get("data") else values
+        data = (
+            values.get("data")
+            if isinstance(values, dict) and values.get("data")
+            else values
+        )
         if not isinstance(data, dict):
             raise ValidationError(_("Respuesta fiscal inválida."))
         vals = {}

@@ -106,20 +106,22 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
         self.assertEqual(p.list_price, 45.0)
 
     def test_ve_product_product_create_coerces_zero_list_price(self):
-        tmpl = self.env["product.template"].with_context(
-            l10n_ve_skip_auto_exent_taxes=True
-        ).create(
-            {
-                "name": "Variant zero price VE",
-                "type": "service",
-                "company_id": self.env.company.id,
-                "list_price": 0.0,
-                "standard_price": 0.0,
-                "taxes_id": [(6, 0, self.product_a.taxes_id.ids)],
-                "supplier_taxes_id": [
-                    (6, 0, self.product_a.product_tmpl_id.supplier_taxes_id.ids)
-                ],
-            }
+        tmpl = (
+            self.env["product.template"]
+            .with_context(l10n_ve_skip_auto_exent_taxes=True)
+            .create(
+                {
+                    "name": "Variant zero price VE",
+                    "type": "service",
+                    "company_id": self.env.company.id,
+                    "list_price": 0.0,
+                    "standard_price": 0.0,
+                    "taxes_id": [(6, 0, self.product_a.taxes_id.ids)],
+                    "supplier_taxes_id": [
+                        (6, 0, self.product_a.product_tmpl_id.supplier_taxes_id.ids)
+                    ],
+                }
+            )
         )
         p = tmpl.product_variant_id
         self.assertEqual(p.list_price, 1.0)

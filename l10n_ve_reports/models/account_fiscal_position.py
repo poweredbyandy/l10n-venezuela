@@ -11,6 +11,8 @@ class AccountFiscalPosition(models.Model):
             if fpos.foreign_vat:
                 fpos._create_draft_closing_move_for_foreign_vat()
 
+        return
+
     def _create_draft_closing_move_for_foreign_vat(self):
         self.ensure_one()
         existing_draft_closings = self.env["account.move"].search(

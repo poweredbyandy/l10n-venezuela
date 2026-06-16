@@ -553,7 +553,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             )
             self.env["account.fiscal.year"].create(
                 {
-                    "name": "custom %s" % i,
+                    "name": f"custom {i}",
                     "date_from": fields.Date.to_string(quarter_df),
                     "date_to": fields.Date.to_string(quarter_dt),
                     "company_id": self.env.company.id,
@@ -702,8 +702,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                 }
             },
             {
-                "string": "From %s\nto  %s"
-                % (
+                "string": "From {}\nto  {}".format(
                     format_date(self.env, "2017-01-01"),
                     format_date(self.env, "2017-01-15"),
                 ),
@@ -760,8 +759,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "From %s\nto  %s"
-                    % (
+                    "string": "From {}\nto  {}".format(
                         format_date(self.env, "2016-01-01"),
                         format_date(self.env, "2016-01-15"),
                     ),
@@ -772,8 +770,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "2016-01-01_2016-01-15",
                 },
                 {
-                    "string": "From %s\nto  %s"
-                    % (
+                    "string": "From {}\nto  {}".format(
                         format_date(self.env, "2015-01-01"),
                         format_date(self.env, "2015-01-15"),
                     ),
@@ -917,7 +914,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             self.single_date_report,
             {"date": {"filter": "today", "mode": "single"}},
             {
-                "string": "As of %s" % format_date(self.env, "2017-12-30"),
+                "string": "As of {}".format(format_date(self.env, "2017-12-30")),
                 "period_type": "today",
                 "mode": "single",
                 "filter": "today",
@@ -935,7 +932,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2016-12-31")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2016-01-01",
@@ -943,7 +940,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2016-12-31",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2015-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2015-12-31")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2015-01-01",
@@ -961,7 +958,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-12-30"),
+                    "string": "As of {}".format(format_date(self.env, "2016-12-30")),
                     "period_type": "today",
                     "mode": "single",
                     "date_from": "2016-01-01",
@@ -969,7 +966,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2016-12-30",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2015-12-30"),
+                    "string": "As of {}".format(format_date(self.env, "2015-12-30")),
                     "period_type": "today",
                     "mode": "single",
                     "date_from": "2015-01-01",
@@ -987,7 +984,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2016-12-31")),
                     "period_type": "custom",
                     "mode": "single",
                     "date_from": False,
@@ -1004,7 +1001,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             self.single_date_report,
             {"date": {"filter": "this_month", "mode": "single"}},
             {
-                "string": "As of %s" % format_date(self.env, "2017-12-31"),
+                "string": "As of {}".format(format_date(self.env, "2017-12-31")),
                 "period_type": "month",
                 "mode": "single",
                 "filter": "this_month",
@@ -1022,7 +1019,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-11-30"),
+                    "string": "As of {}".format(format_date(self.env, "2017-11-30")),
                     "period_type": "month",
                     "mode": "single",
                     "date_from": "2017-11-01",
@@ -1030,7 +1027,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2017-11-30",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-10-31"),
+                    "string": "As of {}".format(format_date(self.env, "2017-10-31")),
                     "period_type": "month",
                     "mode": "single",
                     "date_from": "2017-10-01",
@@ -1048,7 +1045,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2016-12-31")),
                     "period_type": "month",
                     "mode": "single",
                     "date_from": "2016-12-01",
@@ -1056,7 +1053,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2016-12-31",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2015-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2015-12-31")),
                     "period_type": "month",
                     "mode": "single",
                     "date_from": "2015-12-01",
@@ -1073,7 +1070,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             self.single_date_report,
             {"date": {"filter": "this_quarter", "mode": "single"}},
             {
-                "string": "As of %s" % format_date(self.env, "2017-12-31"),
+                "string": "As of {}".format(format_date(self.env, "2017-12-31")),
                 "period_type": "quarter",
                 "mode": "single",
                 "filter": "this_quarter",
@@ -1091,7 +1088,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-09-30"),
+                    "string": "As of {}".format(format_date(self.env, "2017-09-30")),
                     "period_type": "quarter",
                     "mode": "single",
                     "date_from": "2017-07-01",
@@ -1099,7 +1096,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2017-09-30",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-06-30"),
+                    "string": "As of {}".format(format_date(self.env, "2017-06-30")),
                     "period_type": "quarter",
                     "mode": "single",
                     "date_from": "2017-04-01",
@@ -1117,7 +1114,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2016-12-31")),
                     "period_type": "quarter",
                     "mode": "single",
                     "date_from": "2016-10-01",
@@ -1125,7 +1122,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2016-12-31",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2015-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2015-12-31")),
                     "period_type": "quarter",
                     "mode": "single",
                     "date_from": "2015-10-01",
@@ -1142,7 +1139,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             self.single_date_report,
             {"date": {"filter": "this_year", "mode": "single"}},
             {
-                "string": "As of %s" % format_date(self.env, "2017-12-31"),
+                "string": "As of {}".format(format_date(self.env, "2017-12-31")),
                 "period_type": "fiscalyear",
                 "mode": "single",
                 "filter": "this_year",
@@ -1160,7 +1157,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2016-12-31")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2016-01-01",
@@ -1168,7 +1165,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2016-12-31",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2015-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2015-12-31")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2015-01-01",
@@ -1186,7 +1183,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2016-12-31")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2016-01-01",
@@ -1194,7 +1191,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2016-12-31",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2015-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2015-12-31")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2015-01-01",
@@ -1214,7 +1211,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             self.single_date_report,
             {"date": {"filter": "this_year", "mode": "single"}},
             {
-                "string": "As of %s" % format_date(self.env, "2018-06-30"),
+                "string": "As of {}".format(format_date(self.env, "2018-06-30")),
                 "period_type": "fiscalyear",
                 "mode": "single",
                 "filter": "this_year",
@@ -1232,7 +1229,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-06-30"),
+                    "string": "As of {}".format(format_date(self.env, "2017-06-30")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2016-07-01",
@@ -1240,7 +1237,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2017-06-30",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-06-30"),
+                    "string": "As of {}".format(format_date(self.env, "2016-06-30")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2015-07-01",
@@ -1258,7 +1255,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-06-30"),
+                    "string": "As of {}".format(format_date(self.env, "2017-06-30")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2016-07-01",
@@ -1266,7 +1263,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2017-06-30",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-06-30"),
+                    "string": "As of {}".format(format_date(self.env, "2016-06-30")),
                     "period_type": "fiscalyear",
                     "mode": "single",
                     "date_from": "2015-07-01",
@@ -1287,7 +1284,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             )
             self.env["account.fiscal.year"].create(
                 {
-                    "name": "custom %s" % i,
+                    "name": f"custom {i}",
                     "date_from": fields.Date.to_string(quarter_df),
                     "date_to": fields.Date.to_string(quarter_dt),
                     "company_id": self.env.company.id,
@@ -1367,7 +1364,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             self.single_date_report,
             {"date": {"filter": "custom", "mode": "single", "date_to": "2018-01-15"}},
             {
-                "string": "As of %s" % format_date(self.env, "2018-01-15"),
+                "string": "As of {}".format(format_date(self.env, "2018-01-15")),
                 "period_type": "custom",
                 "mode": "single",
                 "filter": "custom",
@@ -1385,7 +1382,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-12-31"),
+                    "string": "As of {}".format(format_date(self.env, "2017-12-31")),
                     "period_type": "month",
                     "mode": "single",
                     "date_from": "2017-12-01",
@@ -1393,7 +1390,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2017-12-31",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-11-30"),
+                    "string": "As of {}".format(format_date(self.env, "2017-11-30")),
                     "period_type": "month",
                     "mode": "single",
                     "date_from": "2017-11-01",
@@ -1411,7 +1408,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2017-01-15"),
+                    "string": "As of {}".format(format_date(self.env, "2017-01-15")),
                     "period_type": "custom",
                     "mode": "single",
                     "date_from": "2017-01-01",
@@ -1419,7 +1416,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2017-01-15",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2016-01-15"),
+                    "string": "As of {}".format(format_date(self.env, "2016-01-15")),
                     "period_type": "custom",
                     "mode": "single",
                     "date_from": "2016-01-01",
@@ -1445,7 +1442,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                 }
             },
             {
-                "string": "As of %s" % format_date(self.env, "2019-07-18"),
+                "string": "As of {}".format(format_date(self.env, "2019-07-18")),
                 "period_type": "custom",
                 "mode": "single",
                 "filter": "custom",
@@ -1463,7 +1460,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
             },
             [
                 {
-                    "string": "As of %s" % format_date(self.env, "2019-06-30"),
+                    "string": "As of {}".format(format_date(self.env, "2019-06-30")),
                     "period_type": "month",
                     "mode": "single",
                     "date_from": "2019-06-01",
@@ -1471,7 +1468,7 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                     "currency_table_period_key": "None_2019-06-30",
                 },
                 {
-                    "string": "As of %s" % format_date(self.env, "2019-05-31"),
+                    "string": "As of {}".format(format_date(self.env, "2019-05-31")),
                     "period_type": "month",
                     "mode": "single",
                     "date_from": "2019-05-01",
@@ -1563,8 +1560,8 @@ class TestAccountReportsFilters(TestAccountReportsCommon, odoo.tests.HttpCase):
                 {
                     "move_type": "out_invoice",
                     "partner_id": self.partner_a.id,
-                    "date": "2020-0%s-15" % i,
-                    "invoice_date": "2020-0%s-15" % i,
+                    "date": f"2020-0{i}-15",
+                    "invoice_date": f"2020-0{i}-15",
                     "invoice_line_ids": [
                         (
                             0,

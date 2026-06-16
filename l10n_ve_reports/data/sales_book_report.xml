@@ -209,7 +209,9 @@
                 model="account.report.column"
             >
                 <field name="name">Base imponible 16% (terceros)</field>
-                <field name="expression_label">third_party_tax_base_general_aliquot</field>
+                <field
+                    name="expression_label"
+                >third_party_tax_base_general_aliquot</field>
                 <field name="figure_type">monetary</field>
             </record>
             <record
@@ -225,7 +227,9 @@
                 model="account.report.column"
             >
                 <field name="name">IVA 16% (terceros)</field>
-                <field name="expression_label">third_party_amount_general_aliquot</field>
+                <field
+                    name="expression_label"
+                >third_party_amount_general_aliquot</field>
                 <field name="figure_type">monetary</field>
             </record>
             <record
@@ -233,7 +237,9 @@
                 model="account.report.column"
             >
                 <field name="name">Base imponible 8% (terceros)</field>
-                <field name="expression_label">third_party_tax_base_reduced_aliquot</field>
+                <field
+                    name="expression_label"
+                >third_party_tax_base_reduced_aliquot</field>
                 <field name="figure_type">monetary</field>
             </record>
             <record
@@ -249,7 +255,9 @@
                 model="account.report.column"
             >
                 <field name="name">IVA 8% (terceros)</field>
-                <field name="expression_label">third_party_amount_reduced_aliquot</field>
+                <field
+                    name="expression_label"
+                >third_party_amount_reduced_aliquot</field>
                 <field name="figure_type">monetary</field>
             </record>
             <record
@@ -257,7 +265,9 @@
                 model="account.report.column"
             >
                 <field name="name">Base imponible 31% (terceros)</field>
-                <field name="expression_label">third_party_tax_base_extend_aliquot</field>
+                <field
+                    name="expression_label"
+                >third_party_tax_base_extend_aliquot</field>
                 <field name="figure_type">monetary</field>
             </record>
             <record

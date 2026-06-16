@@ -1457,7 +1457,10 @@ ENGLISH_HINT = re.compile(
 )
 
 PLACEHOLDER_PATTERNS = [
-    (re.compile(r"%(\([a-zA-Z_][a-zA-Z0-9_]*\)[a-zA-ZdiouxXeEfFgGcrs])"), "FMT_PERCENT"),
+    (
+        re.compile(r"%(\([a-zA-Z_][a-zA-Z0-9_]*\)[a-zA-ZdiouxXeEfFgGcrs])"),
+        "FMT_PERCENT",
+    ),
     (re.compile(r"%[a-zA-ZdiouxXeEfFgGcrs]"), "FMT_PERCENT_SIMPLE"),
     (re.compile(r"\{[a-zA-Z_][a-zA-Z0-9_]*\}"), "FMT_BRACE"),
     (re.compile(r"\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\}"), "FMT_DOUBLE_BRACE"),
@@ -1489,12 +1492,14 @@ def protect_placeholders(text):
     tokens = {}
     counter = 0
     for pattern, prefix in PLACEHOLDER_PATTERNS:
+
         def replacer(match, prefix=prefix):
             nonlocal counter
             token = f"__{prefix}_{counter}__"
             counter += 1
             tokens[token] = match.group(0)
             return token
+
         protected = pattern.sub(replacer, protected)
     return protected, tokens
 
@@ -1570,7 +1575,9 @@ def complete_po_file(po_path, translator, dry_run=False):
         if entry.msgid_plural:
             translations = translate_entry(entry, translator)
             for i in range(len(entry.msgstr_plural)):
-                entry.msgstr_plural[i] = translations[i] if i < len(translations) else translations[0]
+                entry.msgstr_plural[i] = (
+                    translations[i] if i < len(translations) else translations[0]
+                )
         else:
             entry.msgstr = translate_entry(entry, translator)
         entry.flags = [flag for flag in entry.flags if flag != "fuzzy"]
@@ -1634,7 +1641,9 @@ def main():
             print(f"[SKIP] {module}: sin traducciones pendientes")
 
     print("")
-    print(f"Total: {total_filled} traducciones {'a completar' if args.dry_run else 'completadas'}.")
+    print(
+        f"Total: {total_filled} traducciones {'a completar' if args.dry_run else 'completadas'}."
+    )
     return 0
 
 

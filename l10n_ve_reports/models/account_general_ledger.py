@@ -39,6 +39,8 @@ class GeneralLedgerCustomHandler(models.AbstractModel):
             options["export_mode"] == "print" and not options.get("unfolded_lines")
         ) or options["unfold_all"]
 
+        return
+
     def _dynamic_lines_generator(
         self, report, options, all_column_groups_expression_totals, warnings=None
     ):

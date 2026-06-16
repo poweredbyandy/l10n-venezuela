@@ -22,7 +22,5 @@ class TypePerson(models.Model):
     def _get_default_type_person_id(self):
         if not self._l10n_ve_table_exists():
             return False
-        type_person = self.search(
-            [("state", "=", True)], order="sequence, id", limit=1
-        )
+        type_person = self.search([("state", "=", True)], order="sequence, id", limit=1)
         return type_person.id

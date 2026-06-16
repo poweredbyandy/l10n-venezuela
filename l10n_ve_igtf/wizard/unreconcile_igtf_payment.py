@@ -19,7 +19,6 @@ class L10nVeIgtfUnreconcilePaymentWizard(models.TransientModel):
         ],
         required=True,
         default="keep_remove_igtf",
-        string="Action",
     )
 
     def action_confirm(self):

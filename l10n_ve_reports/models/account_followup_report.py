@@ -27,6 +27,8 @@ class AccountFollowupCustomHandler(models.AbstractModel):
                 options, previous_options=previous_options
             )
 
+        return
+
     def _get_partner_aml_report_lines(
         self,
         report,

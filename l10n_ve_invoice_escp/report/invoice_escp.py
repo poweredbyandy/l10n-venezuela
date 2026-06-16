@@ -101,9 +101,9 @@ def _three_cols(width, left, center, right):
     w_l = int(width * 0.40)
     w_c = int(width * 0.24)
     w_r = width - w_l - w_c
-    return (
-        _pad_right(left, w_l) + _pad_right(center, w_c) + _pad_left(right, w_r)
-    )[:width]
+    return (_pad_right(left, w_l) + _pad_right(center, w_c) + _pad_left(right, w_r))[
+        :width
+    ]
 
 
 def _wrap(text, line_width):
@@ -147,9 +147,7 @@ def _tax_line_labels(move):
     vat_group = vat_groups[0] if vat_groups else {}
     igtf_group = igtf_groups[0] if igtf_groups else {}
     vat_name_tokens = [
-        t
-        for t in vat_group.get("group_name", "").replace(":", " ").split()
-        if "%" in t
+        t for t in vat_group.get("group_name", "").replace(":", " ").split() if "%" in t
     ]
     vat_percent = vat_name_tokens[0] if vat_name_tokens else "16%"
     igtf_val = move.company_id.l10n_ve_igtf_percent or 3.0
@@ -207,7 +205,11 @@ def _totals_data_rows(env, move):
     def add(label, doc_amt, comp_amt=0.0):
         rows.append((label, doc_amt, comp_amt if show_cc else None))
 
-    add("Subtotal:", totals.get("base_amount_currency", 0.0), totals.get("base_amount", 0.0))
+    add(
+        "Subtotal:",
+        totals.get("base_amount_currency", 0.0),
+        totals.get("base_amount", 0.0),
+    )
     add(
         f"B.I {vat_percent}:",
         vat_group.get(
@@ -268,16 +270,7 @@ def _product_col_layout(lw, show_cc):
         w_tax = 10
         w_sbs = 14
         w_sd = 14
-        w_desc = lw - (
-            w_hash
-            + w_code
-            + w_tax
-            + w_qty
-            + w_pu
-            + w_sbs
-            + w_sd
-            + gap_n_cc
-        )
+        w_desc = lw - (w_hash + w_code + w_tax + w_qty + w_pu + w_sbs + w_sd + gap_n_cc)
         w_desc = max(12, w_desc)
         return {
             "w_hash": w_hash,
@@ -297,9 +290,7 @@ def _product_col_layout(lw, show_cc):
     w_pu = 12
     w_tax = 12
     w_sd = 16
-    w_desc = lw - (
-        w_hash + w_code + w_tax + w_qty + w_pu + w_sd + gap_n_one
-    )
+    w_desc = lw - (w_hash + w_code + w_tax + w_qty + w_pu + w_sd + gap_n_one)
     w_desc = max(14, w_desc)
     return {
         "w_hash": w_hash,
@@ -340,10 +331,12 @@ def _product_header_line(move, layout):
             f"{'SUBTOTAL':>{layout['w_sd']}}",
         ]
     h = " ".join(parts)
-    return h[: LINE_WIDTH].ljust(LINE_WIDTH)
+    return h[:LINE_WIDTH].ljust(LINE_WIDTH)
 
 
-def _format_product_row(env, line, item, layout, doc_currency, comp_currency, desc_cell):
+def _format_product_row(
+    env, line, item, layout, doc_currency, comp_currency, desc_cell
+):
     show_cc = layout["show_cc"]
     code = (line.product_id.default_code or "") if line.product_id else ""
     tax_txt = ", ".join(line.tax_ids.mapped("name")) if line.tax_ids else ""
@@ -434,16 +427,7 @@ def _product_desc_continuation_line(desc_chunk, layout, show_cc):
             + " " * w_sd
         )
     else:
-        suffix = (
-            " "
-            + " " * w_t
-            + " "
-            + " " * w_q
-            + " "
-            + " " * w_p
-            + " "
-            + " " * w_sd
-        )
+        suffix = " " + " " * w_t + " " + " " * w_q + " " + " " * w_p + " " + " " * w_sd
     row = prefix + mid + suffix
     return row[:LINE_WIDTH].ljust(LINE_WIDTH)
 
@@ -500,9 +484,7 @@ def build_move_escp_bytes(move):
             center_stack.append(f"Fecha: {origin_affected.l10n_ve_invoice_date}")
         om = move.l10n_ve_origin_affected_total_company
         if om is not False:
-            center_stack.append(
-                f"Monto Orig.: {_money(env, om, comp_currency)}"
-            )
+            center_stack.append(f"Monto Orig.: {_money(env, om, comp_currency)}")
         else:
             center_stack.append(
                 f"Monto Orig.: {_money(env, origin_affected.amount_total, origin_affected.currency_id)}"
@@ -549,18 +531,22 @@ def build_move_escp_bytes(move):
             item += 1
             desc = line.l10n_ve_report_line_description()
             first_cell = desc[: layout["w_desc"]]
-            buf += _enc(
-                _format_product_row(
-                    env, line, item, layout, currency, comp_currency, first_cell
+            buf += (
+                _enc(
+                    _format_product_row(
+                        env, line, item, layout, currency, comp_currency, first_cell
+                    )
                 )
-            ) + b"\n"
+                + b"\n"
+            )
             tail = desc[layout["w_desc"] :].strip()
             while tail:
                 chunk = tail[: layout["w_desc"]]
                 tail = tail[layout["w_desc"] :].strip()
-                buf += _enc(
-                    _product_desc_continuation_line(chunk, layout, show_cc)
-                ) + b"\n"
+                buf += (
+                    _enc(_product_desc_continuation_line(chunk, layout, show_cc))
+                    + b"\n"
+                )
 
     max_product_slots = _l10n_ve_max_product_table_lines(move)
     if max_product_slots is not None:
@@ -595,11 +581,7 @@ def build_move_escp_bytes(move):
                 label, doc_amt, comp_amt = total_rows[i]
                 c2 = label
                 c3 = _money(env, doc_amt, doc_cur)
-                c4 = (
-                    _money(env, comp_amt, comp_cur)
-                    if comp_amt is not None
-                    else ""
-                )
+                c4 = _money(env, comp_amt, comp_cur) if comp_amt is not None else ""
             else:
                 c2 = ""
                 c3 = ""

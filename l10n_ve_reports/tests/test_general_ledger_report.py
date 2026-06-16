@@ -23,20 +23,20 @@ class TestGeneralLedgerReport(TestAccountReportsCommon, odoo.tests.HttpCase):
             ]
         }
         cls.company_data_2["default_account_payable"].with_context(
-            context
+            **context
         ).code = "211010"
         cls.company_data_2["default_account_revenue"].with_context(
-            context
+            **context
         ).code = "400010"
         cls.company_data_2["default_account_expense"].with_context(
-            context
+            **context
         ).code = "600010"
         cls.env["account.account"].search(
             [
                 ("company_ids", "=", cls.company_data_2["company"].id),
                 ("account_type", "=", "equity_unaffected"),
             ]
-        ).with_context(context).code = "999989"
+        ).with_context(**context).code = "999989"
 
         # Entries in 2016 for company_1 to test the initial balance.
         cls.move_2016_1 = cls.env["account.move"].create(

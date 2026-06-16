@@ -28,9 +28,9 @@ class IrActionsServer(models.Model):
             and action.binding_type == "report"
         )
         if to_clear:
-            to_clear.with_context(
-                **{L10N_VE_SKIP_STOCK_PICKING_UNBIND: True}
-            ).write({"binding_model_id": False})
+            to_clear.with_context(**{L10N_VE_SKIP_STOCK_PICKING_UNBIND: True}).write(
+                {"binding_model_id": False}
+            )
 
     @api.model
     def _l10n_ve_unbind_all_stock_picking_report_bindings(self):

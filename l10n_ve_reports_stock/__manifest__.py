@@ -4,14 +4,9 @@
     "icon": "/poweredbyandy_saas/static/description/icon.png",
     "summary": "Libro de Inventario para reportes SENIAT",
     "category": "Inventory/Inventory",
-    "author": "andyengit",
+    "author": "andyengit, Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/l10n-venezuela",
     "maintainers": ["andyengit"],
-    "description": """
-Libro de Inventario
-===================
-Entradas y salidas de inventarios según Reglamento ISLR Art. 177.
-    """,
     "depends": [
         "l10n_ve_reports",
         "stock",
@@ -30,5 +25,5 @@ Entradas y salidas de inventarios según Reglamento ISLR Art. 177.
         ],
     },
     "installable": True,
-    "license": "OEEL-1",
+    "license": "LGPL-3",
 }

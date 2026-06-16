@@ -1,3 +1,5 @@
+"""Balance sheet balanced test configuration and helpers."""
+
 # pylint: disable=C0326
 import contextlib
 import itertools
@@ -18,16 +20,16 @@ IDENTIFY_INCORRECT_ACCOUNTS = False
 EXTRA_DETAIL = False
 
 # === When creating a new Balance Sheet, please add its config here. === #
-""" Example config:
-REPORT_CONFIG = {
-    <Balance Sheet report xmlid> : {
-        'asset_line_ref': <Total Assets line xmlid>
-        'liability_line_ref': <Total Liabilities line xmlid>
-        'equity_line_ref': (optional) <Total Equity line xmlid> (if not included in Liabilities)
-        'balance_col_label': (optional) <expression_label of the report column containing the totals> (if different from 'balance')
-        'chart_template_refs': (optional) <list of CoAs for which the report should be tested (by default any CoA on which the report is available)>
-    },
-} """
+# Example config:
+# REPORT_CONFIG = {
+#     <Balance Sheet report xmlid> : {
+#         'asset_line_ref': <Total Assets line xmlid>
+#         'liability_line_ref': <Total Liabilities line xmlid>
+#         'equity_line_ref': (optional) <Total Equity line xmlid> (if not included in Liabilities)
+#         'balance_col_label': (optional) <expression_label of the report column containing the totals> (if different from 'balance')
+#         'chart_template_refs': (optional) <list of CoAs for which the report should be tested (by default any CoA on which the report is available)>
+#     },
+# }
 
 REPORT_CONFIG = {
     "account_reports.balance_sheet": {
@@ -326,11 +328,9 @@ REPORT_CONFIG = {
 # === If some accounts should be excluded from the testing, specify them here === #
 # Accounts starting with 99 are excluded anyway: users should change their codes
 # to something sensible in order for them to be taken into account in the Balance Sheet.
-"""
-NON_TESTED_ACCOUNTS = {
-    <chart template ref>: [account_code_1, account_code_2, ...]
-}
-"""
+# NON_TESTED_ACCOUNTS = {
+#     <chart template ref>: [account_code_1, account_code_2, ...]
+# }
 NON_TESTED_ACCOUNTS = {
     "all": [
         "99",  # 99 account codes are placeholders and should normally be changed by the user.

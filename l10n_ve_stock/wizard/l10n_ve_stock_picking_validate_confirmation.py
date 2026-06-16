@@ -40,8 +40,7 @@ class L10nVeStockPickingValidateConfirmation(models.TransientModel):
                 picking_name = wizard.picking_ids.display_name
                 number = wizard.l10n_ve_next_control_number or "—"
                 wizard.l10n_ve_confirmation_message = Markup(
-                    "<p>%s</p><p>%s</p><p>%s</p>"
-                    % (
+                    "<p>{}</p><p>{}</p><p>{}</p>".format(
                         _("¿Está seguro de confirmar la entrega <strong>%s</strong>?")
                         % picking_name,
                         _(
@@ -57,13 +56,11 @@ class L10nVeStockPickingValidateConfirmation(models.TransientModel):
                 )
             else:
                 lines = "".join(
-                    "<li>%s</li>" % picking.display_name
-                    for picking in wizard.picking_ids
+                    f"<li>{picking.display_name}</li>" for picking in wizard.picking_ids
                 )
                 number = wizard.l10n_ve_next_control_number or "—"
                 wizard.l10n_ve_confirmation_message = Markup(
-                    "<p>%s</p><ul>%s</ul><p>%s</p><p>%s</p>"
-                    % (
+                    "<p>{}</p><ul>{}</ul><p>{}</p><p>{}</p>".format(
                         _("¿Está seguro de confirmar estas entregas?"),
                         lines,
                         _(

@@ -55,7 +55,10 @@ class ResCompany(models.Model):
         self.ensure_one()
         if not self.l10n_ve_igtf_enabled:
             return False
-        if not self.account_fiscal_country_id or self.account_fiscal_country_id.code != "VE":
+        if (
+            not self.account_fiscal_country_id
+            or self.account_fiscal_country_id.code != "VE"
+        ):
             return False
         if self.taxpayer_type != "special":
             return False

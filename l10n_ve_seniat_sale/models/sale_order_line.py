@@ -52,6 +52,8 @@ class SaleOrderLine(models.Model):
                     qty_invoiced -= portion
             line.qty_invoiced = qty_invoiced
 
+        return
+
     def l10n_ve_report_line_description(self):
         self.ensure_one()
         if self.display_type or self.is_downpayment or self.product_type == "combo":
@@ -87,7 +89,9 @@ class SaleOrderLine(models.Model):
         raw_stripped = "\n".join((line.name or "").splitlines()).strip()
         if raw_stripped:
             std = "\n".join(
-                (line._get_sale_order_line_multiline_description_sale() or "").splitlines()
+                (
+                    line._get_sale_order_line_multiline_description_sale() or ""
+                ).splitlines()
             ).strip()
             if raw_stripped != std:
                 if std and raw_stripped.startswith(std):
@@ -169,10 +173,12 @@ class SaleOrderLine(models.Model):
                 tax_mapped = ", ".join(line.tax_id.mapped("name"))
                 raise ValidationError(
                     _(
-                        "No se puede asignar más de un impuesto a la línea '%s' en un "
-                        "pedido confirmado. Cree una línea separada "
-                        "para cada impuesto. "
-                        "Impuestos actuales: %s"
+                        "No se puede asignar más de un impuesto a la línea "
+                        "'%(line)s' en un pedido confirmado. Cree una línea "
+                        "separada para cada impuesto. Impuestos actuales: %(taxes)s"
                     )
-                    % (line.name or _("Sin nombre"), tax_mapped)
+                    % {
+                        "line": line.name or _("Sin nombre"),
+                        "taxes": tax_mapped,
+                    }
                 )

@@ -60,6 +60,8 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
 
         options["columns"] = columns_to_keep
 
+        return
+
     def _get_retention_iva_values(self, move, options):
         """Get retention IVA values for a move."""
         if (
@@ -553,7 +555,7 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
             if tax_group_id_str.startswith("_"):
                 continue
             try:
-                tax_group_id = int(tax_group_id_str)
+                int(tax_group_id_str)
             except (ValueError, TypeError):
                 continue
             tax_type = tax_info.get("tax_type")

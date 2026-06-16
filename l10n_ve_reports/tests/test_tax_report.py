@@ -626,7 +626,7 @@ class TestTaxReport(TestAccountReportsCommon):
 
         action = (
             self.env["account.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         move = self.env["account.move"].browse(action["res_id"])
@@ -640,7 +640,7 @@ class TestTaxReport(TestAccountReportsCommon):
 
         action = (
             self.env["account.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         same_move = self.env["account.move"].browse(action["res_id"])
@@ -2241,7 +2241,9 @@ class TestTaxReport(TestAccountReportsCommon):
                 "line_ids": [
                     Command.create(
                         {
-                            "name": "Test with %s" % ", ".join(taxes.mapped("name")),
+                            "name": "Test with {}".format(
+                                ", ".join(taxes.mapped("name"))
+                            ),
                             "account_id": self.company_data[
                                 "default_account_revenue"
                             ].id,
@@ -2805,7 +2807,9 @@ class TestTaxReport(TestAccountReportsCommon):
         )
 
         # Check if the two last horizontal_group are the one created from the tax unit
-        horizontal_groups = self.env["account.report.horizontal.group.oca"].search([])[-2:]
+        horizontal_groups = self.env["account.report.horizontal.group.oca"].search([])[
+            -2:
+        ]
         self.assertEqual(
             ["First Tax Unit", "Second Tax Unit"], horizontal_groups.mapped("name")
         )
@@ -3358,7 +3362,7 @@ class TestTaxReport(TestAccountReportsCommon):
         # Calling the action_periodic_vat_entries method should return the existing tax closing entry.
         vat_closing_action = (
             self.env["account.generic.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         self.assertEqual(vat_closing_move.id, vat_closing_action["res_id"])
@@ -4012,7 +4016,7 @@ class TestTaxReport(TestAccountReportsCommon):
         )
         vat_closing_action = (
             self.env["account.generic.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         initial_closing_entry = self.env["account.move"].browse(
@@ -4023,7 +4027,7 @@ class TestTaxReport(TestAccountReportsCommon):
         initial_closing_entry.button_draft()
         vat_closing_action = (
             self.env["account.generic.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         subsequent_closing_entry = self.env["account.move"].browse(
@@ -4048,7 +4052,7 @@ class TestTaxReport(TestAccountReportsCommon):
         )
         initial_vat_closing_action = (
             self.env["account.generic.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         initial_closing_entry = self.env["account.move"].browse(
@@ -4070,7 +4074,7 @@ class TestTaxReport(TestAccountReportsCommon):
         )
         subsequent_vat_closing_action = (
             self.env["account.generic.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         subsequent_closing_entry = self.env["account.move"].browse(
@@ -4191,7 +4195,7 @@ class TestTaxReport(TestAccountReportsCommon):
         )
         vat_closing_action = (
             self.env["account.generic.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         Q1_closing_entry = self.env["account.move"].browse(vat_closing_action["res_id"])
@@ -4203,7 +4207,7 @@ class TestTaxReport(TestAccountReportsCommon):
         )
         vat_closing_action = (
             self.env["account.generic.tax.report.handler"]
-            .with_context({"override_tax_closing_warning": True})
+            .with_context(override_tax_closing_warning=True)
             .action_periodic_vat_entries(options)
         )
         Q2_closing_entry = self.env["account.move"].browse(vat_closing_action["res_id"])

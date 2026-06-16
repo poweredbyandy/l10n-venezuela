@@ -10,9 +10,7 @@ class TestCurrencyTable(TestAccountReportsCommon):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.company_data["company"].write(
-            {"name": "USD Company 1", "sequence": 1}
-        )
+        cls.company_data["company"].write({"name": "USD Company 1", "sequence": 1})
         cls.company_usd_data = cls.company_data
         # Create additional companies (also adding them to env.companies)
         cls.company_usd_data_2 = cls.setup_other_company(

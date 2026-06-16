@@ -21,7 +21,11 @@ class AccountMove(models.Model):
         string="Show EDI Tab",
     )
 
-    @api.depends("journal_id", "journal_id.l10n_ve_edi_provider", "journal_id.l10n_ve_emission_medium")
+    @api.depends(
+        "journal_id",
+        "journal_id.l10n_ve_edi_provider",
+        "journal_id.l10n_ve_emission_medium",
+    )
     def _compute_l10n_ve_edi_show_tab(self):
         for move in self:
             journal = move.journal_id
@@ -44,9 +48,7 @@ class AccountMove(models.Model):
                     and move.l10n_ve_journal_emission_medium == "digital"
                     and move.l10n_ve_edi_sent_at
                 ):
-                    move.write(
-                        {"l10n_ve_invoice_date": move.l10n_ve_edi_sent_at}
-                    )
+                    move.write({"l10n_ve_invoice_date": move.l10n_ve_edi_sent_at})
         return res
 
     l10n_ve_edi_portal_digital_printer_url = fields.Char(
@@ -116,9 +118,10 @@ class AccountMove(models.Model):
         ):
             if not (self.l10n_ve_control_number or "").strip():
                 return True
-            if "l10n_ve_invoice_number" in self._fields and not (
-                self.l10n_ve_invoice_number or self.ref or ""
-            ).strip():
+            if (
+                "l10n_ve_invoice_number" in self._fields
+                and not (self.l10n_ve_invoice_number or self.ref or "").strip()
+            ):
                 return True
         return False
 
@@ -138,15 +141,19 @@ class AccountMove(models.Model):
         filename = (self.name or f"move_{self.id}").replace("/", "_")
         content = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         datas = base64.b64encode(content.encode("utf-8"))
-        attachment = self.env["ir.attachment"].sudo().create(
-            {
-                "name": f"l10n_ve_edi_payload_{filename}.json",
-                "type": "binary",
-                "datas": datas,
-                "mimetype": "application/json",
-                "res_model": self._name,
-                "res_id": self.id,
-            }
+        attachment = (
+            self.env["ir.attachment"]
+            .sudo()
+            .create(
+                {
+                    "name": f"l10n_ve_edi_payload_{filename}.json",
+                    "type": "binary",
+                    "datas": datas,
+                    "mimetype": "application/json",
+                    "res_model": self._name,
+                    "res_id": self.id,
+                }
+            )
         )
         return attachment
 
@@ -155,7 +162,9 @@ class AccountMove(models.Model):
         provider = self.journal_id.l10n_ve_edi_provider
         if not provider or provider == "none":
             raise UserError(
-                _("Seleccione un proveedor de facturacion digital en el diario de la factura.")
+                _(
+                    "Seleccione un proveedor de facturacion digital en el diario de la factura."
+                )
             )
         self._l10n_ve_edi_validate_parties_identification()
         return self._l10n_ve_edi_build_payload_for_provider(provider)
@@ -209,7 +218,9 @@ class AccountMove(models.Model):
                     )
                 )
             if move.l10n_ve_edi_send_state == STATE_QUEUED:
-                raise UserError(_("Ya hay una solicitud de envio en cola para este documento."))
+                raise UserError(
+                    _("Ya hay una solicitud de envio en cola para este documento.")
+                )
             if move.l10n_ve_edi_send_state == STATE_SENT:
                 raise UserError(_("El documento ya fue enviado a facturacion digital."))
             move._l10n_ve_edi_enqueue_send(reuse_payload=False)
@@ -263,8 +274,9 @@ class AccountMove(models.Model):
         return {
             "success": False,
             "error": (
-                "Proveedor EDI no soportado o modulo no instalado: %(provider)s."
-                % {"provider": provider or "none"}
+                "Proveedor EDI no soportado o modulo no instalado: {provider}.".format(
+                    provider=provider or "none"
+                )
             ),
         }
 
@@ -288,7 +300,9 @@ class AccountMove(models.Model):
                     error_message = str(exc)
                     response_json = False
                     if response is not None:
-                        response_json = json.dumps(response, ensure_ascii=False, indent=2)
+                        response_json = json.dumps(
+                            response, ensure_ascii=False, indent=2
+                        )
                     self.write(
                         {
                             "l10n_ve_edi_send_state": STATE_SENT,
@@ -315,9 +329,13 @@ class AccountMove(models.Model):
                         "l10n_ve_edi_response_json": response_json,
                     }
                 )
-                self.message_post(body="Documento enviado exitosamente a facturacion digital.")
+                self.message_post(
+                    body=_("Documento enviado exitosamente a facturacion digital.")
+                )
                 return True
-            error_message = dispatch.get("error") or "El conector EDI no completo el envio."
+            error_message = (
+                dispatch.get("error") or "El conector EDI no completo el envio."
+            )
         if error_message:
             self.write(
                 {

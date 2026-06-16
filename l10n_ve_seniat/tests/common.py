@@ -25,18 +25,20 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
             return
         if company.sale_discount_product_id:
             return
-        product = cls.env["product.template"].with_context(
-            l10n_ve_skip_auto_exent_taxes=True
-        ).create(
-            {
-                "name": "Descuento SENIAT test",
-                "type": "service",
-                "list_price": 0.0,
-                "taxes_id": [(6, 0, [cls.company_data["default_tax_sale"].id])],
-                "supplier_taxes_id": [
-                    (6, 0, [cls.company_data["default_tax_purchase"].id])
-                ],
-            }
+        product = (
+            cls.env["product.template"]
+            .with_context(l10n_ve_skip_auto_exent_taxes=True)
+            .create(
+                {
+                    "name": "Descuento SENIAT test",
+                    "type": "service",
+                    "list_price": 0.0,
+                    "taxes_id": [(6, 0, [cls.company_data["default_tax_sale"].id])],
+                    "supplier_taxes_id": [
+                        (6, 0, [cls.company_data["default_tax_purchase"].id])
+                    ],
+                }
+            )
         )
         company.sale_discount_product_id = product.product_variant_id
 

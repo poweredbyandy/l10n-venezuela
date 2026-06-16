@@ -108,6 +108,7 @@
                 id="account_financial_report_executivesummary_profitability0"
                 model="account.report.line"
             >
+                <field name="action_id" ref="action_account_report_pl" />
                 <field name="name">Profitability</field>
                 <field name="hierarchy_level">0</field>
                 <field name="children_ids">
@@ -216,6 +217,7 @@
                 id="account_financial_report_executivesummary_balancesheet0"
                 model="account.report.line"
             >
+                <field name="action_id" ref="action_account_report_bs" />
                 <field name="name">Balance Sheet</field>
                 <field name="hierarchy_level">0</field>
                 <field name="children_ids">

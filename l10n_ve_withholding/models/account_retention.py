@@ -184,7 +184,7 @@ class AccountRetention(models.Model):
             "title": _("Missing IVA withholding percentage"),
             "message": _(
                 'The contact "%(partner)s" has no IVA withholding percentage '
-                "configured. Set the field \"Withholding Type\" on the partner "
+                'configured. Set the field "Withholding Type" on the partner '
                 "before confirming this operation.",
                 partner=self.partner_id.display_name,
             ),
@@ -672,7 +672,9 @@ class AccountRetention(models.Model):
             invoices = retention.retention_line_ids.mapped("move_id")
             if not invoices:
                 errors.append(
-                    _("2) Facturas: la retencion no tiene lineas con facturas asociadas.")
+                    _(
+                        "2) Facturas: la retencion no tiene lineas con facturas asociadas."
+                    )
                 )
             else:
                 not_posted = invoices.filtered(lambda inv: inv.state != "posted")
@@ -684,12 +686,16 @@ class AccountRetention(models.Model):
                         )
                     )
 
-                without_residual = invoices.filtered(lambda inv: inv.amount_residual <= 0)
+                without_residual = invoices.filtered(
+                    lambda inv: inv.amount_residual <= 0
+                )
                 if without_residual:
                     errors.append(
                         _(
                             "2) Facturas: deben tener saldo pendiente > 0. Facturas sin saldo pendiente: %(invoices)s",
-                            invoices=", ".join(m.display_name for m in without_residual),
+                            invoices=", ".join(
+                                m.display_name for m in without_residual
+                            ),
                         )
                     )
 
@@ -719,7 +725,9 @@ class AccountRetention(models.Model):
                     errors.append(
                         _(
                             "3) Facturas: ya tienen una retencion IVA activa (draft/emitted). Facturas afectadas: %(invoices)s",
-                            invoices=", ".join(m.display_name for m in with_active_retention),
+                            invoices=", ".join(
+                                m.display_name for m in with_active_retention
+                            ),
                         )
                     )
 
@@ -945,9 +953,9 @@ class AccountRetention(models.Model):
         a payment concept.
         """
         self.ensure_one()
-        without_type = self.retention_line_ids.mapped(
-            "move_id"
-        ).filtered(lambda m: not m._l10n_ve_withholding_partner().type_person_id)
+        without_type = self.retention_line_ids.mapped("move_id").filtered(
+            lambda m: not m._l10n_ve_withholding_partner().type_person_id
+        )
         if without_type:
             raise UserError(_("Select a type person"))
         if not any(

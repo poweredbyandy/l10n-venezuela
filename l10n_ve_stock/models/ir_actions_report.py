@@ -37,9 +37,9 @@ class IrActionsReport(models.Model):
         )
 
     def _l10n_ve_should_use_only_dispatch_guide_reports(self, pickings):
-        return bool(pickings) and len(self._l10n_ve_get_ve_outgoing_pickings(pickings)) == len(
-            pickings
-        )
+        return bool(pickings) and len(
+            self._l10n_ve_get_ve_outgoing_pickings(pickings)
+        ) == len(pickings)
 
     def _l10n_ve_get_dispatch_guide_report(self):
         return self.env.ref(_L10N_VE_DISPATCH_GUIDE_XMLID, raise_if_not_found=False)
@@ -54,9 +54,9 @@ class IrActionsReport(models.Model):
             and not self._l10n_ve_is_dispatch_guide_report(report)
         )
         if to_clear:
-            to_clear.with_context(
-                **{L10N_VE_SKIP_STOCK_PICKING_UNBIND: True}
-            ).write({"binding_model_id": False})
+            to_clear.with_context(**{L10N_VE_SKIP_STOCK_PICKING_UNBIND: True}).write(
+                {"binding_model_id": False}
+            )
 
     @api.model
     def _l10n_ve_unbind_all_stock_picking_report_bindings(self):
@@ -113,9 +113,7 @@ class IrActionsReport(models.Model):
             if self._l10n_ve_is_blocked_picking_report_for_ve_outgoing(report)
         }
         return [
-            report_id
-            for report_id in valid_ids
-            if report_id not in blocked_report_ids
+            report_id for report_id in valid_ids if report_id not in blocked_report_ids
         ]
 
     def report_action(self, docids, data=None, config=True):
@@ -132,8 +130,9 @@ class IrActionsReport(models.Model):
                 pickings
             ):
                 return {"type": "ir.actions.act_window_close"}
-        if self.model == "stock.picking" and self._l10n_ve_is_blocked_picking_report_for_ve_outgoing(
-            self
+        if (
+            self.model == "stock.picking"
+            and self._l10n_ve_is_blocked_picking_report_for_ve_outgoing(self)
         ):
             if isinstance(docids, models.Model):
                 pickings = docids
@@ -164,7 +163,9 @@ class IrActionsReport(models.Model):
         return report.report_name == _L10N_VE_DISPATCH_GUIDE_REPORT_NAME
 
     def _render_qweb_pdf_prepare_streams(self, report_ref, data, res_ids=None):
-        if not self._l10n_ve_should_apply_dispatch_guide_paperformat(report_ref, res_ids):
+        if not self._l10n_ve_should_apply_dispatch_guide_paperformat(
+            report_ref, res_ids
+        ):
             return super()._render_qweb_pdf_prepare_streams(
                 report_ref, data, res_ids=res_ids
             )
@@ -195,9 +196,7 @@ class IrActionsReport(models.Model):
             )
             sub_streams = super(
                 IrActionsReport, self.with_context(**ctx)
-            )._render_qweb_pdf_prepare_streams(
-                report_ref, data, res_ids=[res_id]
-            )
+            )._render_qweb_pdf_prepare_streams(report_ref, data, res_ids=[res_id])
             collected_streams[res_id] = sub_streams[res_id]
         return collected_streams
 
@@ -206,9 +205,7 @@ class IrActionsReport(models.Model):
         if report.report_name == _L10N_VE_DISPATCH_GUIDE_REPORT_NAME:
             pickings = self.env["stock.picking"].browse(res_ids or [])
             pickings.l10n_ve_dispatch_guide_report_check()
-        pdf, rep_type = super()._render_qweb_pdf(
-            report_ref, res_ids=res_ids, data=data
-        )
+        pdf, rep_type = super()._render_qweb_pdf(report_ref, res_ids=res_ids, data=data)
         if report.report_name == _L10N_VE_DISPATCH_GUIDE_REPORT_NAME:
             pickings = self.env["stock.picking"].browse(res_ids or [])
             to_mark = pickings.filtered(

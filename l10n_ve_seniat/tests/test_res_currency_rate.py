@@ -59,7 +59,7 @@ class TestResCurrencyRate(L10nVeSeniatCommon):
         self.assertIn(
             invoice,
             posted_moves,
-            "invoice_date=%s rate.name=%s" % (invoice.invoice_date, rate.name),
+            f"invoice_date={invoice.invoice_date} rate.name={rate.name}",
         )
         self.assertTrue(rate._l10n_ve_company_uses_rate_rules())
 

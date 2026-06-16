@@ -4,8 +4,9 @@ from collections import defaultdict
 from datetime import timedelta
 
 from odoo import _, fields, models
-from odoo.addons.web.controllers.utils import clean_action
 from odoo.exceptions import UserError
+
+from odoo.addons.web.controllers.utils import clean_action
 
 
 class DailyPaymentsReportCustomHandler(models.AbstractModel):
@@ -47,6 +48,8 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             options["date"]["period"] = 0
 
         self._update_line_date_column_label(options)
+
+        return
 
     def _get_line_date_column_name(self, date_type):
         if date_type == "payment":
@@ -351,7 +354,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             """,
             (st_line.id,),
         )
-        return self.env["account.payment"].browse(id for id, in self.env.cr.fetchall())
+        return self.env["account.payment"].browse(
+            id for (id,) in self.env.cr.fetchall()
+        )
 
     def _get_invoice_moves_for_daily_payment_line(self, move):
         move = move[:1]
@@ -482,13 +487,16 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         )
         if not retention_journal_ids:
             return journals
-        return journals.filtered(lambda journal: journal.id not in retention_journal_ids)
+        return journals.filtered(
+            lambda journal: journal.id not in retention_journal_ids
+        )
 
     def _filter_moves_by_date_type(self, moves, date_from, date_to, date_type):
         return moves.filtered(
-            lambda move, df=date_from, dt=date_to, dtp=date_type: self._move_in_date_range(
-                move, df, dt, dtp
-            )
+            lambda move,
+            df=date_from,
+            dt=date_to,
+            dtp=date_type: self._move_in_date_range(move, df, dt, dtp)
         )
 
     def _get_posted_moves_by_date(
@@ -543,9 +551,10 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         ]
         amls = self.env["account.move.line"].search(domain, order="date asc, id asc")
         amls = amls.filtered(
-            lambda line, df=date_from, dt=date_to, dtp=date_type: self._aml_in_date_range(
-                line, df, dt, dtp
-            )
+            lambda line,
+            df=date_from,
+            dt=date_to,
+            dtp=date_type: self._aml_in_date_range(line, df, dt, dtp)
         )
         if not exclude_move_ids:
             return amls
@@ -583,18 +592,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             registered_moves = posted_moves.filtered(
                 lambda m, j=journal: self._is_move_bank_liquidity_registered(m, j)
             )
-            pending_posted_bank_moves = (
-                posted_moves - registered_moves
-            ).filtered(
-                lambda m, j=journal: self._bank_move_has_pending_bridge_residual(
-                    m, j
-                )
+            pending_posted_bank_moves = (posted_moves - registered_moves).filtered(
+                lambda m, j=journal: self._bank_move_has_pending_bridge_residual(m, j)
             )
             moves_by_date = defaultdict(list)
             for move in registered_moves:
-                moves_by_date[self._get_move_display_date(move, date_type)].append(
-                    move
-                )
+                moves_by_date[self._get_move_display_date(move, date_type)].append(move)
 
             registered_section_added = False
             for move_date in sorted(moves_by_date.keys()):
@@ -628,7 +631,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     for col_group_key in options["column_groups"]:
                         totals_by_group[col_group_key]["amount"] += amt
                         journal_group_totals[col_group_key] += amt
-                    partner_label = move.partner_id.display_name if move.partner_id else ""
+                    partner_label = (
+                        move.partner_id.display_name if move.partner_id else ""
+                    )
                     lines.append(
                         (
                             0,
@@ -707,9 +712,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 for col_group_key in options["column_groups"]:
                     totals_by_group[col_group_key]["amount"] += amt
                     journal_group_totals[col_group_key] += amt
-                partner_label = (
-                    move.partner_id.display_name if move.partner_id else ""
-                )
+                partner_label = move.partner_id.display_name if move.partner_id else ""
                 lines.append(
                     (
                         0,
@@ -801,8 +804,10 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     journal_group_totals[col_group_key] += amt
                 move = aml.move_id
                 partner_label = aml.partner_id.display_name if aml.partner_id else ""
-                short_name = (move.name if move else None) or aml.move_name or _(
-                    "Línea pendiente"
+                short_name = (
+                    (move.name if move else None)
+                    or aml.move_name
+                    or _("Línea pendiente")
                 )
                 lines.append(
                     (

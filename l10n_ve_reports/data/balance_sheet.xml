@@ -255,6 +255,10 @@
                                 model="account.report.line"
                             >
                                 <field
+                                    name="action_id"
+                                    ref="action_account_report_pl"
+                                />
+                                <field
                                     name="name"
                                 >Current Year Unallocated Earnings</field>
                                 <field name="code">CURR_YEAR_EARNINGS</field>

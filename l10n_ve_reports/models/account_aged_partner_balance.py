@@ -1,9 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import datetime
+import logging
 from itertools import chain
 
-import logging
 _logger = logging.getLogger(__name__)
 
 from dateutil.relativedelta import relativedelta
@@ -78,6 +78,8 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
                     column["name"] = (
                         f"{interval * period_number + 1}-{interval * (period_number + 1)}"
                     )
+
+        return
 
     def _custom_line_postprocessor(self, report, options, lines):
         partner_lines_map = {}
@@ -245,8 +247,8 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
             return rslt
 
         # Build period table
-        period_table_format = "(VALUES %s)" % ",".join(
-            "(%s, %s, %s)" for period in periods
+        period_table_format = "(VALUES {})".format(
+            ",".join("(%s, %s, %s)" for period in periods)
         )
         params = list(
             chain.from_iterable(

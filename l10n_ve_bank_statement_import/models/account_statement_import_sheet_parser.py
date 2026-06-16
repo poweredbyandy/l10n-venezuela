@@ -3,7 +3,7 @@ import math
 from datetime import datetime
 from html.parser import HTMLParser
 
-from odoo import api, models
+from odoo import _, api, models
 from odoo.exceptions import UserError
 
 try:
@@ -138,9 +138,7 @@ class AccountStatementImportSheetParser(models.TransientModel):
                 sheet = workbook.active
                 header = self._openpyxl_header(sheet, mapping)
                 columns = {
-                    column_name: self._get_column_indexes(
-                        header, column_name, mapping
-                    )
+                    column_name: self._get_column_indexes(header, column_name, mapping)
                     for column_name in self._get_column_names()
                 }
                 return self._parse_rows(
@@ -162,7 +160,9 @@ class AccountStatementImportSheetParser(models.TransientModel):
             if column_index_from_string:
                 return column_index_from_string(column_str.upper())
             raise UserError(
-                "openpyxl no está disponible. No se puede convertir letra de columna a número."
+                _(
+                    "openpyxl no está disponible. No se puede convertir letra de columna a número."
+                )
             )
         except (ValueError, AttributeError):
             _logger.warning("No se pudo convertir columna '%s' a índice", column_str)
@@ -287,7 +287,9 @@ class AccountStatementImportSheetParser(models.TransientModel):
 
         if isinstance(timestamp, str):
             try:
-                timestamp = datetime.strptime(timestamp.strip(), mapping.timestamp_format)
+                timestamp = datetime.strptime(
+                    timestamp.strip(), mapping.timestamp_format
+                )
             except ValueError:
                 return None
             if timestamp.year == 1900:
@@ -402,9 +404,7 @@ class AccountStatementImportSheetParser(models.TransientModel):
                 ]
                 if mapping.skip_empty_lines and not any(values):
                     continue
-                line = self._process_row_values(
-                    values, mapping, currency_code, columns
-                )
+                line = self._process_row_values(values, mapping, currency_code, columns)
                 if line:
                     lines.append(line)
         else:
@@ -417,9 +417,7 @@ class AccountStatementImportSheetParser(models.TransientModel):
                 values = list(row)
                 if mapping.skip_empty_lines and not any(values):
                     continue
-                line = self._process_row_values(
-                    values, mapping, currency_code, columns
-                )
+                line = self._process_row_values(values, mapping, currency_code, columns)
                 if line:
                     lines.append(line)
         return lines

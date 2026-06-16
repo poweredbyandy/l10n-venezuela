@@ -144,7 +144,9 @@ class StockPicking(models.Model):
     )
     def _compute_l10n_ve_edi_show_tab(self):
         for picking in self:
-            picking.l10n_ve_edi_show_tab = picking._l10n_ve_edi_dispatch_guide_uses_digital()
+            picking.l10n_ve_edi_show_tab = (
+                picking._l10n_ve_edi_dispatch_guide_uses_digital()
+            )
 
     def _l10n_ve_edi_is_picking_target(self):
         self.ensure_one()
@@ -190,7 +192,9 @@ class StockPicking(models.Model):
         buyer = self._l10n_ve_edi_get_buyer_partner()
         if not buyer:
             raise UserError(
-                _("La guia de despacho debe tener un cliente o destinatario con RIF valido.")
+                _(
+                    "La guia de despacho debe tener un cliente o destinatario con RIF valido."
+                )
             )
         buyer_prefix, buyer_number = self._l10n_ve_edi_get_buyer_identification()
         if not buyer_prefix or not buyer_number:
@@ -214,24 +218,32 @@ class StockPicking(models.Model):
 
     def _l10n_ve_edi_validate_dispatch_guide_lines(self):
         self.ensure_one()
-        moves = self.move_ids.filtered(lambda move: move.product_id and move.state == "done")
+        moves = self.move_ids.filtered(
+            lambda move: move.product_id and move.state == "done"
+        )
         if not moves:
-            raise UserError(_("La guia de despacho no tiene lineas de producto validadas."))
+            raise UserError(
+                _("La guia de despacho no tiene lineas de producto validadas.")
+            )
 
     def _l10n_ve_edi_create_payload_attachment(self, payload):
         self.ensure_one()
         filename = (self.name or f"picking_{self.id}").replace("/", "_")
         content = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         datas = base64.b64encode(content.encode("utf-8"))
-        return self.env["ir.attachment"].sudo().create(
-            {
-                "name": f"l10n_ve_edi_payload_{filename}.json",
-                "type": "binary",
-                "datas": datas,
-                "mimetype": "application/json",
-                "res_model": self._name,
-                "res_id": self.id,
-            }
+        return (
+            self.env["ir.attachment"]
+            .sudo()
+            .create(
+                {
+                    "name": f"l10n_ve_edi_payload_{filename}.json",
+                    "type": "binary",
+                    "datas": datas,
+                    "mimetype": "application/json",
+                    "res_model": self._name,
+                    "res_id": self.id,
+                }
+            )
         )
 
     def _build_payload_to_send(self):
@@ -309,7 +321,9 @@ class StockPicking(models.Model):
                     )
                 )
             if picking.l10n_ve_edi_send_state == STATE_QUEUED:
-                raise UserError(_("Ya hay una solicitud de envio en cola para este documento."))
+                raise UserError(
+                    _("Ya hay una solicitud de envio en cola para este documento.")
+                )
             if picking.l10n_ve_edi_send_state == STATE_SENT:
                 raise UserError(_("El documento ya fue enviado a facturacion digital."))
             picking._l10n_ve_edi_enqueue_send(reuse_payload=False)
@@ -333,8 +347,9 @@ class StockPicking(models.Model):
         return {
             "success": False,
             "error": (
-                "Proveedor EDI no soportado o modulo no instalado: %(provider)s."
-                % {"provider": provider or "none"}
+                "Proveedor EDI no soportado o modulo no instalado: {provider}.".format(
+                    provider=provider or "none"
+                )
             ),
         }
 
@@ -358,7 +373,9 @@ class StockPicking(models.Model):
                     error_message = str(exc)
                     response_json = False
                     if response is not None:
-                        response_json = json.dumps(response, ensure_ascii=False, indent=2)
+                        response_json = json.dumps(
+                            response, ensure_ascii=False, indent=2
+                        )
                     self.write(
                         {
                             "l10n_ve_edi_send_state": STATE_SENT,
@@ -386,9 +403,15 @@ class StockPicking(models.Model):
                         "l10n_ve_edi_response_json": response_json,
                     }
                 )
-                self.message_post(body=_("Guia de despacho enviada exitosamente a facturacion digital."))
+                self.message_post(
+                    body=_(
+                        "Guia de despacho enviada exitosamente a facturacion digital."
+                    )
+                )
                 return True
-            error_message = dispatch.get("error") or _("El conector EDI no completo el envio.")
+            error_message = dispatch.get("error") or _(
+                "El conector EDI no completo el envio."
+            )
         if error_message:
             self.write(
                 {
@@ -416,7 +439,9 @@ class StockPicking(models.Model):
             )
             others = self - digital_pickings
             if others:
-                return super(StockPicking, others)._l10n_ve_assign_dispatch_control_number()
+                return super(
+                    StockPicking, others
+                )._l10n_ve_assign_dispatch_control_number()
             return
         return super()._l10n_ve_assign_dispatch_control_number()
 
@@ -451,9 +476,13 @@ class StockPicking(models.Model):
         digital_pickings = self.filtered(
             lambda picking: picking._l10n_ve_edi_dispatch_guide_uses_digital()
         )
-        super(StockPicking, self - digital_pickings)._compute_l10n_ve_control_number_placeholder()
+        super(
+            StockPicking, self - digital_pickings
+        )._compute_l10n_ve_control_number_placeholder()
         for picking in digital_pickings:
             picking.l10n_ve_control_number_placeholder = False
+
+        return
 
     def action_l10n_ve_print_dispatch_guide(self):
         blocked = self.filtered(

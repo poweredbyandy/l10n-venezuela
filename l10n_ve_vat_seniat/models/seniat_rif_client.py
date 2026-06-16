@@ -9,7 +9,11 @@ import requests
 from lxml import html
 from PIL import Image, ImageFilter, ImageOps
 
-from .seniat_field_mapper import enrich_from_key_values, extract_table_key_values, rif_from_seniat_text
+from .seniat_field_mapper import (
+    enrich_from_key_values,
+    extract_table_key_values,
+    rif_from_seniat_text,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -116,9 +120,7 @@ def _confidence_scored_reads(image_bytes):
     import pytesseract
     from pytesseract import Output
 
-    whitelist = (
-        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    )
+    whitelist = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     variants = dict(_iter_captcha_variants(image_bytes))
     preferred_order = (
         "autocontrast_x5",
@@ -135,10 +137,7 @@ def _confidence_scored_reads(image_bytes):
         if proc is None:
             continue
         for psm in (7, 8):
-            cfg = (
-                f"--oem 3 --psm {psm} "
-                f"-c tessedit_char_whitelist={whitelist}"
-            )
+            cfg = f"--oem 3 --psm {psm} " f"-c tessedit_char_whitelist={whitelist}"
             try:
                 data = pytesseract.image_to_data(
                     proc, config=cfg, output_type=Output.DICT
@@ -180,7 +179,9 @@ def _merge_confidence_and_strings(confidence_rows, string_candidates):
         ),
     )
     seen = set(ordered_by_conf)
-    rest = [s for s in string_candidates if s not in seen and _plausible_captcha_code(s)]
+    rest = [
+        s for s in string_candidates if s not in seen and _plausible_captcha_code(s)
+    ]
     rest.sort(key=lambda s: (-min(abs(len(s) - 6), 6), -len(s)))
     merged = ordered_by_conf + rest
     uniq = []
@@ -203,17 +204,21 @@ def _iter_captcha_variants(image_bytes):
     g4 = _scale_gray(im, 4)
     yield "rgb_L_x5", _scale_gray(im, 5)
     yield "autocontrast_x5", ImageOps.autocontrast(_scale_gray(im, 5))
-    yield "autocontrast_g4_x2", ImageOps.autocontrast(g4).resize(
-        (g4.size[0] * 2, g4.size[1] * 2),
-        Image.Resampling.LANCZOS,
+    yield (
+        "autocontrast_g4_x2",
+        ImageOps.autocontrast(g4).resize(
+            (g4.size[0] * 2, g4.size[1] * 2),
+            Image.Resampling.LANCZOS,
+        ),
     )
     yield "thresh110", g4.point(lambda p: 255 if p > 110 else 0)
     yield "thresh140", g4.point(lambda p: 255 if p > 140 else 0)
     mean = _gray_mean(im)
     if mean < 130:
         yield "invert_autocontrast_x5", ImageOps.invert(_scale_gray(im, 5))
-        yield "invert_autocontrast_x5_ops", ImageOps.autocontrast(
-            ImageOps.invert(_scale_gray(im, 5))
+        yield (
+            "invert_autocontrast_x5_ops",
+            ImageOps.autocontrast(ImageOps.invert(_scale_gray(im, 5))),
         )
     mild = g4.filter(ImageFilter.GaussianBlur(radius=1.2))
     yield "blur12_thresh125", mild.point(lambda p: 255 if p > 125 else 0)
@@ -253,9 +258,7 @@ def _collect_ocr_candidates(image_bytes):
     import pytesseract
 
     _require_tesseract()
-    whitelist = (
-        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    )
+    whitelist = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     candidates = []
     seen = set()
     calls = 0
@@ -311,9 +314,7 @@ def _ocr_ranked_codes(image_bytes):
     merged, conf_map = _merge_confidence_and_strings(conf_rows, string_fallback)
     if not merged:
         merged_fb = [
-            s
-            for s in _collect_ocr_candidates_fallback_loose(image_bytes)
-            if s
+            s for s in _collect_ocr_candidates_fallback_loose(image_bytes) if s
         ]
         merged = merged_fb
         conf_map = {}
@@ -336,13 +337,11 @@ def _ocr_ranked_codes(image_bytes):
 def _collect_ocr_candidates_fallback_loose(image_bytes):
     import pytesseract
 
-    whitelist = (
-        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    )
+    whitelist = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     out = []
     seen = set()
     calls = 0
-    for tag, proc in _iter_captcha_variants(image_bytes):
+    for _tag, proc in _iter_captcha_variants(image_bytes):
         for psm in (7, 13):
             if calls >= 14 or len(seen) >= 6:
                 return out
@@ -435,9 +434,7 @@ def parse_buscarif_page(html_text):
 
     nombre_full = head
     if rif_token:
-        nombre_full = re.sub(
-            re.escape(rif_token), "", nombre_full, count=1, flags=re.I
-        )
+        nombre_full = re.sub(re.escape(rif_token), "", nombre_full, count=1, flags=re.I)
     nombre_full = re.sub(r"^[\s_\-]+", "", nombre_full)
 
     siglas = ""

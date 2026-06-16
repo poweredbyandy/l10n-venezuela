@@ -206,6 +206,22 @@ class ResConfigSettings(models.TransientModel):
         string="TFHKA Password",
         config_parameter="l10n_ve_edi_tfhka.password",
     )
+    tfhka_iva_supplier_retention_edi_serie = fields.Char(
+        related="company_id.iva_supplier_retention_journal_id.l10n_ve_edi_tfhka_serie",
+        readonly=False,
+    )
+    tfhka_iva_supplier_retention_edi_sucursal = fields.Char(
+        related="company_id.iva_supplier_retention_journal_id.l10n_ve_edi_tfhka_sucursal",
+        readonly=False,
+    )
+    tfhka_islr_supplier_retention_edi_serie = fields.Char(
+        related="company_id.islr_supplier_retention_journal_id.l10n_ve_edi_tfhka_serie",
+        readonly=False,
+    )
+    tfhka_islr_supplier_retention_edi_sucursal = fields.Char(
+        related="company_id.islr_supplier_retention_journal_id.l10n_ve_edi_tfhka_sucursal",
+        readonly=False,
+    )
 
     @api.depends("tfhka_api_environment", "tfhka_production_url")
     def _compute_tfhka_base_url(self):
@@ -213,7 +229,9 @@ class ResConfigSettings(models.TransientModel):
         configured_url = icp.get_param(ICP_BASE_URL, default=TFHKA_API_URL_TEST)
         for settings in self:
             if settings.tfhka_api_environment == "production":
-                production_url = (settings.tfhka_production_url or "").strip().rstrip("/")
+                production_url = (
+                    (settings.tfhka_production_url or "").strip().rstrip("/")
+                )
                 settings.tfhka_base_url = production_url or configured_url
             else:
                 settings.tfhka_base_url = TFHKA_API_URL_TEST
@@ -242,6 +260,8 @@ class ResConfigSettings(models.TransientModel):
         else:
             icp.set_param(ICP_BASE_URL, TFHKA_API_URL_TEST)
 
+        return
+
     def action_test_tfhka_connection(self):
         self.ensure_one()
         if not self.tfhka_username or not self.tfhka_password:
@@ -269,7 +289,9 @@ class ResConfigSettings(models.TransientModel):
         if not token:
             raise UserError(_("TFHKA token was not returned."))
         response = client.issue_document(self.TFHKA_TEST_INVOICE_PAYLOAD, token)
-        message = response.get("mensaje") or _("Test invoice payload sent successfully.")
+        message = response.get("mensaje") or _(
+            "Test invoice payload sent successfully."
+        )
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",

@@ -48,8 +48,7 @@ class ResPartner(models.Model):
         company_dependent=True,
         string="Cuenta de anticipos de cliente",
         domain=(
-            "[('account_type', 'in', %s), ('deprecated', '=', False)]"
-            % (CUSTOMER_ADVANCE_ACCOUNT_TYPES,)
+            f"[('account_type', 'in', {CUSTOMER_ADVANCE_ACCOUNT_TYPES}), ('deprecated', '=', False)]"
         ),
         ondelete="restrict",
         help=(
@@ -62,8 +61,7 @@ class ResPartner(models.Model):
         company_dependent=True,
         string="Cuenta de anticipos de proveedor",
         domain=(
-            "[('account_type', 'in', %s), ('deprecated', '=', False)]"
-            % (SUPPLIER_ADVANCE_ACCOUNT_TYPES,)
+            f"[('account_type', 'in', {SUPPLIER_ADVANCE_ACCOUNT_TYPES}), ('deprecated', '=', False)]"
         ),
         ondelete="restrict",
         help=(

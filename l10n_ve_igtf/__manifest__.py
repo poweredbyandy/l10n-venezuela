@@ -17,7 +17,7 @@
     "assets": {
         "web.assets_backend": [
             "l10n_ve_igtf/static/src/components/account_payment_field/account_payment.xml",
-            "l10n_ve_igtf/static/src/components/account_payment_field/account_payment_field_patch.js",
+            "l10n_ve_igtf/static/src/components/account_payment_field/account_payment_field_patch.esm.js",
             "l10n_ve_igtf/static/src/components/tax_totals/tax_totals_igtf.xml",
             "l10n_ve_igtf/static/src/components/tax_totals/tax_totals_company_currency_igtf.xml",
         ],

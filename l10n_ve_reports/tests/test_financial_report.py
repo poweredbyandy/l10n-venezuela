@@ -48,8 +48,8 @@ class TestFinancialReport(TestAccountReportsCommon):
             [
                 {
                     **data[1],
-                    "name": "account%s" % i,
-                    "code": "code%s" % i,
+                    "name": f"account{i}",
+                    "code": f"code{i}",
                     "account_type": data[0],
                 }
                 for i, data in enumerate(account_type_data)
@@ -405,7 +405,7 @@ class TestFinancialReport(TestAccountReportsCommon):
 
     def _build_generic_id_from_financial_line(self, financial_rep_ln_xmlid):
         report_line = self.env.ref(financial_rep_ln_xmlid)
-        return "-account.financial.html.report.line-%s" % report_line.id
+        return f"-account.financial.html.report.line-{report_line.id}"
 
     def _get_line_id_from_generic_id(self, generic_id):
         return int(generic_id.split("-")[-1])

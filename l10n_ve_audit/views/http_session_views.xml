@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <!-- Extend Form view -->
     <record id="view_auditlog_http_session_form_ip" model="ir.ui.view">
@@ -32,7 +32,12 @@
                 <field name="ip_address" />
             </xpath>
             <xpath expr="//filter[@name='group_by_create_date']" position="after">
-                <filter name="group_by_ip_address" string="IP Address" domain="[]" context="{'group_by':'ip_address'}" />
+                <filter
+                    name="group_by_ip_address"
+                    string="IP Address"
+                    domain="[]"
+                    context="{'group_by':'ip_address'}"
+                />
             </xpath>
         </field>
     </record>

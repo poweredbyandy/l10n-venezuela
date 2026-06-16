@@ -1,16 +1,17 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+# pylint: disable=consider-merging-classes-inherited
 
 import ast
 import base64
 import datetime
 import io
 import json
+import logging
 import re
 from ast import literal_eval
 from collections import defaultdict
 from functools import cmp_to_key
 from itertools import groupby
-import logging
 
 _logger = logging.getLogger(__name__)
 import markupsafe
@@ -61,7 +62,6 @@ CURRENCIES_USING_LAKH = {"AFN", "BDT", "INR", "MMK", "NPR", "PKR", "LKR"}
 class AccountReportAnnotation(models.Model):
     _name = "account.report.annotation.oca"
     _description = "Account Report Annotation"
-
 
     report_id = fields.Many2one(
         "account.report", help="The id of the annotated report."
@@ -165,6 +165,8 @@ class AccountReport(models.Model):
 
         self.env.cr.precommit.add(precommit)
 
+        return
+
     @api.constrains("custom_handler_model_id")
     def _validate_custom_handler_model(self):
         for report in self:
@@ -258,7 +260,7 @@ class AccountReport(models.Model):
         )
         menuitem = (
             self.env["ir.ui.menu"]
-            .with_context({"active_test": False, "ir.ui.menu.full_list": True})
+            .with_context(**{"active_test": False, "ir.ui.menu.full_list": True})
             .search([("action", "=", f"ir.actions.client,{action.id}")])
         )
         return action, menuitem
@@ -697,7 +699,7 @@ class AccountReport(models.Model):
             else:
                 dt_from_str = format_date(self.env, fields.Date.to_string(date_from))
                 dt_to_str = format_date(self.env, fields.Date.to_string(date_to))
-                string = "%s - %s" % (dt_from_str, dt_to_str)
+                string = f"{dt_from_str} - {dt_to_str}"
 
         if not string:
             fy_day = self.env.company.fiscalyear_last_day
@@ -713,7 +715,7 @@ class AccountReport(models.Model):
                 date_from,
                 date_to,
             ) == date_utils.get_fiscal_year(date_to, day=fy_day, month=fy_month):
-                string = "%s - %s" % (date_to.year - 1, date_to.year)
+                string = f"{date_to.year - 1} - {date_to.year}"
             elif period_type == "month":
                 string = format_date(
                     self.env, fields.Date.to_string(date_to), date_format="MMM yyyy"
@@ -768,7 +770,9 @@ class AccountReport(models.Model):
             anchor = fields.Date.from_string(period_vals["date_to"])
             new_date = anchor + relativedelta(days=periods)
             if mode == "single":
-                return self._get_dates_period(new_date, new_date, mode, period_type="today")
+                return self._get_dates_period(
+                    new_date, new_date, mode, period_type="today"
+                )
             date_from = self.env.company.compute_fiscalyear_dates(new_date)["date_from"]
             return self._get_dates_period(
                 date_from, new_date, mode, period_type="today"
@@ -959,18 +963,15 @@ class AccountReport(models.Model):
                         fields.Date.from_string(period_date_to) - anchor_day
                     ).days
                 else:
-                    shift_periods = (
-                        -1 if "previous" in options_filter else 1
-                    )
+                    shift_periods = -1 if "previous" in options_filter else 1
             else:
                 new_period = date.get(
                     "period", -1 if "previous" in options_filter else 1
                 )
                 shift_periods = new_period
-                if (
-                    options["date"].get("period_type") == "today"
-                    and not options_filter.endswith("_today")
-                ):
+                if options["date"].get(
+                    "period_type"
+                ) == "today" and not options_filter.endswith("_today"):
                     if "previous" in options_filter:
                         shift_periods = -1
                     elif "next" in options_filter:
@@ -1043,7 +1044,7 @@ class AccountReport(models.Model):
             )
         elif options_filter in ("previous_period", "same_last_year"):
             previous_period = options["date"]
-            for dummy in range(0, number_period):
+            for _dummy in range(0, number_period):
                 if options_filter == "previous_period":
                     period_vals = self._get_shifted_dates_period(
                         options, previous_period, -1
@@ -1608,7 +1609,7 @@ class AccountReport(models.Model):
     ####################################################
 
     def _init_options_prefix_groups_threshold(self, options, previous_options):
-        previous_threshold = previous_options.get("prefix_groups_threshold")
+        previous_options.get("prefix_groups_threshold")
         options["prefix_groups_threshold"] = self.prefix_groups_threshold
 
     ####################################################
@@ -3132,7 +3133,7 @@ class AccountReport(models.Model):
         """
         result = {}
         models_to_find = set(target_model_names)
-        for dummy, model, value in reversed(self._parse_line_id(line_id)):
+        for _dummy, model, value in reversed(self._parse_line_id(line_id)):
             if model in models_to_find:
                 result[model] = value
                 models_to_find.remove(model)
@@ -3462,7 +3463,7 @@ class AccountReport(models.Model):
 
             lines.append(line_dict)
 
-        for dummy, left_dynamic_line in dynamic_lines:
+        for _dummy, left_dynamic_line in dynamic_lines:
             lines.append(left_dynamic_line)
 
         # Manage growth comparison
@@ -3612,7 +3613,9 @@ class AccountReport(models.Model):
 
         return document_dates
 
-    def _precompute_grouped_line_converted_values(self, options, line_dict_list, document_dates):
+    def _precompute_grouped_line_converted_values(
+        self, options, line_dict_list, document_dates
+    ):
         """For grouped/folded lines when currency_rate_date_type is 'document',
         compute correct converted monetary totals by expanding children,
         converting each child's values individually with its document date, and summing.
@@ -3642,7 +3645,7 @@ class AccountReport(models.Model):
                 continue
 
             report_line_id = None
-            for markup, model, value in reversed(self._parse_line_id(line_id)):
+            for _markup, model, value in reversed(self._parse_line_id(line_id)):
                 if model == "account.report.line":
                     report_line_id = value
                     break
@@ -4073,7 +4076,7 @@ class AccountReport(models.Model):
             info_popup_data = {}
 
             # Check carryover
-            carryover_expr_label = "_carryover_%s" % column_expr_label
+            carryover_expr_label = f"_carryover_{column_expr_label}"
             carryover_value = target_line_res_dict.get(carryover_expr_label, {}).get(
                 "value", 0
             )
@@ -4092,7 +4095,7 @@ class AccountReport(models.Model):
                 # If it's not set, it means the carryover needs to target the same expression
 
             applied_carryover_value = target_line_res_dict.get(
-                "_applied_carryover_%s" % column_expr_label, {}
+                f"_applied_carryover_{column_expr_label}", {}
             ).get("value", 0)
             if (
                 self.env.company.currency_id.compare_amounts(0, applied_carryover_value)
@@ -4105,7 +4108,7 @@ class AccountReport(models.Model):
                     "base.group_no_one"
                 )
                 info_popup_data["expression_id"] = line_expressions_map[
-                    "_applied_carryover_%s" % column_expr_label
+                    f"_applied_carryover_{column_expr_label}"
                 ]["id"]
                 info_popup_data["column_group_key"] = col_group_key
 
@@ -5222,7 +5225,7 @@ class AccountReport(models.Model):
             else None
         )
         tail_query = self._get_engine_query_tail(offset, limit)
-        lang = get_lang(self.env, self.env.user.lang).code
+        get_lang(self.env, self.env.user.lang).code
         acc_tag_name = (
             self.with_context(lang="en_US")
             .env["account.account.tag"]
@@ -6460,7 +6463,7 @@ class AccountReport(models.Model):
     def _get_audit_line_groupby_domain(self, calling_line_dict_id):
         parsed_line_dict_id = self._parse_line_id(calling_line_dict_id)
         groupby_domain = []
-        for markup, dummy, grouping_key in parsed_line_dict_id:
+        for markup, _dummy, grouping_key in parsed_line_dict_id:
             if isinstance(markup, dict) and "groupby" in markup:
                 groupby_field_name = markup["groupby"]
                 custom_handler_model = self._get_custom_handler_model()
@@ -7190,9 +7193,7 @@ class AccountReport(models.Model):
             and options["date"]["mode"] == "single"
         ):
             options_company_ids = [company["id"] for company in options["companies"]]
-            root_companies_ids = (
-                self.env["res.company"].browse(options_company_ids).root_id.ids
-            )
+            (self.env["res.company"].browse(options_company_ids).root_id.ids)
             period_date_from, _ = date_utils.get_fiscal_year(
                 datetime.datetime.strptime(options["date"]["date_to"], "%Y-%m-%d"),
                 day=self.env.company.fiscalyear_last_day,
@@ -7722,7 +7723,7 @@ class AccountReport(models.Model):
     ):
         # The line we're expanding might be an inner groupby; we first need to find the report line generating it
         report_line_id = None
-        for dummy, model, model_id in reversed(self._parse_line_id(line_dict_id)):
+        for _dummy, model, model_id in reversed(self._parse_line_id(line_dict_id)):
             if model == "account.report.line":
                 report_line_id = model_id
                 break
@@ -7973,7 +7974,7 @@ class AccountReport(models.Model):
     @api.model
     def _get_prefix_groups_matched_prefix_from_line_id(self, line_dict_id):
         matched_prefix = ""
-        for markup, dummy1, dummy2 in self._parse_line_id(line_dict_id):
+        for markup, _dummy1, _dummy2 in self._parse_line_id(line_dict_id):
             if markup and isinstance(markup, dict) and "groupby_prefix_group" in markup:
                 prefix_piece = markup["groupby_prefix_group"]
                 matched_prefix += prefix_piece.upper()
@@ -8420,7 +8421,7 @@ class AccountReport(models.Model):
         else:
             col_width = sheet.col_sizes.get(col, [8.43])[0]
 
-        row_height = sheet.row_sizes.get(row, [8.43])[0]
+        sheet.row_sizes.get(row, [8.43])[0]
 
         if value is None:
             value = ""
@@ -8431,8 +8432,8 @@ class AccountReport(models.Model):
                 value = float_repr(
                     float(value), self.env.company.currency_id.decimal_places
                 )
-            except ValueError:
-                pass
+            except ValueError as exc:
+                _logger.debug("Could not format xlsx cell value %r: %s", value, exc)
 
         # Start by computing the width of the cell if we are not using colspans.
         if not has_colspan:
@@ -9977,6 +9978,8 @@ class AccountReportLine(models.Model):
             report_line.report_id._check_groupby_fields(report_line.user_groupby)
             report_line.report_id._check_groupby_fields(report_line.groupby)
 
+        return
+
     def _expand_groupby(
         self,
         line_dict_id,
@@ -10346,7 +10349,7 @@ class AccountReportHorizontalGroup(models.Model):
     _name = "account.report.horizontal.group.oca"
     _description = "Horizontal group for reports"
 
-    name = fields.Char(string="Name", required=True, translate=True)
+    name = fields.Char(required=True, translate=True)
     rule_ids = fields.One2many(
         string="Rules",
         comodel_name="account.report.horizontal.group.rule.oca",
@@ -10385,7 +10388,7 @@ class AccountReportHorizontalGroupRule(models.Model):
         comodel_name="account.report.horizontal.group.oca",
         required=True,
     )
-    domain = fields.Char(string="Domain", required=True, default="[]")
+    domain = fields.Char(required=True, default="[]")
     field_name = fields.Selection(
         string="Field", selection="_field_name_selection_values", required=True
     )

@@ -2,7 +2,7 @@
 {
     "name": "Venezuela SENIAT - Auditoria",
     "version": "18.0.1.1.1",
-    "author": "Anderson Armeya",
+    "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/l10n-venezuela",
     "category": "Tools",
     "depends": ["auditlog", "l10n_ve_seniat", "l10n_ve_withholding", "l10n_ve_reports"],

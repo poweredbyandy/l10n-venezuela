@@ -142,7 +142,7 @@ class AccountTaxReportHandler(models.AbstractModel):
                 "target": "new",
                 "params": {
                     "depending_action": self.with_context(
-                        {"override_tax_closing_warning": True}
+                        override_tax_closing_warning=True
                     ).action_periodic_vat_entries(options),
                     "message": message,
                     "button_text": _("Proceed"),
@@ -445,7 +445,7 @@ class AccountTaxReportHandler(models.AbstractModel):
             # ignore line that have no property defined on tax group
             if not tg.tax_receivable_account_id or not tg.tax_payable_account_id:
                 continue
-            for dummy, value in values.items():
+            for _dummy, value in values.items():
                 for v in value:
                     tax_name, account_id, amt = v
                     # Line to balance
@@ -791,6 +791,8 @@ class GenericTaxReportCustomHandler(models.AbstractModel):
         ):
             options["allow_domestic"] = False
             options["fiscal_position"] = "all"
+
+        return
 
     def _dynamic_lines_generator(
         self, report, options, all_column_groups_expression_totals, warnings=None
@@ -1539,7 +1541,7 @@ class GenericTaxReportCustomHandler(models.AbstractModel):
 
         for (
             column_group_key,
-            column_group_options,
+            _column_group_options,
         ) in report._split_options_per_column_group(options).items():
             net_value = next(
                 (

@@ -18,13 +18,13 @@
     ],
     "assets": {
         "point_of_sale._assets_pos": [
-            "l10n_ve_pos_igtf/static/src/overrides/models/pos_payment.js",
-            "l10n_ve_pos_igtf/static/src/overrides/models/pos_order.js",
-            "l10n_ve_pos_igtf/static/src/overrides/screens/payment_screen.js",
+            "l10n_ve_pos_igtf/static/src/overrides/models/pos_payment.esm.js",
+            "l10n_ve_pos_igtf/static/src/overrides/models/pos_order.esm.js",
+            "l10n_ve_pos_igtf/static/src/overrides/screens/payment_screen.esm.js",
             "l10n_ve_pos_igtf/static/src/overrides/screens/payment_screen.xml",
-            "l10n_ve_pos_igtf/static/src/overrides/screens/payment_lines/payment_lines.js",
+            "l10n_ve_pos_igtf/static/src/overrides/screens/payment_lines/payment_lines.esm.js",
             "l10n_ve_pos_igtf/static/src/overrides/screens/payment_lines/payment_lines.xml",
-            "l10n_ve_pos_igtf/static/src/overrides/screens/payment_status/payment_status.js",
+            "l10n_ve_pos_igtf/static/src/overrides/screens/payment_status/payment_status.esm.js",
             "l10n_ve_pos_igtf/static/src/overrides/screens/payment_status/payment_status.xml",
         ],
     },

@@ -4,17 +4,11 @@
         t-inherit="currency_account.TaxTotalsCompanyCurrencyWidget"
         t-inherit-mode="extension"
     >
-        <xpath
-            expr="//tr[.//span[@name='amount_total']]"
-            position="replace"
-        >
-            <t
-                t-if="'l10n_ve_igtf_total_without_igtf_currency' in taxTotals"
-            >
+        <xpath expr="//tr[.//span[@name='amount_total']]" position="replace">
+            <t t-if="'l10n_ve_igtf_total_without_igtf_currency' in taxTotals">
                 <tr>
                     <td class="o_td_label">
-                        <label class="o_form_label o_tax_total_label"
-                        >Total</label>
+                        <label class="o_form_label o_tax_total_label">Total</label>
                     </td>
                     <td class="o_list_monetary">
                         <span
@@ -62,8 +56,7 @@
             <t t-else="">
                 <tr>
                     <td class="o_td_label">
-                        <label class="o_form_label o_tax_total_label"
-                        >Total</label>
+                        <label class="o_form_label o_tax_total_label">Total</label>
                     </td>
                     <td class="o_list_monetary">
                         <span

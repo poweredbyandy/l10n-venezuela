@@ -3,7 +3,7 @@
     "summary": "Botón en contactos para consultar datos del contribuyente en el portal BuscaRif del SENIAT.",
     "version": "18.0.1.0.0",
     "category": "Localization",
-    "author": "andyengit",
+    "author": "andyengit, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "website": "https://github.com/OCA/l10n-venezuela",
     "license": "AGPL-3",

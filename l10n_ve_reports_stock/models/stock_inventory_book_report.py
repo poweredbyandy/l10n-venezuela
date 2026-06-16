@@ -32,6 +32,8 @@ class StockInventoryBookReportHandler(models.AbstractModel):
             "hide_zero_quantity_products", False
         )
 
+        return
+
     def _get_warehouses(self, options):
         warehouse_ids = options.get("warehouse_ids", [])
         warehouses = self.env["stock.warehouse"].search(
@@ -51,25 +53,17 @@ class StockInventoryBookReportHandler(models.AbstractModel):
                 return product.product_tmpl_id.cost_currency_id
         return self.env.company.currency_id
 
-    def _convert_to_display_currency(
-        self, value, source_currency, options, date=None
-    ):
+    def _convert_to_display_currency(self, value, source_currency, options, date=None):
         display_currency_id = options.get("display_currency_id")
-        company_currency = self.env.company.currency_id
         if not display_currency_id or source_currency.id == display_currency_id:
             return value, source_currency
         display_currency = self.env["res.currency"].browse(display_currency_id)
         if not date:
-            currency_rate_date_type = options.get(
-                "currency_rate_date_type", "current"
-            )
+            currency_rate_date_type = options.get("currency_rate_date_type", "current")
             if currency_rate_date_type == "manual":
                 date = options.get("currency_rate_date") or fields.Date.today()
             elif currency_rate_date_type == "document":
-                date = (
-                    options.get("date", {}).get("date_to")
-                    or fields.Date.today()
-                )
+                date = options.get("date", {}).get("date_to") or fields.Date.today()
             else:
                 date = fields.Date.today()
         if isinstance(date, str):
@@ -82,9 +76,7 @@ class StockInventoryBookReportHandler(models.AbstractModel):
         except Exception:
             return value, source_currency
 
-    def _get_product_data(
-        self, warehouses, date_from, date_to, company_currency
-    ):
+    def _get_product_data(self, warehouses, date_from, date_to, company_currency):
         stock_location_ids = []
         for wh in warehouses:
             if wh.lot_stock_id and wh.lot_stock_id.parent_path:
@@ -156,9 +148,11 @@ class StockInventoryBookReportHandler(models.AbstractModel):
 
         moves = Move.search(move_domain)
         product_ids = moves.mapped("product_id").ids
-        products = self.env["product.product"].browse(
-            sorted(set(product_ids))
-        ).filtered("is_storable")
+        products = (
+            self.env["product.product"]
+            .browse(sorted(set(product_ids)))
+            .filtered("is_storable")
+        )
 
         result = defaultdict(
             lambda: {
@@ -274,14 +268,10 @@ class StockInventoryBookReportHandler(models.AbstractModel):
 
         display_currency_id = options.get("display_currency_id")
         if display_currency_id:
-            display_currency = self.env["res.currency"].browse(
-                display_currency_id
-            )
+            display_currency = self.env["res.currency"].browse(display_currency_id)
         else:
             display_currency = company_currency
-        date_to_conv = (
-            options.get("date", {}).get("date_to") or fields.Date.today()
-        )
+        date_to_conv = options.get("date", {}).get("date_to") or fields.Date.today()
         if isinstance(date_to_conv, str):
             date_to_conv = fields.Date.from_string(date_to_conv)
 
@@ -464,9 +454,7 @@ class StockInventoryBookReportHandler(models.AbstractModel):
             totals["inv_final_qty"] += data["inv_final_qty"]
             totals["inv_final_val"] += conv_inv_final
 
-            line_id = report._get_generic_line_id(
-                None, "product.product", product_id
-            )
+            line_id = report._get_generic_line_id(None, "product.product", product_id)
             lines.append(
                 (
                     0,

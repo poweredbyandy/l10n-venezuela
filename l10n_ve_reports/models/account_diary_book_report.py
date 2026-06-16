@@ -21,6 +21,8 @@ class DiaryBookReportCustomHandler(models.AbstractModel):
         )
         options["unfold_all"] = options.get("unfold_all", True)
 
+        return
+
     def _dynamic_lines_generator(
         self, report, options, all_column_groups_expression_totals, warnings=None
     ):

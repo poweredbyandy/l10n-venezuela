@@ -201,7 +201,9 @@ class StockPicking(models.Model):
         self.ensure_one()
         if self.date_done:
             localized = fields.Datetime.context_timestamp(self, self.date_done)
-            return f"{localized.strftime('%I:%M:%S')} {localized.strftime('%p').lower()}"
+            return (
+                f"{localized.strftime('%I:%M:%S')} {localized.strftime('%p').lower()}"
+            )
         now = fields.Datetime.context_timestamp(self, fields.Datetime.now())
         return f"{now.strftime('%I:%M:%S')} {now.strftime('%p').lower()}"
 
@@ -257,7 +259,9 @@ class StockPicking(models.Model):
         sum_t = cur.round(sum(v.get("tax", 0.0) for v in buckets.values()))
         return sum_b, sum_t
 
-    def _tfhka_reconcile_buckets_to_targets(self, buckets, target_base, target_tax, cur):
+    def _tfhka_reconcile_buckets_to_targets(
+        self, buckets, target_base, target_tax, cur
+    ):
         self.ensure_one()
         if not buckets:
             return buckets
@@ -298,7 +302,9 @@ class StockPicking(models.Model):
         if not buckets:
             return None
         rows = []
-        for (code, rate), vals in sorted(buckets.items(), key=lambda item: (item[0][0], item[0][1])):
+        for (code, rate), vals in sorted(
+            buckets.items(), key=lambda item: (item[0][0], item[0][1])
+        ):
             rows.append(
                 {
                     "codigoTotalImp": code,
@@ -334,9 +340,9 @@ class StockPicking(models.Model):
     def _tfhka_secuencia_for_numero_documento(self):
         self.ensure_one()
         ref_date = self.date_done or self.scheduled_date
-        return self.env["l10n_ve.edi.tfhka.document.mixin"]._tfhka_build_secuencia_yyyy_mm_seq(
-            ref_date, self.name, self.id
-        )
+        return self.env[
+            "l10n_ve.edi.tfhka.document.mixin"
+        ]._tfhka_build_secuencia_yyyy_mm_seq(ref_date, self.name, self.id)
 
     def _tfhka_get_document_number(self):
         self.ensure_one()
@@ -356,8 +362,11 @@ class StockPicking(models.Model):
                 numero = (ident.get("numeroDocumento") or "").strip()
                 if numero:
                     return numero
-            except (json.JSONDecodeError, TypeError, ValueError, binascii.Error):
-                pass
+            except (json.JSONDecodeError, TypeError, ValueError, binascii.Error) as exc:
+                _logger.debug(
+                    "Could not parse TFHKA document number from response: %s",
+                    exc,
+                )
         return self._tfhka_get_document_number()
 
     def _tfhka_get_document_number_for_emission(self):
@@ -398,15 +407,23 @@ class StockPicking(models.Model):
         self.ensure_one()
         cur = self._tfhka_get_document_currency()
         date = self._tfhka_get_conversion_date()
-        gravado = exento = total_iva = total_desc = subtotal_antes = sum_price_total = 0.0
+        gravado = exento = total_iva = total_desc = subtotal_antes = sum_price_total = (
+            0.0
+        )
         buckets = defaultdict(lambda: {"base": 0.0, "tax": 0.0})
         for move in self._tfhka_get_dispatch_moves():
             pricing = move._l10n_ve_dispatch_line_pricing_values()
             line_cur = pricing["currency"]
             qty = move.quantity if move.state == "done" else move.product_uom_qty
-            pu = cur.round(line_cur._convert(pricing["price_unit"], cur, self.company_id, date))
-            ps = cur.round(line_cur._convert(pricing["subtotal"], cur, self.company_id, date))
-            pt = cur.round(line_cur._convert(pricing["total_included"], cur, self.company_id, date))
+            pu = cur.round(
+                line_cur._convert(pricing["price_unit"], cur, self.company_id, date)
+            )
+            ps = cur.round(
+                line_cur._convert(pricing["subtotal"], cur, self.company_id, date)
+            )
+            pt = cur.round(
+                line_cur._convert(pricing["total_included"], cur, self.company_id, date)
+            )
             iva = cur.round(pt - ps)
             brutto = cur.round(pu * qty)
             total_desc = cur.round(total_desc + cur.round(brutto - ps))
@@ -471,7 +488,9 @@ class StockPicking(models.Model):
                 "buckets": comp_buckets,
                 "gravado": comp_gravado,
                 "exento": comp_exento,
-                "monto_total_con_iva": comp_cur.round(comp["subtotal"] + comp["total_iva"]),
+                "monto_total_con_iva": comp_cur.round(
+                    comp["subtotal"] + comp["total_iva"]
+                ),
                 "total_apagar": comp_cur.round(comp["subtotal"] + comp["total_iva"]),
             }
         return {
@@ -530,9 +549,7 @@ class StockPicking(models.Model):
             "numeroIdentificacion": buyer_number,
             "razonSocial": (buyer.name or "")[:100],
             "direccion": (
-                buyer.street
-                or self._l10n_ve_dispatch_address_inline(buyer)
-                or "N/A"
+                buyer.street or self._l10n_ve_dispatch_address_inline(buyer) or "N/A"
             )[:255],
             "pais": (buyer.country_id.code or "VE")[:2],
             "telefono": phone_list or None,
@@ -694,7 +711,10 @@ class StockPicking(models.Model):
         for row in rows:
             if not isinstance(row, dict):
                 continue
-            if row.get("tipoDocumento") == "01" and row.get("numeroDocumento") == invoice_num:
+            if (
+                row.get("tipoDocumento") == "01"
+                and row.get("numeroDocumento") == invoice_num
+            ):
                 return True
         return False
 
@@ -767,8 +787,12 @@ class StockPicking(models.Model):
             td_bs, sa_bs = td_inv, sa_inv
         else:
             date = self._tfhka_get_conversion_date()
-            td_bs = comp_cur.round(doc_cur._convert(td_inv, comp_cur, self.company_id, date))
-            sa_bs = comp_cur.round(doc_cur._convert(sa_inv, comp_cur, self.company_id, date))
+            td_bs = comp_cur.round(
+                doc_cur._convert(td_inv, comp_cur, self.company_id, date)
+            )
+            sa_bs = comp_cur.round(
+                doc_cur._convert(sa_inv, comp_cur, self.company_id, date)
+            )
         return {
             "nroItems": str(payload["nro_items"] or 0),
             "montoGravadoTotal": self._l10n_ve_edi_format_decimal(bs["gravado"]),
@@ -779,12 +803,16 @@ class StockPicking(models.Model):
             "totalRecargos": None,
             "subtotal": self._l10n_ve_edi_format_decimal(bs["subtotal"]),
             "totalIVA": self._l10n_ve_edi_format_decimal(bs["total_iva"]),
-            "montoTotalConIVA": self._l10n_ve_edi_format_decimal(bs["monto_total_con_iva"]),
+            "montoTotalConIVA": self._l10n_ve_edi_format_decimal(
+                bs["monto_total_con_iva"]
+            ),
             "totalAPagar": self._l10n_ve_edi_format_decimal(bs["total_apagar"]),
             "montoEnLetras": "n/a",
             "listaRecargo": None,
             "listaDescBonificacion": None,
-            "impuestosSubtotal": self._tfhka_build_impuestos_subtotal_from_buckets(bs["buckets"]),
+            "impuestosSubtotal": self._tfhka_build_impuestos_subtotal_from_buckets(
+                bs["buckets"]
+            ),
             "otrosImpuestosSubtotal": None,
             "formasPago": None,
             "totalIGTF": None,
@@ -819,11 +847,15 @@ class StockPicking(models.Model):
             "subtotalAntesDescuento": self._l10n_ve_edi_format_decimal(
                 payload["subtotal_antes_descuento"]
             ),
-            "totalDescuento": self._l10n_ve_edi_format_decimal(payload["total_descuento"]),
+            "totalDescuento": self._l10n_ve_edi_format_decimal(
+                payload["total_descuento"]
+            ),
             "totalRecargos": None,
             "subtotal": self._l10n_ve_edi_format_decimal(inv["subtotal"]),
             "totalIVA": self._l10n_ve_edi_format_decimal(inv["total_iva"]),
-            "montoTotalConIVA": self._l10n_ve_edi_format_decimal(inv["monto_total_con_iva"]),
+            "montoTotalConIVA": self._l10n_ve_edi_format_decimal(
+                inv["monto_total_con_iva"]
+            ),
             "totalAPagar": self._l10n_ve_edi_format_decimal(inv["total_apagar"]),
             "montoEnLetras": None,
             "listaRecargo": None,
@@ -846,8 +878,12 @@ class StockPicking(models.Model):
         pricing = move._l10n_ve_dispatch_line_pricing_values()
         line_cur = pricing["currency"]
         qty = move.quantity if move.state == "done" else move.product_uom_qty
-        pu = cur.round(line_cur._convert(pricing["price_unit"], cur, self.company_id, date))
-        subtotal = cur.round(line_cur._convert(pricing["subtotal"], cur, self.company_id, date))
+        pu = cur.round(
+            line_cur._convert(pricing["price_unit"], cur, self.company_id, date)
+        )
+        subtotal = cur.round(
+            line_cur._convert(pricing["subtotal"], cur, self.company_id, date)
+        )
         total_included = cur.round(
             line_cur._convert(pricing["total_included"], cur, self.company_id, date)
         )
@@ -861,7 +897,9 @@ class StockPicking(models.Model):
             "numeroLinea": str(index),
             "codigoCIIU": "",
             "codigoPLU": plu,
-            "indicadorBienoServicio": "2" if product and product.type == "service" else "1",
+            "indicadorBienoServicio": "2"
+            if product and product.type == "service"
+            else "1",
             "descripcion": (product.display_name or move.name or "")[:500],
             "cantidad": self._l10n_ve_edi_format_decimal(qty),
             "unidadMedida": (move.product_uom.name or "UND")[:3],
@@ -869,7 +907,9 @@ class StockPicking(models.Model):
             "precioUnitarioDescuento": None,
             "montoBonificacion": None,
             "descripcionBonificacion": None,
-            "descuentoMonto": self._l10n_ve_edi_format_decimal(cur.round(brutto - subtotal)),
+            "descuentoMonto": self._l10n_ve_edi_format_decimal(
+                cur.round(brutto - subtotal)
+            ),
             "recargoMonto": self._l10n_ve_edi_format_decimal(0.0),
             "precioItem": self._l10n_ve_edi_format_decimal(subtotal),
             "precioAntesDescuento": self._l10n_ve_edi_format_decimal(brutto),
@@ -917,7 +957,9 @@ class StockPicking(models.Model):
             data["transportista"] = {
                 "razonSocial": (transport.name or "")[:255],
                 "numeroIdentificacion": number or "",
-                "domicilioFiscal": self._l10n_ve_dispatch_address_inline(transport)[:255],
+                "domicilioFiscal": self._l10n_ve_dispatch_address_inline(transport)[
+                    :255
+                ],
             }
         if vehicle:
             data["vehiculo"] = {
@@ -1087,7 +1129,7 @@ class StockPicking(models.Model):
             self.sudo().write({"l10n_ve_edi_tfhka_pdf_attachment_id": attachment.id})
         return {
             "type": "ir.actions.act_url",
-            "url": "/web/content/%s?download=true" % attachment.id,
+            "url": f"/web/content/{attachment.id}?download=true",
             "target": "self",
         }
 
@@ -1155,9 +1197,7 @@ class StockPicking(models.Model):
         self.ensure_one()
         if not self._l10n_ve_edi_tfhka_replace_dispatch_report_with_digital_pdf():
             raise UserError(
-                _(
-                    "Solo puede imprimir la guia digital cuando fue enviada a TFHKA."
-                )
+                _("Solo puede imprimir la guia digital cuando fue enviada a TFHKA.")
             )
         pdf_bytes, api_err = self._tfhka_get_dispatch_pdf_bytes_via_descarga_archivo()
         if pdf_bytes:
@@ -1166,12 +1206,12 @@ class StockPicking(models.Model):
         if attachment and attachment.datas:
             return {
                 "type": "ir.actions.act_url",
-                "url": "/web/content/%s?download=true" % attachment.id,
+                "url": f"/web/content/{attachment.id}?download=true",
                 "target": "self",
             }
         pdf_url = self.l10n_ve_edi_tfhka_sent_pdf_url
         if not pdf_url:
-            _, pdf_url = self._tfhka_extract_public_urls_from_stored_response()
+            _ignored, pdf_url = self._tfhka_extract_public_urls_from_stored_response()
         if pdf_url:
             return {"type": "ir.actions.act_url", "url": pdf_url, "target": "new"}
         msg = api_err or _("No se pudo obtener el PDF.")
@@ -1229,9 +1269,14 @@ class StockPicking(models.Model):
             auth = client.authenticate(username, password)
             token = auth.get("token")
             if not token:
-                return {"success": False, "error": _("La API TFHKA no devolvio token JWT.")}
+                return {
+                    "success": False,
+                    "error": _("La API TFHKA no devolvio token JWT."),
+                }
             extra_codes = {201} if is_resend else None
-            response = client.issue_document(payload, token, extra_success_codes=extra_codes)
+            response = client.issue_document(
+                payload, token, extra_success_codes=extra_codes
+            )
             if is_resend and client._normalize_api_code(response) == 201:
                 if not self._tfhka_resend_response_matches_picking(response):
                     return {

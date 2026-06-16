@@ -34,10 +34,19 @@ class AccountRetention(models.Model):
             ("iva", "out_invoice"): company.iva_customer_retention_journal_id,
             ("islr", "in_invoice"): company.islr_supplier_retention_journal_id,
             ("islr", "out_invoice"): company.islr_customer_retention_journal_id,
-            ("municipal", "in_invoice"): company.municipal_supplier_retention_journal_id,
-            ("municipal", "out_invoice"): company.municipal_customer_retention_journal_id,
+            (
+                "municipal",
+                "in_invoice",
+            ): company.municipal_supplier_retention_journal_id,
+            (
+                "municipal",
+                "out_invoice",
+            ): company.municipal_customer_retention_journal_id,
         }
-        return journals.get((self.type_retention, self.type)) or self.env["account.journal"]
+        return (
+            journals.get((self.type_retention, self.type))
+            or self.env["account.journal"]
+        )
 
     def _l10n_ve_edi_get_digital_emission_journal(self):
         self.ensure_one()
@@ -59,12 +68,18 @@ class AccountRetention(models.Model):
         if self.type_retention not in ("iva", "islr"):
             return False
         journal = self._l10n_ve_edi_get_edi_journal()
-        return bool(journal.l10n_ve_edi_provider and journal.l10n_ve_edi_provider != "none")
+        return bool(
+            journal.l10n_ve_edi_provider and journal.l10n_ve_edi_provider != "none"
+        )
 
     def _l10n_ve_edi_get_retention_edi_provider(self):
         self.ensure_one()
         journal = self._l10n_ve_edi_get_edi_journal()
-        if journal and journal.l10n_ve_edi_provider and journal.l10n_ve_edi_provider != "none":
+        if (
+            journal
+            and journal.l10n_ve_edi_provider
+            and journal.l10n_ve_edi_provider != "none"
+        ):
             return journal.l10n_ve_edi_provider
         digital_journal = self._l10n_ve_edi_get_digital_emission_journal()
         return digital_journal.l10n_ve_edi_provider if digital_journal else False
@@ -74,7 +89,9 @@ class AccountRetention(models.Model):
         retention_journal = self._l10n_ve_edi_get_edi_journal()
         if retention_journal and retention_journal.l10n_ve_edi_provider == "tfhka":
             return retention_journal
-        if retention_journal and getattr(retention_journal, "l10n_ve_edi_tfhka_serie", False):
+        if retention_journal and getattr(
+            retention_journal, "l10n_ve_edi_tfhka_serie", False
+        ):
             return retention_journal
         return self._l10n_ve_edi_get_digital_emission_journal()
 
@@ -91,7 +108,9 @@ class AccountRetention(models.Model):
     )
     def _compute_l10n_ve_edi_show_tab(self):
         for retention in self:
-            retention.l10n_ve_edi_show_tab = retention._l10n_ve_edi_retention_uses_digital()
+            retention.l10n_ve_edi_show_tab = (
+                retention._l10n_ve_edi_retention_uses_digital()
+            )
 
     def _l10n_ve_edi_is_retention_target(self):
         self.ensure_one()
@@ -152,18 +171,24 @@ class AccountRetention(models.Model):
 
     def _l10n_ve_edi_create_payload_attachment(self, payload):
         self.ensure_one()
-        filename = (self.number or self.name or f"retention_{self.id}").replace("/", "_")
+        filename = (self.number or self.name or f"retention_{self.id}").replace(
+            "/", "_"
+        )
         content = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         datas = base64.b64encode(content.encode("utf-8"))
-        return self.env["ir.attachment"].sudo().create(
-            {
-                "name": f"l10n_ve_edi_payload_{filename}.json",
-                "type": "binary",
-                "datas": datas,
-                "mimetype": "application/json",
-                "res_model": self._name,
-                "res_id": self.id,
-            }
+        return (
+            self.env["ir.attachment"]
+            .sudo()
+            .create(
+                {
+                    "name": f"l10n_ve_edi_payload_{filename}.json",
+                    "type": "binary",
+                    "datas": datas,
+                    "mimetype": "application/json",
+                    "res_model": self._name,
+                    "res_id": self.id,
+                }
+            )
         )
 
     def _build_payload_to_send(self):
@@ -184,7 +209,11 @@ class AccountRetention(models.Model):
                 )
             )
         if not self.number:
-            raise UserError(_("El comprobante debe tener numero antes de enviarse a facturacion digital."))
+            raise UserError(
+                _(
+                    "El comprobante debe tener numero antes de enviarse a facturacion digital."
+                )
+            )
         if not self.retention_line_ids:
             raise UserError(_("El comprobante no tiene lineas de retencion."))
         self._l10n_ve_edi_validate_parties_identification()
@@ -268,7 +297,9 @@ class AccountRetention(models.Model):
     def action_l10n_ve_edi_send(self):
         for retention in self:
             if retention.state != "emitted":
-                raise UserError(_("Solo se pueden enviar comprobantes de retencion emitidos."))
+                raise UserError(
+                    _("Solo se pueden enviar comprobantes de retencion emitidos.")
+                )
             if not retention._l10n_ve_edi_is_retention_target():
                 raise UserError(
                     _(
@@ -277,7 +308,9 @@ class AccountRetention(models.Model):
                     )
                 )
             if retention.l10n_ve_edi_send_state == STATE_QUEUED:
-                raise UserError(_("Ya hay una solicitud de envio en cola para este documento."))
+                raise UserError(
+                    _("Ya hay una solicitud de envio en cola para este documento.")
+                )
             if retention.l10n_ve_edi_send_state == STATE_SENT:
                 raise UserError(_("El documento ya fue enviado a facturacion digital."))
             retention._l10n_ve_edi_enqueue_send(reuse_payload=False)
@@ -292,8 +325,9 @@ class AccountRetention(models.Model):
         return {
             "success": False,
             "error": (
-                "Proveedor EDI no soportado o modulo no instalado: %(provider)s."
-                % {"provider": provider or "none"}
+                "Proveedor EDI no soportado o modulo no instalado: {provider}.".format(
+                    provider=provider or "none"
+                )
             ),
         }
 
@@ -317,7 +351,9 @@ class AccountRetention(models.Model):
                     error_message = str(exc)
                     response_json = False
                     if response is not None:
-                        response_json = json.dumps(response, ensure_ascii=False, indent=2)
+                        response_json = json.dumps(
+                            response, ensure_ascii=False, indent=2
+                        )
                     self.write(
                         {
                             "l10n_ve_edi_send_state": STATE_SENT,
@@ -345,9 +381,13 @@ class AccountRetention(models.Model):
                         "l10n_ve_edi_response_json": response_json,
                     }
                 )
-                self.message_post(body=_("Comprobante enviado exitosamente a facturacion digital."))
+                self.message_post(
+                    body=_("Comprobante enviado exitosamente a facturacion digital.")
+                )
                 return True
-            error_message = dispatch.get("error") or _("El conector EDI no completo el envio.")
+            error_message = dispatch.get("error") or _(
+                "El conector EDI no completo el envio."
+            )
         if error_message:
             self.write(
                 {

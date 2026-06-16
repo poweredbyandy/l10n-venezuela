@@ -266,19 +266,22 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                 "vat": "J12345680",
             }
         )
-        product = self.env["product.template"].with_context(
-            l10n_ve_skip_auto_exent_taxes=True
-        ).create(
-            {
-                "name": "Producto reporte",
-                "company_id": self.env.company.id,
-                "list_price": 100.0,
-                "taxes_id": [(6, 0, [self.company_data["default_tax_sale"].id])],
-                "supplier_taxes_id": [
-                    (6, 0, [self.company_data["default_tax_purchase"].id])
-                ],
-            }
-        ).product_variant_id
+        product = (
+            self.env["product.template"]
+            .with_context(l10n_ve_skip_auto_exent_taxes=True)
+            .create(
+                {
+                    "name": "Producto reporte",
+                    "company_id": self.env.company.id,
+                    "list_price": 100.0,
+                    "taxes_id": [(6, 0, [self.company_data["default_tax_sale"].id])],
+                    "supplier_taxes_id": [
+                        (6, 0, [self.company_data["default_tax_purchase"].id])
+                    ],
+                }
+            )
+            .product_variant_id
+        )
         company = self.env.company
         if "sale_discount_product_id" not in company._fields:
             self.skipTest("sale_discount_product_id requires sale module")

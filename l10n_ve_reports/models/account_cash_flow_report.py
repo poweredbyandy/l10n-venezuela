@@ -71,6 +71,8 @@ class CashFlowReportCustomHandler(models.AbstractModel):
             additional_journals_domain=[("type", "in", ("bank", "cash", "general"))],
         )
 
+        return
+
     def _get_report_data(self, report, options, layout_data):
         report_data = {}
 

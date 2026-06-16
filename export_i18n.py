@@ -66,7 +66,11 @@ def list_databases(db_config):
     )
     if not output:
         return []
-    return [line.strip() for line in output.splitlines() if line.strip() and line.strip() != "postgres"]
+    return [
+        line.strip()
+        for line in output.splitlines()
+        if line.strip() and line.strip() != "postgres"
+    ]
 
 
 def detect_database(db_config, repo_modules):
@@ -131,7 +135,9 @@ def export_module(odoo_bin, odoo_conf, database, module, lang, output_path):
         "--stop-after-init",
         "--log-level=warn",
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=odoo_bin.parent.parent)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, cwd=odoo_bin.parent.parent
+    )
     if result.returncode != 0:
         stderr = result.stderr.strip() or result.stdout.strip()
         return False, stderr
@@ -185,7 +191,7 @@ def merge_po(existing_path, exported_path, lang):
 def count_translations(po_path):
     content = po_path.read_text(encoding="utf-8")
     entries = content.count("\nmsgid ")
-    translated = content.count("\nmsgstr \"")
+    content.count('\nmsgstr "')
     non_empty = sum(
         1
         for block in content.split("\nmsgid ")[1:]
@@ -260,7 +266,9 @@ def main():
     db_config = read_db_config(args.config)
     database = args.database or detect_database(db_config, repo_modules)
     if not database:
-        print("ERROR: No se pudo detectar una base de datos con módulos l10n-venezuela instalados.")
+        print(
+            "ERROR: No se pudo detectar una base de datos con módulos l10n-venezuela instalados."
+        )
         sys.exit(1)
 
     ensure_language(db_config, database, args.language)
@@ -287,7 +295,9 @@ def main():
                 skipped += 1
                 continue
             if module not in installed:
-                print(f"[WARN] {module}: no instalado en {database}, se intentará exportar igualmente")
+                print(
+                    f"[WARN] {module}: no instalado en {database}, se intentará exportar igualmente"
+                )
 
             export_path = tmp_path / f"{module}.po"
             print(f"[EXPORT] {module}...", end=" ", flush=True)
@@ -316,11 +326,15 @@ def main():
                 continue
 
             total, done = count_translations(po_path)
-            print(f"OK ({done}/{total} traducciones) -> {po_path.relative_to(REPO_ROOT)}")
+            print(
+                f"OK ({done}/{total} traducciones) -> {po_path.relative_to(REPO_ROOT)}"
+            )
             exported += 1
 
     print("")
-    print(f"Completado: {exported} exportados, {skipped} omitidos, {len(failed)} fallidos.")
+    print(
+        f"Completado: {exported} exportados, {skipped} omitidos, {len(failed)} fallidos."
+    )
     if failed:
         print("")
         for module, error in failed:
