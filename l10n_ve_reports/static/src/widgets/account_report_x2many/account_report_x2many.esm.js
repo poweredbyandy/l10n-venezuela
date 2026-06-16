@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import {useRef, onWillRender} from "@odoo/owl";
+import {onWillRender, useRef} from "@odoo/owl";
 import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {WarningDialog} from "@web/core/errors/error_dialogs";
 import {_t} from "@web/core/l10n/translation";
@@ -58,14 +58,14 @@ export class AccountReportListRenderer extends ListRenderer {
         });
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Records
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     recordsDataDeepCopy(records) {
         const fields = this.allColumns.map((column) => column.name);
 
         return records.map((record) => {
-            let recordData = {};
+            const recordData = {};
 
             for (const field of fields) recordData[field] = record.data[field];
 
@@ -73,14 +73,14 @@ export class AccountReportListRenderer extends ListRenderer {
         });
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Format
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     formatData() {
-        let idToIndexMap = {};
-        let tree = [];
+        const idToIndexMap = {};
+        const tree = [];
 
-        let lines = this.recordsDataDeepCopy(this.props.list.records);
+        const lines = this.recordsDataDeepCopy(this.props.list.records);
 
         for (const [index, line] of lines.entries()) {
             line.index = index;
@@ -113,9 +113,9 @@ export class AccountReportListRenderer extends ListRenderer {
         return tree;
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Placeholder
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     onDragStart(ctx) {
         function sanitize(element) {
             if (element.nodeName === "LI") {
@@ -150,9 +150,9 @@ export class AccountReportListRenderer extends ListRenderer {
         document.querySelector(".o_dragged_placeholder").remove();
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Nested sorting
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     async setRecordParent(currentElement, parentElement) {
         const currentRecordIndex = currentElement.dataset.record_index;
         const parentRecordIndex = parentElement?.dataset.record_index;
@@ -160,7 +160,7 @@ export class AccountReportListRenderer extends ListRenderer {
         // Default root element
         let parent = false;
 
-        // parentRecordIndex is a string. It should be true with '0'.
+        // ParentRecordIndex is a string. It should be true with '0'.
         if (parentRecordIndex) {
             parent = [
                 this.props.list.records[parentRecordIndex].data.id,
@@ -287,9 +287,9 @@ export class AccountReportListRenderer extends ListRenderer {
         );
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Delete
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     onDeleteRecord(recordIndex) {
         const currentRecordId = this.props.list.records[recordIndex].data.id;
         const nextRecordParentId =

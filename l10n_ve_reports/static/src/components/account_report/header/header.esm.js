@@ -22,7 +22,7 @@ export class AccountReportHeader extends Component {
     // Headers
     // -----------------------------------------------------------------------------------------------------------------
     get columnHeaders() {
-        let columnHeaders = [];
+        const columnHeaders = [];
 
         this.controller.options.column_headers.forEach(
             (columnHeader, columnHeaderIndex) => {
@@ -57,9 +57,9 @@ export class AccountReportHeader extends Component {
         return colspan;
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Subheaders
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     get subheaders() {
         const columns = JSON.parse(JSON.stringify(this.controller.options.columns));
         const columnsPerGroupKey = {};
@@ -79,14 +79,14 @@ export class AccountReportHeader extends Component {
                 return columnsPerGroupKey[
                     `${column.column_group_key}_${column.expression_label}`
                 ];
-            } else {
+            } 
                 return {
                     expression_label: "",
                     sortable: false,
                     name: "",
                     colspan: 1,
                 };
-            }
+            
         });
     }
 
@@ -94,7 +94,7 @@ export class AccountReportHeader extends Component {
     // Custom subheaders
     // -----------------------------------------------------------------------------------------------------------------
     get customSubheaders() {
-        let customSubheaders = [];
+        const customSubheaders = [];
 
         this.controller.columnHeadersRenderData.custom_subheaders.forEach(
             (customSubheader) => {

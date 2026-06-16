@@ -20,7 +20,7 @@
     ],
     "assets": {
         "web.assets_backend": [
-            "l10n_ve_reports_stock/static/src/components/inventory_book_report/*.js",
+            "l10n_ve_reports_stock/static/src/components/inventory_book_report/*.esm.js",
             "l10n_ve_reports_stock/static/src/components/inventory_book_report/*.xml",
         ],
     },

@@ -1,26 +1,26 @@
 import {registry} from "@web/core/registry";
 import {
-    createTfhkaFiscal,
-    encodeLatin1,
     PrinterStatus,
     SVPrinterData,
     TfhkaFiscal,
-} from "./tfhka_serial";
+    createTfhkaFiscal,
+    encodeLatin1,
+} from "./tfhka_serial.esm";
 import {
-    formatWebSerialError,
     TfhkaWebSerialTransport,
-} from "./tfhka_transport_webserial";
-import {getSampleHkaInvoiceLines} from "./tfhka_invoice_samples";
+    formatWebSerialError,
+} from "./tfhka_transport_webserial.esm";
+import {getSampleHkaInvoiceLines} from "./tfhka_invoice_samples.esm";
 import {
-    createTfhkaFiscalMachine,
     FLAG_21,
     TAX_MAP,
     TfhkaFiscalMachine,
-} from "./tfhka_fiscal_machine";
+    createTfhkaFiscalMachine,
+} from "./tfhka_fiscal_machine.esm";
 import {
     mfReportzFromDailyClosureString,
     parseTfhkaS1StatusResponse,
-} from "./tfhka_s1_parser";
+} from "./tfhka_s1_parser.esm";
 
 export const l10nVeFiscalSerialService = {
     dependencies: [],

@@ -228,7 +228,7 @@ patch(PaymentScreen.prototype, {
                 try {
                     await driver.closeFpCtrl();
                 } catch {
-                    // ignore close errors
+                    // Ignore close errors
                 }
             }
             if (blocked) {

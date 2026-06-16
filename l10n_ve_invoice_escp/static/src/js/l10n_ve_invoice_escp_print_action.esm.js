@@ -97,7 +97,7 @@ async function sendEpsonEscpWebUSB(uint8Array) {
         try {
             await device.close();
         } catch {
-            /* ignore */
+            /* Ignore */
         }
     }
 }
@@ -159,7 +159,7 @@ export class L10nVeInvoiceEscpPrintAction extends Component {
             try {
                 await this.action.doAction({type: "ir.actions.act_window_close"});
             } catch {
-                /* dialog closed */
+                /* Dialog closed */
             }
         }
     }

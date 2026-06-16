@@ -4,9 +4,9 @@ import {Dropdown} from "@web/core/dropdown/dropdown";
 import {DropdownItem} from "@web/core/dropdown/dropdown_item";
 import {useService} from "@web/core/utils/hooks";
 import {usePopover} from "@web/core/popover/popover_hook";
-import {Component, useState, useRef} from "@odoo/owl";
+import {Component, useRef, useState} from "@odoo/owl";
 
-import {AccountReportAnnotationsPopover} from "@l10n_ve_reports/components/account_report/line_name/popover/annotations_popover";
+import {AccountReportAnnotationsPopover} from "@l10n_ve_reports/components/account_report/line_name/popover/annotations_popover.esm";
 
 export class AccountReportLineName extends Component {
     static template = "l10n_ve_reports.AccountReportLineName";
@@ -33,9 +33,9 @@ export class AccountReportLineName extends Component {
         this.lineNameCell = useRef("lineNameCell");
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Caret options
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     get caretOptions() {
         return this.controller.caretOptions[this.props.line.caret_options];
     }
@@ -144,9 +144,9 @@ export class AccountReportLineName extends Component {
         return this.props.line.visible_annotations;
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Annotation Popover
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     async toggleAnnotationPopover() {
         if (this.annotationPopOver.isOpen) {
             this.annotationPopOver.close();

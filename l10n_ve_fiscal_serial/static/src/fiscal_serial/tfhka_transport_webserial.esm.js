@@ -82,7 +82,7 @@ export class TfhkaWebSerialTransport {
     }
 
     isOpen() {
-        return !!(this.port && this.port.readable && this.port.writable);
+        return Boolean(this.port && this.port.readable && this.port.writable);
     }
 
     async writeBytes(bytes, options = {}) {

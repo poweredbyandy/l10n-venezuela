@@ -1,6 +1,6 @@
 /** @odoo-module */
 
-import {Component, useRef, useState, onMounted} from "@odoo/owl";
+import {Component, onMounted, useRef, useState} from "@odoo/owl";
 
 export class AccountReportSearchBar extends Component {
     static template = "l10n_ve_reports.AccountReportSearchBar";
@@ -20,9 +20,9 @@ export class AccountReportSearchBar extends Component {
         });
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Search
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     search() {
         const inputText = this.searchText.el.value.trim();
         const query = inputText.toLowerCase();

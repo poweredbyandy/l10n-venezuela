@@ -1,7 +1,7 @@
 /** @odoo-module */
 
-import {AccountReport} from "@l10n_ve_reports/components/account_report/account_report";
-import {AccountReportLineCell} from "@l10n_ve_reports/components/account_report/line_cell/line_cell";
+import {AccountReport} from "@l10n_ve_reports/components/account_report/account_report.esm";
+import {AccountReportLineCell} from "@l10n_ve_reports/components/account_report/line_cell/line_cell.esm";
 const {DateTime} = luxon;
 
 export class PartnerLedgerLineCell extends AccountReportLineCell {

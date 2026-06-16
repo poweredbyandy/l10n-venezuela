@@ -4,7 +4,7 @@ import {_t} from "@web/core/l10n/translation";
 const EMPTY_ADVANCES_MESSAGE = _t("Sin anticipos pendientes");
 import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
-import {formatDate, deserializeDate} from "@web/core/l10n/dates";
+import {deserializeDate, formatDate} from "@web/core/l10n/dates";
 import {formatMonetary} from "@web/views/fields/formatters";
 import {standardFieldProps} from "@web/views/fields/standard_field_props";
 import {Component} from "@odoo/owl";

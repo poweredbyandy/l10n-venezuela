@@ -2,7 +2,7 @@
 
 const {DateTime} = luxon;
 
-import {Asserts} from "./asserts";
+import {Asserts} from "./asserts.esm";
 import {registry} from "@web/core/registry";
 
 registry.category("web_tour.tours").add("account_reports_sections", {

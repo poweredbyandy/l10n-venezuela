@@ -1,4 +1,4 @@
-import {AttachmentViewMoveLine} from "./attachment_view_move_line";
+import {AttachmentViewMoveLine} from "./attachment_view_move_line.esm";
 
 import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
@@ -93,7 +93,7 @@ export class AccountMoveLineListController extends ListController {
                 })
             ),
             id: accountMoveLineData.data.move_id[0],
-            model: accountMoveLineData.fields["move_id"].relation,
+            model: accountMoveLineData.fields.move_id.relation,
         });
         if (!thread.mainAttachment && thread.attachmentsInWebClientView.length > 0) {
             thread.update({mainAttachment: thread.attachmentsInWebClientView[0]});

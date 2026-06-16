@@ -6,16 +6,16 @@ import {ControlPanel} from "@web/search/control_panel/control_panel";
 
 import {Component, onWillStart, useRef, useState, useSubEnv} from "@odoo/owl";
 
-import {AccountReportController} from "@l10n_ve_reports/components/account_report/controller";
-import {AccountReportButtonsBar} from "@l10n_ve_reports/components/account_report/buttons_bar/buttons_bar";
-import {AccountReportCogMenu} from "@l10n_ve_reports/components/account_report/cog_menu/cog_menu";
-import {AccountReportEllipsis} from "@l10n_ve_reports/components/account_report/ellipsis/ellipsis";
-import {AccountReportFilters} from "@l10n_ve_reports/components/account_report/filters/filters";
-import {AccountReportHeader} from "@l10n_ve_reports/components/account_report/header/header";
-import {AccountReportLine} from "@l10n_ve_reports/components/account_report/line/line";
-import {AccountReportLineCell} from "@l10n_ve_reports/components/account_report/line_cell/line_cell";
-import {AccountReportLineName} from "@l10n_ve_reports/components/account_report/line_name/line_name";
-import {AccountReportSearchBar} from "@l10n_ve_reports/components/account_report/search_bar/search_bar";
+import {AccountReportController} from "@l10n_ve_reports/components/account_report/controller.esm";
+import {AccountReportButtonsBar} from "@l10n_ve_reports/components/account_report/buttons_bar/buttons_bar.esm";
+import {AccountReportCogMenu} from "@l10n_ve_reports/components/account_report/cog_menu/cog_menu.esm";
+import {AccountReportEllipsis} from "@l10n_ve_reports/components/account_report/ellipsis/ellipsis.esm";
+import {AccountReportFilters} from "@l10n_ve_reports/components/account_report/filters/filters.esm";
+import {AccountReportHeader} from "@l10n_ve_reports/components/account_report/header/header.esm";
+import {AccountReportLine} from "@l10n_ve_reports/components/account_report/line/line.esm";
+import {AccountReportLineCell} from "@l10n_ve_reports/components/account_report/line_cell/line_cell.esm";
+import {AccountReportLineName} from "@l10n_ve_reports/components/account_report/line_name/line_name.esm";
+import {AccountReportSearchBar} from "@l10n_ve_reports/components/account_report/search_bar/search_bar.esm";
 import {standardActionServiceProps} from "@web/webclient/actions/action_service";
 import {useSetupAction} from "@web/search/action_hook";
 
@@ -45,7 +45,7 @@ export class AccountReport extends Component {
             rootRef: this.rootRef,
             getLocalState: () => {
                 return {
-                    keep_journal_groups_options: true, // used when using the breadcrumb
+                    keep_journal_groups_options: true, // Used when using the breadcrumb
                 };
             },
         });
@@ -118,7 +118,7 @@ export class AccountReport extends Component {
             classes += " striped";
         }
 
-        if (this.controller.options["horizontal_split"]) classes += " w-50 mx-2";
+        if (this.controller.options.horizontal_split) classes += " w-50 mx-2";
 
         return classes;
     }

@@ -5,7 +5,7 @@ import {localization} from "@web/core/l10n/localization";
 import {useService} from "@web/core/utils/hooks";
 import {Component, useState} from "@odoo/owl";
 
-import {AccountReportEllipsisPopover} from "@l10n_ve_reports/components/account_report/ellipsis/popover/ellipsis_popover";
+import {AccountReportEllipsisPopover} from "@l10n_ve_reports/components/account_report/ellipsis/popover/ellipsis_popover.esm";
 
 export class AccountReportEllipsis extends Component {
     static template = "l10n_ve_reports.AccountReportEllipsis";
@@ -22,9 +22,9 @@ export class AccountReportEllipsis extends Component {
         this.controller = useState(this.env.controller);
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Ellipsis
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     get triggersEllipsis() {
         if (this.props.name) return this.props.name.length > this.props.maxCharacters;
 

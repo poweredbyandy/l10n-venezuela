@@ -10,7 +10,7 @@ import {DropdownItem} from "@web/core/dropdown/dropdown_item";
 import {MultiRecordSelector} from "@web/core/record_selectors/multi_record_selector";
 import {formatDate} from "@web/core/l10n/dates";
 
-import {logAccountReportDate} from "../account_report_date_debug";
+import {logAccountReportDate} from "../account_report_date_debug.esm";
 
 const {DateTime} = luxon;
 
@@ -50,9 +50,9 @@ export class AccountReportFilters extends Component {
         selectedItem.el.querySelector(":scope input")?.focus();
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Getters
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     get selectedFiscalPositionName() {
         switch (this.controller.options.fiscal_position) {
             case "domestic":
@@ -188,7 +188,7 @@ export class AccountReportFilters extends Component {
             document: _t("Fecha del Documento"),
             manual: _t("Seleccionar Fecha"),
         };
-        return dateTypeNames[dateType] || dateTypeNames["current"];
+        return dateTypeNames[dateType] || dateTypeNames.current;
     }
 
     get currencyRateDateValue() {
@@ -208,9 +208,9 @@ export class AccountReportFilters extends Component {
             return selectedFilters[0].name;
         } else if (selectedFilters.length > 1) {
             return _t("%s selected", selectedFilters.length);
-        } else {
+        } 
             return _t("None");
-        }
+        
     }
 
     get availablePeriodOrder() {
@@ -262,9 +262,9 @@ export class AccountReportFilters extends Component {
             ? _t("Periods")
             : _t("Period");
     }
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Helpers
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     get hasAnalyticGroupbyFilter() {
         return (
             Boolean(this.controller.groups.analytic_accounting) &&
@@ -311,9 +311,9 @@ export class AccountReportFilters extends Component {
         });
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Dates
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Getters
     dateFrom(optionKey) {
         return DateTime.fromISO(this.controller.options[optionKey].date_from);
@@ -401,9 +401,9 @@ export class AccountReportFilters extends Component {
             return `next_${periodType}`;
         } else if (this.dateFilter[periodType] === 0) {
             return `this_${periodType}`;
-        } else {
+        } 
             return `previous_${periodType}`;
-        }
+        
     }
 
     selectDateFilter(periodType, reload = false) {
@@ -488,12 +488,12 @@ export class AccountReportFilters extends Component {
 
         const quarterDateFrom = DateTime.utc(
             dateTo.year,
-            quarterMonths[dateTo.quarter]["start"],
+            quarterMonths[dateTo.quarter].start,
             1
         );
         const quarterDateTo = DateTime.utc(
             dateTo.year,
-            quarterMonths[dateTo.quarter]["end"],
+            quarterMonths[dateTo.quarter].end,
             1
         );
 
@@ -508,7 +508,7 @@ export class AccountReportFilters extends Component {
         const periodicitySettings = this.controller.options.tax_periodicity;
         const targetDateInPeriod = dateTo.plus({
             months:
-                periodicitySettings.months_per_period * this.dateFilter["tax_period"],
+                periodicitySettings.months_per_period * this.dateFilter.tax_period,
         });
         const [start, end] = this._computeTaxPeriodDates(
             periodicitySettings,
@@ -554,7 +554,7 @@ export class AccountReportFilters extends Component {
             periodNumber = Math.floor((12 + monthOffset) / monthsPerPeriod) + 1;
         }
 
-        let deltaMonth = periodNumber * monthsPerPeriod;
+        const deltaMonth = periodNumber * monthsPerPeriod;
 
         const endDate = DateTime.utc(year, startMonth, 1).plus({
             months: deltaMonth,
@@ -566,9 +566,9 @@ export class AccountReportFilters extends Component {
         return [startDate, endDate];
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Number of periods
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     setNumberPeriods(ev) {
         const numberPeriods = ev.target.value;
 
@@ -581,9 +581,9 @@ export class AccountReportFilters extends Component {
             });
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Records
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     getMultiRecordSelectorProps(resModel, optionKey) {
         return {
             resModel,
@@ -598,19 +598,19 @@ export class AccountReportFilters extends Component {
         };
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Rounding unit
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     roundingUnitName(roundingUnit) {
         return _t(
             "In %s",
-            this.controller.options["rounding_unit_names"][roundingUnit][0]
+            this.controller.options.rounding_unit_names[roundingUnit][0]
         );
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Generic filters
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     async filterClicked({optionKey, optionValue = undefined, reload = false}) {
         if (optionKey.startsWith("date.")) {
             logAccountReportDate("filterClicked", {
@@ -651,9 +651,9 @@ export class AccountReportFilters extends Component {
         }, delay);
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Custom filters
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     selectJournal(journal) {
         if (journal.model === "account.journal.group") {
             const wasSelected = journal.selected;
@@ -715,7 +715,7 @@ export class AccountReportFilters extends Component {
             sections_source_id: reportId,
         });
         const cacheKey = this.controller.getCacheKey(reportId, reportId);
-        // if the variant hasn't been loaded yet, set up the call number
+        // If the variant hasn't been loaded yet, set up the call number
         if (!(cacheKey in this.controller.loadingCallNumberByCacheKey)) {
             this.controller.incrementCallNumber(cacheKey);
         }
@@ -726,7 +726,7 @@ export class AccountReportFilters extends Component {
         await this.filterClicked({optionKey: "tax_unit", optionValue: taxUnit.id});
         this.controller.saveSessionOptions(this.controller.options);
 
-        // force the company to those impacted by the tax units, the reload will be force by this function
+        // Force the company to those impacted by the tax units, the reload will be force by this function
         this.companyService.setCompanies(taxUnit.company_ids);
     }
 

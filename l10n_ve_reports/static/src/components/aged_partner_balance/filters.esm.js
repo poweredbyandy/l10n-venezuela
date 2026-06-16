@@ -2,15 +2,15 @@
 
 import {_t} from "@web/core/l10n/translation";
 import {WarningDialog} from "@web/core/errors/error_dialogs";
-import {AccountReport} from "@l10n_ve_reports/components/account_report/account_report";
-import {AccountReportFilters} from "@l10n_ve_reports/components/account_report/filters/filters";
+import {AccountReport} from "@l10n_ve_reports/components/account_report/account_report.esm";
+import {AccountReportFilters} from "@l10n_ve_reports/components/account_report/filters/filters.esm";
 
 export class AgedPartnerBalanceFilters extends AccountReportFilters {
     static template = "l10n_ve_reports.AgedPartnerBalanceFilters";
 
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     // Aging Interval
-    //------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
     async setAgingInterval(ev) {
         const agingInterval = parseInt(ev.target.value);
         if (agingInterval < 1) {

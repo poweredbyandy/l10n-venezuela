@@ -1,6 +1,6 @@
 import {Navbar} from "@point_of_sale/app/navbar/navbar";
 import {patch} from "@web/core/utils/patch";
-import {PosExchangeRatesDropdown} from "./pos_exchange_rates_dropdown";
+import {PosExchangeRatesDropdown} from "./pos_exchange_rates_dropdown.esm";
 
 Navbar.components = {
     ...Navbar.components,
