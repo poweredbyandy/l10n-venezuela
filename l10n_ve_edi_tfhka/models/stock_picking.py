@@ -334,8 +334,14 @@ class StockPicking(models.Model):
     def _tfhka_secuencia_for_numero_documento(self):
         self.ensure_one()
         ref_date = self.date_done or self.scheduled_date
+        journal = self._tfhka_get_reference_journal()
+        env_digit = (
+            journal._tfhka_get_numero_documento_environment_digit()
+            if journal
+            else "0"
+        )
         return self.env["l10n_ve.edi.tfhka.document.mixin"]._tfhka_build_secuencia_yyyy_mm_seq(
-            ref_date, self.name, self.id
+            ref_date, self.name, self.id, environment_digit=env_digit
         )
 
     def _tfhka_get_document_number(self):

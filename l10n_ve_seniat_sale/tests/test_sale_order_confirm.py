@@ -1,0 +1,77 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from odoo.exceptions import UserError
+from odoo.tests import tagged
+
+from odoo.addons.l10n_ve_seniat.tests.common import L10nVeSeniatCommon
+
+
+@tagged("post_install", "-at_install")
+class TestSaleOrderConfirm(L10nVeSeniatCommon):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.journal = cls.company_data["default_journal_sale"]
+        cls.journal.write({"l10n_ve_emission_medium": "digital"})
+
+    def _create_ve_product(self, name="Producto confirmación", price=100.0):
+        tmpl = self.env["product.template"].create(
+            {
+                "name": name,
+                "company_id": self.env.company.id,
+                "list_price": price,
+                "standard_price": price / 2,
+                "taxes_id": [(6, 0, [self.company_data["default_tax_sale"].id])],
+                "supplier_taxes_id": [
+                    (6, 0, [self.company_data["default_tax_purchase"].id])
+                ],
+            }
+        )
+        return tmpl.product_variant_ids[0]
+
+    def _create_ve_order(self, qty):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente VE confirmación",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345680",
+            }
+        )
+        product = self._create_ve_product()
+        return self.env["sale.order"].create(
+            {
+                "partner_id": partner.id,
+                "journal_id": self.journal.id,
+                "order_line": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": qty,
+                            "price_unit": 100.0,
+                        },
+                    )
+                ],
+            }
+        )
+
+    def test_confirm_rejects_zero_quantity(self):
+        order = self._create_ve_order(qty=0.0)
+        with self.assertRaises(UserError) as cm:
+            order.action_confirm()
+        self.assertIn("cantidad 0 o negativa", str(cm.exception))
+
+    def test_confirm_rejects_negative_quantity(self):
+        order = self._create_ve_order(qty=-1.0)
+        with self.assertRaises(UserError) as cm:
+            order.action_confirm()
+        self.assertIn("cantidad 0 o negativa", str(cm.exception))
+
+    def test_confirm_allows_quantity_change_after_confirmation(self):
+        order = self._create_ve_order(qty=1.0)
+        order.action_confirm()
+        order.order_line.product_uom_qty = 0.0
+        self.assertEqual(order.order_line.product_uom_qty, 0.0)
+        order.order_line.product_uom_qty = -2.0
+        self.assertEqual(order.order_line.product_uom_qty, -2.0)

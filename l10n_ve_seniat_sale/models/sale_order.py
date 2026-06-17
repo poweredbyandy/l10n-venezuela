@@ -2,7 +2,7 @@
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.tools import float_is_zero, float_round
+from odoo.tools import float_compare, float_is_zero, float_round
 
 
 class SaleOrder(models.Model):
@@ -373,6 +373,30 @@ class SaleOrder(models.Model):
                 raise UserError(
                     "No se puede confirmar el pedido con líneas en precio 0. "
                     "Corrija los precios de los siguientes productos: %s"
+                    % ", ".join(products)
+                )
+            invalid_qty_lines = order.order_line.filtered(
+                lambda line: (
+                    not line.display_type
+                    and not line.is_downpayment
+                    and float_compare(
+                        line.product_uom_qty,
+                        0.0,
+                        precision_rounding=line.product_uom.rounding,
+                    )
+                    <= 0
+                )
+            )
+            if invalid_qty_lines:
+                products = [
+                    line.product_id.display_name if line.product_id else line.name
+                    for line in invalid_qty_lines
+                ]
+                raise UserError(
+                    _(
+                        "No se puede confirmar el pedido con líneas en cantidad 0 o negativa. "
+                        "Corrija las cantidades de los siguientes productos: %s"
+                    )
                     % ", ".join(products)
                 )
             if order.country_code == "VE":

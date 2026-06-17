@@ -1,7 +1,7 @@
 {
     "name": "Venezuela Fiscal Serial POS",
     "summary": "Impresión fiscal TFHKA (Web Serial) desde el Punto de Venta",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.2",
     "category": "Point of Sale/Localizations",
     "author": "andyengit",
     "maintainer": "andyengit",
@@ -12,7 +12,9 @@
         "l10n_ve_fiscal_serial",
         "l10n_ve_pos",
     ],
-    "data": [],
+    "data": [
+        "views/pos_session_views.xml",
+    ],
     "assets": {
         "point_of_sale._assets_pos": [
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_transport_webserial.js",
@@ -22,7 +24,12 @@
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_invoice_samples.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/tfhka_fiscal_machine.js",
             "l10n_ve_fiscal_serial/static/src/fiscal_serial/fiscal_serial_service.js",
+            "l10n_ve_fiscal_serial/static/src/fiscal_serial/fiscal_serial_report.js",
+            "l10n_ve_fiscal_serial_pos/static/src/fiscal_serial_pos_print.js",
             "l10n_ve_fiscal_serial_pos/static/src/overrides/screens/payment_screen.js",
+            "l10n_ve_fiscal_serial_pos/static/src/overrides/screens/invoice_button.js",
+            "l10n_ve_fiscal_serial_pos/static/src/overrides/navbar/closing_popup.js",
+            "l10n_ve_fiscal_serial_pos/static/src/overrides/navbar/closing_popup.xml",
         ],
     },
     "installable": True,

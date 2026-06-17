@@ -2,6 +2,7 @@ import logging
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import float_compare
 from odoo.tools.misc import formatLang
 
 _logger = logging.getLogger(__name__)
@@ -327,11 +328,22 @@ class AccountMove(models.Model):
             return False
         if not self.company_id.l10n_ve_igtf_allow_invoice_accrual:
             return False
+        if not self.company_id.l10n_ve_igtf_account_id or not (
+            self.company_id.l10n_ve_igtf_percent or 0.0
+        ):
+            return False
+        if not self._l10n_ve_igtf_get_document_base_total_in_currency():
+            return False
+        if (
+            self.move_type == "out_refund"
+            and self.reversed_entry_id
+            and self.currency_id == self.company_currency_id
+            and self.reversed_entry_id._l10n_ve_igtf_origin_has_igtf()
+        ):
+            return True
         if not self.currency_id or self.currency_id not in self.company_id.l10n_ve_igtf_currency_ids:
             return False
-        if not self.company_id.l10n_ve_igtf_account_id or not (self.company_id.l10n_ve_igtf_percent or 0.0):
-            return False
-        return bool(self._l10n_ve_igtf_get_document_base_total_in_currency())
+        return True
 
     @api.depends(
         "invoice_payment_term_id",
@@ -470,25 +482,35 @@ class AccountMove(models.Model):
                 continue
             company = move.company_id
             igtf_account = company.l10n_ve_igtf_account_id
-            p = (company.l10n_ve_igtf_percent or 0.0) / 100.0
-            doc_base = move._l10n_ve_igtf_get_document_base_total_in_currency()
-            m_sign = 1.0
-            if move.move_type == "out_refund":
-                m_sign = -1.0
-            am_cur = -1.0 * m_sign * move.currency_id.round(doc_base * p)
-            if move.currency_id.is_zero(am_cur):
-                continue
-            bal = company.currency_id.round(
-                move.currency_id._convert(
-                    am_cur, company.currency_id, company, move.date
+            refund_line_amounts = None
+            if move.move_type == "out_refund" and move.reversed_entry_id:
+                refund_line_amounts = (
+                    move._l10n_ve_igtf_get_refund_igtf_line_amounts_from_origin()
                 )
-            )
+            if refund_line_amounts:
+                am_cur, bal = refund_line_amounts
+            else:
+                p = (company.l10n_ve_igtf_percent or 0.0) / 100.0
+                doc_base = move._l10n_ve_igtf_get_document_base_total_in_currency()
+                m_sign = 1.0
+                if move.move_type == "out_refund":
+                    m_sign = -1.0
+                am_cur = -1.0 * m_sign * move.currency_id.round(doc_base * p)
+                if move.currency_id.is_zero(am_cur):
+                    continue
+                bal = company.currency_id.round(
+                    move.currency_id._convert(
+                        am_cur, company.currency_id, company, move.date
+                    )
+                )
+            if move.currency_id.is_zero(am_cur) and company.currency_id.is_zero(bal):
+                continue
             if _logger.isEnabledFor(logging.INFO):
                 _logger.info(
-                    "l10n_ve_igtf recompute: move=%s create aml doc_base=%s p=%s am_cur=%s bal=%s",
+                    "l10n_ve_igtf recompute: move=%s create aml from_origin=%s "
+                    "am_cur=%s bal=%s",
                     move.id,
-                    doc_base,
-                    p,
+                    bool(refund_line_amounts),
                     am_cur,
                     bal,
                 )
@@ -541,20 +563,209 @@ class AccountMove(models.Model):
                 move._l10n_ve_igtf_resync_payment_term_lines()
         return super().action_post()
 
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        credit_notes = super()._reverse_moves(
+            default_values_list=default_values_list, cancel=cancel
+        )
+        for move in credit_notes.filtered(
+            lambda m: m.move_type == "out_refund" and m.state == "draft"
+        ):
+            if move._l10n_ve_igtf_should_add_move_lines():
+                move._l10n_ve_igtf_recompute_invoice_lines()
+        return credit_notes
+
+    def _l10n_ve_force_refund_to_company_currency(self):
+        res = super()._l10n_ve_force_refund_to_company_currency()
+        refunds = self.filtered(
+            lambda m: m.move_type == "out_refund" and m.state == "draft"
+        )
+        for move in refunds:
+            igtf_lines = move._l10n_ve_igtf_aml()
+            if igtf_lines:
+                igtf_lines.with_context(l10n_ve_igtf_skip_igtf=True).unlink()
+            if move._l10n_ve_igtf_should_add_move_lines():
+                move._l10n_ve_igtf_recompute_invoice_lines()
+            else:
+                move.invalidate_recordset(
+                    [
+                        "tax_totals",
+                        "l10n_ve_igtf_collected_amount_currency",
+                        "l10n_ve_igtf_collected_amount_company_currency",
+                    ]
+                )
+        return res
+
     def l10n_ve_igtf_invoice_has_igtf_accrual(self):
         self.ensure_one()
         if not self._l10n_ve_igtf_move_applies() or not self.is_sale_document(
             include_receipts=True
         ):
             return False
-        if not self.currency_id or self.currency_id not in self.company_id.l10n_ve_igtf_currency_ids:
-            return False
         lines = self._l10n_ve_igtf_aml()
         if not lines:
+            return False
+        if (
+            self.move_type == "out_refund"
+            and self.currency_id == self.company_currency_id
+        ):
+            return not self.currency_id.is_zero(
+                self.currency_id.round(sum(lines.mapped("amount_currency")))
+            )
+        if not self.currency_id or self.currency_id not in self.company_id.l10n_ve_igtf_currency_ids:
             return False
         return not self.currency_id.is_zero(
             self.currency_id.round(sum(lines.mapped("amount_currency")))
         )
+
+    def l10n_ve_igtf_document_has_igtf(self):
+        self.ensure_one()
+        if self.l10n_ve_igtf_invoice_has_igtf_accrual():
+            return True
+        if self.move_type == "out_refund" and self.reversed_entry_id:
+            return self.reversed_entry_id._l10n_ve_igtf_origin_has_igtf()
+        return False
+
+    def _l10n_ve_igtf_origin_has_igtf(self):
+        self.ensure_one()
+        if self.l10n_ve_igtf_invoice_has_igtf_accrual():
+            return True
+        igtf_cur, igtf_comp = self._l10n_ve_igtf_get_collected_amounts(
+            include_base=False
+        )
+        return (not self.currency_id.is_zero(igtf_cur)) or (
+            not self.company_currency_id.is_zero(igtf_comp)
+        )
+
+    def _l10n_ve_igtf_refund_from_foreign_origin_in_company_currency(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        return bool(
+            self.move_type == "out_refund"
+            and origin
+            and self.currency_id == self.company_currency_id
+            and origin.currency_id != origin.company_currency_id
+        )
+
+    def _l10n_ve_igtf_convert_origin_document_amount_to_refund_currency(
+        self, origin, amount
+    ):
+        self.ensure_one()
+        company = self.company_id
+        if origin.currency_id == self.currency_id:
+            return self.currency_id.round(amount)
+        origin_date = origin.invoice_date or origin.date or fields.Date.context_today(
+            self
+        )
+        if self.currency_id == company.currency_id:
+            return company.currency_id.round(
+                origin.currency_id._convert(
+                    amount, company.currency_id, company, origin_date
+                )
+            )
+        refund_date = self.invoice_date or self.date or origin_date
+        return self.currency_id.round(
+            origin.currency_id._convert(
+                amount, self.currency_id, company, refund_date
+            )
+        )
+
+    def _l10n_ve_igtf_get_refund_ratio_from_origin(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        if self.move_type != "out_refund" or not origin:
+            return 0.0
+        if self._l10n_ve_igtf_refund_from_foreign_origin_in_company_currency():
+            company_cur = self.company_currency_id
+            origin_base_comp = abs(
+                self._l10n_ve_igtf_convert_origin_document_amount_to_refund_currency(
+                    origin,
+                    origin._l10n_ve_igtf_get_document_base_total_in_currency(),
+                )
+            )
+            credit_base_comp = abs(
+                self._l10n_ve_igtf_get_document_base_total_in_currency()
+            )
+            if company_cur.is_zero(origin_base_comp) or company_cur.is_zero(
+                credit_base_comp
+            ):
+                return 0.0
+            return min(1.0, credit_base_comp / origin_base_comp)
+        origin_base = origin._l10n_ve_igtf_get_document_base_total_in_currency()
+        if origin.currency_id.is_zero(origin_base):
+            return 0.0
+        credit_base = self._l10n_ve_igtf_get_document_base_total_in_currency()
+        if self.currency_id.is_zero(credit_base):
+            return 0.0
+        ratio = abs(credit_base) / abs(origin_base)
+        return min(1.0, ratio)
+
+    def _l10n_ve_igtf_get_origin_igtf_line_totals(self):
+        self.ensure_one()
+        if self.l10n_ve_igtf_invoice_has_igtf_accrual():
+            lines = self._l10n_ve_igtf_aml()
+            return (
+                self.currency_id.round(sum(lines.mapped("amount_currency"))),
+                self.company_currency_id.round(sum(lines.mapped("balance"))),
+            )
+        (
+            _origin_base_cur,
+            _origin_base_comp,
+            origin_igtf_cur,
+            origin_igtf_comp,
+        ) = self._l10n_ve_igtf_get_collected_amounts(include_base=True)
+        return origin_igtf_cur, origin_igtf_comp
+
+    def _l10n_ve_igtf_get_refund_igtf_line_amounts_from_origin(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        if self.move_type != "out_refund" or not origin:
+            return None
+        if not origin._l10n_ve_igtf_origin_has_igtf():
+            return None
+        ratio = self._l10n_ve_igtf_get_refund_ratio_from_origin()
+        if float_compare(ratio, 0.0, precision_rounding=self.currency_id.rounding) <= 0:
+            return None
+        origin_igtf_cur, origin_igtf_comp = origin._l10n_ve_igtf_get_origin_igtf_line_totals()
+        amount_currency = self.currency_id.round(-origin_igtf_cur * ratio)
+        balance = self.company_currency_id.round(-origin_igtf_comp * ratio)
+        if self._l10n_ve_igtf_refund_from_foreign_origin_in_company_currency():
+            amount_currency = balance
+        if self.currency_id.is_zero(amount_currency) and self.company_currency_id.is_zero(
+            balance
+        ):
+            return None
+        return amount_currency, balance
+
+    def _l10n_ve_igtf_get_refund_igtf_amounts_from_origin(self, include_base=False):
+        self.ensure_one()
+        zero4 = (0.0, 0.0, 0.0, 0.0)
+        zero2 = (0.0, 0.0)
+        origin = self.reversed_entry_id
+        if self.move_type != "out_refund" or not origin:
+            return zero4 if include_base else zero2
+        if not origin._l10n_ve_igtf_origin_has_igtf():
+            return zero4 if include_base else zero2
+        line_amounts = self._l10n_ve_igtf_get_refund_igtf_line_amounts_from_origin()
+        if not line_amounts:
+            return zero4 if include_base else zero2
+        igtf_cur, igtf_comp = line_amounts
+        sign = -1.0
+        credit_doc_base = self._l10n_ve_igtf_get_document_base_total_in_currency()
+        base_cur = self.currency_id.round(sign * credit_doc_base)
+        if self._l10n_ve_igtf_refund_from_foreign_origin_in_company_currency():
+            base_comp = base_cur
+        else:
+            base_comp = self.company_currency_id.round(
+                self.currency_id._convert(
+                    base_cur,
+                    self.company_currency_id,
+                    self.company_id,
+                    self.date,
+                )
+            )
+        if include_base:
+            return base_cur, base_comp, igtf_cur, igtf_comp
+        return igtf_cur, igtf_comp
 
     def l10n_ve_igtf_get_residual_excluding_igtf_in_document_currency(self):
         self.ensure_one()
@@ -761,6 +972,20 @@ class AccountMove(models.Model):
             return self._l10n_ve_igtf_get_from_invoice_igtf_lines(
                 include_base=include_base
             )
+
+        if self.move_type == "out_refund" and self.reversed_entry_id:
+            origin_amounts = self._l10n_ve_igtf_get_refund_igtf_amounts_from_origin(
+                include_base=include_base
+            )
+            if include_base:
+                if not self.currency_id.is_zero(
+                    origin_amounts[2]
+                ) or not self.company_currency_id.is_zero(origin_amounts[3]):
+                    return origin_amounts
+            elif not self.currency_id.is_zero(
+                origin_amounts[0]
+            ) or not self.company_currency_id.is_zero(origin_amounts[1]):
+                return origin_amounts
 
         doc_base = self._l10n_ve_igtf_get_document_base_total_in_currency()
         invoice_total = invoice_currency.round(doc_base) if doc_base else 0.0
@@ -1026,6 +1251,18 @@ class AccountMove(models.Model):
             return self._l10n_ve_igtf_get_from_invoice_igtf_lines(
                 include_base=True
             )
+        if (
+            self.move_type == "out_refund"
+            and self.reversed_entry_id
+            and self.reversed_entry_id._l10n_ve_igtf_origin_has_igtf()
+        ):
+            origin_amounts = self._l10n_ve_igtf_get_refund_igtf_amounts_from_origin(
+                include_base=True
+            )
+            if not self.currency_id.is_zero(
+                origin_amounts[2]
+            ) or not self.company_currency_id.is_zero(origin_amounts[3]):
+                return origin_amounts
         if self._l10n_ve_igtf_should_add_move_lines() and doc and p:
             b_loc = self.currency_id.round(m_sign * doc)
             b_comp = self.company_currency_id.round(
@@ -1061,6 +1298,12 @@ class AccountMove(models.Model):
             return True
         if self._l10n_ve_igtf_aml():
             return True
+        if (
+            self.move_type == "out_refund"
+            and self.reversed_entry_id
+            and self.reversed_entry_id._l10n_ve_igtf_origin_has_igtf()
+        ):
+            return True
         if bool(self._l10n_ve_igtf_tax_totals_should_show_igtf_row_extra()):
             return True
         amt_cur, amt_comp = self._l10n_ve_igtf_get_collected_amounts(
@@ -1068,6 +1311,32 @@ class AccountMove(models.Model):
         )
         return (not self.currency_id.is_zero(amt_cur)) or (
             not self.company_currency_id.is_zero(amt_comp)
+        )
+
+    def _l10n_ve_igtf_tax_totals_row_amounts(
+        self,
+        igtf_base_amount_currency,
+        igtf_base_amount_company_currency,
+        igtf_amount_currency,
+        igtf_amount_company_currency,
+    ):
+        self.ensure_one()
+        if self.move_type == "out_refund":
+            return (
+                abs(igtf_base_amount_currency),
+                abs(igtf_base_amount_company_currency),
+                abs(igtf_amount_currency),
+                abs(igtf_amount_company_currency),
+                igtf_amount_currency,
+                igtf_amount_company_currency,
+            )
+        return (
+            igtf_base_amount_currency,
+            igtf_base_amount_company_currency,
+            -igtf_amount_currency,
+            -igtf_amount_company_currency,
+            -igtf_amount_currency,
+            -igtf_amount_company_currency,
         )
 
     def _l10n_ve_igtf_tax_totals_merge_igtf_row(self):
@@ -1142,17 +1411,30 @@ class AccountMove(models.Model):
         subtotals = list(totals.get("subtotals") or [])
         percent = self.company_id.l10n_ve_igtf_percent or 0
         percent_str = int(percent) if percent == int(percent) else percent
+        (
+            row_base_currency,
+            row_base_company,
+            row_tax_currency,
+            row_tax_company,
+            collected_currency,
+            collected_company,
+        ) = self._l10n_ve_igtf_tax_totals_row_amounts(
+            igtf_base_amount_currency,
+            igtf_base_amount_company_currency,
+            igtf_amount_currency,
+            igtf_amount_company_currency,
+        )
         igtf_tax_group = {
             "id": -1,
             "involved_tax_ids": [],
             "group_name": igtf_label % {"percent": percent_str},
             "group_label": False,
-            "base_amount_currency": igtf_base_amount_currency,
-            "display_base_amount_currency": igtf_base_amount_currency,
-            "tax_amount_currency": -igtf_amount_currency,
-            "base_amount": igtf_base_amount_company_currency,
-            "display_base_amount": igtf_base_amount_company_currency,
-            "tax_amount": -igtf_amount_company_currency,
+            "base_amount_currency": row_base_currency,
+            "display_base_amount_currency": row_base_currency,
+            "tax_amount_currency": row_tax_currency,
+            "base_amount": row_base_company,
+            "display_base_amount": row_base_company,
+            "tax_amount": row_tax_company,
         }
         if subtotals:
             last_subtotal = subtotals[-1]
@@ -1163,21 +1445,27 @@ class AccountMove(models.Model):
             subtotals.append(
                 {
                     "name": _("Untaxed Amount"),
-                    "base_amount_currency": igtf_base_amount_currency,
-                    "base_amount": igtf_base_amount_company_currency,
+                    "base_amount_currency": row_base_currency,
+                    "base_amount": row_base_company,
                     "tax_amount_currency": 0.0,
                     "tax_amount": 0.0,
                     "tax_groups": [igtf_tax_group],
                 }
             )
         totals["subtotals"] = subtotals
-        totals["l10n_ve_igtf_collected_amount_currency"] = -igtf_amount_currency
-        totals["l10n_ve_igtf_collected_amount"] = -igtf_amount_company_currency
+        totals["l10n_ve_igtf_collected_amount_currency"] = collected_currency
+        totals["l10n_ve_igtf_collected_amount"] = collected_company
+        if self.move_type == "out_refund":
+            igtf_total_delta_currency = abs(igtf_amount_currency)
+            igtf_total_delta_company = abs(igtf_amount_company_currency)
+        else:
+            igtf_total_delta_currency = -igtf_amount_currency
+            igtf_total_delta_company = -igtf_amount_company_currency
         totals["total_amount_currency"] = (
-            totals.get("total_amount_currency", 0.0) - igtf_amount_currency
+            totals.get("total_amount_currency", 0.0) + igtf_total_delta_currency
         )
         totals["total_amount"] = (
-            totals.get("total_amount", 0.0) - igtf_amount_company_currency
+            totals.get("total_amount", 0.0) + igtf_total_delta_company
         )
         totals["l10n_ve_igtf_total_without_igtf_currency"] = total_doc_before_igtf
         totals["l10n_ve_igtf_total_without_igtf"] = total_comp_before_igtf
@@ -1211,6 +1499,7 @@ class AccountMove(models.Model):
         "move_type",
         "state",
         "payment_state",
+        "reversed_entry_id",
         "country_code",
         "company_id.l10n_ve_igtf_feature_active",
         "company_id.l10n_ve_igtf_allow_invoice_accrual",

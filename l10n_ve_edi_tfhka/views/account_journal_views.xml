@@ -14,6 +14,10 @@
                     name="l10n_ve_edi_tfhka_sucursal"
                     invisible="l10n_ve_edi_provider != 'tfhka'"
                 />
+                <field
+                    name="l10n_ve_edi_tfhka_environment_digit"
+                    invisible="l10n_ve_edi_provider != 'tfhka'"
+                />
             </xpath>
         </field>
     </record>

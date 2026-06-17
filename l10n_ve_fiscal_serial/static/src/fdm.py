@@ -1229,22 +1229,32 @@ class SerialFiscalDriver(SerialDriver):
             event_manager.device_changed(self)
             return {"valid": False, "message": str(_e)}
 
+    def _normalize_reprint_number(self, number):
+        digits = "".join(ch for ch in str(number or "") if ch.isdigit())
+        if not digits:
+            return "0000000"
+        return digits[-7:].zfill(7)
+
     def reprint(self, data):
         self.data["value"] = {"valid": False, "message": "No se ha completado"}
         
         data = data.get("data") or data
             
+        doc_type = data.get("reprint_document_type") or data.get("type")
         mode = ""
-        if data["type"] == "out_invoice":
+        if doc_type == "debit_note":
+            mode = "RD"
+        elif doc_type == "out_invoice":
             mode = "RF"
-        if data["type"] == "out_refund":
+        elif doc_type == "out_refund":
             mode = "RC"
         if mode == "":
             self.data["value"] = {"valid": False, "message": "Datos no validos"}
             event_manager.device_changed(self)
             return self.data["value"]
         
-        command = mode + str(data["mf_number"].zfill(7) + str(data["mf_number"].zfill(7)))
+        number = self._normalize_reprint_number(data.get("mf_number"))
+        command = mode + number + number
         
         try:
             status = self.ReadFpStatus(True)

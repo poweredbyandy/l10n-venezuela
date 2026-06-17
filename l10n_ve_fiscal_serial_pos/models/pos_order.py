@@ -5,6 +5,23 @@ from odoo.exceptions import UserError
 class PosOrder(models.Model):
     _inherit = "pos.order"
 
+    def l10n_ve_fiscal_serial_pos_fiscal_action_payload(self):
+        self.ensure_one()
+        move = self.account_move
+        if not move:
+            raise UserError(_("La orden POS no tiene una factura contable asociada."))
+        if move.country_code != "VE":
+            raise UserError(_("La impresión fiscal POS solo aplica para documentos VE."))
+        if move.l10n_ve_journal_emission_medium != "fiscal_machine":
+            raise UserError(_("El diario del documento no está configurado como máquina fiscal."))
+
+        if move.l10n_ve_invoice_number:
+            data = move.check_reprint()
+            data["l10n_ve_print_action"] = "reprint"
+            return data
+
+        return self.l10n_ve_fiscal_serial_check_print_move()
+
     def l10n_ve_fiscal_serial_check_print_move(self):
         self.ensure_one()
         move = self.account_move
