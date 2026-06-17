@@ -939,6 +939,81 @@ class TestIgtfPaymentFlows(TestL10nVeIgtfCommon):
         self.assertTrue(igtf_move_line)
         self.assertGreater(sum(igtf_move_line.mapped("balance")), 0.0)
 
+    def test_credit_note_full_refund_propagates_igtf_accrual_from_origin(self):
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
+        self.assertTrue(invoice.l10n_ve_igtf_invoice_has_igtf_accrual())
+        origin_igtf_cur, origin_igtf_comp = invoice._l10n_ve_igtf_get_collected_amounts(
+            include_base=False
+        )
+        self.assertAlmostEqual(abs(origin_igtf_cur), 3.0, places=2)
+
+        credit_note = invoice._reverse_moves()[0]
+        credit_note.invalidate_recordset()
+        self.assertTrue(credit_note.l10n_ve_igtf_document_has_igtf())
+        cn_igtf_cur, cn_igtf_comp = credit_note._l10n_ve_igtf_get_collected_amounts(
+            include_base=False
+        )
+        self.assertAlmostEqual(abs(cn_igtf_cur), abs(origin_igtf_cur), places=2)
+        self.assertAlmostEqual(abs(cn_igtf_comp), abs(origin_igtf_comp), places=2)
+
+        igtf_group = self._get_igtf_group_from_tax_totals(credit_note)
+        self.assertTrue(igtf_group)
+        self.assertGreater(igtf_group.get("tax_amount_currency", 0.0), 0.0)
+        self.assertAlmostEqual(
+            igtf_group.get("tax_amount_currency", 0.0),
+            abs(origin_igtf_cur),
+            places=2,
+        )
+
+    def test_credit_note_in_company_currency_shows_igtf_in_bs(self):
+        self.sale_journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+            }
+        )
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
+        origin_igtf_lines = invoice._l10n_ve_igtf_aml()
+        origin_igtf_balance = abs(sum(origin_igtf_lines.mapped("balance")))
+        self.assertGreater(origin_igtf_balance, 0.0)
+
+        credit_note = invoice._reverse_moves()[0]
+        credit_note._l10n_ve_force_refund_to_company_currency()
+        credit_note.invalidate_recordset()
+        self.assertEqual(credit_note.currency_id, self.ves)
+        self.assertTrue(credit_note._l10n_ve_igtf_aml())
+        self.assertTrue(credit_note.l10n_ve_igtf_invoice_has_igtf_accrual())
+
+        cn_igtf_lines = credit_note._l10n_ve_igtf_aml()
+        cn_igtf_balance = sum(cn_igtf_lines.mapped("balance"))
+        self.assertAlmostEqual(cn_igtf_balance, origin_igtf_balance, places=2)
+        self.assertAlmostEqual(
+            cn_igtf_lines.amount_currency,
+            origin_igtf_balance,
+            places=2,
+        )
+
+        cn_igtf_cur, cn_igtf_comp = credit_note._l10n_ve_igtf_get_collected_amounts(
+            include_base=False
+        )
+        self.assertAlmostEqual(cn_igtf_cur, origin_igtf_balance, places=2)
+        self.assertAlmostEqual(cn_igtf_comp, origin_igtf_balance, places=2)
+
+        igtf_group = self._get_igtf_group_from_tax_totals(credit_note)
+        self.assertTrue(igtf_group)
+        self.assertGreater(igtf_group.get("tax_amount_currency", 0.0), 0.0)
+        self.assertAlmostEqual(
+            igtf_group.get("tax_amount_currency", 0.0),
+            origin_igtf_balance,
+            places=2,
+        )
+        totals = credit_note.tax_totals
+        self.assertGreater(
+            totals["total_amount_currency"],
+            totals["l10n_ve_igtf_total_without_igtf_currency"],
+        )
+
     def test_invoice_accrual_disabled_no_igtf_lines_on_usd_invoice(self):
         self.company.l10n_ve_igtf_allow_invoice_accrual = False
         invoice = (

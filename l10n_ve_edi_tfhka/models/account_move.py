@@ -158,6 +158,97 @@ class AccountMove(models.Model):
             "numeroDocumento": self._tfhka_get_document_number(),
         }
 
+    def _tfhka_get_annulment_date(self):
+        self.ensure_one()
+        now = fields.Datetime.context_timestamp(self, fields.Datetime.now())
+        return now.strftime("%d/%m/%Y")
+
+    def _tfhka_get_annulment_hour(self):
+        self.ensure_one()
+        now = fields.Datetime.context_timestamp(self, fields.Datetime.now())
+        return f"{now.strftime('%I:%M:%S')} {now.strftime('%p').lower()}"
+
+    def _tfhka_get_annulment_reason(self):
+        self.ensure_one()
+        if "l10n_ve_cancel_reason_id" in self._fields and self.l10n_ve_cancel_reason_id:
+            reason = (self.l10n_ve_cancel_reason_id.name or "").strip()
+            if reason:
+                return reason[:255]
+        return _("Anulación desde Odoo")[:255]
+
+    def _tfhka_should_cancel_digital_document(self):
+        self.ensure_one()
+        return (
+            self.journal_id.l10n_ve_edi_provider == "tfhka"
+            and self.l10n_ve_edi_send_state == STATE_SENT
+        )
+
+    def _tfhka_build_anular_payload(self):
+        self.ensure_one()
+        return {
+            "serie": self._tfhka_get_serie() or "",
+            "tipoDocumento": self._tfhka_get_document_type(),
+            "numeroDocumento": self._tfhka_get_document_number(),
+            "motivoAnulacion": self._tfhka_get_annulment_reason(),
+            "fechaAnulacion": self._tfhka_get_annulment_date(),
+            "horaAnulacion": self._tfhka_get_annulment_hour(),
+        }
+
+    def _tfhka_store_annulment_response(self, response):
+        self.ensure_one()
+        combined = {}
+        if self.l10n_ve_edi_response_json:
+            try:
+                combined = json.loads(self.l10n_ve_edi_response_json)
+            except (ValueError, TypeError):
+                combined = {"emission_response_raw": self.l10n_ve_edi_response_json}
+        if not isinstance(combined, dict):
+            combined = {"emission": combined}
+        combined["annulment"] = response
+        self.write(
+            {"l10n_ve_edi_response_json": json.dumps(combined, ensure_ascii=False)}
+        )
+
+    def _tfhka_cancel_digital_document(self):
+        self.ensure_one()
+        if self.env.context.get("skip_l10n_ve_edi_tfhka_digital_cancel"):
+            return
+        if not self._tfhka_should_cancel_digital_document():
+            return
+        params = self.env["ir.config_parameter"].sudo()
+        username = params.get_param("l10n_ve_edi_tfhka.username")
+        password = params.get_param("l10n_ve_edi_tfhka.password")
+        if not username or not password:
+            raise UserError(_("Configure usuario y clave TFHKA en Ajustes."))
+        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
+        payload = self._tfhka_build_anular_payload()
+        try:
+            auth = client.authenticate(username, password)
+            token = auth.get("token")
+            if not token:
+                raise UserError(_("La API TFHKA no devolvió token JWT."))
+            response = client.cancel_document(payload, token)
+        except UserError:
+            raise
+        except Exception as exc:
+            _logger.exception(
+                "TFHKA anulación fallida move_id=%s name=%s payload=%s",
+                self.id,
+                self.name,
+                self._tfhka_safe_json_for_log(payload, 4000),
+            )
+            raise UserError(
+                _("No fue posible anular el documento digital en TFHKA: %s") % exc
+            ) from exc
+        self._tfhka_store_annulment_response(response)
+        _logger.info(
+            "TFHKA documento anulado move_id=%s tipo=%s numero=%s respuesta=%s",
+            self.id,
+            payload.get("tipoDocumento"),
+            payload.get("numeroDocumento"),
+            self._tfhka_safe_json_for_log(response, 4000),
+        )
+
     def _tfhka_extract_pdf_bytes_from_download_response(self, data):
         if not isinstance(data, dict):
             return None
@@ -381,8 +472,9 @@ class AccountMove(models.Model):
     def _tfhka_secuencia_for_numero_documento(self):
         self.ensure_one()
         ref_date = self.invoice_date or self.date
+        env_digit = self.journal_id._tfhka_get_numero_documento_environment_digit()
         return self.env["l10n_ve.edi.tfhka.document.mixin"]._tfhka_build_secuencia_yyyy_mm_seq(
-            ref_date, self.name, self.id
+            ref_date, self.name, self.id, environment_digit=env_digit
         )
 
     def _tfhka_get_document_number(self):
@@ -2044,19 +2136,23 @@ class AccountMove(models.Model):
         )
         estado = (status_response or {}).get("estado") or {}
         numero = ident.get("numeroDocumento") or self._tfhka_get_document_number()
+        env_digit = self.journal_id._tfhka_get_numero_documento_environment_digit()
         raise UserError(
             _(
                 "TFHKA indica documento duplicado: el numeroDocumento %(num)s ya "
                 "existe (numero de control %(ctrl)s, asignado el %(tfhka_fecha)s), "
                 "pero ese registro no corresponde a esta factura "
                 "(fecha de emision %(inv_fecha)s). Avance la secuencia del diario "
-                "a un correlativo cuyo numeroDocumento aun no este registrado en TFHKA."
+                "a un correlativo cuyo numeroDocumento aun no este registrado en TFHKA, "
+                "o configure en el diario un digito de ambiente TFHKA distinto al "
+                "actual (%(env)s) si emite en otro entorno HKA."
             )
             % {
                 "num": numero,
                 "ctrl": self._tfhka_extract_numero_control(status_response) or "?",
                 "tfhka_fecha": estado.get("fechaAsignacion") or "?",
                 "inv_fecha": ident.get("fechaEmision") or "?",
+                "env": env_digit,
             }
         )
 
@@ -2255,3 +2351,8 @@ class AccountMove(models.Model):
                 return str(num).strip()
         num = response.get("numeroControl") or response.get("numero_control")
         return str(num).strip() if num else ""
+
+    def button_cancel(self):
+        for move in self:
+            move._tfhka_cancel_digital_document()
+        return super().button_cancel()

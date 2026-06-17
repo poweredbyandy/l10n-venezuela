@@ -6,6 +6,7 @@ import re
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare
 
 _logger = logging.getLogger(__name__)
 
@@ -572,12 +573,28 @@ class AccountRetention(models.Model):
         return "01"
 
     def _tfhka_line_monto_iva(self, line):
+        if line.iva_amount:
+            return line.iva_amount
         base = line.invoice_amount or 0.0
         rate = (line.aliquot or 0.0) / 100.0
-        computed = base * rate
-        if line.iva_amount and abs(line.iva_amount - computed) < 0.05:
-            return line.iva_amount
-        return computed
+        return base * rate
+
+    def _tfhka_get_invoice_exempt_amount(self, move):
+        exempt = 0.0
+        for inv_line in move.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        ):
+            if not inv_line.tax_ids or all(
+                float_compare(t.amount, 0.0, precision_digits=2) == 0
+                for t in inv_line.tax_ids
+            ):
+                exempt += abs(inv_line.price_subtotal)
+        return exempt
+
+    def _tfhka_line_monto_total(self, line, move, monto_exento=0.0):
+        base = line.invoice_amount or 0.0
+        monto_iva = self._tfhka_line_monto_iva(line)
+        return base + monto_exento + monto_iva
 
     def _tfhka_line_retenido(self, line):
         iva_amount = self._tfhka_line_monto_iva(line)
@@ -626,6 +643,7 @@ class AccountRetention(models.Model):
         self.ensure_one()
         details = []
         currency = self._tfhka_get_currency_code()
+        moves_with_exempt = set()
         for index, line in enumerate(self.retention_line_ids, start=1):
             move = line.move_id
             if not move:
@@ -661,16 +679,23 @@ class AccountRetention(models.Model):
                 continue
             monto_iva = self._tfhka_line_monto_iva(line)
             retenido = self._tfhka_line_retenido(line)
+            assign_exempt = move.id not in moves_with_exempt
+            if assign_exempt:
+                moves_with_exempt.add(move.id)
+            monto_exento = (
+                self._tfhka_get_invoice_exempt_amount(move) if assign_exempt else 0.0
+            )
+            monto_total = self._tfhka_line_monto_total(
+                line, move, monto_exento=monto_exento
+            )
             detail = {
                 "numeroLinea": str(index),
                 "fechaDocumento": self._tfhka_format_date(move.invoice_date or move.date),
                 "tipoDocumento": self._tfhka_invoice_document_type_from_move(move),
                 "numeroDocumento": self._tfhka_invoice_document_number_from_move(move),
                 "tipoTransaccion": None,
-                "montoTotal": self._l10n_ve_edi_format_decimal(
-                    line.invoice_total or move.amount_total
-                ),
-                "montoExento": "0",
+                "montoTotal": self._l10n_ve_edi_format_decimal(monto_total),
+                "montoExento": self._l10n_ve_edi_format_decimal(monto_exento),
                 "baseImponible": self._l10n_ve_edi_format_decimal(line.invoice_amount),
                 "retenido": self._l10n_ve_edi_format_decimal(retenido),
                 "percibido": "0",

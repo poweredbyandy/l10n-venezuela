@@ -105,7 +105,7 @@
             <xpath expr="//header//button[@name='action_reverse']" position="attributes">
                 <attribute
                     name="invisible"
-                >move_type not in ('out_invoice', 'in_invoice') or state != 'posted' or (country_code == 'VE' and not l10n_ve_show_credit_debit_actions)</attribute>
+                >move_type != 'out_invoice' or state != 'posted' or (country_code == 'VE' and not l10n_ve_show_credit_debit_actions)</attribute>
             </xpath>
 
             <xpath expr="//header//button[@name='action_reverse']" position="after">

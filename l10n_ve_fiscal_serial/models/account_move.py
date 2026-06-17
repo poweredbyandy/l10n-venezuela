@@ -1,4 +1,5 @@
 import json
+import re
 
 from odoo import _, fields, models
 from odoo.exceptions import ValidationError
@@ -7,6 +8,29 @@ from odoo.tools import float_is_zero
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    def _l10n_ve_invoice_emitted_for_credit_debit(self):
+        self.ensure_one()
+        if (
+            self.l10n_ve_journal_emission_medium == "fiscal_machine"
+            and self.l10n_ve_invoice_number
+        ):
+            return True
+        return super()._l10n_ve_invoice_emitted_for_credit_debit()
+
+    def _l10n_ve_fiscal_serial_reprint_document_type(self):
+        self.ensure_one()
+        if self.move_type == "out_refund":
+            return "out_refund"
+        if self.move_type == "out_invoice" and self.debit_origin_id:
+            return "debit_note"
+        return "out_invoice"
+
+    def _l10n_ve_fiscal_serial_normalize_reprint_number(self, number):
+        digits = re.sub(r"\D", "", str(number or ""))
+        if not digits:
+            return "0000000"
+        return digits[-7:].zfill(7)
 
     def _l10n_ve_fiscal_serial_prepare_line_name_and_code(self, line):
         self.ensure_one()
@@ -204,6 +228,13 @@ class AccountMove(models.Model):
             )
         return lines
 
+    def _l10n_ve_fiscal_serial_fallback_payment_line(self):
+        self.ensure_one()
+        payment_method = "01"
+        if self.l10n_ve_igtf_document_has_igtf():
+            payment_method = "21"
+        return {"amount": 0, "payment_method": payment_method}
+
     def _l10n_ve_fiscal_serial_payment_lines_payload(self):
         self.ensure_one()
         lines = []
@@ -212,7 +243,7 @@ class AccountMove(models.Model):
         if not lines:
             lines = self._l10n_ve_fiscal_serial_payment_lines_from_invoice_widget()
         if not lines:
-            lines.append({"amount": 0, "payment_method": "01"})
+            lines.append(self._l10n_ve_fiscal_serial_fallback_payment_line())
         return lines
 
     def _l10n_ve_fiscal_serial_partner_payload(self):
@@ -318,7 +349,10 @@ class AccountMove(models.Model):
             raise ValidationError(_("El documento no tiene número fiscal para reimprimir."))
         return {
             "type": self.move_type,
-            "mf_number": str(self.l10n_ve_invoice_number),
+            "reprint_document_type": self._l10n_ve_fiscal_serial_reprint_document_type(),
+            "mf_number": self._l10n_ve_fiscal_serial_normalize_reprint_number(
+                self.l10n_ve_invoice_number
+            ),
             "move_id": self.id,
         }
 
@@ -338,6 +372,8 @@ class AccountMove(models.Model):
         if report_z:
             vals["l10n_ve_report_z"] = str(report_z)
         vals["l10n_ve_invoice_date"] = fields.Datetime.now()
+        if not self.l10n_ve_invoice_original_printed:
+            vals["l10n_ve_invoice_original_printed"] = True
         self.write(vals)
         return True
 

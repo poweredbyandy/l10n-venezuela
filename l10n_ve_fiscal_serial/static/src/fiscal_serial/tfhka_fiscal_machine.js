@@ -101,6 +101,14 @@ function maybeDataWrapper(value) {
     return value || {};
 }
 
+function formatReprintFiscalNumber(mfNumber) {
+    const digits = String(mfNumber || "").replace(/\D/g, "");
+    if (!digits) {
+        return "0000000";
+    }
+    return digits.slice(-7).padStart(7, "0");
+}
+
 function mapTaxCodeFromLine(line) {
     const directTax = line.tax ?? line.tax_code ?? line.taxCode;
     if (directTax !== undefined && directTax !== null && String(directTax) !== "") {
@@ -231,6 +239,39 @@ export class TfhkaFiscalMachine {
             payment_method,
             amount: Math.abs(amount),
         }));
+    }
+
+    _appendGroupedPaymentCommands(cmd, paymentLines, config) {
+        const rawLines = toArray(paymentLines);
+        const grouped = this.groupPayments(rawLines);
+        if (!grouped.length) {
+            return grouped;
+        }
+        const firstRawAmount = asNumber(rawLines[0]?.amount, 0);
+        const allMethod20 =
+            grouped.length > 1 &&
+            grouped.every((payment) => payment.payment_method === "20");
+        if (grouped.length === 1 || firstRawAmount === 0 || allMethod20) {
+            const method = grouped[0].payment_method || "01";
+            cmd.push(`1${method}`);
+            return grouped;
+        }
+        for (const payment of grouped) {
+            if (payment.amount <= 0) {
+                continue;
+            }
+            const [amountI, amountD] = this.splitAmount(
+                this._limitDecimals(payment.amount, config.maxPaymentAmountDecimal),
+                config.maxPaymentAmountDecimal
+            );
+            cmd.push(
+                `2${payment.payment_method}${amountI.padStart(
+                    config.maxPaymentAmountInt,
+                    "0"
+                )}${amountD}`
+            );
+        }
+        return grouped;
     }
 
     formatInvoiceLine(item, config) {
@@ -576,21 +617,11 @@ export class TfhkaFiscalMachine {
                 }
             }
             cmd.push("3");
-            const paymentLines = this.groupPayments(invoice.payment_lines);
-            for (const payment of paymentLines) {
-                if (payment.amount > 0) {
-                    const [amountI, amountD] = this.splitAmount(
-                        this._limitDecimals(payment.amount, config.maxPaymentAmountDecimal),
-                        config.maxPaymentAmountDecimal
-                    );
-                    cmd.push(
-                        `2${payment.payment_method}${amountI.padStart(
-                            config.maxPaymentAmountInt,
-                            "0"
-                        )}${amountD}`
-                    );
-                }
-            }
+            const paymentLines = this._appendGroupedPaymentCommands(
+                cmd,
+                invoice.payment_lines,
+                config
+            );
             if (invoice.has_cashbox) {
                 cmd.push("w");
             }
@@ -662,21 +693,11 @@ export class TfhkaFiscalMachine {
                     )}`
                 );
             }
-            const paymentLines = this.groupPayments(invoice.payment_lines);
-            for (const payment of paymentLines) {
-                if (payment.amount > 0) {
-                    const [amountI, amountD] = this.splitAmount(
-                        this._limitDecimals(payment.amount, config.maxPaymentAmountDecimal),
-                        config.maxPaymentAmountDecimal
-                    );
-                    cmd.push(
-                        `2${payment.payment_method}${amountI.padStart(
-                            config.maxPaymentAmountInt,
-                            "0"
-                        )}${amountD}`
-                    );
-                }
-            }
+            const paymentLines = this._appendGroupedPaymentCommands(
+                cmd,
+                invoice.payment_lines,
+                config
+            );
             if (invoice.has_cashbox) {
                 cmd.push("w");
             }
@@ -765,21 +786,11 @@ export class TfhkaFiscalMachine {
                 );
             }
 
-            const paymentLines = this.groupPayments(invoice.payment_lines);
-            for (const payment of paymentLines) {
-                if (payment.amount > 0) {
-                    const [amountI, amountD] = this.splitAmount(
-                        this._limitDecimals(payment.amount, config.maxPaymentAmountDecimal),
-                        config.maxPaymentAmountDecimal
-                    );
-                    cmd.push(
-                        `2${payment.payment_method}${amountI.padStart(
-                            config.maxPaymentAmountInt,
-                            "0"
-                        )}${amountD}`
-                    );
-                }
-            }
+            const paymentLines = this._appendGroupedPaymentCommands(
+                cmd,
+                invoice.payment_lines,
+                config
+            );
 
             if (invoice.has_cashbox) {
                 cmd.push("w");
@@ -1354,18 +1365,21 @@ export class TfhkaFiscalMachine {
     async reprint(data) {
         await this._ensureStatusReady();
         const payload = maybeDataWrapper(data);
+        const docType = payload.reprint_document_type || payload.type;
         let mode = "";
-        if (payload.type === "out_invoice") {
+        if (docType === "debit_note") {
+            mode = "RD";
+        } else if (docType === "out_invoice") {
             mode = "RF";
-        } else if (payload.type === "out_refund") {
+        } else if (docType === "out_refund") {
             mode = "RC";
         }
         if (!mode) {
             return { valid: false, message: "Datos no válidos" };
         }
-        const number = String(payload.mf_number || "").padStart(7, "0");
+        const number = formatReprintFiscalNumber(payload.mf_number);
         await this._sendCommand(`${mode}${number}${number}`);
-        return { valid: true };
+        return { valid: true, message: "Reimpresión enviada correctamente." };
     }
 
     async printXReport() {

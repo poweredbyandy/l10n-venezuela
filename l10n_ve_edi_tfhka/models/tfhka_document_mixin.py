@@ -21,7 +21,16 @@ class L10nVeEdiTfhkaDocumentMixin(models.AbstractModel):
         return int(fallback_id or 0)
 
     @api.model
-    def _tfhka_build_secuencia_yyyy_mm_seq(self, ref_date, name, record_id):
+    def _tfhka_normalize_environment_digit(self, environment_digit):
+        raw = str(environment_digit if environment_digit is not None else "0").strip()
+        if len(raw) == 1 and raw.isdigit():
+            return raw
+        return "0"
+
+    @api.model
+    def _tfhka_build_secuencia_yyyy_mm_seq(
+        self, ref_date, name, record_id, environment_digit="0"
+    ):
         if not ref_date:
             ref_date = fields.Date.context_today(self)
         elif hasattr(ref_date, "date"):
@@ -29,4 +38,8 @@ class L10nVeEdiTfhkaDocumentMixin(models.AbstractModel):
         seq_int = self._tfhka_parse_sequence_from_odoo_name(name, record_id)
         if seq_int == 0:
             seq_int = record_id or 0
-        return f"{ref_date.year}{ref_date.month:02d}{int(seq_int):06d}"
+        env = self._tfhka_normalize_environment_digit(environment_digit)
+        yyyymm = f"{ref_date.year}{ref_date.month:02d}"
+        if env == "0":
+            return f"{yyyymm}{int(seq_int):06d}"
+        return f"{yyyymm}{env}{int(seq_int):05d}"

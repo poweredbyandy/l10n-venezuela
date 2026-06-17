@@ -257,9 +257,9 @@ class AccountMove(models.Model):
 
     def _l10n_ve_allows_credit_debit_actions(self):
         self.ensure_one()
+        if self.move_type != "out_invoice":
+            return False
         if self.country_code != "VE":
-            return True
-        if self.move_type not in ("out_invoice", "in_invoice"):
             return True
         if self.state != "posted":
             return False
@@ -267,6 +267,8 @@ class AccountMove(models.Model):
 
     def _l10n_ve_check_credit_debit_allowed(self):
         for move in self:
+            if move.country_code != "VE" or move.move_type != "out_invoice":
+                continue
             if move._l10n_ve_allows_credit_debit_actions():
                 continue
             medium = move.l10n_ve_journal_emission_medium
@@ -471,6 +473,43 @@ class AccountMove(models.Model):
         if include_current and self.state != "posted":
             total = company_cur.round(total + self._l10n_ve_to_company_abs_amount())
         return total
+
+    def _l10n_ve_validate_credit_note_amount_limit(self):
+        self.ensure_one()
+        ve_code = self.env.ref("base.ve").code
+        if self.country_code != ve_code or self.move_type != "out_refund":
+            return
+        if not self.reversed_entry_id:
+            return
+        company_cur = self.company_currency_id
+        limit = self._l10n_ve_credit_note_limit_company_amount()
+        accumulated = self._l10n_ve_credit_note_accumulated_company_amount(
+            include_current=True
+        )
+        if float_compare(accumulated, limit, precision_rounding=company_cur.rounding) > 0:
+            origin = self.reversed_entry_id
+            raise ValidationError(
+                _(
+                    "No se puede confirmar la nota de crédito '%(move)s'. "
+                    "El monto acumulado de notas de crédito (%(accumulated)s) "
+                    "supera el monto máximo permitido (%(limit)s) del documento "
+                    "origen '%(origin)s'."
+                )
+                % {
+                    "move": self.name or _("Borrador"),
+                    "accumulated": formatLang(
+                        self.env,
+                        accumulated,
+                        currency_obj=company_cur,
+                    ),
+                    "limit": formatLang(
+                        self.env,
+                        limit,
+                        currency_obj=company_cur,
+                    ),
+                    "origin": origin.display_name,
+                }
+            )
 
     def _l10n_ve_validate_customer_invoice_emission_for_post(self):
         self.ensure_one()
@@ -748,6 +787,7 @@ Please create a credit note instead.
         if not self.env.context.get("install_mode"):
             for move in self:
                 move._l10n_ve_validate_customer_invoice_emission_for_post()
+                move._l10n_ve_validate_credit_note_amount_limit()
         res = super()._post(soft=soft)
         if self.env.context.get("install_mode"):
             return res

@@ -139,4 +139,4 @@ msgstr "Sesión del punto de venta"
 #. odoo-javascript
 #: code:addons/l10n_ve_pos_igtf/static/src/overrides/screens/payment_screen.xml:0
 msgid "Total con IGTF:"
-msgstr "Total de estafas IGTF:"
+msgstr "Total con IGTF:"

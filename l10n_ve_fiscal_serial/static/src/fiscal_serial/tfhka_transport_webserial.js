@@ -20,6 +20,13 @@ export function formatWebSerialError(err) {
     if (name === "InvalidStateError") {
         return `Puerto en estado inválido (puede estar abierto en otra pestaña). ${base}`;
     }
+    if (/setSignals|control signals/i.test(base)) {
+        return (
+            "El adaptador USB no permite controlar las señales DTR/RTS; " +
+            "se continuará sin ellas. Si falla la comunicación, cierre otras pestañas " +
+            "que usen el puerto y vuelva a intentar."
+        );
+    }
     if (name === "NetworkError") {
         return `Error de comunicación en el puerto serie: ${base}`;
     }
@@ -57,17 +64,34 @@ export class TfhkaWebSerialTransport {
     }
 
     async open(serialPort, options = {}) {
-        if (this.port) {
-            await this.close();
-        }
-        await serialPort.open({
+        const openOptions = {
             baudRate: options.baudRate ?? 9600,
             dataBits: options.dataBits ?? 8,
             stopBits: options.stopBits ?? 1,
             parity: options.parity ?? "even",
             bufferSize: options.bufferSize ?? 512,
             flowControl: options.flowControl ?? "none",
-        });
+        };
+        if (this.port && this.port !== serialPort) {
+            await this.close();
+        }
+        if (this.port === serialPort && this.isOpen()) {
+            return;
+        }
+        try {
+            await serialPort.open(openOptions);
+        } catch (err) {
+            if (err?.name === "InvalidStateError") {
+                try {
+                    await serialPort.close();
+                } catch {
+                }
+                await new Promise((resolve) => setTimeout(resolve, 100));
+                await serialPort.open(openOptions);
+            } else {
+                throw err;
+            }
+        }
         this.port = serialPort;
     }
 
@@ -75,11 +99,13 @@ export class TfhkaWebSerialTransport {
         if (!this.port) {
             return;
         }
+        const port = this.port;
+        this.port = null;
         try {
-            await this.port.close();
+            await port.close();
         } catch {
         }
-        this.port = null;
+        await new Promise((resolve) => setTimeout(resolve, 50));
     }
 
     isOpen() {
@@ -200,8 +226,18 @@ export class TfhkaWebSerialTransport {
     }
 
     async setSignals(signals) {
-        if (this.port && typeof this.port.setSignals === "function") {
+        if (!this.port || typeof this.port.setSignals !== "function") {
+            return false;
+        }
+        try {
             await this.port.setSignals(signals);
+            return true;
+        } catch (err) {
+            console.warn(
+                "[l10n_ve_fiscal_serial] setSignals omitido:",
+                formatWebSerialError(err)
+            );
+            return false;
         }
     }
 }

@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class AccountJournal(models.Model):
@@ -22,3 +23,30 @@ class AccountJournal(models.Model):
         "el rango en el portal TFHKA; si su integración válida usa sucursal vacía en el JSON, "
         "deje este campo vacío (no use 00 salvo que en HKA el rango esté dado de alta con 00).",
     )
+    l10n_ve_edi_tfhka_environment_digit = fields.Char(
+        string="Dígito de ambiente (TFHKA)",
+        size=1,
+        default="0",
+        copy=False,
+        help="Dígito insertado en numeroDocumento después del año y mes (AAAAMM) para distinguir "
+        "ambientes TFHKA distintos. Use 0 en producción (formato habitual). En pruebas u otros "
+        "entornos asigne 1-9 para evitar colisiones de numeroDocumento con documentos ya emitidos "
+        "en otro ambiente.",
+    )
+
+    @api.constrains("l10n_ve_edi_tfhka_environment_digit")
+    def _check_l10n_ve_edi_tfhka_environment_digit(self):
+        for journal in self:
+            raw = (journal.l10n_ve_edi_tfhka_environment_digit or "").strip()
+            if not raw:
+                continue
+            if len(raw) != 1 or not raw.isdigit():
+                raise ValidationError(
+                    "El dígito de ambiente TFHKA debe ser un solo carácter numérico (0-9)."
+                )
+
+    def _tfhka_get_numero_documento_environment_digit(self):
+        self.ensure_one()
+        return self.env["l10n_ve.edi.tfhka.document.mixin"]._tfhka_normalize_environment_digit(
+            self.l10n_ve_edi_tfhka_environment_digit
+        )

@@ -4,7 +4,7 @@ import json
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-from .edi_mixin import STATE_FAILED, STATE_QUEUED, STATE_SENT
+from .edi_mixin import STATE_FAILED, STATE_NOT_SENT, STATE_QUEUED, STATE_SENT
 
 
 class AccountMove(models.Model):
@@ -132,6 +132,22 @@ class AccountMove(models.Model):
             and self.journal_id.l10n_ve_edi_provider
             and self.journal_id.l10n_ve_edi_provider != "none"
         )
+
+    def _l10n_ve_edi_should_auto_send_on_igtf_accrual(self):
+        self.ensure_one()
+        if not self._l10n_ve_edi_is_invoice_target():
+            return False
+        if self.l10n_ve_edi_send_state != STATE_NOT_SENT:
+            return False
+        if not hasattr(self, "l10n_ve_igtf_document_has_igtf"):
+            return False
+        return self.l10n_ve_igtf_document_has_igtf()
+
+    def _l10n_ve_edi_try_auto_send_on_igtf_accrual(self):
+        for move in self:
+            if not move._l10n_ve_edi_should_auto_send_on_igtf_accrual():
+                continue
+            move._l10n_ve_edi_enqueue_send(reuse_payload=False)
 
     def _l10n_ve_edi_create_payload_attachment(self, payload):
         self.ensure_one()
@@ -270,6 +286,15 @@ class AccountMove(models.Model):
 
     def _l10n_ve_edi_on_dispatch_success(self, response):
         self.ensure_one()
+
+    def _post(self, soft=True):
+        res = super()._post(soft=soft)
+        if self.env.context.get("install_mode"):
+            return res
+        posted = self.filtered(lambda move: move.state == "posted")
+        if posted:
+            posted._l10n_ve_edi_try_auto_send_on_igtf_accrual()
+        return res
 
     def _run_job(self):
         self.ensure_one()

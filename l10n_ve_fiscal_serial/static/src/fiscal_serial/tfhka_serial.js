@@ -298,22 +298,29 @@ export class TfhkaFiscal {
             });
             this.comPort = "web-serial";
             this.usandoLineasControl = false;
-            await this.transport.setSignals({
+            this.usandoRTS_CTS = false;
+            this.usandoDSR_DTR = false;
+
+            const signalsSupported = await this.transport.setSignals({
                 dataTerminalReady: false,
                 requestToSend: true,
             });
-            if (await this._manipulaDSRDTR()) {
-                this.usandoLineasControl = true;
-                this.usandoRTS_CTS = false;
-                this.usandoDSR_DTR = true;
-                return true;
+
+            if (signalsSupported) {
+                if (await this._manipulaDSRDTR()) {
+                    this.usandoLineasControl = true;
+                    this.usandoRTS_CTS = false;
+                    this.usandoDSR_DTR = true;
+                    return true;
+                }
+                if (await this._manipulaCTSRTS()) {
+                    this.usandoLineasControl = true;
+                    this.usandoRTS_CTS = true;
+                    this.usandoDSR_DTR = false;
+                    return true;
+                }
             }
-            if (await this._manipulaCTSRTS()) {
-                this.usandoLineasControl = true;
-                this.usandoRTS_CTS = true;
-                this.usandoDSR_DTR = false;
-                return true;
-            }
+
             if (await this._checkFPrinterEnq()) {
                 this.usandoLineasControl = false;
                 await this.transport.setSignals({
