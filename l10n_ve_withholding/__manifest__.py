@@ -16,6 +16,7 @@
         "product",
         "l10n_ve_seniat",
     ],
+    "external_dependencies": {"python": ["pandas"]},
     "data": [
         "security/ir.model.access.csv",
         "security/ir_rule.xml",
