@@ -552,6 +552,61 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         exclude = set(exclude_move_ids)
         return amls.filtered(lambda line: line.move_id.id not in exclude)
 
+    def _get_move_payment_method_line(self, move):
+        payment = self._get_move_payment(move)
+        if payment:
+            return payment.payment_method_line_id
+        return self.env["account.payment.method.line"]
+
+    def _get_aml_payment_method_line(self, aml):
+        if aml.payment_id:
+            return aml.payment_id.payment_method_line_id
+        return self._get_move_payment_method_line(aml.move_id)
+
+    def _get_payment_method_group_key(self, payment_method_line):
+        if payment_method_line:
+            return ("account.payment.method.line", payment_method_line.id)
+        return (False, False)
+
+    def _get_payment_method_group_name(self, payment_method_line):
+        if payment_method_line:
+            return payment_method_line.name
+        return _("Sin método de pago")
+
+    def _get_payment_method_group_line_id(self, report, journal, payment_method_line):
+        if payment_method_line:
+            return report._get_generic_line_id(
+                "account.payment.method.line",
+                payment_method_line.id,
+                markup="daily_pay_payment_method",
+            )
+        return report._get_generic_line_id(
+            "account.journal",
+            journal.id,
+            markup="daily_pay_payment_method_none",
+        )
+
+    def _build_amount_total_columns(self, report, options, amounts_by_column_group):
+        display_currency = self.env["res.currency"].browse(
+            options["display_currency_id"]
+        )
+        columns = []
+        for column in options["columns"]:
+            label = column["expression_label"]
+            col_group_key = column["column_group_key"]
+            if label == "amount":
+                columns.append(
+                    report._build_column_dict(
+                        amounts_by_column_group[col_group_key],
+                        column,
+                        options=options,
+                        currency=display_currency,
+                    )
+                )
+            else:
+                columns.append(report._build_column_dict(None, column, options=options))
+        return columns
+
     def _dynamic_lines_generator(
         self, report, options, all_column_groups_expression_totals, warnings=None
     ):
@@ -563,19 +618,37 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         journals = self._get_selected_bank_cash_journals(report, options)
         journals = journals.sorted(lambda j: (j.company_id.name, j.name))
 
-        totals_by_group = defaultdict(
-            lambda: defaultdict(float)  # column_group_key -> amount
-        )
+        totals_by_group = defaultdict(float)
 
         for journal in journals:
             journal_group_totals = defaultdict(float)
+            method_groups = {}
             journal_currency = journal.currency_id or journal.company_id.currency_id
             journal_title = _("%(journal)s — %(label)s: %(currency)s") % {
                 "journal": journal.display_name,
                 "label": _("Moneda del diario"),
                 "currency": journal_currency.name,
             }
-            journal_lines_start = len(lines)
+
+            def _get_method_group(payment_method_line):
+                key = self._get_payment_method_group_key(payment_method_line)
+                if key not in method_groups:
+                    method_groups[key] = {
+                        "payment_method_line": payment_method_line,
+                        "name": self._get_payment_method_group_name(
+                            payment_method_line
+                        ),
+                        "registered_lines": [],
+                        "pending_lines": [],
+                        "totals": defaultdict(float),
+                    }
+                return method_groups[key]
+
+            def _add_amount_to_totals(method_group, amount):
+                for col_group_key in options["column_groups"]:
+                    totals_by_group[col_group_key] += amount
+                    journal_group_totals[col_group_key] += amount
+                    method_group["totals"][col_group_key] += amount
 
             posted_moves = self._get_posted_moves_by_date(
                 journal, company_ids, date_from, date_to, date_type
@@ -596,7 +669,6 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     move
                 )
 
-            registered_section_added = False
             for move_date in sorted(moves_by_date.keys()):
                 for move in moves_by_date[move_date]:
                     display_date = self._get_move_display_date(move, date_type)
@@ -605,31 +677,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
                     if self._is_report_amount_zero(amt, options):
                         continue
-                    if not registered_section_added:
-                        lines.append(
-                            (
-                                0,
-                                {
-                                    "id": report._get_generic_line_id(
-                                        "account.journal",
-                                        journal.id,
-                                        markup="daily_pay_section_done",
-                                    ),
-                                    "name": _("Pagos y cobros registrados"),
-                                    "columns": self._build_row_columns(
-                                        report, options, {}
-                                    ),
-                                    "level": 1,
-                                    "unfoldable": False,
-                                },
-                            )
-                        )
-                        registered_section_added = True
-                    for col_group_key in options["column_groups"]:
-                        totals_by_group[col_group_key]["amount"] += amt
-                        journal_group_totals[col_group_key] += amt
+                    method_group = _get_method_group(
+                        self._get_move_payment_method_line(move)
+                    )
+                    _add_amount_to_totals(method_group, amt)
                     partner_label = move.partner_id.display_name if move.partner_id else ""
-                    lines.append(
+                    method_group["registered_lines"].append(
                         (
                             0,
                             {
@@ -651,7 +704,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                         "amount": amt,
                                     },
                                 ),
-                                "level": 2,
+                                "level": 3,
                                 "unfoldable": False,
                                 "caret_options": "account.move",
                             },
@@ -672,29 +725,6 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 exclude_move_ids_for_outstanding,
                 date_type,
             )
-            pending_section_added = False
-
-            def _append_pending_section_header():
-                nonlocal pending_section_added
-                if pending_section_added:
-                    return
-                lines.append(
-                    (
-                        0,
-                        {
-                            "id": report._get_generic_line_id(
-                                "account.journal",
-                                journal.id,
-                                markup="daily_pay_section_pending",
-                            ),
-                            "name": _("Pendientes (borrador y cuentas puente)"),
-                            "columns": self._build_row_columns(report, options, {}),
-                            "level": 1,
-                            "unfoldable": False,
-                        },
-                    )
-                )
-                pending_section_added = True
 
             for move in draft_moves:
                 display_date = self._get_move_display_date(move, date_type)
@@ -703,14 +733,14 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
                 if self._is_report_amount_zero(amt, options):
                     continue
-                _append_pending_section_header()
-                for col_group_key in options["column_groups"]:
-                    totals_by_group[col_group_key]["amount"] += amt
-                    journal_group_totals[col_group_key] += amt
+                method_group = _get_method_group(
+                    self._get_move_payment_method_line(move)
+                )
+                _add_amount_to_totals(method_group, amt)
                 partner_label = (
                     move.partner_id.display_name if move.partner_id else ""
                 )
-                lines.append(
+                method_group["pending_lines"].append(
                     (
                         0,
                         {
@@ -732,7 +762,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                     "amount": amt,
                                 },
                             ),
-                            "level": 2,
+                            "level": 3,
                             "unfoldable": False,
                             "caret_options": "account.move",
                         },
@@ -751,12 +781,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
                 if self._is_report_amount_zero(amt, options):
                     continue
-                _append_pending_section_header()
-                for col_group_key in options["column_groups"]:
-                    totals_by_group[col_group_key]["amount"] += amt
-                    journal_group_totals[col_group_key] += amt
+                method_group = _get_method_group(
+                    self._get_move_payment_method_line(move)
+                )
+                _add_amount_to_totals(method_group, amt)
                 partner_label = move.partner_id.display_name if move.partner_id else ""
-                lines.append(
+                method_group["pending_lines"].append(
                     (
                         0,
                         {
@@ -778,7 +808,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                     "amount": amt,
                                 },
                             ),
-                            "level": 2,
+                            "level": 3,
                             "unfoldable": False,
                             "caret_options": "account.move",
                         },
@@ -795,16 +825,14 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
                 if self._is_report_amount_zero(amt, options):
                     continue
-                _append_pending_section_header()
-                for col_group_key in options["column_groups"]:
-                    totals_by_group[col_group_key]["amount"] += amt
-                    journal_group_totals[col_group_key] += amt
+                method_group = _get_method_group(self._get_aml_payment_method_line(aml))
+                _add_amount_to_totals(method_group, amt)
                 move = aml.move_id
                 partner_label = aml.partner_id.display_name if aml.partner_id else ""
                 short_name = (move.name if move else None) or aml.move_name or _(
                     "Línea pendiente"
                 )
-                lines.append(
+                method_group["pending_lines"].append(
                     (
                         0,
                         {
@@ -826,19 +854,17 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                     "amount": amt,
                                 },
                             ),
-                            "level": 2,
+                            "level": 3,
                             "unfoldable": False,
                             "caret_options": "account.move.line",
                         },
                     )
                 )
 
-            has_journal_detail = len(lines) > journal_lines_start
-            if not has_journal_detail:
+            if not method_groups:
                 continue
 
-            lines.insert(
-                journal_lines_start,
+            lines.append(
                 (
                     0,
                     {
@@ -852,29 +878,95 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                         "level": 0,
                         "unfoldable": False,
                     },
-                ),
+                )
             )
 
-            journal_subtotal_columns = []
-            display_currency = self.env["res.currency"].browse(
-                options["display_currency_id"]
+            sorted_method_groups = sorted(
+                method_groups.values(), key=lambda group: group["name"]
             )
-            for column in options["columns"]:
-                label = column["expression_label"]
-                col_group_key = column["column_group_key"]
-                if label == "amount":
-                    journal_subtotal_columns.append(
-                        report._build_column_dict(
-                            journal_group_totals[col_group_key],
-                            column,
-                            options=options,
-                            currency=display_currency,
+            for method_group in sorted_method_groups:
+                payment_method_line = method_group["payment_method_line"]
+                lines.append(
+                    (
+                        0,
+                        {
+                            "id": self._get_payment_method_group_line_id(
+                                report, journal, payment_method_line
+                            ),
+                            "name": method_group["name"],
+                            "columns": self._build_row_columns(report, options, {}),
+                            "level": 1,
+                            "unfoldable": False,
+                        },
+                    )
+                )
+                method_markup = payment_method_line.id if payment_method_line else "none"
+                if method_group["registered_lines"]:
+                    lines.append(
+                        (
+                            0,
+                            {
+                                "id": report._get_generic_line_id(
+                                    "account.journal",
+                                    journal.id,
+                                    markup="daily_pay_section_done_%s" % method_markup,
+                                ),
+                                "name": _("Pagos y cobros registrados"),
+                                "columns": self._build_row_columns(
+                                    report, options, {}
+                                ),
+                                "level": 2,
+                                "unfoldable": False,
+                            },
                         )
                     )
-                else:
-                    journal_subtotal_columns.append(
-                        report._build_column_dict(None, column, options=options)
+                    lines.extend(method_group["registered_lines"])
+                if method_group["pending_lines"]:
+                    lines.append(
+                        (
+                            0,
+                            {
+                                "id": report._get_generic_line_id(
+                                    "account.journal",
+                                    journal.id,
+                                    markup="daily_pay_section_pending_%s"
+                                    % method_markup,
+                                ),
+                                "name": _("Pendientes (borrador y cuentas puente)"),
+                                "columns": self._build_row_columns(
+                                    report, options, {}
+                                ),
+                                "level": 2,
+                                "unfoldable": False,
+                            },
+                        )
                     )
+                    lines.extend(method_group["pending_lines"])
+                lines.append(
+                    (
+                        0,
+                        {
+                            "id": report._get_generic_line_id(
+                                "account.journal",
+                                journal.id,
+                                markup="daily_pay_payment_method_subtotal_%s"
+                                % method_markup,
+                            ),
+                            "name": _(
+                                "Total (%(method)s)",
+                                method=method_group["name"],
+                            ),
+                            "columns": self._build_amount_total_columns(
+                                report,
+                                options,
+                                method_group["totals"],
+                            ),
+                            "level": 2,
+                            "unfoldable": False,
+                            "class": "total",
+                        },
+                    )
+                )
             lines.append(
                 (
                     0,
@@ -885,34 +977,17 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                             markup="daily_pay_journal_subtotal",
                         ),
                         "name": _("Total (%(journal)s)", journal=journal.display_name),
-                        "columns": journal_subtotal_columns,
+                        "columns": self._build_amount_total_columns(
+                            report,
+                            options,
+                            journal_group_totals,
+                        ),
                         "level": 1,
                         "unfoldable": False,
                         "class": "total",
                     },
                 )
             )
-
-        total_line_columns = []
-        for column in options["columns"]:
-            label = column["expression_label"]
-            col_group_key = column["column_group_key"]
-            if label == "amount":
-                display_currency = self.env["res.currency"].browse(
-                    options["display_currency_id"]
-                )
-                total_line_columns.append(
-                    report._build_column_dict(
-                        totals_by_group[col_group_key]["amount"],
-                        column,
-                        options=options,
-                        currency=display_currency,
-                    )
-                )
-            else:
-                total_line_columns.append(
-                    report._build_column_dict(None, column, options=options)
-                )
 
         lines.append(
             (
@@ -922,7 +997,11 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                         None, None, markup="daily_pay_total"
                     ),
                     "name": _("Total"),
-                    "columns": total_line_columns,
+                    "columns": self._build_amount_total_columns(
+                        report,
+                        options,
+                        totals_by_group,
+                    ),
                     "level": 0,
                     "unfoldable": False,
                     "class": "total",
