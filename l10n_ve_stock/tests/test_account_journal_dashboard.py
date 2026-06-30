@@ -38,3 +38,18 @@ class TestL10nVeSeniatInvoiceDashboardDispatch(TestL10nVeStockDispatchGuide):
         self.assertTrue(picking.l10n_ve_dispatch_guide_date)
         self.assertTrue(picking.l10n_ve_dispatch_guide_time)
         self.assertTrue(picking.l10n_ve_dispatch_guide_user_id)
+
+    def test_dashboard_excludes_deliveries_without_control_number(self):
+        warehouse = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.env.company.id)], limit=1
+        )
+        warehouse.l10n_ve_dispatch_guide_section_id = False
+        picking = self._create_ve_sale_and_validate_delivery()
+        self.assertFalse((picking.l10n_ve_control_number or "").strip())
+
+        dispatch_guides, dispatch_available = self.env[
+            "account.journal"
+        ]._l10n_ve_seniat_unfactured_dispatch_guides(self.env.company)
+
+        self.assertTrue(dispatch_available)
+        self.assertNotIn(picking, dispatch_guides)

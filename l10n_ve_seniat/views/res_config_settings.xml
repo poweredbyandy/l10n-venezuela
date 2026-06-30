@@ -21,9 +21,11 @@
                             <separator string="Company Fiscal Info" />
                             <group>
                                 <field name="taxpayer_type" string="Taxpayer Type" />
+                                <!-- Art. 10 Ley del IVA; Art. 11 PA SNAT/2011/0071: facturación por terceros. -->
                                 <field
                                     name="l10n_ve_on_behalf_of_third_party_enabled"
                                 />
+                                <!-- Art. 13 num. 5-7 PA SNAT/2011/0071: validación de RIF. -->
                                 <field name="l10n_ve_validate_partner_vat_format" />
                                 <field name="l10n_ve_lock_partner_fiscal_data" />
                                 <field name="l10n_ve_enforce_sale_price_ge_cost" />
@@ -36,6 +38,7 @@
                     >
                         <div class="o_setting_right_pane">
                             <separator string="Sales Tax Rates" />
+                            <!-- Art. 13 num. 9-11 PA SNAT/2011/0071: alícuotas de IVA en ventas. -->
                             <group>
                                 <field
                                     name="exent_aliquot_sale"
@@ -88,6 +91,7 @@
                     >
                         <div class="o_setting_right_pane">
                             <separator string="Implementador del sistema" />
+                            <!-- Art. 18-19 PA SNAT/2024/000102: datos del implementador autorizado. -->
                             <group>
                                 <field name="l10n_ve_implementer_name" />
                                 <field name="l10n_ve_implementer_vat" />
@@ -104,6 +108,7 @@
                     >
                         <div class="o_setting_right_pane">
                             <separator string="Guías de despacho no facturadas" />
+                            <!-- Art. 21 PA SNAT/2011/0071; Art. 10 PA SNAT/2024/000102: reporte guías sin facturar. -->
                             <group>
                                 <field
                                     name="l10n_ve_unfactured_dispatch_email_recipient"

@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from odoo import Command
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 
@@ -79,6 +80,47 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
         self.assertEqual(len(p.taxes_id), 1)
         self.assertEqual(len(p.supplier_taxes_id), 1)
 
+    def test_ve_product_tax_utility_fields_fill_original_taxes(self):
+        p = self.env["product.template"].create(
+            self._create_product_vals(
+                l10n_ve_sale_tax_id=self.sale_tax_b.id,
+                l10n_ve_purchase_tax_id=self.purchase_tax_b.id,
+            )
+        )
+        self.assertEqual(p.taxes_id, self.sale_tax_b)
+        self.assertEqual(p.supplier_taxes_id, self.purchase_tax_b)
+
+    def test_ve_product_tax_utility_fields_update_original_taxes(self):
+        p = self.env["product.template"].create(self._create_product_vals())
+        p.write(
+            {
+                "l10n_ve_sale_tax_id": self.sale_tax_b.id,
+                "l10n_ve_purchase_tax_id": self.purchase_tax_b.id,
+            }
+        )
+        self.assertEqual(p.taxes_id, self.sale_tax_b)
+        self.assertEqual(p.supplier_taxes_id, self.purchase_tax_b)
+
+    def test_ve_variant_tax_utility_fields_update_original_taxes(self):
+        p = self.env["product.template"].create(self._create_product_vals())
+        p.product_variant_id.write(
+            {
+                "l10n_ve_sale_tax_id": self.sale_tax_b.id,
+                "l10n_ve_purchase_tax_id": self.purchase_tax_b.id,
+            }
+        )
+        self.assertEqual(p.taxes_id, self.sale_tax_b)
+        self.assertEqual(p.supplier_taxes_id, self.purchase_tax_b)
+
+    def test_ve_product_tax_onchange_rejects_multiple_taxes(self):
+        product = self.env["product.template"].new(
+            self._create_product_vals(
+                taxes_id=[Command.set([self.sale_tax.id, self.sale_tax_b.id])]
+            )
+        )
+        with self.assertRaises(ValidationError):
+            product._onchange_l10n_ve_check_exactly_one_tax_per_use()
+
     def test_ve_product_auto_exent_when_created_without_taxes(self):
         p = self.env["product.template"].create(
             {
@@ -129,6 +171,46 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
             self.env["product.template"].create(
                 self._create_product_vals(list_price=40.0, standard_price=50.0)
             )
+
+    def test_ve_product_onchange_rejects_zero_list_price(self):
+        product = self.env["product.template"].new(
+            self._create_product_vals(list_price=0.0, standard_price=0.0)
+        )
+        with self.assertRaises(ValidationError):
+            product._onchange_l10n_ve_check_list_price_and_cost()
+
+    def test_ve_product_onchange_rejects_list_price_below_cost_when_enforced(self):
+        self.env.company.l10n_ve_enforce_sale_price_ge_cost = True
+        product = self.env["product.template"].new(
+            self._create_product_vals(list_price=40.0, standard_price=50.0)
+        )
+        with self.assertRaises(ValidationError):
+            product._onchange_l10n_ve_check_list_price_and_cost()
+
+    def test_ve_variant_onchange_rejects_zero_list_price(self):
+        product = self.env["product.product"].new(
+            {
+                "name": "Variant onchange zero price VE",
+                "type": "service",
+                "list_price": 0.0,
+                "standard_price": 0.0,
+            }
+        )
+        with self.assertRaises(ValidationError):
+            product._onchange_l10n_ve_check_list_price_and_cost()
+
+    def test_ve_variant_onchange_rejects_lst_price_below_cost_when_enforced(self):
+        self.env.company.l10n_ve_enforce_sale_price_ge_cost = True
+        product = self.env["product.product"].new(
+            {
+                "name": "Variant onchange price below cost VE",
+                "type": "service",
+                "lst_price": 40.0,
+                "standard_price": 50.0,
+            }
+        )
+        with self.assertRaises(ValidationError):
+            product._onchange_l10n_ve_check_lst_price_and_cost()
 
     def test_ve_product_allows_list_price_equal_to_cost(self):
         p = self.env["product.template"].create(

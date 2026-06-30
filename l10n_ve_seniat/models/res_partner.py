@@ -339,6 +339,23 @@ class ResPartner(models.Model):
         return expression.OR([domain, *variant_domains])
 
     def check_vat_ve(self, vat):
+        """Valida formato de RIF/CI venezolano.
+
+        Parameters
+        ----------
+        vat : str
+            Identificación fiscal a validar.
+
+        Returns
+        -------
+        bool
+
+        Notes
+        -----
+        Art. 13 num. 5-7 PA SNAT/2011/0071: RIF del emisor y adquiriente.
+        Art. 7 num. 3 y 7 PA SNAT/2024/000102: datos del receptor digital.
+        """
+
         vat_regex = re.compile(
             r"""
             ([vecjpg])                          # group 1 - kind
@@ -423,6 +440,13 @@ class ResPartner(models.Model):
 
     @api.constrains("vat", "country_id", "customer_rank", "supplier_rank")
     def _check_l10n_ve_vat_format(self):
+        """Restricción ORM sobre formato de RIF en contactos venezolanos.
+
+        Notes
+        -----
+        Art. 13 num. 5-7 PA SNAT/2011/0071: RIF en facturas.
+        """
+
         for partner in self:
             if not partner.country_id or partner.country_id.code != VE_CODE:
                 continue

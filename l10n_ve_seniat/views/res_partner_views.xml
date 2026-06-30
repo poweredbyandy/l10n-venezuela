@@ -5,6 +5,7 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form" />
         <field name="arch" type="xml">
+            <!-- Art. 13 num. 5-7 PA SNAT/2011/0071: RIF del adquiriente. -->
             <xpath expr="//field[@name='vat']" position="after">
                 <field
                     name="taxpayer_type"
@@ -19,6 +20,7 @@
                 expr="//sheet/group/group/div[hasclass('o_address_format')]/field[@name='state_id']"
                 position="after"
             >
+                <!-- Art. 13 num. 5 PA SNAT/2011/0071: domicilio fiscal (municipio/parroquia). -->
                 <field
                     name="municipality_id"
                     class="o_address_state"

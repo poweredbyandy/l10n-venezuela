@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <record id="mail_template_unfactured_dispatch_guides" model="mail.template">
+        <!-- Art. 21 PA SNAT/2011/0071; Art. 10 PA SNAT/2024/000102: guías de despacho no facturadas. -->
         <field name="name">Guías de despacho no facturadas</field>
         <field name="model_id" ref="base.model_res_company" />
         <field
