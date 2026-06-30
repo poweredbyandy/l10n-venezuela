@@ -6,6 +6,7 @@
         <field name="inherit_id" ref="account.view_account_journal_form" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='payment_sequence']" position="after">
+                <!-- Art. 14 PA SNAT/2011/0071: código forma de pago máquina fiscal. -->
                 <field
                     name="l10n_ve_fiscal_payment_code"
                     invisible="country_code != 'VE' or type not in ('bank', 'cash', 'credit')"
@@ -13,6 +14,7 @@
                 />
             </xpath>
             <xpath expr="//notebook" position="inside">
+                <!-- Art. 6-8 PA SNAT/2011/0071; Art. 3-7 PA SNAT/2024/000102: medio de emisión. -->
                 <page name="l10n_ve_seniat_page" string="SENIAT" invisible="type != 'sale'">
                     <group string="Configuración">
                         <field name="l10n_ve_emission_medium" />
@@ -32,6 +34,7 @@
                         string="Tramos (talonario)"
                         invisible="type != 'sale' or l10n_ve_emission_medium in ('contingency', 'fiscal_machine', 'digital')"
                     >
+                        <!-- Art. 13 num. 3-4 y Art. 27 PA SNAT/2011/0071: tramos NC/ND/factura. -->
                         <field
                             name="l10n_ve_invoice_section_id"
                             required="type == 'sale' and l10n_ve_emission_medium == 'free'"

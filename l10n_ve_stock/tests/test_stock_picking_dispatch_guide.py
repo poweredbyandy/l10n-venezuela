@@ -128,6 +128,25 @@ class TestL10nVeStockDispatchGuide(TestSaleStockCommon):
         )
         self.assertEqual(len(doc), 1)
 
+    def test_disabled_dispatch_guides_do_not_assign_control_number(self):
+        self.env.company.l10n_ve_dispatch_guide_enabled = False
+        product = self._create_product(
+            name="Prod guía desactivada",
+            is_storable=True,
+            taxes_id=[Command.set(self.tax_sale_a.ids)],
+        )
+        picking = self._prepare_outgoing_sale_picking(product, 1)
+        picking.move_ids.quantity = picking.move_ids.product_uom_qty
+        picking.move_ids.picked = True
+        action = picking.button_validate()
+        self.assertFalse(
+            isinstance(action, dict)
+            and action.get("res_model")
+            == "l10n_ve.stock.picking.validate.confirmation"
+        )
+        self.assertEqual(picking.state, "done")
+        self.assertFalse((picking.l10n_ve_control_number or "").strip())
+
     def test_no_control_number_without_dispatch_section(self):
         wh = self.env["stock.warehouse"].search(
             [("company_id", "=", self.env.company.id)], limit=1

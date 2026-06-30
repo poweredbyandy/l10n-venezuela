@@ -21,6 +21,7 @@
     </template>
 
     <template id="report_invoice_document">
+        <!-- Informe fiscal VE: factura, NC y ND (PA SNAT/2011/0071 Art. 13; PA SNAT/2024/000102 Art. 7). -->
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-set="lang" t-value="o.partner_id.lang" />
@@ -47,6 +48,7 @@
                     }
                     </style>
                     <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
+                    <!-- Art. 13 num. 1 PA SNAT/2011/0071: denominación Factura / Nota de débito / Nota de crédito. -->
                     <div class="row">
                         <p class="text-center fw-bold text-danger">
                             <span
@@ -77,6 +79,7 @@
                             <t
                                 t-if="o.l10n_ve_on_behalf_of_third_party and o.l10n_ve_third_party_partner_id"
                             >
+                                <!-- Art. 10 Ley del IVA; Art. 11 y Art. 32 PA SNAT/2011/0071: ventas por cuenta de terceros. -->
                                 <span
                                     class="d-block text-uppercase fw-bold"
                                 >FACTURA POR CUENTA DE TERCEROS:</span>
@@ -98,6 +101,7 @@
                                     <span>Obligación Art. 32 PA00071: Entregar copia certificada al cliente a más tardar el <span t-field="o.l10n_ve_certified_copy_deadline"/></span>.
                                 </div>
                             </t>
+                            <!-- Art. 13 num. 5-7 PA SNAT/2011/0071; Art. 7 num. 3 y 7 PA SNAT/2024/000102: adquiriente. -->
                             <span class="d-block text-uppercase">
                                 <strong>Razón Social:</strong>
                                 <t t-out="o.partner_id.name" />
@@ -126,6 +130,7 @@
                             </div>
                         </div>
                         <div t-if="origin_affected" class="col-3">
+                            <!-- Art. 23 PA SNAT/2011/0071; Art. 8 PA SNAT/2024/000102: referencia a factura origen en NC/ND. -->
                             <div class="text-muted">
                                 <div
                                     class="d-block text-uppercase"
@@ -193,6 +198,7 @@
                                 <span t-else="">de contado</span>
                             </div>
                             <t t-set="l10n_ve_exchange_rate_display" t-value="o.l10n_ve_report_exchange_rate_display()" />
+                            <!-- Art. 13 num. 14 PA SNAT/2011/0071; Art. 15 Ley del IVA; Art. 38 RLIVA: tipo de cambio. -->
                             <div class="d-block text-uppercase">
                                 <strong>Moneda:</strong>
                                 <span t-out="o.currency_id.name" />
@@ -215,6 +221,7 @@
                             class="position-absolute w-100 text-center text-bold"
                             style="top: 25%; left: 0; right: 0; pointer-events: none;"
                         >
+                            <!-- Art. 18 PA SNAT/2024/000102: trazabilidad de anulación en documento impreso. -->
                             <span
                                 class="text-uppercase opacity-25 text-danger"
                                 style="font-size: 40px !important;"
@@ -225,6 +232,7 @@
                             class="position-absolute w-100 text-center text-bold"
                             style="top: 25%; left: 0; right: 0; pointer-events: none;"
                         >
+                            <!-- Art. 13 num. 13 PA SNAT/2011/0071: copia sin derecho a crédito fiscal. -->
                             <span
                                 class="text-uppercase opacity-25 text-danger"
                                 style="font-size: 40px !important;"
@@ -243,6 +251,7 @@
                                 class="table table-striped table-sm table-borderless mt-2 table-light l10n_ve_invoice_lines"
                             >
                                 <thead>
+                                    <!-- Art. 13 num. 8-11 PA SNAT/2011/0071: descripción, alícuota e IVA discriminado. -->
                                     <tr class="bg-secundary text-white border-bottom">
                                         <th
                                             class="col text-uppercase fw-bold text-nowrap text-center"
@@ -494,6 +503,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
+                                                        <!-- Providencia SNAT/2022/000013: desglose IGTF en pagos en divisas. -->
                                                         <td class="text-end pe-2 py-1">Base Imponible IGTF:</td>
                                                         <t t-if="show_company_currency">
                                                             <td class="text-end py-1 ps-2">
@@ -563,6 +573,7 @@
                                     </div>
                                 </div>
                                 <div id="payment_term" class="clearfix mt-3">
+                                    <!-- Leyendas IGTF y tipo de cambio (_compute_seniat_invoice_tag). -->
                                     <div class="justify-text">
                                         <span t-field="o.narration" />
                                         <span t-field="o.seniat_invoice_tag" />

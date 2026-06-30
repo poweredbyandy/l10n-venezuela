@@ -61,6 +61,12 @@ class TestResCurrencyRate(L10nVeSeniatCommon):
         rate.write({"inverse_company_rate": 45.0})
         self.assertEqual(rate.inverse_company_rate, 45.0)
 
+    def test_rate_unlink_blocked_for_ve_company(self):
+        rate = self._create_usd_rate()
+        with self.assertRaises(UserError) as error:
+            rate.unlink()
+        self.assertIn("no se pueden eliminar tasas de cambio", str(error.exception).lower())
+
     def test_draft_invoice_currency_rate_outdated_alert(self):
         rate = self._create_usd_rate(inverse_company_rate=40.0)
         invoice = self._create_usd_invoice(post=False)

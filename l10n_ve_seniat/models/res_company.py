@@ -5,6 +5,17 @@ class ResCompany(models.Model):
     _inherit = "res.company"
 
     def _l10n_ve_invoice_tag_include_igtf_notice(self):
+        """Indica si la factura debe mostrar aviso de IGTF.
+
+        Returns
+        -------
+        bool
+
+        Notes
+        -----
+        Providencia SNAT/2022/000013: IGTF 3% en operaciones en divisas.
+        """
+
         self.ensure_one()
         return bool(self.taxpayer_type and self.taxpayer_type != "ordinary")
 

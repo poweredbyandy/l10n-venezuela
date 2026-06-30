@@ -9,15 +9,6 @@ from odoo.tools import float_is_zero
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    def _l10n_ve_invoice_emitted_for_credit_debit(self):
-        self.ensure_one()
-        if (
-            self.l10n_ve_journal_emission_medium == "fiscal_machine"
-            and self.l10n_ve_invoice_number
-        ):
-            return True
-        return super()._l10n_ve_invoice_emitted_for_credit_debit()
-
     def _l10n_ve_fiscal_serial_reprint_document_type(self):
         self.ensure_one()
         if self.move_type == "out_refund":

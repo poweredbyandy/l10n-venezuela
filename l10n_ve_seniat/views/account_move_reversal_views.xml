@@ -5,6 +5,7 @@
         <field name="model">account.move.reversal</field>
         <field name="inherit_id" ref="account.view_account_move_reversal" />
         <field name="arch" type="xml">
+            <!-- Art. 22-24 PA SNAT/2011/0071: NC con mismo diario/fecha; sin modificar factura origen. -->
             <xpath expr="//field[@name='journal_id']" position="before">
                 <field name="l10n_ve_fiscal_country_code" invisible="1" />
             </xpath>

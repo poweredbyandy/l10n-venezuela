@@ -6,11 +6,13 @@
         <field name="inherit_id" ref="stock.view_warehouse" />
         <field name="arch" type="xml">
             <field name="partner_id" position="after">
+                <field name="l10n_ve_dispatch_guide_enabled" invisible="1" />
                 <field
                     name="l10n_ve_dispatch_guide_section_id"
                     options="{'no_create': True}"
                     domain="[('company_id', '=', company_id)]"
                     groups="account.group_account_manager"
+                    invisible="not l10n_ve_dispatch_guide_enabled"
                 />
             </field>
         </field>

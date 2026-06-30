@@ -26,6 +26,7 @@
         <field name="arch" type="xml">
             <form string="Talonario">
                 <header>
+                    <!-- Art. 27-28 PA SNAT/2011/0071: anulación de folio del talonario. -->
                     <button
                         name="action_l10n_ve_open_void_folio_wizard"
                         string="Anular folio"
@@ -72,6 +73,7 @@
                                 name="company_id"
                                 groups="base.group_multi_company"
                             />
+                            <!-- Art. 27 PA SNAT/2011/0071: prefijo de serie SENIAT. -->
                             <field name="l10n_ve_series_prefix" />
                         </group>
                         <group>

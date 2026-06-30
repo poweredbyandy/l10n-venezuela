@@ -68,11 +68,20 @@ class AccountMoveReversal(models.TransientModel):
         return super().write(vals)
 
     def reverse_moves(self, is_modify=False):
+        """Reversa asientos aplicando validaciones de NC venezolanas.
+
+        Notes
+        -----
+        Art. 22-24 PA SNAT/2011/0071: notas de crédito.
+        Art. 8 PA SNAT/2024/000102: NC digitales.
+        """
+
         for rec in self:
             if rec.move_type != "entry" and not (rec.reason or "").strip():
                 raise UserError(
                     _("Debe indicar el motivo de reversión antes de continuar.")
                 )
+        self.move_ids._l10n_ve_check_credit_note_creation_allowed()
         self.move_ids._l10n_ve_check_credit_debit_allowed()
         action = super().reverse_moves(is_modify=is_modify)
         self.new_move_ids._l10n_ve_force_refund_to_company_currency()

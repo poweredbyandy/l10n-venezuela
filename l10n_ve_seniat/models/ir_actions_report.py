@@ -38,6 +38,14 @@ class IrActionsReport(models.Model):
         return super().get_paperformat()
 
     def _l10n_ve_validate_invoice_report(self, res_ids, data=None):
+        """Valida permisos de impresión PDF de facturas venezolanas.
+
+        Notes
+        -----
+        Art. 28 PA SNAT/2011/0071: validaciones mínimas.
+        Art. 7 y Art. 21 PA SNAT/2024/000102: emisión digital y control de ejemplares.
+        """
+
         data = data or {}
         if not res_ids:
             return

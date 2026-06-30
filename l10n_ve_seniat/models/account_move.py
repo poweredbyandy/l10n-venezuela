@@ -11,7 +11,7 @@ from odoo.tools.misc import formatLang
 
 _logger = logging.getLogger(__name__)
 
-_L10N_VE_CANCEL_REASON_MOVE_TYPES = (
+L10N_VE_CANCEL_REASON_MOVE_TYPES = (
     "out_invoice",
     "out_refund",
     "out_receipt",
@@ -19,6 +19,7 @@ _L10N_VE_CANCEL_REASON_MOVE_TYPES = (
 
 
 class AccountMove(models.Model):
+
     _inherit = "account.move"
 
     l10n_ve_process_date = fields.Date(
@@ -72,6 +73,15 @@ class AccountMove(models.Model):
         "reversed_entry_id",
     )
     def _compute_seniat_invoice_tag(self):
+        """Genera leyendas fiscales obligatorias en facturas y notas de crédito.
+
+        Notes
+        -----
+        Providencia SNAT/2022/000013: aviso IGTF 3% en pagos en divisas.
+        Art. 13 num. 14 PA SNAT/2011/0071; Art. 15 Ley del IVA; Art. 38 RLIVA;
+        Art. 128 Ley BCV: equivalencia en divisas y tipo de cambio.
+        """
+
         for move in self:
             if move.country_code == "VE" and move.move_type in (
                 "out_invoice",
@@ -119,6 +129,13 @@ class AccountMove(models.Model):
                 move.seniat_invoice_tag = False
 
     def write(self, vals):
+        """Impide cambiar diario o contacto en NC/ND venezolanas confirmadas.
+
+        Notes
+        -----
+        Art. 22-24 PA SNAT/2011/0071: coherencia del documento origen en NC/ND.
+        """
+
         if not self.env.context.get("l10n_ve_skip_credit_debit_journal_lock") and (
             "journal_id" in vals or "partner_id" in vals
         ):
@@ -180,6 +197,9 @@ class AccountMove(models.Model):
             if medium == "contingency":
                 move.l10n_ve_hide_invoice_preview_send = True
                 continue
+            if medium == "fiscal_machine":
+                move.l10n_ve_hide_invoice_preview_send = True
+                continue
             if medium == "digital":
                 continue
             if not move.l10n_ve_invoice_original_printed:
@@ -224,77 +244,15 @@ class AccountMove(models.Model):
             send = getattr(move, "l10n_ve_edi_send_state", None)
             move.l10n_ve_digital_invoice_sent = send == "sent"
 
-    l10n_ve_show_credit_debit_actions = fields.Boolean(
-        compute="_compute_l10n_ve_show_credit_debit_actions",
-    )
-
-    @api.depends(
-        "country_code",
-        "move_type",
-        "state",
-        "l10n_ve_journal_emission_medium",
-        "l10n_ve_invoice_original_printed",
-        "l10n_ve_digital_invoice_sent",
-    )
-    def _compute_l10n_ve_show_credit_debit_actions(self):
-        for move in self:
-            move.l10n_ve_show_credit_debit_actions = (
-                move._l10n_ve_allows_credit_debit_actions()
-            )
-
-    def _l10n_ve_invoice_emitted_for_credit_debit(self):
-        self.ensure_one()
-        medium = self.l10n_ve_journal_emission_medium
-        if not medium or medium == "contingency":
-            return True
-        if medium == "free":
-            return bool(self.l10n_ve_invoice_original_printed)
-        if medium == "digital":
-            return bool(self.l10n_ve_digital_invoice_sent)
-        if medium == "fiscal_machine":
-            return bool(self.l10n_ve_invoice_original_printed)
-        return True
-
-    def _l10n_ve_allows_credit_debit_actions(self):
-        self.ensure_one()
-        if self.move_type != "out_invoice":
-            return False
-        if self.country_code != "VE":
-            return True
-        if self.state != "posted":
-            return False
-        return self._l10n_ve_invoice_emitted_for_credit_debit()
-
-    def _l10n_ve_check_credit_debit_allowed(self):
-        for move in self:
-            if move.country_code != "VE" or move.move_type != "out_invoice":
-                continue
-            if move._l10n_ve_allows_credit_debit_actions():
-                continue
-            medium = move.l10n_ve_journal_emission_medium
-            if medium == "free":
-                message = _(
-                    "No puede crear una nota de crédito o débito: la factura debe "
-                    "imprimirse en forma libre antes de revertirla."
-                )
-            elif medium == "digital":
-                message = _(
-                    "No puede crear una nota de crédito o débito: la factura debe "
-                    "enviarse por facturación digital antes de revertirla."
-                )
-            elif medium == "fiscal_machine":
-                message = _(
-                    "No puede crear una nota de crédito o débito: la factura debe "
-                    "imprimirse en máquina fiscal antes de revertirla."
-                )
-            else:
-                message = _(
-                    "No puede crear una nota de crédito o débito: la factura aún "
-                    "no fue emitida."
-                )
-            raise UserError(message)
-
     def _l10n_ve_block_invoice_pdf_contingency(self):
+        """Bloquea PDF en emisión por contingencia hasta cumplir requisitos.
+
+        Notes
+        -----
+        Art. 11 PA SNAT/2011/0071: formatos de imprenta autorizada en contingencia.
+        Art. 16 PA SNAT/2024/000102: medidas de contingencia en facturación digital.
+        """
+
         self.ensure_one()
         return (
             self.country_code == "VE"
@@ -303,6 +261,14 @@ class AccountMove(models.Model):
         )
 
     def _l10n_ve_blocking_invoice_report_before_digital_sent(self):
+        """Impide imprimir o descargar PDF antes del envío digital.
+
+        Notes
+        -----
+        Art. 7 y Art. 18 PA SNAT/2024/000102: emisión y trazabilidad digital.
+        Art. 28 PA SNAT/2011/0071: validaciones mínimas de emisión.
+        """
+
         self.ensure_one()
         if self.country_code != "VE":
             return False
@@ -349,6 +315,723 @@ class AccountMove(models.Model):
         string="Medio de emisión (diario)",
         readonly=True,
     )
+    l10n_ve_show_credit_debit_actions = fields.Boolean(
+        compute="_compute_l10n_ve_show_credit_debit_actions",
+    )
+    l10n_ve_show_credit_note_action = fields.Boolean(
+        compute="_compute_l10n_ve_show_credit_debit_actions",
+    )
+    l10n_ve_show_debit_note_action = fields.Boolean(
+        compute="_compute_l10n_ve_show_credit_debit_actions",
+    )
+    l10n_ve_related_credit_note_count = fields.Integer(
+        compute="_compute_l10n_ve_related_credit_note_count",
+    )
+    l10n_ve_show_cancel_wizard = fields.Boolean(
+        compute="_compute_l10n_ve_show_cancel_wizard",
+    )
+    l10n_ve_show_unreversed_debit_note_alert = fields.Boolean(
+        compute="_compute_l10n_ve_unreversed_debit_note_alert",
+    )
+    l10n_ve_unreversed_debit_note_count = fields.Integer(
+        compute="_compute_l10n_ve_unreversed_debit_note_alert",
+    )
+    l10n_ve_debit_note_reversed_ids = fields.Many2many(
+        "account.move",
+        "account_move_debit_credit_rel",
+        "credit_note_id",
+        "debit_note_id",
+        string="Notas de débito revertidas",
+        copy=False,
+        readonly=True,
+    )
+
+    @api.depends(
+        "country_code",
+        "move_type",
+        "debit_origin_id",
+        "reversed_entry_id",
+        "reversal_move_ids",
+        "reversed_entry_id.reversal_move_ids",
+        "debit_origin_id.reversal_move_ids",
+    )
+    def _compute_l10n_ve_related_credit_note_count(self):
+        for move in self:
+            if move.country_code != "VE":
+                move.l10n_ve_related_credit_note_count = 0
+                continue
+            move.l10n_ve_related_credit_note_count = len(
+                move._l10n_ve_get_related_credit_note_moves() - move
+            )
+
+    @api.depends(
+        "country_code",
+        "move_type",
+        "state",
+        "debit_origin_id",
+        "amount_total",
+        "currency_id",
+        "l10n_ve_journal_emission_medium",
+        "l10n_ve_invoice_original_printed",
+        "l10n_ve_digital_invoice_sent",
+        "l10n_ve_invoice_number",
+        "reversal_move_ids.state",
+        "reversal_move_ids.move_type",
+        "reversal_move_ids.amount_total",
+        "reversal_move_ids.currency_id",
+        "debit_note_ids.state",
+        "debit_note_ids.move_type",
+        "debit_note_ids.amount_total",
+        "debit_note_ids.currency_id",
+        "debit_note_ids.amount_untaxed",
+        "reversal_move_ids.l10n_ve_debit_note_reversed_ids",
+        "reversal_move_ids.amount_untaxed",
+    )
+    def _compute_l10n_ve_show_credit_debit_actions(self):
+        for move in self:
+            move.l10n_ve_show_credit_debit_actions = (
+                move._l10n_ve_allows_credit_debit_actions()
+            )
+            move.l10n_ve_show_credit_note_action = (
+                move._l10n_ve_allows_credit_note_action()
+            )
+            move.l10n_ve_show_debit_note_action = (
+                move._l10n_ve_allows_debit_note_action()
+            )
+
+    @api.depends(
+        "country_code",
+        "state",
+        "move_type",
+        "debit_origin_id",
+        "reversed_entry_id",
+        "l10n_ve_journal_emission_medium",
+        "reversed_entry_id.l10n_ve_journal_emission_medium",
+        "debit_origin_id.l10n_ve_journal_emission_medium",
+    )
+    def _compute_l10n_ve_show_cancel_wizard(self):
+        for move in self:
+            move.l10n_ve_show_cancel_wizard = move._l10n_ve_allows_cancel_wizard()
+
+    @api.depends(
+        "country_code",
+        "move_type",
+        "state",
+        "amount_untaxed",
+        "currency_id",
+        "debit_note_ids.state",
+        "debit_note_ids.amount_untaxed",
+        "reversal_move_ids.state",
+        "reversal_move_ids.move_type",
+        "reversal_move_ids.amount_untaxed",
+        "reversal_move_ids.l10n_ve_debit_note_reversed_ids",
+    )
+    def _compute_l10n_ve_unreversed_debit_note_alert(self):
+        for move in self:
+            move.l10n_ve_show_unreversed_debit_note_alert = False
+            move.l10n_ve_unreversed_debit_note_count = 0
+            if move.country_code != "VE" or move.move_type != "out_invoice":
+                continue
+            if move.state != "posted":
+                continue
+            unreversed = move._l10n_ve_get_unreversed_debit_notes()
+            if not unreversed or not move._l10n_ve_has_full_posted_credit_on_invoice():
+                continue
+            move.l10n_ve_show_unreversed_debit_note_alert = True
+            move.l10n_ve_unreversed_debit_note_count = len(unreversed)
+
+    def _l10n_ve_get_effective_emission_medium(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id or self.debit_origin_id
+        if origin:
+            return origin.l10n_ve_journal_emission_medium
+        return self.l10n_ve_journal_emission_medium
+
+    def _l10n_ve_invoice_emitted_for_credit_debit(self):
+        self.ensure_one()
+        medium = self.l10n_ve_journal_emission_medium
+        if not medium or medium == "contingency":
+            return True
+        if medium == "free":
+            return bool(self.l10n_ve_invoice_original_printed)
+        if medium == "digital":
+            return bool(self.l10n_ve_digital_invoice_sent)
+        if medium == "fiscal_machine":
+            return bool(
+                (self.l10n_ve_invoice_number or "").strip()
+                or self.l10n_ve_invoice_original_printed
+            )
+        return True
+
+    def _l10n_ve_allows_credit_debit_actions(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return False
+        if self.debit_origin_id:
+            return False
+        if self.country_code != "VE":
+            return True
+        if self.state != "posted":
+            return False
+        return self._l10n_ve_invoice_emitted_for_credit_debit()
+
+    def _l10n_ve_allows_credit_note_action(self):
+        self.ensure_one()
+        if self.move_type in ("out_refund", "in_refund"):
+            return False
+        if self.debit_origin_id:
+            return False
+        if self.move_type != "out_invoice":
+            return False
+        if self.country_code != "VE":
+            return self.state == "posted"
+        if self.state != "posted":
+            return False
+        if self._l10n_ve_has_full_posted_credit_on_invoice():
+            return False
+        if self._l10n_ve_has_full_posted_credit_note():
+            return False
+        return self._l10n_ve_invoice_emitted_for_credit_debit()
+
+    def _l10n_ve_allows_debit_note_action(self):
+        self.ensure_one()
+        if self.move_type in ("out_refund", "in_refund"):
+            return False
+        if self.debit_origin_id:
+            return False
+        if self.move_type != "out_invoice":
+            return False
+        if self.country_code == "VE":
+            posted_debits = self.debit_note_ids.filtered(
+                lambda m: m.state == "posted" and m.move_type == "out_invoice"
+            )
+            if self._l10n_ve_get_unreversed_debit_notes():
+                return False
+            if self._l10n_ve_has_full_posted_credit_note() and posted_debits:
+                return False
+            if self._l10n_ve_has_full_posted_credit_on_invoice() and posted_debits:
+                return False
+        if self.country_code != "VE":
+            return self.state == "posted"
+        if self.state != "posted":
+            return False
+        return self._l10n_ve_invoice_emitted_for_credit_debit()
+
+    def _l10n_ve_check_credit_note_creation_allowed(self):
+        """Impide crear NC cuando el documento ya fue reversado totalmente.
+
+        Raises
+        ------
+        UserError
+
+        Notes
+        -----
+        Art. 22-24 PA SNAT/2011/0071: emisión y límites de notas de crédito.
+        """
+
+        for move in self:
+            if move.country_code != "VE":
+                continue
+            if move.debit_origin_id:
+                raise UserError(
+                    _(
+                        "No puede crear una nota de crédito a partir de una "
+                        "nota de débito."
+                    )
+                )
+            if move.move_type in ("out_refund", "in_refund"):
+                raise UserError(
+                    _(
+                        "No puede crear una nota de crédito a partir de una "
+                        "nota de crédito."
+                    )
+                )
+            if (
+                move.move_type == "out_invoice"
+                and (
+                    move._l10n_ve_has_full_posted_credit_on_invoice()
+                    or move._l10n_ve_has_full_posted_credit_note()
+                )
+                and not self.env.context.get("l10n_ve_credit_note_for_debit_note")
+            ):
+                raise UserError(
+                    _(
+                        "No puede crear una nota de crédito: el documento ya fue "
+                        "reversado completamente."
+                    )
+                )
+
+    def _l10n_ve_check_debit_note_creation_allowed(self):
+        """Impide crear ND sobre NC o cuando existen ND sin revertir.
+
+        Raises
+        ------
+        UserError
+
+        Notes
+        -----
+        Art. 22-24 PA SNAT/2011/0071: notas de débito vinculadas a factura origen.
+        """
+
+        for move in self:
+            if move.country_code != "VE":
+                continue
+            if move.move_type in ("out_refund", "in_refund"):
+                raise UserError(
+                    _(
+                        "No puede crear una nota de débito a partir de una "
+                        "nota de crédito."
+                    )
+                )
+            if move.move_type == "out_invoice":
+                posted_debits = move.debit_note_ids.filtered(
+                    lambda m: m.state == "posted" and m.move_type == "out_invoice"
+                )
+                if move._l10n_ve_get_unreversed_debit_notes():
+                    raise UserError(
+                        _(
+                            "No puede crear una nota de débito: existe una nota de "
+                            "débito adicional pendiente de revertir."
+                        )
+                    )
+                if move._l10n_ve_has_full_posted_credit_note() and posted_debits:
+                    raise UserError(
+                        _(
+                            "No puede crear una nota de débito: la factura ya tiene "
+                            "una nota de crédito por el monto total."
+                        )
+                    )
+                if (
+                    move._l10n_ve_has_full_posted_credit_on_invoice()
+                    and posted_debits
+                ):
+                    raise UserError(
+                        _(
+                            "No puede crear una nota de débito: existe una nota de "
+                            "débito adicional pendiente de revertir."
+                        )
+                    )
+
+    def _l10n_ve_check_credit_debit_allowed(self):
+        """Exige emisión previa de la factura antes de crear NC o ND.
+
+        Raises
+        ------
+        UserError
+
+        Notes
+        -----
+        Art. 22-24 PA SNAT/2011/0071: NC/ND posteriores a la factura afectada.
+        Art. 28 PA SNAT/2011/0071: validaciones mínimas.
+        """
+
+        for move in self:
+            if move.country_code != "VE" or move.move_type != "out_invoice":
+                continue
+            if move.debit_origin_id:
+                continue
+            if move._l10n_ve_allows_credit_debit_actions():
+                continue
+            medium = move.l10n_ve_journal_emission_medium
+            if medium == "free":
+                message = _(
+                    "No puede crear una nota de crédito o débito: la factura debe "
+                    "imprimirse en forma libre antes de revertirla."
+                )
+            elif medium == "digital":
+                message = _(
+                    "No puede crear una nota de crédito o débito: la factura debe "
+                    "enviarse por facturación digital antes de revertirla."
+                )
+            elif medium == "fiscal_machine":
+                message = _(
+                    "No puede crear una nota de crédito o débito: la factura debe "
+                    "imprimirse en máquina fiscal antes de revertirla."
+                )
+            else:
+                message = _(
+                    "No puede crear una nota de crédito o débito: la factura aún "
+                    "no fue emitida."
+                )
+            raise UserError(message)
+
+    def _l10n_ve_allows_cancel_wizard(self):
+        """Determina si el documento admite anulación mediante asistente con motivo.
+
+        Returns
+        -------
+        bool
+
+        Notes
+        -----
+        Art. 18 PA SNAT/2024/000102: trazabilidad de anulaciones.
+        Art. 11 PA SNAT/2011/0071: documentos en máquina fiscal no se anulan así.
+        """
+
+        self.ensure_one()
+        if self.country_code != self.env.ref("base.ve").code:
+            return False
+        if not self.id or self.state != "posted":
+            return False
+        if self.move_type not in L10N_VE_CANCEL_REASON_MOVE_TYPES:
+            return False
+        if self._l10n_ve_get_effective_emission_medium() == "fiscal_machine":
+            return False
+        return True
+
+    def _l10n_ve_to_company_abs_amount(self):
+        self.ensure_one()
+        company_cur = self.company_currency_id
+        amount = abs(self.amount_total)
+        if self.currency_id == company_cur:
+            return company_cur.round(amount)
+        date = self.invoice_date or self.date or fields.Date.context_today(self)
+        return company_cur.round(
+            self.currency_id._convert(amount, company_cur, self.company_id, date)
+        )
+
+    def _l10n_ve_to_company_abs_untaxed_amount(self):
+        self.ensure_one()
+        company_cur = self.company_currency_id
+        amount = abs(self.amount_untaxed)
+        if self.currency_id == company_cur:
+            return company_cur.round(amount)
+        date = self.invoice_date or self.date or fields.Date.context_today(self)
+        return company_cur.round(
+            self.currency_id._convert(amount, company_cur, self.company_id, date)
+        )
+
+    def _l10n_ve_posted_credit_on_invoice_company_amount(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return 0.0
+        company_cur = self.company_currency_id
+        total = 0.0
+        posted_credits = self.reversal_move_ids.filtered(
+            lambda m: (
+                m.state == "posted"
+                and m.move_type == "out_refund"
+                and not m.l10n_ve_debit_note_reversed_ids
+            )
+        )
+        for credit in posted_credits:
+            total = company_cur.round(
+                total + credit._l10n_ve_to_company_abs_untaxed_amount()
+            )
+        return total
+
+    def _l10n_ve_has_full_posted_credit_on_invoice(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return False
+        company_cur = self.company_currency_id
+        limit = self._l10n_ve_to_company_abs_untaxed_amount()
+        if company_cur.is_zero(limit):
+            return False
+        accumulated = self._l10n_ve_posted_credit_on_invoice_company_amount()
+        return float_compare(
+            accumulated, limit, precision_rounding=company_cur.rounding
+        ) >= 0
+
+    def _l10n_ve_debit_note_is_reversed(self, debit_note):
+        self.ensure_one()
+        return bool(
+            self.reversal_move_ids.filtered(
+                lambda m: (
+                    m.state == "posted"
+                    and m.move_type == "out_refund"
+                    and debit_note in m.l10n_ve_debit_note_reversed_ids
+                )
+            )
+        )
+
+    def _l10n_ve_get_unreversed_debit_notes(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return self.env["account.move"]
+        return self.debit_note_ids.filtered(
+            lambda m: (
+                m.state == "posted"
+                and m.move_type == "out_invoice"
+                and not self._l10n_ve_debit_note_is_reversed(m)
+            )
+        )
+
+    def _l10n_ve_posted_credit_for_debit_notes_company_amount(self, debit_notes=None):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return 0.0
+        company_cur = self.company_currency_id
+        debit_notes = debit_notes or self.debit_note_ids
+        total = 0.0
+        for credit in self.reversal_move_ids.filtered(
+            lambda m: m.state == "posted" and m.move_type == "out_refund"
+        ):
+            linked_debits = credit.l10n_ve_debit_note_reversed_ids & debit_notes
+            if not linked_debits:
+                continue
+            total = company_cur.round(total + credit._l10n_ve_to_company_abs_amount())
+        return total
+
+    def _l10n_ve_max_credit_note_company_amount(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return 0.0
+        company_cur = self.company_currency_id
+        limit = self._l10n_ve_to_company_abs_amount()
+        debit_notes = self.debit_note_ids.filtered(
+            lambda m: m.state == "posted" and m.move_type == "out_invoice"
+        )
+        for debit in debit_notes:
+            limit = company_cur.round(limit + debit._l10n_ve_to_company_abs_amount())
+        return limit
+
+    def _l10n_ve_posted_credit_notes_company_amount(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return 0.0
+        company_cur = self.company_currency_id
+        total = 0.0
+        posted_credits = self.reversal_move_ids.filtered(
+            lambda m: m.state == "posted" and m.move_type == "out_refund"
+        )
+        for credit in posted_credits:
+            total = company_cur.round(total + credit._l10n_ve_to_company_abs_amount())
+        return total
+
+    def _l10n_ve_has_full_posted_credit_note(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice":
+            return False
+        company_cur = self.company_currency_id
+        limit = self._l10n_ve_max_credit_note_company_amount()
+        if company_cur.is_zero(limit):
+            return False
+        accumulated = self._l10n_ve_posted_credit_notes_company_amount()
+        return float_compare(
+            accumulated, limit, precision_rounding=company_cur.rounding
+        ) >= 0
+
+    def _l10n_ve_get_credit_note_root(self):
+        self.ensure_one()
+        if self.reversed_entry_id:
+            return self.reversed_entry_id
+        if self.debit_origin_id:
+            return self.debit_origin_id
+        if self.move_type in ("out_invoice", "in_invoice"):
+            return self
+        return self.env["account.move"]
+
+    def _l10n_ve_get_related_credit_note_moves(self):
+        self.ensure_one()
+        if self.country_code != "VE":
+            return self.env["account.move"]
+        if self.move_type not in (
+            "out_invoice",
+            "out_refund",
+            "in_invoice",
+            "in_refund",
+        ):
+            return self.env["account.move"]
+        root = self._l10n_ve_get_credit_note_root()
+        if not root:
+            return self.env["account.move"]
+        credit_notes = root.reversal_move_ids
+        if self == root:
+            return credit_notes
+        return root | credit_notes
+
+    def action_l10n_ve_view_credit_notes(self):
+        self.ensure_one()
+        moves = self._l10n_ve_get_related_credit_note_moves() - self
+        action = {
+            "type": "ir.actions.act_window",
+            "name": _("Notas de crédito"),
+            "res_model": "account.move",
+            "domain": [("id", "in", moves.ids)],
+            "context": {"default_move_type": "out_refund"},
+        }
+        if len(moves) == 1:
+            action.update({"views": [(False, "form")], "res_id": moves.id})
+        else:
+            action["view_mode"] = "list,form"
+        return action
+
+    def action_l10n_ve_open_credit_note_for_debit_notes(self):
+        self.ensure_one()
+        if self.country_code != "VE" or self.move_type != "out_invoice":
+            raise UserError(_("Esta acción solo aplica a facturas de cliente (VE)."))
+        unreversed = self._l10n_ve_get_unreversed_debit_notes()
+        if not unreversed:
+            raise UserError(
+                _("No hay notas de débito pendientes de revertir en esta factura.")
+            )
+        if not self._l10n_ve_has_full_posted_credit_on_invoice():
+            raise UserError(
+                _(
+                    "Esta acción solo está disponible cuando la factura ya tiene "
+                    "una nota de crédito total."
+                )
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Nota de crédito por nota de débito"),
+            "res_model": "l10n_ve.account.move.debit.credit.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_move_id": self.id,
+                "default_debit_note_ids": [(6, 0, unreversed.ids)],
+            },
+        }
+
+    def _l10n_ve_prepare_credit_note_lines_from_debit_notes(self, debit_notes):
+        self.ensure_one()
+        line_vals = []
+        for debit in debit_notes:
+            for line in debit.invoice_line_ids.filtered(
+                lambda l: l.display_type in (False, "product")
+            ):
+                line_vals.append(
+                    (
+                        0,
+                        0,
+                        {
+                            "name": line.name,
+                            "product_id": line.product_id.id,
+                            "quantity": line.quantity,
+                            "price_unit": line.price_unit,
+                            "discount": line.discount,
+                            "tax_ids": [(6, 0, line.tax_ids.ids)],
+                            "account_id": line.account_id.id,
+                        },
+                    )
+                )
+        return line_vals
+
+    def _l10n_ve_credit_note_limit_company_amount(self):
+        self.ensure_one()
+        if self.move_type != "out_refund" or not self.reversed_entry_id:
+            return 0.0
+        return self.reversed_entry_id._l10n_ve_max_credit_note_company_amount()
+
+    def _l10n_ve_credit_note_accumulated_company_amount(self, include_current=False):
+        self.ensure_one()
+        if self.move_type != "out_refund" or not self.reversed_entry_id:
+            return 0.0
+        company_cur = self.company_currency_id
+        origin = self.reversed_entry_id
+        total = origin._l10n_ve_posted_credit_notes_company_amount()
+        if include_current and self.state != "posted":
+            total = company_cur.round(total + self._l10n_ve_to_company_abs_amount())
+        return total
+
+    def _l10n_ve_validate_credit_note_amount_limit(self):
+        """Limita el monto acumulado de notas de crédito al total del documento origen.
+
+        Raises
+        ------
+        UserError
+            Si el acumulado de NC supera el límite permitido.
+
+        Notes
+        -----
+        Art. 23 PA SNAT/2011/0071: NC referencia fecha, número y monto de la factura.
+        Art. 8 PA SNAT/2024/000102: NC en medios digitales.
+        """
+
+        self.ensure_one()
+        ve_code = self.env.ref("base.ve").code
+        if self.country_code != ve_code or self.move_type != "out_refund":
+            return
+        if not self.reversed_entry_id:
+            return
+        company_cur = self.company_currency_id
+        if self.l10n_ve_debit_note_reversed_ids:
+            for debit in self.l10n_ve_debit_note_reversed_ids:
+                limit = debit._l10n_ve_to_company_abs_amount()
+                accumulated = self.reversed_entry_id._l10n_ve_posted_credit_for_debit_notes_company_amount(
+                    debit
+                )
+                if self.state != "posted":
+                    accumulated = company_cur.round(
+                        accumulated + self._l10n_ve_to_company_abs_amount()
+                    )
+                if float_compare(
+                    accumulated, limit, precision_rounding=company_cur.rounding
+                ) > 0:
+                    raise ValidationError(
+                        _(
+                            "No se puede confirmar la nota de crédito '%(move)s'. "
+                            "El monto acumulado (%(accumulated)s) supera el monto "
+                            "de la nota de débito '%(debit)s' (%(limit)s)."
+                        )
+                        % {
+                            "move": self.name or _("Borrador"),
+                            "accumulated": formatLang(
+                                self.env,
+                                accumulated,
+                                currency_obj=company_cur,
+                            ),
+                            "limit": formatLang(
+                                self.env,
+                                limit,
+                                currency_obj=company_cur,
+                            ),
+                            "debit": debit.display_name,
+                        }
+                    )
+            return
+        limit = self._l10n_ve_credit_note_limit_company_amount()
+        accumulated = self._l10n_ve_credit_note_accumulated_company_amount(
+            include_current=True
+        )
+        if float_compare(accumulated, limit, precision_rounding=company_cur.rounding) > 0:
+            origin = self.reversed_entry_id
+            raise ValidationError(
+                _(
+                    "No se puede confirmar la nota de crédito '%(move)s'. "
+                    "El monto acumulado de notas de crédito (%(accumulated)s) "
+                    "supera el monto máximo permitido (%(limit)s) del documento "
+                    "origen '%(origin)s'."
+                )
+                % {
+                    "move": self.name or _("Borrador"),
+                    "accumulated": formatLang(
+                        self.env,
+                        accumulated,
+                        currency_obj=company_cur,
+                    ),
+                    "limit": formatLang(
+                        self.env,
+                        limit,
+                        currency_obj=company_cur,
+                    ),
+                    "origin": origin.display_name,
+                }
+            )
+
+    def _l10n_ve_block_invoice_preview_fiscal_machine(self):
+        """Indica si debe bloquearse la vista previa o impresión PDF en máquina fiscal.
+
+        Returns
+        -------
+        bool
+            ``True`` cuando el documento es factura/NC venezolana en máquina fiscal.
+
+        Notes
+        -----
+        Art. 11 PA SNAT/2011/0071: obligados a MF no emplean otro medio salvo contingencia.
+        Art. 8 PA SNAT/2011/0071: emisión exclusiva por máquina fiscal.
+        """
+
+        self.ensure_one()
+        return (
+            self.country_code == "VE"
+            and self.move_type in ("out_invoice", "out_refund")
+            and self._l10n_ve_get_effective_emission_medium() == "fiscal_machine"
+        )
+
     l10n_ve_serial_number = fields.Char(
         string="Fiscal Machine Serial",
         copy=False,
@@ -398,6 +1081,14 @@ class AccountMove(models.Model):
 
     @api.depends("l10n_ve_third_party_partner_id", "move_type")
     def _compute_l10n_ve_on_behalf_of_third_party(self):
+        """Marca documentos emitidos por cuenta de terceros.
+
+        Notes
+        -----
+        Art. 10 Decreto con Rango, Valor y Fuerza de Ley del IVA.
+        Art. 11 y Art. 32 PA SNAT/2011/0071: deben emitirse en forma libre.
+        """
+
         for move in self:
             move.l10n_ve_on_behalf_of_third_party = bool(
                 move.l10n_ve_third_party_partner_id
@@ -426,6 +1117,13 @@ class AccountMove(models.Model):
 
     @api.depends("invoice_date", "l10n_ve_on_behalf_of_third_party")
     def _compute_l10n_ve_certified_copy_deadline(self):
+        """Calcula el plazo para entregar copia certificada al cliente.
+
+        Notes
+        -----
+        Art. 32 PA SNAT/2011/0071: entrega a más tardar el día 5 del mes siguiente.
+        """
+
         for move in self:
             if move.l10n_ve_on_behalf_of_third_party and move.invoice_date:
                 next_month = move.invoice_date + relativedelta(months=1)
@@ -433,85 +1131,22 @@ class AccountMove(models.Model):
             else:
                 move.l10n_ve_certified_copy_deadline = False
 
-    def _l10n_ve_to_company_abs_amount(self):
-        self.ensure_one()
-        company_cur = self.company_currency_id
-        amount = abs(self.amount_total)
-        if self.currency_id == company_cur:
-            return company_cur.round(amount)
-        date = self.invoice_date or self.date or fields.Date.context_today(self)
-        return company_cur.round(
-            self.currency_id._convert(amount, company_cur, self.company_id, date)
-        )
-
-    def _l10n_ve_credit_note_limit_company_amount(self):
-        self.ensure_one()
-        if self.move_type != "out_refund" or not self.reversed_entry_id:
-            return 0.0
-        company_cur = self.company_currency_id
-        origin = self.reversed_entry_id
-        limit = origin._l10n_ve_to_company_abs_amount()
-        debit_notes = origin.debit_note_ids.filtered(
-            lambda m: m.state == "posted" and m.move_type == "out_invoice"
-        )
-        for debit in debit_notes:
-            limit = company_cur.round(limit + debit._l10n_ve_to_company_abs_amount())
-        return limit
-
-    def _l10n_ve_credit_note_accumulated_company_amount(self, include_current=False):
-        self.ensure_one()
-        if self.move_type != "out_refund" or not self.reversed_entry_id:
-            return 0.0
-        company_cur = self.company_currency_id
-        origin = self.reversed_entry_id
-        total = 0.0
-        posted_credits = origin.reversal_move_ids.filtered(
-            lambda m: m.state == "posted" and m.move_type == "out_refund"
-        )
-        for credit in posted_credits:
-            total = company_cur.round(total + credit._l10n_ve_to_company_abs_amount())
-        if include_current and self.state != "posted":
-            total = company_cur.round(total + self._l10n_ve_to_company_abs_amount())
-        return total
-
-    def _l10n_ve_validate_credit_note_amount_limit(self):
-        self.ensure_one()
-        ve_code = self.env.ref("base.ve").code
-        if self.country_code != ve_code or self.move_type != "out_refund":
-            return
-        if not self.reversed_entry_id:
-            return
-        company_cur = self.company_currency_id
-        limit = self._l10n_ve_credit_note_limit_company_amount()
-        accumulated = self._l10n_ve_credit_note_accumulated_company_amount(
-            include_current=True
-        )
-        if float_compare(accumulated, limit, precision_rounding=company_cur.rounding) > 0:
-            origin = self.reversed_entry_id
-            raise ValidationError(
-                _(
-                    "No se puede confirmar la nota de crédito '%(move)s'. "
-                    "El monto acumulado de notas de crédito (%(accumulated)s) "
-                    "supera el monto máximo permitido (%(limit)s) del documento "
-                    "origen '%(origin)s'."
-                )
-                % {
-                    "move": self.name or _("Borrador"),
-                    "accumulated": formatLang(
-                        self.env,
-                        accumulated,
-                        currency_obj=company_cur,
-                    ),
-                    "limit": formatLang(
-                        self.env,
-                        limit,
-                        currency_obj=company_cur,
-                    ),
-                    "origin": origin.display_name,
-                }
-            )
-
     def _l10n_ve_validate_customer_invoice_emission_for_post(self):
+        """Valida requisitos de emisión según el medio configurado en el diario.
+
+        Raises
+        ------
+        ValidationError
+            Si faltan datos exigidos para confirmar el documento.
+
+        Notes
+        -----
+        Art. 13 y Art. 27 PA SNAT/2011/0071: N° de control y numeración.
+        Art. 11 PA SNAT/2011/0071: terceros en máquina fiscal requieren forma libre.
+        Art. 16 PA SNAT/2024/000102: contingencia.
+        Art. 7 PA SNAT/2024/000102: facturación digital.
+        """
+
         self.ensure_one()
         if self.country_code != self.env.ref("base.ve").code:
             return
@@ -590,6 +1225,16 @@ class AccountMove(models.Model):
         return bool(country and country.code == "VE")
 
     def action_post(self):  # noqa: C901
+        """Valida RIF, totales, origen de NC/ND y un impuesto por línea antes de confirmar.
+
+        Notes
+        -----
+        Art. 13 PA SNAT/2011/0071: RIF del adquiriente y requisitos de la factura.
+        Art. 22-24 PA SNAT/2011/0071: NC/ND con documento origen.
+        Art. 10 Ley del IVA: operaciones por cuenta de terceros.
+        Art. 13 num. 9-11 PA SNAT/2011/0071: una alícuota por línea.
+        """
+
         if self.env.context.get("install_mode"):
             return super().action_post()
         for move_id in self:
@@ -729,9 +1374,28 @@ class AccountMove(models.Model):
         return super().action_post()
 
     def action_l10n_ve_open_cancel_wizard(self):
+        """Abre el asistente de anulación con motivo registrado.
+
+        Returns
+        -------
+        dict
+            Acción de ventana del wizard de anulación.
+
+        Notes
+        -----
+        Art. 18 PA SNAT/2024/000102: registro de anulaciones.
+        Art. 11 PA SNAT/2011/0071: excluye documentos emitidos en máquina fiscal.
+        """
+
         self.ensure_one()
         if not self.env.user.has_group("l10n_ve_seniat.group_l10n_ve_invoice_void"):
             raise AccessError(_("No tiene permiso para anular facturas de cliente."))
+        if not self._l10n_ve_allows_cancel_wizard():
+            raise UserError(
+                _(
+                    "No se puede anular documentos emitidos en máquina fiscal."
+                )
+            )
         return {
             "type": "ir.actions.act_window",
             "name": _("Anular documento"),
@@ -742,11 +1406,18 @@ class AccountMove(models.Model):
         }
 
     def button_cancel(self):
+        """Exige motivo de anulación en documentos fiscales venezolanos.
+
+        Notes
+        -----
+        Art. 18 PA SNAT/2024/000102: trazabilidad de anulaciones.
+        """
+
         ve_code = self.env.ref("base.ve").code
         for move in self:
             if (
                 move.country_code == ve_code
-                and move.move_type in _L10N_VE_CANCEL_REASON_MOVE_TYPES
+                and move.move_type in L10N_VE_CANCEL_REASON_MOVE_TYPES
                 and not move.l10n_ve_cancel_reason_id
             ):
                 raise ValidationError(
@@ -759,6 +1430,18 @@ class AccountMove(models.Model):
         return super().button_cancel()
 
     def button_draft(self):
+        """Impide restablecer a borrador facturas de cliente venezolanas.
+
+        Raises
+        ------
+        ValidationError
+            Si se intenta pasar a borrador una factura de venta.
+
+        Notes
+        -----
+        Art. 22-24 PA SNAT/2011/0071: correcciones mediante notas de crédito.
+        """
+
         if self.country_code != self.env.ref("base.ve").code:
             return super().button_draft()
 
@@ -907,6 +1590,19 @@ Please create a credit note instead.
             move.l10n_ve_show_control_number_ui = move._l10n_ve_should_show_control_number_ui()
 
     def _l10n_ve_should_show_control_number_ui(self):
+        """Define cuándo el usuario debe consignar el N° de control SENIAT.
+
+        Returns
+        -------
+        bool
+
+        Notes
+        -----
+        Art. 13 num. 3-4 PA SNAT/2011/0071: N° de control.
+        Art. 11 PA SNAT/2011/0071: terceros en MF requieren control en forma libre.
+        Art. 30 PA SNAT/2024/000102: control asignado por imprenta digital.
+        """
+
         self.ensure_one()
         ve = self.env.ref("base.ve").code
         if self.country_code != ve:
@@ -947,6 +1643,14 @@ Please create a credit note instead.
         return False
 
     def _generate_control_number(self):
+        """Asigna el siguiente N° de control del talonario fiscal al documento.
+
+        Notes
+        -----
+        Art. 13 num. 3-4 PA SNAT/2011/0071: N° de control preimpreso o asignado.
+        Art. 27 PA SNAT/2011/0071: numeración consecutiva y serie.
+        """
+
         self.ensure_one()
         if self.l10n_ve_control_number:
             return
@@ -1003,6 +1707,13 @@ Please create a credit note instead.
             move._check_control_number_unique()
 
     def _check_control_number_unique(self):
+        """Garantiza unicidad del N° de control por diario.
+
+        Notes
+        -----
+        Art. 13 num. 2-3 PA SNAT/2011/0071: numeración consecutiva y única.
+        """
+
         self.ensure_one()
         if not self.l10n_ve_control_number:
             return
@@ -1047,6 +1758,14 @@ Please create a credit note instead.
         return self._l10n_ve_control_number_parts(control_number)[1]
 
     def _check_control_number_not_inferior(self):
+        """Impide usar un N° de control inferior al último registrado.
+
+        Notes
+        -----
+        Art. 13 num. 2 PA SNAT/2011/0071: numeración consecutiva.
+        Art. 27 PA SNAT/2011/0071: serie y correlativo.
+        """
+
         self.ensure_one()
         if not self.l10n_ve_control_number:
             return
@@ -1109,6 +1828,14 @@ Please create a credit note instead.
 
     @api.depends("tax_totals", "move_type", "state", "company_id")
     def _compute_sale_tax_data(self):  # noqa: C901
+        """Agrega desglose de bases e IVA por alícuota en facturas de venta.
+
+        Notes
+        -----
+        Art. 13 num. 9-11 PA SNAT/2011/0071: base imponible e IVA discriminado.
+        Art. 7 num. 11-12 PA SNAT/2024/000102: totales en factura digital.
+        """
+
         for move in self:
             if move.state != "posted" or move.move_type not in [
                 "out_invoice",
@@ -1204,15 +1931,23 @@ Please create a credit note instead.
             move.sale_tax_data = tax_data
 
     def get_sale_tax_values_by_type(self, tax_type="general"):
-        """
-        Obtiene los valores de impuestos almacenados por tipo de alícuota.
+        """Obtiene montos de base e impuesto almacenados por tipo de alícuota.
 
-        Args:
-            tax_type: 'exempt', 'reduced', 'general', 'extend'
+        Parameters
+        ----------
+        tax_type : str, default "general"
+            Clave de alícuota (``exent``, ``reduced``, ``general``, ``extend``).
 
-        Returns:
-            dict: {'base': X, 'amount': Y} o {'base': 0.0, 'amount': 0.0}
+        Returns
+        -------
+        dict
+            Montos de base imponible e impuesto para la alícuota solicitada.
+
+        Notes
+        -----
+        Art. 13 num. 9-11 PA SNAT/2011/0071: discriminación de alícuotas en factura.
         """
+
         self.ensure_one()
         if not self.sale_tax_data:
             return {"base": 0.0, "amount": 0.0}
@@ -1236,6 +1971,13 @@ Please create a credit note instead.
 
     @api.depends("tax_totals", "move_type", "state", "company_id")
     def _compute_purchase_tax_data(self):  # noqa: C901
+        """Agrega desglose de bases e IVA por alícuota en facturas de compra.
+
+        Notes
+        -----
+        Art. 13 num. 9-11 PA SNAT/2011/0071: desglose de IVA en documentos.
+        """
+
         for move in self:
             if move.state != "posted" or move.move_type not in [
                 "in_invoice",
@@ -1503,6 +2245,18 @@ Please create a credit note instead.
         return super().get_extra_print_items()
 
     def _l10n_ve_check_invoice_print_allowed(self):
+        """Valida si la impresión del documento fiscal está permitida.
+
+        Raises
+        ------
+        UserError
+
+        Notes
+        -----
+        Art. 28 PA SNAT/2011/0071: validaciones mínimas de emisión e impresión.
+        Art. 7 PA SNAT/2024/000102: requisitos de factura digital.
+        """
+
         for move in self:
             if move.country_code != "VE":
                 continue
@@ -1514,12 +2268,27 @@ Please create a credit note instead.
                 raise UserError(_("Debe confirmar la factura antes de imprimirla."))
 
     def preview_invoice(self):
+        """Vista previa de factura respetando restricciones de medio de emisión.
+
+        Notes
+        -----
+        Art. 11 PA SNAT/2011/0071: máquina fiscal no usa PDF estándar.
+        Art. 28 PA SNAT/2011/0071: validaciones mínimas.
+        """
+
         self._l10n_ve_check_invoice_print_allowed()
         self.ensure_one()
         if self._l10n_ve_block_invoice_pdf_contingency():
             raise UserError(
                 _(
                     "En contingencia no esta permitido abrir la vista previa del documento."
+                )
+            )
+        if self._l10n_ve_block_invoice_preview_fiscal_machine():
+            raise UserError(
+                _(
+                    "En maquina fiscal no esta permitido abrir la vista previa "
+                    "del documento."
                 )
             )
         return super().preview_invoice()
@@ -1611,6 +2380,14 @@ Please create a credit note instead.
         self.invalidate_recordset(["invoice_pdf_report_id", "invoice_pdf_report_file"])
 
     def action_print_pdf(self):
+        """Imprime o descarga PDF aplicando reglas fiscales venezolanas.
+
+        Notes
+        -----
+        Art. 28 PA SNAT/2011/0071: impresión conforme a normas de emisión.
+        Art. 21 PA SNAT/2024/000102: un solo ejemplar / control de impresión digital.
+        """
+
         self._l10n_ve_check_invoice_print_allowed()
         self.ensure_one()
         if (
@@ -1673,11 +2450,20 @@ Please create a credit note instead.
                     l10n_ve_skip_credit_debit_journal_lock=True
                 ).write(updates)
 
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        self._l10n_ve_check_credit_note_creation_allowed()
+        self._l10n_ve_check_credit_debit_allowed()
+        return super()._reverse_moves(
+            default_values_list=default_values_list, cancel=cancel
+        )
+
     def action_reverse(self):
+        self._l10n_ve_check_credit_note_creation_allowed()
         self._l10n_ve_check_credit_debit_allowed()
         return super().action_reverse()
 
     def action_debit_note(self):
+        self._l10n_ve_check_debit_note_creation_allowed()
         self._l10n_ve_check_credit_debit_allowed()
         return super().action_debit_note()
 
@@ -1709,11 +2495,25 @@ Please create a credit note instead.
                 )
 
     def _l10n_ve_check_credit_note_products_and_labels(self):
+        """Valida productos y descripciones de líneas en notas de crédito.
+
+        Raises
+        ------
+        UserError
+
+        Notes
+        -----
+        Art. 23 PA SNAT/2011/0071: referencia y coherencia con la factura origen.
+        Art. 13 num. 8 PA SNAT/2011/0071: descripción de bienes y servicios.
+        """
+
         Product = self.env["product.product"].sudo()
         for move in self:
             if move.company_id.account_fiscal_country_id.code != "VE":
                 continue
             if move.move_type not in ("out_refund", "in_refund"):
+                continue
+            if move.l10n_ve_debit_note_reversed_ids:
                 continue
             origin = move.reversed_entry_id
             if not origin:
@@ -1762,6 +2562,17 @@ Please create a credit note instead.
             )
 
     def l10n_ve_report_exchange_rate_display(self):
+        """Formatea el tipo de cambio para impresión en facturas en divisas.
+
+        Returns
+        -------
+        str
+
+        Notes
+        -----
+        Art. 13 num. 14 PA SNAT/2011/0071; Art. 15 Ley del IVA; Art. 38 RLIVA.
+        """
+
         self.ensure_one()
         if self.currency_id == self.company_currency_id:
             return False

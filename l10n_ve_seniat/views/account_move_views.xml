@@ -4,6 +4,7 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form" />
         <field name="arch" type="xml">
+            <!-- Art. 16 PA SNAT/2024/000102: fecha del documento en contingencia. -->
             <xpath expr="//group[@id='header_right_group']/label[@for='invoice_date'][1]" position="before">
                 <field
                     name="reception_date"
@@ -24,6 +25,7 @@
                     readonly="state == 'posted' or l10n_ve_journal_emission_medium != 'contingency'"
                 />
             </xpath>
+            <!-- Art. 18 PA SNAT/2024/000102: motivo de anulación registrado. -->
             <xpath expr="//group[@id='header_right_group']/label[@for='invoice_date'][1]" position="before">
                 <label
                     for="l10n_ve_cancel_reason_id"
@@ -66,6 +68,7 @@
                 <attribute name="invisible">state != 'posted' or (not is_being_sent and not invoice_pdf_report_id) or (country_code == 'VE' and move_type in ('out_invoice', 'out_refund') and l10n_ve_hide_invoice_print_pdf)</attribute>
             </xpath>
             <xpath expr="//button[@name='button_draft']" position="attributes">
+                <!-- Art. 22-24 PA SNAT/2011/0071: usar NC en lugar de borrador. -->
                 <attribute name="invisible">not show_reset_to_draft_button or (country_code == 'VE' and move_type in ('out_invoice', 'out_refund', 'out_receipt'))</attribute>
             </xpath>
             <xpath expr="//button[@name='button_cancel'][2]" position="attributes">
@@ -73,6 +76,27 @@
             </xpath>
 
             <xpath expr="//field[@name='tax_lock_date_message']/parent::div" position="after">
+                <!-- Art. 22-24 PA SNAT/2011/0071: NC por ND adicional sin revertir. -->
+                <div
+                    class="alert alert-warning d-flex align-items-center flex-wrap gap-2"
+                    role="alert"
+                    invisible="not l10n_ve_show_unreversed_debit_note_alert"
+                >
+                    <div class="flex-grow-1">
+                        <strong>Nota de débito adicional pendiente.</strong>
+                        Esta factura ya tiene una nota de crédito total. Existe
+                        <field name="l10n_ve_unreversed_debit_note_count" readonly="1" class="oe_inline" />
+                        nota(s) de débito sin revertir. Debe emitir una nota de crédito
+                        referenciada a la factura con los montos de la(s) nota(s) de débito.
+                    </div>
+                    <button
+                        name="action_l10n_ve_open_credit_note_for_debit_notes"
+                        type="object"
+                        string="Nota de crédito por ND"
+                        class="btn btn-warning"
+                        groups="account.group_account_invoice"
+                    />
+                </div>
                 <div
                     class="alert alert-warning d-flex align-items-center flex-wrap gap-2"
                     role="alert"
@@ -92,23 +116,42 @@
                 <field name="l10n_ve_currency_rate_outdated" invisible="1" />
             </xpath>
             <xpath expr="//button[@name='button_cancel'][2]" position="after">
+                <!-- Art. 18 PA SNAT/2024/000102; Art. 11 PA SNAT/2011/0071: no anular en máquina fiscal. -->
                 <button
                     name="action_l10n_ve_open_cancel_wizard"
                     string="Anular"
                     type="object"
                     groups="l10n_ve_seniat.group_l10n_ve_invoice_void"
                     data-hotkey="x"
-                    invisible="country_code != 'VE' or not id or state != 'posted' or move_type not in ('out_invoice', 'out_refund', 'out_receipt')"
+                    invisible="country_code != 'VE' or not l10n_ve_show_cancel_wizard"
                 />
+            </xpath>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_l10n_ve_view_credit_notes"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-pencil-square-o"
+                    groups="account.group_account_invoice,account.group_account_readonly"
+                    invisible="country_code != 'VE' or l10n_ve_related_credit_note_count == 0 or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')"
+                >
+                    <field
+                        name="l10n_ve_related_credit_note_count"
+                        widget="statinfo"
+                        string="Notas de crédito"
+                    />
+                </button>
             </xpath>
 
             <xpath expr="//header//button[@name='action_reverse']" position="attributes">
                 <attribute
                     name="invisible"
-                >move_type != 'out_invoice' or state != 'posted' or (country_code == 'VE' and not l10n_ve_show_credit_debit_actions)</attribute>
+                >move_type != 'out_invoice' or state != 'posted' or (country_code == 'VE' and not l10n_ve_show_credit_note_action)</attribute>
             </xpath>
 
             <xpath expr="//header//button[@name='action_reverse']" position="after">
+                <!-- Art. 22-24 PA SNAT/2011/0071: nota de débito vinculada a factura. -->
                 <button
                     name="action_debit_note"
                     string="Nota de Debito"
@@ -116,14 +159,20 @@
                     type="object"
                     class="btn-secondary"
                     groups="account.group_account_invoice"
-                    invisible="country_code != 'VE' or move_type != 'out_invoice' or state != 'posted' or debit_origin_id or not l10n_ve_show_credit_debit_actions"
+                    invisible="country_code != 'VE' or move_type != 'out_invoice' or state != 'posted' or not l10n_ve_show_debit_note_action"
                 />
             </xpath>
             <xpath expr="//field[@name='country_code']" position="after">
                 <field name="l10n_ve_on_behalf_of_third_party_enabled" invisible="1" />
+                <field name="l10n_ve_show_cancel_wizard" invisible="1" />
                 <field name="l10n_ve_journal_emission_medium" invisible="1" />
                 <field name="l10n_ve_show_control_number_ui" invisible="1" />
                 <field name="l10n_ve_show_credit_debit_actions" invisible="1" />
+                <field name="l10n_ve_show_credit_note_action" invisible="1" />
+                <field name="l10n_ve_show_debit_note_action" invisible="1" />
+                <field name="l10n_ve_show_unreversed_debit_note_alert" invisible="1" />
+                <field name="l10n_ve_unreversed_debit_note_count" invisible="1" />
+                <field name="l10n_ve_related_credit_note_count" invisible="1" />
                 <field name="l10n_ve_invoice_original_printed" invisible="1" />
                 <field name="l10n_ve_hide_invoice_preview_send" invisible="1" />
                 <field name="l10n_ve_hide_invoice_print_pdf" invisible="1" />
@@ -207,6 +256,7 @@
                 >state != 'draft' or (country_code == 'VE' and (move_type in ('out_refund', 'in_refund') or debit_origin_id))</attribute>
             </xpath>
             <xpath expr="//group[@id='header_left_group']/*[1]" position="before">
+                <!-- Art. 13 num. 3-4 PA SNAT/2011/0071; Art. 11 PA SNAT/2011/0071: N° control (terceros en MF). -->
                 <label
                     for="l10n_ve_control_number"
                     class="text-danger"
@@ -233,6 +283,7 @@
                     readonly="1"
                     invisible="not l10n_ve_show_control_number_ui or l10n_ve_control_number or not l10n_ve_control_number_placeholder"
                 />
+                <!-- Art. 14 PA SNAT/2011/0071: datos de máquina fiscal (serial, N° factura, reporte Z). -->
                 <label
                     for="l10n_ve_serial_number"
                     string="Máquina Fiscal"
@@ -278,6 +329,7 @@
                 <attribute name="readonly">True</attribute>
             </xpath>
             <xpath expr="//div[@name='currency_conversion_div']" position="after">
+                <!-- Art. 13 num. 14 PA SNAT/2011/0071: equivalencia en divisas. -->
                 <div
                     class="d-flex gap-1 text-muted mt-1"
                     invisible="currency_id == company_currency_id or not l10n_ve_inverse_rate"
@@ -322,6 +374,7 @@
                 />
             </xpath>
             <xpath expr="//page[@name='other_info']" position="inside">
+                <!-- Art. 32 PA SNAT/2011/0071: copia certificada por cuenta de terceros. -->
                 <div
                     class="row w-100 m-0"
                     invisible="move_type not in ('out_invoice', 'out_refund') or not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
@@ -372,6 +425,7 @@
                 expr="//group[@id='header_left_group']/div[hasclass('o_col')][.//field[@name='partner_id'][@widget='res_partner_many2one']]"
                 position="after"
             >
+                <!-- Art. 10 Ley del IVA; Art. 11 PA SNAT/2011/0071: contacto por cuenta de terceros. -->
                 <label
                     for="l10n_ve_third_party_partner_id"
                     style="font-weight:bold;"
@@ -397,6 +451,7 @@
                 expr="//group[hasclass('oe_invoice_lines_tab', 'overflow-hidden')]//field[@name='narration']"
                 position="after"
             >
+                <!-- Providencia SNAT/2022/000013; Art. 13 num. 14 PA SNAT/2011/0071: leyendas fiscales. -->
                 <field
                     name="seniat_invoice_tag"
                     widget="html"

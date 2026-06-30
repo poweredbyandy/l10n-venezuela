@@ -70,6 +70,8 @@ class AccountMoveLine(models.Model):
                 continue
             if record.move_id.country_code != self.env.ref("base.ve").code:
                 continue
+            if not record._l10n_ve_can_auto_update_tax_fields():
+                continue
 
             if "price_unit" in vals or "quantity" in vals:
                 record._validate_line_unit_price_ve()
@@ -78,6 +80,13 @@ class AccountMoveLine(models.Model):
         return res
 
     def _validate_line_unit_price_ve(self):
+        """Valida precio unitario distinto de cero en líneas fiscales venezolanas.
+
+        Notes
+        -----
+        Art. 13 num. 8 PA SNAT/2011/0071: descripción y precio de la operación.
+        """
+
         self.ensure_one()
         if self.move_id.move_type == "entry":
             return
@@ -125,6 +134,18 @@ class AccountMoveLine(models.Model):
                 )
 
     def l10n_ve_report_line_description(self):
+        """Descripción de línea para reporte, marcando exentos con sufijo (E).
+
+        Returns
+        -------
+        str
+
+        Notes
+        -----
+        Art. 13 num. 8 PA SNAT/2011/0071: carácter (E) en operaciones exentas.
+        Art. 7 num. 8 PA SNAT/2024/000102: mismo requisito en factura digital.
+        """
+
         self.ensure_one()
         name = (self.name or "").strip()
         product = self.product_id
@@ -172,6 +193,10 @@ class AccountMoveLine(models.Model):
             return True
         return False
 
+    def _l10n_ve_can_auto_update_tax_fields(self):
+        self.ensure_one()
+        return self.parent_state != "posted"
+
     @api.depends(
         "product_id",
         "product_uom_id",
@@ -185,6 +210,8 @@ class AccountMoveLine(models.Model):
         super()._compute_tax_ids()
         for line in self:
             if not line.move_id:
+                continue
+            if not line._l10n_ve_can_auto_update_tax_fields():
                 continue
             if not line._l10n_ve_must_use_exempt_tax():
                 continue
@@ -208,6 +235,8 @@ class AccountMoveLine(models.Model):
         self.ensure_one()
         if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
             return
+        if not self._l10n_ve_can_auto_update_tax_fields():
+            return
         if not self._l10n_ve_must_use_exempt_tax():
             return
         tax = self._l10n_ve_get_exempt_tax_for_line()
@@ -224,7 +253,16 @@ class AccountMoveLine(models.Model):
         )
 
     def _put_unique_tax_per_line(self):
+        """Impide más de un impuesto de venta por línea de factura.
+
+        Notes
+        -----
+        Art. 13 num. 9-11 PA SNAT/2011/0071: discriminación de alícuota por línea.
+        """
+
         self.ensure_one()
+        if not self._l10n_ve_can_auto_update_tax_fields():
+            return
         if self.display_type not in ("product", "discount"):
             return
 

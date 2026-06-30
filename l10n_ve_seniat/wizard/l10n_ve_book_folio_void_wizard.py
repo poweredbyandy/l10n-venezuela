@@ -26,6 +26,14 @@ class L10nVeBookFolioVoidWizard(models.TransientModel):
     )
 
     def action_confirm(self):
+        """Confirma anulación de folio en talonario fiscal.
+
+        Notes
+        -----
+        Art. 27 PA SNAT/2011/0071: control de numeración.
+        Art. 28 PA SNAT/2011/0071: integridad documental.
+        """
+
         self.ensure_one()
         if not (self.reason or "").strip():
             raise UserError(_("Debe indicar el motivo de la anulación del folio."))

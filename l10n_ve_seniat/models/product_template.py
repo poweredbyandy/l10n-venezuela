@@ -1,6 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import _, api, fields, models
+from odoo import _, api, Command, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools import float_compare
 
@@ -11,6 +11,22 @@ class ProductTemplate(models.Model):
     l10n_ve_sale_taxes_readonly = fields.Boolean(
         compute="_compute_l10n_ve_sale_taxes_readonly",
     )
+    l10n_ve_sale_tax_id = fields.Many2one(
+        "account.tax",
+        string="Sales Tax",
+        compute="_compute_l10n_ve_tax_ids",
+        inverse="_inverse_l10n_ve_sale_tax_id",
+        domain=[("type_tax_use", "=", "sale")],
+        help="Updates the original sales taxes field with a single tax.",
+    )
+    l10n_ve_purchase_tax_id = fields.Many2one(
+        "account.tax",
+        string="Purchase Tax",
+        compute="_compute_l10n_ve_tax_ids",
+        inverse="_inverse_l10n_ve_purchase_tax_id",
+        domain=[("type_tax_use", "=", "purchase")],
+        help="Updates the original purchase taxes field with a single tax.",
+    )
 
     @api.depends("product_variant_ids")
     def _compute_l10n_ve_sale_taxes_readonly(self):
@@ -19,6 +35,20 @@ class ProductTemplate(models.Model):
         )
         for tmpl in self:
             tmpl.l10n_ve_sale_taxes_readonly = tmpl.id in locked
+
+    @api.depends("taxes_id", "supplier_taxes_id")
+    def _compute_l10n_ve_tax_ids(self):
+        for tmpl in self:
+            tmpl.l10n_ve_sale_tax_id = tmpl.taxes_id[:1]
+            tmpl.l10n_ve_purchase_tax_id = tmpl.supplier_taxes_id[:1]
+
+    def _inverse_l10n_ve_sale_tax_id(self):
+        for tmpl in self:
+            tmpl.taxes_id = [Command.set(tmpl.l10n_ve_sale_tax_id.ids)]
+
+    def _inverse_l10n_ve_purchase_tax_id(self):
+        for tmpl in self:
+            tmpl.supplier_taxes_id = [Command.set(tmpl.l10n_ve_purchase_tax_id.ids)]
 
     @api.model
     def _l10n_ve_locked_sale_tax_template_id_set(self, templates):
@@ -55,7 +85,21 @@ class ProductTemplate(models.Model):
             "l10n_ve_seniat.group_l10n_ve_override_locked_master_data"
         )
 
+    @api.model
+    def _l10n_ve_sync_tax_utility_vals(self, vals):
+        vals = dict(vals)
+        if "l10n_ve_sale_tax_id" in vals:
+            tax_id = vals.pop("l10n_ve_sale_tax_id")
+            vals["taxes_id"] = [Command.set([tax_id])] if tax_id else [Command.clear()]
+        if "l10n_ve_purchase_tax_id" in vals:
+            tax_id = vals.pop("l10n_ve_purchase_tax_id")
+            vals["supplier_taxes_id"] = (
+                [Command.set([tax_id])] if tax_id else [Command.clear()]
+            )
+        return vals
+
     def write(self, vals):
+        vals = self._l10n_ve_sync_tax_utility_vals(vals)
         if (
             "taxes_id" in vals
             and not self._l10n_ve_user_can_override_sale_tax_lock()
@@ -85,6 +129,7 @@ class ProductTemplate(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        vals_list = [self._l10n_ve_sync_tax_utility_vals(vals) for vals in vals_list]
         for vals in vals_list:
             self._l10n_ve_normalize_list_price_in_vals(vals)
             self._l10n_ve_inject_default_exent_taxes_in_vals(vals)
@@ -228,40 +273,84 @@ class ProductTemplate(models.Model):
                 continue
             enforce_ge_cost = company.l10n_ve_enforce_sale_price_ge_cost
             for variant in tmpl.product_variant_ids:
-                lst = variant.lst_price
-                cost = variant.standard_price
-                if float_compare(lst, 0.0, precision_digits=prec) <= 0:
-                    raise ValidationError(
-                        _(
-                            'El precio de venta del producto "%(name)s" debe ser '
-                            "mayor que cero (variante: %(variant)s)."
-                        )
-                        % {
-                            "name": tmpl.display_name,
-                            "variant": variant.display_name,
-                        }
-                    )
-                if (
-                    enforce_ge_cost
-                    and float_compare(lst, cost, precision_digits=prec) < 0
-                ):
-                    raise ValidationError(
-                        _(
-                            'El precio de venta del producto "%(name)s" no puede ser '
-                            "inferior al coste (variante: %(variant)s)."
-                        )
-                        % {
-                            "name": tmpl.display_name,
-                            "variant": variant.display_name,
-                        }
-                    )
+                self._l10n_ve_check_sale_price_values(
+                    tmpl.display_name,
+                    variant.display_name,
+                    variant.lst_price,
+                    variant.standard_price,
+                    enforce_ge_cost,
+                    prec,
+                )
 
     @api.constrains("list_price", "standard_price")
     def _l10n_ve_check_list_price_and_cost(self):
         self._l10n_ve_check_sale_price_vs_cost()
 
+    @api.model
+    def _l10n_ve_check_sale_price_values(
+        self,
+        product_name,
+        variant_name,
+        sale_price,
+        cost,
+        enforce_ge_cost,
+        precision_digits,
+    ):
+        if float_compare(sale_price, 0.0, precision_digits=precision_digits) <= 0:
+            raise ValidationError(
+                _(
+                    'El precio de venta del producto "%(name)s" debe ser '
+                    "mayor que cero (variante: %(variant)s)."
+                )
+                % {
+                    "name": product_name,
+                    "variant": variant_name,
+                }
+            )
+        if enforce_ge_cost and float_compare(
+            sale_price, cost, precision_digits=precision_digits
+        ) < 0:
+            raise ValidationError(
+                _(
+                    'El precio de venta del producto "%(name)s" no puede ser '
+                    "inferior al coste (variante: %(variant)s)."
+                )
+                % {
+                    "name": product_name,
+                    "variant": variant_name,
+                }
+            )
+
+    @api.onchange("list_price", "standard_price", "company_id")
+    def _onchange_l10n_ve_check_list_price_and_cost(self):
+        ve_country = self.env.ref("base.ve", raise_if_not_found=False)
+        if not ve_country:
+            return
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+        for tmpl in self:
+            if tmpl._l10n_ve_is_sale_discount_template():
+                continue
+            company = tmpl.company_id or self.env.company
+            if company.account_fiscal_country_id != ve_country:
+                continue
+            tmpl._l10n_ve_check_sale_price_values(
+                tmpl.display_name,
+                tmpl.display_name,
+                tmpl.list_price,
+                tmpl.standard_price,
+                company.l10n_ve_enforce_sale_price_ge_cost,
+                prec,
+            )
+
     @api.constrains("taxes_id", "supplier_taxes_id")
     def _l10n_ve_check_exactly_one_tax_per_use(self):
+        """Exige exactamente un impuesto de venta y uno de compra por producto.
+
+        Notes
+        -----
+        Art. 13 num. 9-11 PA SNAT/2011/0071: alícuota aplicable por operación.
+        """
+
         if self.env.context.get(
             "install_mode"
         ) or self.env.context.get("l10n_ve_skip_product_tax_constraint"):
@@ -294,6 +383,23 @@ class ProductTemplate(models.Model):
                     % {"name": tmpl.display_name, "n": n_purchase}
                 )
 
+    @api.onchange("l10n_ve_sale_tax_id")
+    def _onchange_l10n_ve_sale_tax_id(self):
+        for tmpl in self:
+            tmpl.taxes_id = [Command.set(tmpl.l10n_ve_sale_tax_id.ids)]
+
+    @api.onchange("l10n_ve_purchase_tax_id")
+    def _onchange_l10n_ve_purchase_tax_id(self):
+        for tmpl in self:
+            tmpl.supplier_taxes_id = [Command.set(tmpl.l10n_ve_purchase_tax_id.ids)]
+
+    @api.onchange("taxes_id", "supplier_taxes_id")
+    def _onchange_l10n_ve_check_exactly_one_tax_per_use(self):
+        for tmpl in self:
+            tmpl.l10n_ve_sale_tax_id = tmpl.taxes_id[:1]
+            tmpl.l10n_ve_purchase_tax_id = tmpl.supplier_taxes_id[:1]
+        self._l10n_ve_check_exactly_one_tax_per_use()
+
 
 class ProductProduct(models.Model):
     _inherit = "product.product"
@@ -302,15 +408,67 @@ class ProductProduct(models.Model):
         related="product_tmpl_id.l10n_ve_sale_taxes_readonly",
     )
 
+    @api.onchange("l10n_ve_sale_tax_id")
+    def _onchange_l10n_ve_sale_tax_id(self):
+        for product in self:
+            product.taxes_id = [Command.set(product.l10n_ve_sale_tax_id.ids)]
+
+    @api.onchange("l10n_ve_purchase_tax_id")
+    def _onchange_l10n_ve_purchase_tax_id(self):
+        for product in self:
+            product.supplier_taxes_id = [
+                Command.set(product.l10n_ve_purchase_tax_id.ids)
+            ]
+
+    @api.onchange("taxes_id", "supplier_taxes_id")
+    def _onchange_l10n_ve_check_exactly_one_tax_per_use(self):
+        for product in self:
+            product.l10n_ve_sale_tax_id = product.taxes_id[:1]
+            product.l10n_ve_purchase_tax_id = product.supplier_taxes_id[:1]
+        self.mapped("product_tmpl_id")._l10n_ve_check_exactly_one_tax_per_use()
+
+    def _l10n_ve_check_product_price_onchange(self, price_field):
+        ve_country = self.env.ref("base.ve", raise_if_not_found=False)
+        if not ve_country:
+            return
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+        Template = self.env["product.template"]
+        for product in self:
+            template = product.product_tmpl_id
+            if template and template._l10n_ve_is_sale_discount_template():
+                continue
+            company = template.company_id or product.company_id or self.env.company
+            if company.account_fiscal_country_id != ve_country:
+                continue
+            Template._l10n_ve_check_sale_price_values(
+                template.display_name or product.display_name,
+                product.display_name,
+                product[price_field],
+                product.standard_price,
+                company.l10n_ve_enforce_sale_price_ge_cost,
+                prec,
+            )
+
+    @api.onchange("list_price", "standard_price", "company_id")
+    def _onchange_l10n_ve_check_list_price_and_cost(self):
+        self._l10n_ve_check_product_price_onchange("list_price")
+
+    @api.onchange("lst_price")
+    def _onchange_l10n_ve_check_lst_price_and_cost(self):
+        self._l10n_ve_check_product_price_onchange("lst_price")
+
     @api.model_create_multi
     def create(self, vals_list):
         Template = self.env["product.template"]
+        vals_list = [
+            Template._l10n_ve_sync_tax_utility_vals(vals) for vals in vals_list
+        ]
         for vals in vals_list:
             Template._l10n_ve_normalize_list_price_in_vals(vals)
         return super().create(vals_list)
 
     def write(self, vals):
-        vals = dict(vals)
+        vals = self.env["product.template"]._l10n_ve_sync_tax_utility_vals(vals)
         if "list_price" in vals:
             ve_country = self.env.ref("base.ve", raise_if_not_found=False)
             if ve_country:
