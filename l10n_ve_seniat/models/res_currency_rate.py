@@ -97,6 +97,12 @@ class ResCurrencyRate(models.Model):
                 )
             )
 
+    @api.ondelete(at_uninstall=False)
+    def _l10n_ve_unlink_currency_rate(self):
+        for rec in self:
+            if rec._l10n_ve_company_uses_rate_rules():
+                raise UserError(_("No se pueden eliminar tasas de cambio."))
+
     def write(self, vals):
         if self._l10n_ve_skip_validation():
             return super().write(vals)

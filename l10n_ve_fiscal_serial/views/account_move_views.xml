@@ -47,13 +47,6 @@
                     )
                 </attribute>
             </xpath>
-            <xpath expr="//header//button[@name='action_l10n_ve_open_cancel_wizard']" position="attributes">
-                <attribute name="invisible">
-                    country_code != 'VE' or not id or state not in ('draft', 'posted') or move_type not in ('out_invoice', 'out_refund', 'out_receipt') or (
-                    l10n_ve_journal_emission_medium == 'fiscal_machine' and l10n_ve_invoice_number
-                    )
-                </attribute>
-            </xpath>
         </field>
     </record>
 </odoo>

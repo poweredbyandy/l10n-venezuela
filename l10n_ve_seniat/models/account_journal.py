@@ -102,6 +102,14 @@ class AccountJournal(models.Model):
 
     @api.constrains("l10n_ve_fiscal_payment_code")
     def _check_l10n_ve_fiscal_payment_code(self):
+        """Valida código de forma de pago para transmisión a máquina fiscal.
+
+        Notes
+        -----
+        Art. 14 PA SNAT/2011/0071: requisitos de facturas en máquina fiscal.
+        Art. 28 PA SNAT/2011/0071: validaciones mínimas del dispositivo.
+        """
+
         for journal in self:
             raw = (journal.l10n_ve_fiscal_payment_code or "").strip()
             if not raw:

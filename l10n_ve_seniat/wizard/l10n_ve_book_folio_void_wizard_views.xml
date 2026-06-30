@@ -5,6 +5,7 @@
         <field name="model">l10n_ve.book.folio.void.wizard</field>
         <field name="arch" type="xml">
             <form string="Anular folio">
+                <!-- Art. 27-28 PA SNAT/2011/0071: consumo de correlativo sin documento. -->
                 <group>
                     <field name="book_id" readonly="1" />
                     <field name="section_id" options="{'no_create': True}" />

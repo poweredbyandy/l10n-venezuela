@@ -5,6 +5,7 @@
         <field name="model">l10n_ve.account.move.cancel.wizard</field>
         <field name="arch" type="xml">
             <form string="Anular documento">
+                <!-- Art. 18 PA SNAT/2024/000102: motivo obligatorio de anulación. -->
                 <group>
                     <field name="move_id" invisible="1" />
                     <field

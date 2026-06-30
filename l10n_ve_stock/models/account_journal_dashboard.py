@@ -7,6 +7,13 @@ class AccountJournal(models.Model):
     _inherit = "account.journal"
 
     @api.model
+    def _l10n_ve_seniat_unfactured_dispatch_guides(self, companies):
+        enabled_companies = companies.filtered("l10n_ve_dispatch_guide_enabled")
+        if not enabled_companies:
+            return self.env["stock.picking"].browse(), False
+        return super()._l10n_ve_seniat_unfactured_dispatch_guides(enabled_companies)
+
+    @api.model
     def action_l10n_ve_invoice_dashboard_open(self, key):
         if key != "unfactured_dispatch_guides":
             return super().action_l10n_ve_invoice_dashboard_open(key)

@@ -19,6 +19,10 @@ class StockPicking(models.Model):
     l10n_ve_is_ve_country = fields.Boolean(
         compute="_compute_l10n_ve_is_ve_country",
     )
+    l10n_ve_dispatch_guide_enabled = fields.Boolean(
+        related="company_id.l10n_ve_dispatch_guide_enabled",
+        readonly=True,
+    )
     l10n_ve_internal_transfer_reason_id = fields.Many2one(
         "l10n_ve.stock.transfer.reason",
         string="Motivo de traslado",
@@ -139,6 +143,8 @@ class StockPicking(models.Model):
     def _l10n_ve_requires_internal_transfer_reason(self):
         """Motivo SENIAT: internos siempre; salidas sin pedido de venta (ni POS)."""
         self.ensure_one()
+        if not self.l10n_ve_dispatch_guide_enabled:
+            return False
         if self.return_id:
             return False
         if self.picking_type_id.code == "internal":
@@ -176,6 +182,7 @@ class StockPicking(models.Model):
         "move_ids.l10n_ve_dispatch_subtotal",
         "move_ids.l10n_ve_dispatch_price_total",
         "move_ids.l10n_ve_dispatch_currency_id",
+        "company_id.l10n_ve_dispatch_guide_enabled",
         "sale_id",
         "sale_id.amount_total",
         "sale_id.currency_id",
@@ -191,6 +198,8 @@ class StockPicking(models.Model):
             picking.l10n_ve_dispatch_display_subtotal = 0.0
             picking.l10n_ve_dispatch_display_total = 0.0
             if picking.picking_type_id.code != "outgoing":
+                continue
+            if not picking.l10n_ve_dispatch_guide_enabled:
                 continue
             if not picking.l10n_ve_is_ve_country:
                 continue
@@ -291,6 +300,8 @@ class StockPicking(models.Model):
 
     def l10n_ve_dispatch_guide_report_check(self):
         for picking in self:
+            if not picking.l10n_ve_dispatch_guide_enabled:
+                continue
             if picking.company_id.account_fiscal_country_id.code != "VE":
                 continue
             if (
@@ -459,6 +470,8 @@ class StockPicking(models.Model):
 
     def _l10n_ve_dispatch_requires_control_number(self):
         self.ensure_one()
+        if not self.l10n_ve_dispatch_guide_enabled:
+            return False
         if not self.l10n_ve_is_ve_country:
             return False
         if self.picking_type_id.code != "outgoing":
@@ -517,6 +530,7 @@ class StockPicking(models.Model):
         "move_ids.product_id",
         "invoice_ids",
         "company_id",
+        "company_id.l10n_ve_dispatch_guide_enabled",
         "picking_type_id.warehouse_id.l10n_ve_dispatch_guide_section_id",
         "sale_id.order_line.qty_invoiced_posted",
         "sale_id.order_line.qty_delivered",
@@ -545,6 +559,7 @@ class StockPicking(models.Model):
         "sale_id",
         "move_ids",
         "move_ids.state",
+        "company_id.l10n_ve_dispatch_guide_enabled",
         "picking_type_id.warehouse_id.l10n_ve_dispatch_guide_section_id",
         "sale_id.order_line.qty_invoiced_posted",
         "sale_id.order_line.qty_delivered",
@@ -557,6 +572,8 @@ class StockPicking(models.Model):
 
     def _l10n_ve_should_show_control_number_ui(self):
         self.ensure_one()
+        if not self.l10n_ve_dispatch_guide_enabled:
+            return False
         if not self.l10n_ve_is_ve_country:
             return False
         if self.picking_type_id.code == "internal":
@@ -569,6 +586,8 @@ class StockPicking(models.Model):
 
     def _l10n_ve_dispatch_guide_shows_company_header(self):
         self.ensure_one()
+        if not self.l10n_ve_dispatch_guide_enabled:
+            return False
         if self.picking_type_id.code != "outgoing" or not self.l10n_ve_is_ve_country:
             return False
         if (self.l10n_ve_control_number or "").strip():
@@ -594,7 +613,8 @@ class StockPicking(models.Model):
     def _l10n_ve_is_ve_outgoing_dispatch_guide_picking(self):
         self.ensure_one()
         return (
-            self.l10n_ve_is_ve_country
+            self.l10n_ve_dispatch_guide_enabled
+            and self.l10n_ve_is_ve_country
             and self.picking_type_id.code == "outgoing"
         )
 
@@ -623,6 +643,8 @@ class StockPicking(models.Model):
         return bool(self._l10n_ve_dispatch_guide_section())
 
     def action_l10n_ve_print_dispatch_guide(self):
+        if any(not picking.l10n_ve_dispatch_guide_enabled for picking in self):
+            return super().do_print_picking()
         report = self.env.ref("l10n_ve_stock.action_report_l10n_ve_dispatch_guide")
         self.write({"printed": True})
         return report.report_action(self)

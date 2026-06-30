@@ -6,13 +6,23 @@ class ProductTemplate(models.Model):
 
     force_currency_id = fields.Many2one(
         "res.currency",
-        "Force Currency",
-        help="Use this currency instead of the product company currency",
+        "Product Currency",
+        default=lambda self: self._default_force_currency_id(),
+        help="If empty, the company currency is used.",
     )
     company_currency_id = fields.Many2one(
         string="Company Currency",
         related="company_id.currency_id",
     )
+
+    def _default_force_currency_id(self):
+        currency_id = self.env["ir.config_parameter"].sudo().get_param(
+            "l10n_ve_product_currency.default_force_currency_id"
+        )
+        try:
+            return self.env["res.currency"].browse(int(currency_id)).exists().id
+        except (TypeError, ValueError):
+            return False
 
     @api.depends("force_currency_id", "company_id", "company_id.currency_id")
     def _compute_currency_id(self):

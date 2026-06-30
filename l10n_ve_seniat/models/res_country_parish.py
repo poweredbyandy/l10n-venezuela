@@ -2,6 +2,7 @@ from odoo import fields, models
 
 
 class ResCountryParish(models.Model):
+
     _name = "res.country.parish"
     _description = "Parish"
 

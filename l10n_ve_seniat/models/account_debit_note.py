@@ -90,5 +90,14 @@ class AccountDebitNote(models.TransientModel):
         return super().write(vals)
 
     def create_debit(self):
+        """Crea nota de débito validando reglas fiscales venezolanas.
+
+        Notes
+        -----
+        Art. 22-24 PA SNAT/2011/0071: ND vinculada a factura origen.
+        Art. 8 PA SNAT/2024/000102: ND en medios digitales.
+        """
+
+        self.move_ids._l10n_ve_check_debit_note_creation_allowed()
         self.move_ids._l10n_ve_check_credit_debit_allowed()
         return super().create_debit()

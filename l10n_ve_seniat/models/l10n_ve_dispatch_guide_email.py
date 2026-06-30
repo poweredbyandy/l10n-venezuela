@@ -119,6 +119,18 @@ class ResCompany(models.Model):
         return now >= next_send
 
     def l10n_ve_unfactured_dispatch_guides_for_email(self):
+        """Lista guías de despacho pendientes de facturación para reporte SENIAT.
+
+        Returns
+        -------
+        recordset
+
+        Notes
+        -----
+        Art. 21 PA SNAT/2011/0071: órdenes de entrega y guías de despacho.
+        Art. 10 PA SNAT/2024/000102: guías en facturación digital.
+        """
+
         self.ensure_one()
         pickings, available = self.env[
             "account.journal"
