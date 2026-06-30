@@ -403,6 +403,60 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertEqual(move.state, "cancel")
         self.assertEqual(move.l10n_ve_cancel_reason_id, reason)
 
+    def test_cancel_wizard_blocked_for_fiscal_machine(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write({"l10n_ve_emission_medium": "fiscal_machine"})
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        with self.assertRaises(UserError) as cm:
+            move.action_l10n_ve_open_cancel_wizard()
+        self.assertIn("máquina fiscal", str(cm.exception).lower())
+
+    def test_cancel_wizard_blocked_for_fiscal_machine_credit_note(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write({"l10n_ve_emission_medium": "fiscal_machine"})
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.action_post()
+        invoice.l10n_ve_invoice_original_printed = True
+        credit_note = invoice._reverse_moves()
+        credit_note.action_post()
+        self.assertFalse(credit_note.l10n_ve_show_cancel_wizard)
+        with self.assertRaises(UserError):
+            credit_note.action_l10n_ve_open_cancel_wizard()
+
+    def test_cancel_wizard_blocked_for_fiscal_machine_debit_note(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write({"l10n_ve_emission_medium": "fiscal_machine"})
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.action_post()
+        invoice.l10n_ve_invoice_original_printed = True
+        wiz = (
+            self.env["account.debit.note"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create(
+                {
+                    "date": fields.Date.today(),
+                    "reason": "test débito",
+                    "copy_lines": True,
+                }
+            )
+        )
+        wiz.create_debit()
+        debit_move = self.env["account.move"].search(
+            [("debit_origin_id", "=", invoice.id)]
+        )
+        debit_move.ensure_one()
+        debit_move.action_post()
+        self.assertFalse(debit_move.l10n_ve_show_cancel_wizard)
+        with self.assertRaises(UserError):
+            debit_move.action_l10n_ve_open_cancel_wizard()
+
     def test_out_refund_post_without_reversed_entry_raises(self):
         move = self.env["account.move"].create(
             {
@@ -481,6 +535,359 @@ class TestAccountMove(L10nVeSeniatCommon):
         )
         invoice.action_post()
         self.assertTrue(invoice.l10n_ve_show_credit_debit_actions)
+
+    def test_credit_note_blocked_from_debit_note(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.write(
+            {
+                "l10n_ve_control_number": "99-00000099",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        invoice.action_post()
+        wiz = (
+            self.env["account.debit.note"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create(
+                {
+                    "date": fields.Date.today(),
+                    "reason": "test débito",
+                    "copy_lines": True,
+                }
+            )
+        )
+        wiz.create_debit()
+        debit_move = self.env["account.move"].search(
+            [("debit_origin_id", "=", invoice.id)]
+        )
+        debit_move.ensure_one()
+        debit_move.write(
+            {
+                "l10n_ve_control_number": "99-00000100",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        debit_move.action_post()
+        self.assertFalse(debit_move.l10n_ve_show_credit_note_action)
+        self.assertFalse(debit_move.l10n_ve_show_debit_note_action)
+        with self.assertRaises(UserError) as cm:
+            debit_move.action_reverse()
+        self.assertIn("nota de débito", str(cm.exception).lower())
+        with self.assertRaises(UserError):
+            debit_move._reverse_moves()
+
+    def test_debit_note_blocked_from_credit_note(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.write(
+            {
+                "l10n_ve_control_number": "99-00000099",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        invoice.action_post()
+        credit_note = invoice._reverse_moves()
+        credit_note.write(
+            {
+                "l10n_ve_control_number": "99-00000101",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        credit_note.action_post()
+        self.assertFalse(credit_note.l10n_ve_show_credit_note_action)
+        self.assertFalse(credit_note.l10n_ve_show_debit_note_action)
+        with self.assertRaises(UserError) as cm:
+            credit_note.action_debit_note()
+        self.assertIn("nota de crédito", str(cm.exception).lower())
+
+    def test_debit_note_blocked_after_full_credit_note(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.write(
+            {
+                "l10n_ve_control_number": "99-00000099",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        invoice.action_post()
+        credit_note = invoice._reverse_moves()
+        credit_note.write(
+            {
+                "l10n_ve_control_number": "99-00000102",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        credit_note.action_post()
+        self.assertTrue(invoice._l10n_ve_has_full_posted_credit_note())
+        self.assertTrue(invoice.l10n_ve_show_debit_note_action)
+
+    def test_debit_note_blocked_when_unreversed_debit_after_full_credit(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.write(
+            {
+                "l10n_ve_control_number": "99-00000099",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        invoice.action_post()
+        credit_note = invoice._reverse_moves()
+        credit_note.write(
+            {
+                "l10n_ve_control_number": "99-00000102",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        credit_note.action_post()
+        wiz = (
+            self.env["account.debit.note"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create(
+                {
+                    "date": fields.Date.today(),
+                    "reason": "cargo adicional",
+                    "copy_lines": False,
+                }
+            )
+        )
+        wiz.create_debit()
+        debit = self.env["account.move"].search(
+            [("debit_origin_id", "=", invoice.id)]
+        )
+        debit.ensure_one()
+        debit.write(
+            {
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "cargo ND",
+                            "quantity": 1.0,
+                            "price_unit": 50.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [(6, 0, [self.tax_sale_a.id])],
+                        },
+                    )
+                ],
+                "l10n_ve_control_number": "99-00000103",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        debit.action_post()
+        self.assertFalse(invoice.l10n_ve_show_debit_note_action)
+        with self.assertRaises(UserError) as cm:
+            invoice.action_debit_note()
+        self.assertIn("débito adicional pendiente", str(cm.exception).lower())
+
+    def test_credit_note_blocked_after_full_credit_note(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.write(
+            {
+                "l10n_ve_control_number": "99-00000099",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        invoice.action_post()
+        credit_note = invoice._reverse_moves()
+        credit_note.write(
+            {
+                "l10n_ve_control_number": "99-00000105",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        credit_note.action_post()
+        self.assertTrue(invoice._l10n_ve_has_full_posted_credit_note())
+        self.assertFalse(invoice.l10n_ve_show_credit_note_action)
+        with self.assertRaises(UserError) as cm:
+            invoice.action_reverse()
+        self.assertIn("reversado completamente", str(cm.exception).lower())
+        with self.assertRaises(UserError):
+            invoice._reverse_moves()
+
+    def test_credit_note_stat_button_on_invoice(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.write(
+            {
+                "l10n_ve_control_number": "99-00000099",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        invoice.action_post()
+        credit_note = invoice._reverse_moves()
+        credit_note.write(
+            {
+                "l10n_ve_control_number": "99-00000104",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        credit_note.action_post()
+        self.assertEqual(invoice.l10n_ve_related_credit_note_count, 1)
+        action = invoice.action_l10n_ve_view_credit_notes()
+        self.assertEqual(set(action["domain"][0][2]), {credit_note.id})
+        self.assertEqual(credit_note.l10n_ve_related_credit_note_count, 1)
+        credit_action = credit_note.action_l10n_ve_view_credit_notes()
+        self.assertEqual(set(credit_action["domain"][0][2]), {invoice.id})
+
+    def test_unreversed_debit_note_alert_after_full_invoice_credit(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_emission_medium": "contingency",
+                "l10n_ve_invoice_section_id": False,
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.write(
+            {
+                "l10n_ve_control_number": "99-00000110",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        invoice.action_post()
+        wiz = (
+            self.env["account.debit.note"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create(
+                {
+                    "date": fields.Date.today(),
+                    "reason": "cargo adicional",
+                    "copy_lines": False,
+                }
+            )
+        )
+        wiz.create_debit()
+        debit = self.env["account.move"].search(
+            [("debit_origin_id", "=", invoice.id)]
+        )
+        debit.ensure_one()
+        debit.write(
+            {
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "cargo ND",
+                            "quantity": 1.0,
+                            "price_unit": 50.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [(6, 0, [self.tax_sale_a.id])],
+                        },
+                    )
+                ],
+                "l10n_ve_control_number": "99-00000111",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        debit.action_post()
+        credit_note = invoice._reverse_moves()
+        credit_note.write(
+            {
+                "l10n_ve_control_number": "99-00000112",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        credit_note.action_post()
+        self.assertTrue(invoice._l10n_ve_has_full_posted_credit_on_invoice())
+        self.assertFalse(invoice._l10n_ve_has_full_posted_credit_note())
+        self.assertTrue(invoice.l10n_ve_show_unreversed_debit_note_alert)
+        self.assertFalse(invoice.l10n_ve_show_debit_note_action)
+        self.assertFalse(invoice.l10n_ve_show_credit_note_action)
+        with self.assertRaises(UserError):
+            invoice.action_debit_note()
+        action = invoice.action_l10n_ve_open_credit_note_for_debit_notes()
+        self.assertEqual(
+            action["res_model"], "l10n_ve.account.move.debit.credit.wizard"
+        )
+        wizard = (
+            self.env["l10n_ve.account.move.debit.credit.wizard"]
+            .with_context(action.get("context", {}))
+            .create({"reason": "reversión ND adicional"})
+        )
+        result = wizard.action_create_credit_note()
+        debit_credit = self.env["account.move"].browse(result["res_id"])
+        self.assertEqual(debit_credit.reversed_entry_id, invoice)
+        self.assertEqual(debit_credit.l10n_ve_debit_note_reversed_ids, debit)
+        debit_credit.write(
+            {
+                "l10n_ve_control_number": "99-00000113",
+                "l10n_ve_invoice_date": fields.Datetime.now(),
+            }
+        )
+        debit_credit.action_post()
+        self.assertFalse(invoice.l10n_ve_show_unreversed_debit_note_alert)
 
     def test_out_refund_post_with_reversed_entry_success(self):
         invoice = self.env["account.move"].create(
@@ -926,6 +1333,9 @@ class TestAccountMove(L10nVeSeniatCommon):
         )
         move.action_post()
         move.l10n_ve_invoice_original_printed = True
+        self.assertTrue(move.l10n_ve_hide_invoice_preview_send)
+        with self.assertRaises(UserError):
+            move.preview_invoice()
         self.assertEqual(move.get_extra_print_items(), [])
 
     def test_invoice_pdf_filename_uses_name_and_vat(self):

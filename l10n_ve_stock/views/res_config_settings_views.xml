@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_l10n_ve_stock" model="ir.ui.view">
+        <field name="name">res.config.settings.form.l10n.ve.stock</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="l10n_ve_seniat.res_config_settings_l10n_ve_seniat" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_ve_unfactured_dispatch_email_recipient']" position="before">
+                <field name="l10n_ve_dispatch_guide_enabled" />
+            </xpath>
+            <xpath expr="//field[@name='l10n_ve_unfactured_dispatch_email_recipient']" position="attributes">
+                <attribute name="invisible">not l10n_ve_dispatch_guide_enabled</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_ve_unfactured_dispatch_email_schedule_enabled']" position="attributes">
+                <attribute name="invisible">not l10n_ve_dispatch_guide_enabled</attribute>
+            </xpath>
+            <xpath expr="//label[@for='l10n_ve_unfactured_dispatch_email_interval_number']" position="attributes">
+                <attribute name="invisible">not l10n_ve_dispatch_guide_enabled or not l10n_ve_unfactured_dispatch_email_schedule_enabled</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_ve_unfactured_dispatch_email_interval_number']/.." position="attributes">
+                <attribute name="invisible">not l10n_ve_dispatch_guide_enabled or not l10n_ve_unfactured_dispatch_email_schedule_enabled</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_ve_unfactured_dispatch_email_last_sent']" position="attributes">
+                <attribute name="invisible">not l10n_ve_dispatch_guide_enabled</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

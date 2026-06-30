@@ -90,6 +90,20 @@ class TestL10nVeStockPickingReports(TestL10nVeStockDispatchGuide):
             "l10n_ve_stock.report_dispatch_guide",
         )
 
+    def test_do_print_picking_uses_standard_report_when_dispatch_disabled(self):
+        self.env.company.l10n_ve_dispatch_guide_enabled = False
+        product = self._create_product(
+            name="Prod print estándar",
+            is_storable=True,
+            taxes_id=[Command.set(self.tax_sale_a.ids)],
+        )
+        picking = self._prepare_outgoing_sale_picking(product, 1)
+        picking.move_ids.quantity = picking.move_ids.product_uom_qty
+        picking.move_ids.picked = True
+        picking.button_validate()
+        action = picking.do_print_picking()
+        self.assertEqual(action.get("report_name"), "stock.report_picking")
+
     def test_portal_picking_control_number_display(self):
         product = self._create_product(
             name="Prod portal label",

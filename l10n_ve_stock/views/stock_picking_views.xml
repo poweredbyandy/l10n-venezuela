@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('oe_title')]" position="after">
                 <field name="l10n_ve_is_ve_country" invisible="1" />
+                <field name="l10n_ve_dispatch_guide_enabled" invisible="1" />
                 <field name="l10n_ve_show_control_number_ui" invisible="1" />
             </xpath>
             <xpath expr="//field[@name='picking_type_id']" position="after">
@@ -14,8 +15,8 @@
                     name="l10n_ve_internal_transfer_reason_id"
                     string="Motivo de traslado"
                     context="{'default_company_id': company_id}"
-                    invisible="not l10n_ve_is_ve_country or return_id or (picking_type_code not in ('internal', 'outgoing')) or (picking_type_code == 'outgoing' and sale_id)"
-                    required="l10n_ve_is_ve_country and state != 'draft' and not return_id and (picking_type_code == 'internal' or (picking_type_code == 'outgoing' and not sale_id))"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or return_id or (picking_type_code not in ('internal', 'outgoing')) or (picking_type_code == 'outgoing' and sale_id)"
+                    required="l10n_ve_dispatch_guide_enabled and l10n_ve_is_ve_country and state != 'draft' and not return_id and (picking_type_code == 'internal' or (picking_type_code == 'outgoing' and not sale_id))"
                 />
             </xpath>
             <xpath
@@ -36,11 +37,11 @@
                 />
                 <field
                     name="l10n_ve_transport_partner_id"
-                    invisible="not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
                 />
                 <field
                     name="l10n_ve_fleet_vehicle_id"
-                    invisible="not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
                 />
             </xpath>
             <xpath
@@ -81,7 +82,7 @@
             <xpath expr="//field[@name='picking_properties']" position="before">
                 <group
                     string="Precios guía (sin pedido de venta)"
-                    invisible="not l10n_ve_is_ve_country or picking_type_code != 'outgoing' or sale_id"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing' or sale_id"
                 >
                     <field name="l10n_ve_dispatch_pricelist_id" />
                     <field name="l10n_ve_dispatch_currency_id" />
@@ -96,13 +97,13 @@
                     name="l10n_ve_dispatch_price_unit"
                     readonly="1"
                     optional="show"
-                    column_invisible="parent.picking_type_code != 'outgoing' or not parent.l10n_ve_is_ve_country"
+                    column_invisible="parent.picking_type_code != 'outgoing' or not parent.l10n_ve_is_ve_country or not parent.l10n_ve_dispatch_guide_enabled"
                 />
             </xpath>
             <xpath expr="//header/button[@name='do_print_picking']" position="attributes">
                 <attribute
                     name="invisible"
-                >state != 'assigned' or (l10n_ve_is_ve_country and picking_type_code == 'outgoing')</attribute>
+                >state != 'assigned' or (l10n_ve_dispatch_guide_enabled and l10n_ve_is_ve_country and picking_type_code == 'outgoing')</attribute>
             </xpath>
             <xpath expr="//header/button[@name='do_print_picking']" position="after">
                 <button
@@ -110,7 +111,7 @@
                     string="Imprimir"
                     type="object"
                     groups="stock.group_stock_user"
-                    invisible="not l10n_ve_is_ve_country or picking_type_code != 'outgoing' or state != 'done'"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing' or state != 'done'"
                     data-hotkey="o"
                 />
             </xpath>
@@ -120,7 +121,7 @@
             >
                 <attribute
                     name="invisible"
-                >state != 'done' or (l10n_ve_is_ve_country and picking_type_code == 'outgoing')</attribute>
+                >state != 'done' or (l10n_ve_dispatch_guide_enabled and l10n_ve_is_ve_country and picking_type_code == 'outgoing')</attribute>
             </xpath>
         </field>
     </record>

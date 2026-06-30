@@ -57,6 +57,8 @@ class AccountJournal(models.Model):
                 ("company_id", "in", companies.ids),
                 ("state", "=", "done"),
                 ("picking_type_code", "=", "outgoing"),
+                ("l10n_ve_control_number", "!=", False),
+                ("l10n_ve_control_number", "!=", ""),
             ]
         )
         unfactured = candidates.filtered(

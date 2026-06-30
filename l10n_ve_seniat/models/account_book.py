@@ -295,13 +295,29 @@ class AccountBook(models.Model):
         return f"{p}-"
 
     def _l10n_ve_format_control_number(self, number):
+        """Formatea el N° de control con prefijo de serie SENIAT.
+
+        Parameters
+        ----------
+        number : int
+            Correlativo numérico del tramo.
+
+        Returns
+        -------
+        str
+
+        Notes
+        -----
+        Art. 13 num. 3-4 PA SNAT/2011/0071: N° de control.
+        Art. 27 PA SNAT/2011/0071: serie y numeración consecutiva.
+        """
+
         self.ensure_one()
         p = (self.l10n_ve_series_prefix or "00").strip() or "00"
         p = p.rstrip("-")
         return f"{p}-{int(number):08d}"
 
     def l10n_ve_peek_next_formatted(self, section):
-        """Vista previa del próximo N° de control sin consumir correlativo."""
         self.ensure_one()
         if not section or section.book_id != self:
             return False
@@ -328,7 +344,14 @@ class AccountBook(models.Model):
         return True
 
     def l10n_ve_allocate_void_folio(self, section, reason):
-        """Consume el siguiente correlativo del tramo registrando solo el motivo (sin movimiento)."""
+        """Registra anulación de folio en el talonario fiscal.
+
+        Notes
+        -----
+        Art. 27 PA SNAT/2011/0071: control de numeración.
+        Art. 28 PA SNAT/2011/0071: integridad de documentos fiscales.
+        """
+
         self.ensure_one()
         if section.book_id != self:
             raise ValidationError(_("El tramo no pertenece a este talonario."))
@@ -402,6 +425,25 @@ class AccountBook(models.Model):
         return candidate
 
     def l10n_ve_allocate_correlative(self, section, origin_record):
+        """Reserva el siguiente correlativo del talonario para un documento fiscal.
+
+        Parameters
+        ----------
+        section : account.book.section
+            Tramo del talonario.
+        origin_record : recordset
+            Documento origen (p. ej. ``account.move``).
+
+        Returns
+        -------
+        account.book.document
+
+        Notes
+        -----
+        Art. 13 num. 2-4 PA SNAT/2011/0071: numeración consecutiva y N° de control.
+        Art. 29-31 PA SNAT/2011/0071: formatos de imprenta autorizada.
+        """
+
         self.ensure_one()
         origin_record.ensure_one()
         number = self._l10n_ve_next_correlative_number_for_section(section)
@@ -419,6 +461,14 @@ class AccountBook(models.Model):
         return formatted
 
     def _validate_section_ranges(self):
+        """Valida que los tramos del talonario no se solapen ni excedan el libro.
+
+        Notes
+        -----
+        Art. 27 PA SNAT/2011/0071: serie y numeración.
+        Art. 29 PA SNAT/2011/0071: rangos autorizados por imprenta.
+        """
+
         for book in self:
             sections = book.section_ids
             for sec in sections:
@@ -781,6 +831,13 @@ class AccountBookDocument(models.Model):
 
     @api.constrains("number", "book_id", "section_id")
     def _check_correlative_sequence_no_gaps(self):
+        """Verifica continuidad de correlativos asignados en el tramo.
+
+        Notes
+        -----
+        Art. 13 num. 2 PA SNAT/2011/0071: numeración consecutiva y única.
+        """
+
         if self.env.context.get("l10n_ve_allow_book_document_admin_edit"):
             return
         for line in self:
@@ -826,6 +883,14 @@ class AccountBookDocument(models.Model):
 
     @api.constrains("number", "book_id", "section_id")
     def _check_number_in_ranges(self):
+        """Valida que el correlativo esté dentro del rango autorizado del tramo.
+
+        Notes
+        -----
+        Art. 13 num. 4 PA SNAT/2011/0071: total de N° de control asignados.
+        Art. 27 PA SNAT/2011/0071: rangos de serie.
+        """
+
         for line in self:
             book = line.book_id
             if not book:

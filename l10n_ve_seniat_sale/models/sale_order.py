@@ -18,6 +18,28 @@ class SaleOrder(models.Model):
         compute="_compute_l10n_ve_seniat_note",
         sanitize=False,
     )
+    l10n_ve_hide_order_preview = fields.Boolean(
+        compute="_compute_l10n_ve_hide_order_preview",
+    )
+
+    @api.depends("country_code", "journal_id", "journal_id.l10n_ve_emission_medium")
+    def _compute_l10n_ve_hide_order_preview(self):
+        for order in self:
+            order.l10n_ve_hide_order_preview = (
+                order.country_code == "VE"
+                and order.journal_id.l10n_ve_emission_medium == "fiscal_machine"
+            )
+
+    def action_preview_sale_order(self):
+        for order in self:
+            if order.l10n_ve_hide_order_preview:
+                raise UserError(
+                    _(
+                        "En maquina fiscal no esta permitida la vista previa "
+                        "del pedido."
+                    )
+                )
+        return super().action_preview_sale_order()
 
     @api.depends("currency_id", "date_order", "company_id")
     def _compute_l10n_ve_inverse_rate(self):

@@ -7,7 +7,7 @@
     "author": "andyengit, Anderson Armeya, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "category": "Inventory/Localizations",
-    "version": "18.0.1.0.3",
+    "version": "18.0.1.0.4",
     "depends": [
         "base",
         "web",
@@ -25,6 +25,7 @@
         "security/ir.model.access.csv",
         "wizard/l10n_ve_stock_picking_validate_confirmation_views.xml",
         "views/l10n_ve_stock_transfer_reason_views.xml",
+        "views/res_config_settings_views.xml",
         "views/stock_warehouse_views.xml",
         "views/account_move_views.xml",
         "views/report_invoice_inherit.xml",

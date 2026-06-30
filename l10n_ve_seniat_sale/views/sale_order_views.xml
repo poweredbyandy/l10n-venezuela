@@ -63,6 +63,7 @@
                 >state == 'draft' or invoice_count &gt;= 1 or country_code == 'VE'</attribute>
             </xpath>
             <xpath expr="//button[@name='action_preview_sale_order']" position="before">
+                <field name="l10n_ve_hide_order_preview" invisible="1" />
                 <button
                     name="%(sale.action_report_saleorder)d"
                     type="action"
@@ -71,6 +72,11 @@
                     data-hotkey="p"
                     invisible="country_code != 'VE'"
                 />
+            </xpath>
+            <xpath expr="//button[@name='action_preview_sale_order']" position="attributes">
+                <attribute
+                    name="invisible"
+                >l10n_ve_hide_order_preview</attribute>
             </xpath>
             <xpath expr="//button[@id='create_invoice']" position="attributes">
                 <attribute
