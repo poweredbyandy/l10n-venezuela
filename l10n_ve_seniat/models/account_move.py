@@ -1853,21 +1853,9 @@ Please create a credit note instead.
             multiplier = -1 if move.move_type == "out_refund" else 1
 
             company = move.company_id
-            tax_config = {}
-            if hasattr(company, "exent_aliquot_sale") and company.exent_aliquot_sale:
-                tax_config["exempt"] = company.exent_aliquot_sale.tax_group_id.id
-            if (
-                hasattr(company, "reduced_aliquot_sale")
-                and company.reduced_aliquot_sale
-            ):
-                tax_config["reduced"] = company.reduced_aliquot_sale.tax_group_id.id
-            if (
-                hasattr(company, "general_aliquot_sale")
-                and company.general_aliquot_sale
-            ):
-                tax_config["general"] = company.general_aliquot_sale.tax_group_id.id
-            if hasattr(company, "extend_aliquot_sale") and company.extend_aliquot_sale:
-                tax_config["extend"] = company.extend_aliquot_sale.tax_group_id.id
+            tax_config = self.env["account.tax.group"]._l10n_ve_build_tax_config(
+                company
+            )
 
             subtotals = tax_totals.get("subtotals", [])
             for subtotal in subtotals:
@@ -1953,15 +1941,7 @@ Please create a credit note instead.
             return {"base": 0.0, "amount": 0.0}
 
         company = self.company_id
-        tax_config = {}
-        if hasattr(company, "exent_aliquot_sale") and company.exent_aliquot_sale:
-            tax_config["exempt"] = company.exent_aliquot_sale.tax_group_id.id
-        if hasattr(company, "reduced_aliquot_sale") and company.reduced_aliquot_sale:
-            tax_config["reduced"] = company.reduced_aliquot_sale.tax_group_id.id
-        if hasattr(company, "general_aliquot_sale") and company.general_aliquot_sale:
-            tax_config["general"] = company.general_aliquot_sale.tax_group_id.id
-        if hasattr(company, "extend_aliquot_sale") and company.extend_aliquot_sale:
-            tax_config["extend"] = company.extend_aliquot_sale.tax_group_id.id
+        tax_config = self.env["account.tax.group"]._l10n_ve_build_tax_config(company)
 
         tax_group_id = tax_config.get(tax_type)
         if not tax_group_id:
@@ -1995,27 +1975,9 @@ Please create a credit note instead.
             multiplier = -1 if move.move_type == "in_refund" else 1
 
             company = move.company_id
-            tax_config = {}
-            if (
-                hasattr(company, "exent_aliquot_purchase")
-                and company.exent_aliquot_purchase
-            ):
-                tax_config["exempt"] = company.exent_aliquot_purchase.tax_group_id.id
-            if (
-                hasattr(company, "reduced_aliquot_purchase")
-                and company.reduced_aliquot_purchase
-            ):
-                tax_config["reduced"] = company.reduced_aliquot_purchase.tax_group_id.id
-            if (
-                hasattr(company, "general_aliquot_purchase")
-                and company.general_aliquot_purchase
-            ):
-                tax_config["general"] = company.general_aliquot_purchase.tax_group_id.id
-            if (
-                hasattr(company, "extend_aliquot_purchase")
-                and company.extend_aliquot_purchase
-            ):
-                tax_config["extend"] = company.extend_aliquot_purchase.tax_group_id.id
+            tax_config = self.env["account.tax.group"]._l10n_ve_build_tax_config(
+                company
+            )
 
             subtotals = tax_totals.get("subtotals", [])
             for subtotal in subtotals:
@@ -2160,12 +2122,44 @@ Please create a credit note instead.
         "invoice_payment_term_id",
         "partner_id",
         "currency_id",
+        "l10n_ve_global_discount_ids",
+        "l10n_ve_global_discount_ids.amount",
     )
     def _compute_tax_totals(self):
         res = super()._compute_tax_totals()
+        AccountTax = self.env["account.tax"]
         for move in self:
             if move.country_code != "VE" or not move.tax_totals:
                 continue
+            if move.is_invoice(include_receipts=True):
+                discount_totals = AccountTax._l10n_ve_get_global_discount_totals(
+                    move,
+                    move.tax_totals,
+                )
+                move.tax_totals["l10n_ve_show_global_discount"] = discount_totals[
+                    "show_global_discount"
+                ]
+                move.tax_totals["l10n_ve_subtotal_gross_currency"] = discount_totals[
+                    "subtotal_gross_currency"
+                ]
+                move.tax_totals["l10n_ve_subtotal_gross"] = discount_totals[
+                    "subtotal_gross"
+                ]
+                move.tax_totals["l10n_ve_global_discount_amount_currency"] = (
+                    discount_totals["global_discount_amount_currency"]
+                )
+                move.tax_totals["l10n_ve_global_discount_amount"] = discount_totals[
+                    "global_discount_amount"
+                ]
+                move.tax_totals["l10n_ve_global_discount_amount_foreign"] = (
+                    discount_totals["global_discount_amount_foreign"]
+                )
+                move.tax_totals["l10n_ve_subtotal_gross_foreign"] = discount_totals[
+                    "subtotal_gross_foreign"
+                ]
+                move.tax_totals["l10n_ve_global_discount_lines"] = discount_totals[
+                    "global_discount_lines"
+                ]
             move.tax_totals["same_tax_base"] = False
             for subtotal in move.tax_totals.get("subtotals", []):
                 for tax_group in subtotal.get("tax_groups", []):
