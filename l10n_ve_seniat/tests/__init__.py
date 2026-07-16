@@ -8,6 +8,7 @@ from . import test_res_partner
 from . import test_account_tax
 from . import test_account_move
 from . import test_credit_debit_button_scenarios
+from . import test_vendor_credit_debit
 from . import test_account_move_line
 from . import test_account_journal
 from . import test_account_payment

@@ -176,13 +176,12 @@ class AccountMoveLine(models.Model):
         self.ensure_one()
         if self.move_id.country_code != "VE":
             return False
+        if not self.move_id.is_sale_document(include_receipts=True):
+            return False
         if self.move_id.move_type not in (
             "out_invoice",
             "out_refund",
             "out_receipt",
-            "in_invoice",
-            "in_refund",
-            "in_receipt",
         ):
             return False
         if self.display_type == "line_section":
