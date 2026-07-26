@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="l10n_ve_discount_reason_default" model="l10n.ve.discount.reason">
+        <field name="name">Descuento</field>
+        <field name="sequence">10</field>
+    </record>
+</odoo>
