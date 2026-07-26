@@ -44,7 +44,7 @@
 
     <t t-inherit="account.TaxTotalsField" t-inherit-mode="extension">
         <xpath expr="//tbody/t[1]" position="before">
-            <tr t-if="showGlobalDiscount">
+            <tr t-if="totals and totals.l10n_ve_show_global_discount">
                 <td class="o_td_label">
                     <label class="o_form_label o_tax_total_label">Subtotal</label>
                 </td>
@@ -56,7 +56,7 @@
                     />
                 </td>
                 <td
-                    t-if="displayInCompanyCurrency"
+                    t-if="totals.display_in_company_currency"
                     class="o_list_monetary ps-5"
                 >
                     <span
@@ -66,10 +66,10 @@
                     />
                 </td>
             </tr>
-            <tr t-if="showGlobalDiscount">
+            <tr t-if="totals and totals.l10n_ve_show_global_discount">
                 <td class="o_td_label">
                     <label class="o_form_label o_tax_total_label d-flex align-items-center gap-1">
-                        <span>Descuento</span>
+                        <span>Descuento<span t-out="globalDiscountPercentageLabel"/></span>
                         <button
                             type="button"
                             class="btn btn-link p-0 o_l10n_ve_discount_info_btn"
@@ -88,7 +88,7 @@
                     />
                 </td>
                 <td
-                    t-if="displayInCompanyCurrency"
+                    t-if="totals.display_in_company_currency"
                     class="o_tax_group ps-5"
                 >
                     <span
@@ -106,14 +106,14 @@
         t-inherit-mode="extension"
     >
         <xpath expr="//tbody/t[1]" position="before">
-            <tr t-if="showGlobalDiscount">
+            <tr t-if="taxTotals and taxTotals.l10n_ve_show_global_discount">
                 <td class="o_td_label">
                     <label class="o_form_label o_tax_total_label">Subtotal</label>
                 </td>
                 <td class="o_list_monetary">
                     <span
                         style="white-space: nowrap; font-weight: bold;"
-                        t-out="formatGlobalDiscountAmount(taxTotals.l10n_ve_subtotal_gross_currency, false)"
+                        t-out="formatAmount(taxTotals.l10n_ve_subtotal_gross_currency, false)"
                     />
                 </td>
                 <td
@@ -122,14 +122,14 @@
                 >
                     <span
                         style="white-space: nowrap; font-weight: bold;"
-                        t-out="formatGlobalDiscountAmount(taxTotals.l10n_ve_subtotal_gross, true)"
+                        t-out="formatAmount(taxTotals.l10n_ve_subtotal_gross, true)"
                     />
                 </td>
             </tr>
-            <tr t-if="showGlobalDiscount">
+            <tr t-if="taxTotals and taxTotals.l10n_ve_show_global_discount">
                 <td class="o_td_label">
                     <label class="o_form_label o_tax_total_label d-flex align-items-center gap-1">
-                        <span>Descuento</span>
+                        <span>Descuento<span t-out="globalDiscountPercentageLabel"/></span>
                         <button
                             type="button"
                             class="btn btn-link p-0 o_l10n_ve_discount_info_btn"
@@ -143,7 +143,7 @@
                 <td class="o_tax_group">
                     <span
                         class="o_tax_group_amount_value o_list_monetary"
-                        t-out="formatGlobalDiscountAmount(-taxTotals.l10n_ve_global_discount_amount_currency, false)"
+                        t-out="formatAmount(-taxTotals.l10n_ve_global_discount_amount_currency, false)"
                     />
                 </td>
                 <td
@@ -152,87 +152,7 @@
                 >
                     <span
                         class="o_tax_group_amount_value o_list_monetary"
-                        t-out="formatGlobalDiscountAmount(-taxTotals.l10n_ve_global_discount_amount, true)"
-                    />
-                </td>
-            </tr>
-        </xpath>
-    </t>
-
-    <t
-        t-inherit="l10n_ve_accountant.TaxForeignTotalsField"
-        t-inherit-mode="extension"
-    >
-        <xpath expr="//tbody/t[1]" position="before">
-            <tr t-if="showGlobalDiscount">
-                <td class="o_td_label">
-                    <label class="o_form_label o_tax_total_label">Subtotal</label>
-                </td>
-                <td class="o_list_monetary">
-                    <span
-                        style="white-space: nowrap; font-weight: bold;"
-                        t-out="formatGlobalDiscountAmount(totals.l10n_ve_subtotal_gross_foreign)"
-                    />
-                </td>
-            </tr>
-            <tr t-if="showGlobalDiscount">
-                <td class="o_td_label">
-                    <label class="o_form_label o_tax_total_label d-flex align-items-center gap-1">
-                        <span>Descuento</span>
-                        <button
-                            type="button"
-                            class="btn btn-link p-0 o_l10n_ve_discount_info_btn"
-                            title="Ver detalle de descuentos"
-                            t-on-click="onGlobalDiscountInfoClick"
-                        >
-                            <i class="fa fa-info-circle" />
-                        </button>
-                    </label>
-                </td>
-                <td class="o_tax_group">
-                    <span
-                        class="o_tax_group_amount_value o_list_monetary"
-                        t-out="formatGlobalDiscountAmount(-totals.l10n_ve_global_discount_amount_foreign)"
-                    />
-                </td>
-            </tr>
-        </xpath>
-    </t>
-
-    <t
-        t-inherit="l10n_ve_accountant.TaxVesTotalsField"
-        t-inherit-mode="extension"
-    >
-        <xpath expr="//tbody/t[1]" position="before">
-            <tr t-if="showGlobalDiscount">
-                <td class="o_td_label">
-                    <label class="o_form_label o_tax_total_label">Subtotal</label>
-                </td>
-                <td class="o_list_monetary">
-                    <span
-                        style="white-space: nowrap; font-weight: bold;"
-                        t-out="formatGlobalDiscountAmount(totals.l10n_ve_subtotal_gross)"
-                    />
-                </td>
-            </tr>
-            <tr t-if="showGlobalDiscount">
-                <td class="o_td_label">
-                    <label class="o_form_label o_tax_total_label d-flex align-items-center gap-1">
-                        <span>Descuento</span>
-                        <button
-                            type="button"
-                            class="btn btn-link p-0 o_l10n_ve_discount_info_btn"
-                            title="Ver detalle de descuentos"
-                            t-on-click="onGlobalDiscountInfoClick"
-                        >
-                            <i class="fa fa-info-circle" />
-                        </button>
-                    </label>
-                </td>
-                <td class="o_tax_group">
-                    <span
-                        class="o_tax_group_amount_value o_list_monetary"
-                        t-out="formatGlobalDiscountAmount(-totals.l10n_ve_global_discount_amount)"
+                        t-out="formatAmount(-taxTotals.l10n_ve_global_discount_amount, true)"
                     />
                 </td>
             </tr>

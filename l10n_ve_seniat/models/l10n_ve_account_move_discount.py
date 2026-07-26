@@ -207,20 +207,43 @@ class AccountMove(models.Model):
             ]._l10n_ve_sync_global_discount_accounting_for_moves(moves_to_sync)
         return new_moves
 
+    def _l10n_ve_get_product_discount_lines(self):
+        self.ensure_one()
+        disc = getattr(self.company_id, "sale_discount_product_id", False)
+        if not disc:
+            return self.env["account.move.line"]
+        return self.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product" and line.product_id == disc
+        )
+
     def action_l10n_ve_remove_global_discount(self, discount_id):
         self.ensure_one()
         discount = self.env["l10n.ve.account.move.discount"].browse(discount_id)
-        if discount.move_id != self:
-            raise UserError(_("El descuento no pertenece a esta factura."))
-        discount.unlink()
-        return True
+        if discount.exists():
+            if discount.move_id != self:
+                raise UserError(_("El descuento no pertenece a esta factura."))
+            discount.unlink()
+            return True
+        line = self.env["account.move.line"].browse(discount_id)
+        if line.exists() and line in self._l10n_ve_get_product_discount_lines():
+            self._l10n_ve_check_global_discount_allowed()
+            line.unlink()
+            return True
+        raise UserError(_("El descuento no pertenece a esta factura."))
 
     def action_l10n_ve_remove_all_global_discounts(self):
         self.ensure_one()
-        if len(self.l10n_ve_global_discount_ids) <= 1:
+        product_lines = self._l10n_ve_get_product_discount_lines()
+        if self.l10n_ve_global_discount_ids:
+            if len(self.l10n_ve_global_discount_ids) <= 1:
+                return True
+            self._l10n_ve_check_global_discount_allowed()
+            self.l10n_ve_global_discount_ids.unlink()
+            return True
+        if len(product_lines) <= 1:
             return True
         self._l10n_ve_check_global_discount_allowed()
-        self.l10n_ve_global_discount_ids.unlink()
+        product_lines.unlink()
         return True
 
     def _l10n_ve_check_single_percentage_global_discount(self, discounts):

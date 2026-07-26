@@ -133,19 +133,40 @@ class SaleOrder(models.Model):
             limit=1,
         )
 
+    def _l10n_ve_get_product_discount_lines(self):
+        self.ensure_one()
+        disc = self.company_id.sale_discount_product_id
+        if not disc:
+            return self.env["sale.order.line"]
+        return self.order_line.filtered(
+            lambda line: not line.display_type and line.product_id == disc
+        )
+
     def action_l10n_ve_remove_global_discount(self, discount_id):
         self.ensure_one()
         discount = self.env["l10n.ve.sale.order.discount"].browse(discount_id)
-        if discount.sale_order_id != self:
-            raise UserError(_("El descuento no pertenece a este pedido."))
-        discount.unlink()
-        return True
+        if discount.exists():
+            if discount.sale_order_id != self:
+                raise UserError(_("El descuento no pertenece a este pedido."))
+            discount.unlink()
+            return True
+        line = self.env["sale.order.line"].browse(discount_id)
+        if line.exists() and line in self._l10n_ve_get_product_discount_lines():
+            line.unlink()
+            return True
+        raise UserError(_("El descuento no pertenece a este pedido."))
 
     def action_l10n_ve_remove_all_global_discounts(self):
         self.ensure_one()
-        if len(self.l10n_ve_global_discount_ids) <= 1:
+        product_lines = self._l10n_ve_get_product_discount_lines()
+        if self.l10n_ve_global_discount_ids:
+            if len(self.l10n_ve_global_discount_ids) <= 1:
+                return True
+            self.l10n_ve_global_discount_ids.unlink()
             return True
-        self.l10n_ve_global_discount_ids.unlink()
+        if len(product_lines) <= 1:
+            return True
+        product_lines.unlink()
         return True
 
     def _l10n_ve_check_single_percentage_global_discount(self, discounts):
@@ -903,6 +924,7 @@ class SaleOrder(models.Model):
     @api.depends_context("lang")
     @api.depends(
         "order_line.price_subtotal",
+        "order_line.product_id",
         "currency_id",
         "company_id",
         "payment_term_id",
@@ -928,35 +950,37 @@ class SaleOrder(models.Model):
                 or not order.tax_totals
             ):
                 continue
-            if order.l10n_ve_global_discount_ids:
-                discount_totals = AccountTax._l10n_ve_get_global_discount_totals(
-                    order,
-                    order.tax_totals,
-                )
-                order.tax_totals["l10n_ve_show_global_discount"] = discount_totals[
-                    "show_global_discount"
-                ]
-                order.tax_totals["l10n_ve_subtotal_gross_currency"] = discount_totals[
-                    "subtotal_gross_currency"
-                ]
-                order.tax_totals["l10n_ve_subtotal_gross"] = discount_totals[
-                    "subtotal_gross"
-                ]
-                order.tax_totals["l10n_ve_global_discount_amount_currency"] = (
-                    discount_totals["global_discount_amount_currency"]
-                )
-                order.tax_totals["l10n_ve_global_discount_amount"] = discount_totals[
-                    "global_discount_amount"
-                ]
-                order.tax_totals["l10n_ve_global_discount_amount_foreign"] = (
-                    discount_totals["global_discount_amount_foreign"]
-                )
-                order.tax_totals["l10n_ve_subtotal_gross_foreign"] = discount_totals[
-                    "subtotal_gross_foreign"
-                ]
-                order.tax_totals["l10n_ve_global_discount_lines"] = discount_totals[
-                    "global_discount_lines"
-                ]
+            discount_totals = AccountTax._l10n_ve_get_global_discount_totals(
+                order,
+                order.tax_totals,
+            )
+            order.tax_totals["l10n_ve_show_global_discount"] = discount_totals[
+                "show_global_discount"
+            ]
+            order.tax_totals["l10n_ve_subtotal_gross_currency"] = discount_totals[
+                "subtotal_gross_currency"
+            ]
+            order.tax_totals["l10n_ve_subtotal_gross"] = discount_totals[
+                "subtotal_gross"
+            ]
+            order.tax_totals["l10n_ve_global_discount_amount_currency"] = (
+                discount_totals["global_discount_amount_currency"]
+            )
+            order.tax_totals["l10n_ve_global_discount_amount"] = discount_totals[
+                "global_discount_amount"
+            ]
+            order.tax_totals["l10n_ve_global_discount_amount_foreign"] = (
+                discount_totals["global_discount_amount_foreign"]
+            )
+            order.tax_totals["l10n_ve_subtotal_gross_foreign"] = discount_totals[
+                "subtotal_gross_foreign"
+            ]
+            order.tax_totals["l10n_ve_global_discount_lines"] = discount_totals[
+                "global_discount_lines"
+            ]
+            order.tax_totals["l10n_ve_global_discount_percentage"] = (
+                discount_totals["global_discount_percentage"]
+            )
             order.tax_totals["same_tax_base"] = False
             for subtotal in order.tax_totals.get("subtotals", []):
                 for tax_group in subtotal.get("tax_groups", []):

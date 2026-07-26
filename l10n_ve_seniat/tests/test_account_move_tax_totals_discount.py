@@ -178,6 +178,132 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeSeniatCommon):
         self.assertFalse(tax_totals.get("l10n_ve_show_global_discount"))
         self.assertFalse(tax_totals.get("l10n_ve_show_line_discount"))
 
+    def _ensure_sale_discount_product(self, name):
+        if "sale_discount_product_id" not in self.env["res.company"]._fields:
+            self.skipTest("sale_discount_product_id requires sale module")
+        discount_product = self.env["product.product"].create(
+            {
+                "name": name,
+                "type": "service",
+                "list_price": 1.0,
+                "company_id": self.env.company.id,
+            }
+        )
+        self.env.company.sale_discount_product_id = discount_product
+        return discount_product
+
+    def test_product_discount_line_exposed_in_tax_totals(self):
+        discount_product = self._ensure_sale_discount_product(
+            "Producto descuento global"
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_ve.id,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Product line",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                (6, 0, [self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "product_id": discount_product.id,
+                            "name": "Descuento promocional",
+                            "quantity": 1.0,
+                            "price_unit": -15.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                (6, 0, [self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    ),
+                ],
+            }
+        )
+        discount_line = move._l10n_ve_get_product_discount_lines()
+        tax_totals = move.tax_totals
+        discount_amount = abs(discount_line.price_subtotal)
+        self.assertTrue(tax_totals["l10n_ve_show_global_discount"])
+        self.assertAlmostEqual(
+            tax_totals["l10n_ve_global_discount_amount_currency"],
+            discount_amount,
+            places=2,
+        )
+        self.assertAlmostEqual(
+            tax_totals["l10n_ve_subtotal_gross_currency"]
+            - tax_totals["l10n_ve_global_discount_amount_currency"],
+            tax_totals["base_amount_currency"],
+            places=2,
+        )
+        self.assertEqual(len(tax_totals["l10n_ve_global_discount_lines"]), 1)
+        self.assertEqual(
+            tax_totals["l10n_ve_global_discount_lines"][0]["source"], "product_line"
+        )
+        self.assertEqual(
+            tax_totals["l10n_ve_global_discount_lines"][0]["discount_type"],
+            "percentage",
+        )
+        self.assertTrue(
+            tax_totals["l10n_ve_global_discount_lines"][0]["discount_percentage"]
+        )
+        self.assertTrue(tax_totals.get("l10n_ve_global_discount_percentage"))
+
+    def test_remove_product_discount_line_from_tax_totals_action(self):
+        discount_product = self._ensure_sale_discount_product(
+            "Producto descuento a remover"
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_ve.id,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Product line",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                (6, 0, [self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "product_id": discount_product.id,
+                            "name": "Descuento",
+                            "quantity": 1.0,
+                            "price_unit": -10.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                (6, 0, [self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    ),
+                ],
+            }
+        )
+        discount_line = move._l10n_ve_get_product_discount_lines()
+        self.assertTrue(discount_line)
+        move.action_l10n_ve_remove_global_discount(discount_line.id)
+        self.assertFalse(move._l10n_ve_get_product_discount_lines())
+        self.assertFalse(move.tax_totals.get("l10n_ve_show_global_discount"))
+
     def test_remove_global_discount_updates_totals(self):
         move = self._create_invoice()
         subtotal = self._invoice_subtotal(move)
