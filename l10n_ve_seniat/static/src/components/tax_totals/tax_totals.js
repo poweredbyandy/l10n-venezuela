@@ -65,6 +65,14 @@ const l10nVeGlobalDiscountTaxTotalsPatch = {
         return this.l10nVeDiscountTotals.l10n_ve_global_discount_lines || [];
     },
 
+    get globalDiscountPercentageLabel() {
+        const percentage = this.l10nVeDiscountTotals.l10n_ve_global_discount_percentage;
+        if (typeof percentage !== "number" || !percentage) {
+            return "";
+        }
+        return ` (${(percentage * 100).toFixed(2)}%)`;
+    },
+
     get displayInCompanyCurrency() {
         return Boolean(this.l10nVeDiscountTotals.display_in_company_currency);
     },
@@ -78,6 +86,9 @@ const l10nVeGlobalDiscountTaxTotalsPatch = {
             typeof this.formatMonetaryForeign === "function"
         ) {
             return this.formatMonetaryForeign(amount);
+        }
+        if (typeof this.formatAmount === "function") {
+            return this.formatAmount(amount, useCompanyCurrency);
         }
         const totals = this.l10nVeDiscountTotals;
         const currencyId = useCompanyCurrency
@@ -119,9 +130,29 @@ const l10nVeGlobalDiscountTaxTotalsPatch = {
 
 patch(TaxTotalsComponent.prototype, l10nVeGlobalDiscountTaxTotalsPatch);
 
-const companyCurrencyField = registry
-    .category("fields")
-    .get("tax_totals_company_currency_widget", null);
-if (companyCurrencyField?.component) {
-    patch(companyCurrencyField.component.prototype, l10nVeGlobalDiscountTaxTotalsPatch);
+const PATCHED_COMPANY_CURRENCY = new WeakSet();
+
+function patchCompanyCurrencyTaxTotalsWidget() {
+    const companyCurrencyField = registry
+        .category("fields")
+        .get("tax_totals_company_currency_widget", null);
+    const component = companyCurrencyField?.component;
+    if (!component || PATCHED_COMPANY_CURRENCY.has(component)) {
+        return Boolean(component);
+    }
+    patch(component.prototype, l10nVeGlobalDiscountTaxTotalsPatch);
+    PATCHED_COMPANY_CURRENCY.add(component);
+    return true;
+}
+
+if (!patchCompanyCurrencyTaxTotalsWidget()) {
+    const fieldsRegistry = registry.category("fields");
+    const originalAdd = fieldsRegistry.add.bind(fieldsRegistry);
+    fieldsRegistry.add = (key, value, ...args) => {
+        const result = originalAdd(key, value, ...args);
+        if (key === "tax_totals_company_currency_widget") {
+            patchCompanyCurrencyTaxTotalsWidget();
+        }
+        return result;
+    };
 }

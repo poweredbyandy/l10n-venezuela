@@ -1,6 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.tools import float_is_zero
 
 
@@ -24,38 +24,28 @@ class AccountTax(models.Model):
         return fields.Date.context_today(self.env)
 
     @api.model
-    def _l10n_ve_get_global_discount_totals(self, document, tax_totals):
-        """Compute grouped global discount amounts for VE tax totals display."""
+    def _l10n_ve_build_discount_totals_result(
+        self, document, tax_totals, global_discount_amount_currency, global_discount_lines
+    ):
         base_amount_currency = tax_totals.get("base_amount_currency", 0.0)
         base_amount = tax_totals.get("base_amount", 0.0)
         base_amount_foreign = tax_totals.get("base_amount_foreign_currency")
-        discounts = document.l10n_ve_global_discount_ids
-        empty_result = {
-            "show_global_discount": False,
-            "global_discount_amount_currency": 0.0,
-            "global_discount_amount": 0.0,
-            "global_discount_amount_foreign": 0.0,
-            "subtotal_gross_currency": base_amount_currency,
-            "subtotal_gross": base_amount,
-            "subtotal_gross_foreign": base_amount_foreign or 0.0,
-            "global_discount_lines": [],
-        }
-        if not discounts:
-            return empty_result
-
-        subtotal_by_taxes = document._l10n_ve_global_discount_subtotal_by_taxes()
-        global_discount_lines = document._l10n_ve_get_global_discount_lines_data(
-            subtotal_by_taxes
-        )
-        global_discount_amount_currency = sum(
-            line["amount"] for line in global_discount_lines
-        )
         currency = document.currency_id
         if float_is_zero(
             global_discount_amount_currency,
             precision_rounding=currency.rounding,
         ):
-            return empty_result
+            return {
+                "show_global_discount": False,
+                "global_discount_amount_currency": 0.0,
+                "global_discount_amount": 0.0,
+                "global_discount_amount_foreign": 0.0,
+                "global_discount_percentage": False,
+                "subtotal_gross_currency": base_amount_currency,
+                "subtotal_gross": base_amount,
+                "subtotal_gross_foreign": base_amount_foreign or 0.0,
+                "global_discount_lines": [],
+            }
 
         rate = self._l10n_ve_get_document_currency_rate(document)
         company = document.company_id
@@ -82,18 +72,127 @@ class AccountTax(models.Model):
                 conversion_date,
             )
 
+        subtotal_gross_currency = base_amount_currency + global_discount_amount_currency
+        overall_percentage = False
+        percentage_lines = [
+            line
+            for line in global_discount_lines
+            if line.get("discount_type") == "percentage" and line.get("discount_percentage")
+        ]
+        if (
+            percentage_lines
+            and len(percentage_lines) == len(global_discount_lines)
+            and not float_is_zero(
+                subtotal_gross_currency, precision_rounding=currency.rounding
+            )
+        ):
+            if len(percentage_lines) == 1:
+                overall_percentage = percentage_lines[0]["discount_percentage"]
+            else:
+                overall_percentage = (
+                    global_discount_amount_currency / subtotal_gross_currency
+                )
         return {
             "show_global_discount": True,
             "global_discount_amount_currency": global_discount_amount_currency,
             "global_discount_amount": global_discount_amount,
             "global_discount_amount_foreign": global_discount_amount_foreign,
-            "subtotal_gross_currency": base_amount_currency
-            + global_discount_amount_currency,
+            "global_discount_percentage": overall_percentage,
+            "subtotal_gross_currency": subtotal_gross_currency,
             "subtotal_gross": base_amount + global_discount_amount,
             "subtotal_gross_foreign": (base_amount_foreign or 0.0)
             + global_discount_amount_foreign,
             "global_discount_lines": global_discount_lines,
         }
+
+    @api.model
+    def _l10n_ve_get_product_line_discount_totals(self, document, tax_totals):
+        """Build tax-totals discount data from sale_discount_product lines."""
+        if not hasattr(document, "_l10n_ve_get_product_discount_lines"):
+            return None
+        lines = document._l10n_ve_get_product_discount_lines()
+        if not lines:
+            return None
+        currency = document.currency_id
+        global_discount_lines = []
+        total_amount = 0.0
+        line_amounts = []
+        for line in lines:
+            line_amount = abs(line.price_subtotal or 0.0)
+            if float_is_zero(line_amount, precision_rounding=currency.rounding):
+                continue
+            total_amount += line_amount
+            line_amounts.append((line, currency.round(line_amount)))
+        if not line_amounts:
+            return None
+        base_amount_currency = tax_totals.get("base_amount_currency", 0.0) or 0.0
+        gross = base_amount_currency + total_amount
+        for line, line_amount in line_amounts:
+            discount_percentage = False
+            discount_type = "fixed"
+            if not float_is_zero(gross, precision_rounding=currency.rounding):
+                discount_percentage = line_amount / gross
+                discount_type = "percentage"
+            global_discount_lines.append(
+                {
+                    "id": line.id,
+                    "name": _("Descuento"),
+                    "amount": line_amount,
+                    "discount_type": discount_type,
+                    "discount_percentage": discount_percentage,
+                    "source": "product_line",
+                }
+            )
+        return self._l10n_ve_build_discount_totals_result(
+            document,
+            tax_totals,
+            currency.round(total_amount),
+            global_discount_lines,
+        )
+
+    @api.model
+    def _l10n_ve_get_global_discount_totals(self, document, tax_totals):
+        """Compute grouped global discount amounts for VE tax totals display.
+
+        Prefers SENIAT global discount records; if none, falls back to product
+        discount lines (sale_discount_product_id) so both modes share tax totals UI.
+        """
+        base_amount_currency = tax_totals.get("base_amount_currency", 0.0)
+        base_amount = tax_totals.get("base_amount", 0.0)
+        base_amount_foreign = tax_totals.get("base_amount_foreign_currency")
+        empty_result = {
+            "show_global_discount": False,
+            "global_discount_amount_currency": 0.0,
+            "global_discount_amount": 0.0,
+            "global_discount_amount_foreign": 0.0,
+            "global_discount_percentage": False,
+            "subtotal_gross_currency": base_amount_currency,
+            "subtotal_gross": base_amount,
+            "subtotal_gross_foreign": base_amount_foreign or 0.0,
+            "global_discount_lines": [],
+        }
+        discounts = document.l10n_ve_global_discount_ids
+        if discounts:
+            subtotal_by_taxes = document._l10n_ve_global_discount_subtotal_by_taxes()
+            global_discount_lines = document._l10n_ve_get_global_discount_lines_data(
+                subtotal_by_taxes
+            )
+            global_discount_amount_currency = sum(
+                line["amount"] for line in global_discount_lines
+            )
+            return self._l10n_ve_build_discount_totals_result(
+                document,
+                tax_totals,
+                global_discount_amount_currency,
+                global_discount_lines,
+            )
+
+        product_line_totals = self._l10n_ve_get_product_line_discount_totals(
+            document, tax_totals
+        )
+        if product_line_totals:
+            return product_line_totals
+        return empty_result
 
     @api.model
     def _l10n_ve_get_line_discount_amounts(self, base_lines, company):

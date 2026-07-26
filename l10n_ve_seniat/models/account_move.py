@@ -2124,6 +2124,7 @@ Please create a credit note instead.
         "currency_id",
         "l10n_ve_global_discount_ids",
         "l10n_ve_global_discount_ids.amount",
+        "invoice_line_ids.product_id",
     )
     def _compute_tax_totals(self):
         res = super()._compute_tax_totals()
@@ -2160,6 +2161,9 @@ Please create a credit note instead.
                 move.tax_totals["l10n_ve_global_discount_lines"] = discount_totals[
                     "global_discount_lines"
                 ]
+                move.tax_totals["l10n_ve_global_discount_percentage"] = (
+                    discount_totals["global_discount_percentage"]
+                )
             move.tax_totals["same_tax_base"] = False
             for subtotal in move.tax_totals.get("subtotals", []):
                 for tax_group in subtotal.get("tax_groups", []):

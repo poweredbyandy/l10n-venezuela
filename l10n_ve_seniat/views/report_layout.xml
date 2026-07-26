@@ -472,7 +472,17 @@
                                                         <td
                                                             class="text-end pe-2 py-1"
                                                             style="border-bottom: 1px solid #6c757d;"
-                                                        >Descuento:</td>
+                                                        >
+                                                            Descuento
+                                                            <t
+                                                                t-if="tax_totals.get('l10n_ve_global_discount_percentage')"
+                                                            >
+                                                                (<t
+                                                                    t-out="'%.2f' % (tax_totals.get('l10n_ve_global_discount_percentage') * 100.0)"
+                                                                />%):
+                                                            </t>
+                                                            <t t-else="">:</t>
+                                                        </td>
                                                         <t t-if="show_company_currency">
                                                             <td
                                                                 class="text-end py-1 ps-2"
