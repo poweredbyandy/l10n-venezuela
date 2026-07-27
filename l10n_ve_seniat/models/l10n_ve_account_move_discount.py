@@ -161,6 +161,33 @@ class AccountMove(models.Model):
         string="Global discounts",
         copy=False,
     )
+    l10n_ve_discount_reason_id = fields.Many2one(
+        comodel_name="l10n.ve.discount.reason",
+        string="Motivo de descuento",
+        copy=False,
+        ondelete="restrict",
+    )
+    l10n_ve_show_post_discount_action = fields.Boolean(
+        compute="_compute_l10n_ve_show_post_discount_action",
+    )
+
+    @api.depends(
+        "state",
+        "move_type",
+        "country_code",
+        "amount_untaxed",
+        "currency_id",
+        "l10n_ve_show_credit_note_action",
+        "reversal_move_ids.state",
+        "reversal_move_ids.move_type",
+        "reversal_move_ids.amount_untaxed",
+        "reversal_move_ids.l10n_ve_debit_note_reversed_ids",
+    )
+    def _compute_l10n_ve_show_post_discount_action(self):
+        for move in self:
+            move.l10n_ve_show_post_discount_action = (
+                move._l10n_ve_allows_post_discount_action()
+            )
 
     def copy_data(self, default=None):
         vals_list = super().copy_data(default=default)
@@ -318,6 +345,223 @@ class AccountMove(models.Model):
             raise UserError(_("Solo puede agregar descuentos en facturas en borrador."))
         if not self.is_invoice(include_receipts=True):
             raise UserError(_("Los descuentos globales solo aplican a facturas."))
+
+    def _l10n_ve_allows_post_discount_action(self):
+        self.ensure_one()
+        if self.country_code != "VE" or self.move_type != "out_invoice":
+            return False
+        if self.state != "posted":
+            return False
+        if not self.l10n_ve_show_credit_note_action:
+            return False
+        available = self._l10n_ve_post_discount_available_untaxed()
+        return float_compare(
+            available, 0.0, precision_digits=self.currency_id.decimal_places
+        ) > 0
+
+    def _l10n_ve_check_post_discount_allowed(self):
+        self.ensure_one()
+        if self.country_code != "VE":
+            raise UserError(_("Esta acción solo aplica a facturas venezolanas."))
+        if self.move_type != "out_invoice":
+            raise UserError(
+                _("El descuento post-factura solo aplica a facturas de cliente.")
+            )
+        if self.state != "posted":
+            raise UserError(
+                _("El descuento post-factura solo aplica a facturas confirmadas.")
+            )
+        self._l10n_ve_check_credit_note_creation_allowed()
+        available = self._l10n_ve_post_discount_available_untaxed()
+        if float_compare(
+            available, 0.0, precision_digits=self.currency_id.decimal_places
+        ) <= 0:
+            raise UserError(
+                _("No queda subtotal disponible para aplicar un descuento post-factura.")
+            )
+
+    def _l10n_ve_post_discount_credit_notes(self):
+        self.ensure_one()
+        return self.reversal_move_ids.filtered(
+            lambda move: (
+                move.move_type == "out_refund"
+                and move.state != "cancel"
+                and not move.l10n_ve_debit_note_reversed_ids
+            )
+        )
+
+    def _l10n_ve_post_discount_used_untaxed(self):
+        self.ensure_one()
+        return self.currency_id.round(
+            sum(self._l10n_ve_post_discount_credit_notes().mapped("amount_untaxed"))
+        )
+
+    def _l10n_ve_post_discount_available_untaxed(self):
+        self.ensure_one()
+        return self.currency_id.round(
+            self.amount_untaxed - self._l10n_ve_post_discount_used_untaxed()
+        )
+
+    def _l10n_ve_post_discount_subtotal_by_taxes(self):
+        self.ensure_one()
+        totals = defaultdict(float)
+        for line in self.invoice_line_ids.filtered(
+            lambda invoice_line: invoice_line.display_type == "product"
+        ):
+            taxes = line.tax_ids.filtered(lambda tax: tax.amount_type != "fixed")
+            if float_is_zero(line.price_subtotal, precision_rounding=self.currency_id.rounding):
+                continue
+            totals[taxes] += line.price_subtotal
+        return totals
+
+    def _l10n_ve_post_discount_account_for_taxes(self, taxes):
+        self.ensure_one()
+        discount_account = self._get_discount_allocation_account()
+        if discount_account:
+            return discount_account
+        lines = self.invoice_line_ids.filtered(
+            lambda line: (
+                line.display_type == "product"
+                and line.account_id
+                and set(line.tax_ids.filtered(lambda tax: tax.amount_type != "fixed").ids)
+                == set(taxes.ids)
+            )
+        )
+        if lines:
+            return lines[0].account_id
+        product_lines = self.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product" and line.account_id
+        )
+        if product_lines:
+            return product_lines[0].account_id
+        return self.journal_id.default_account_id
+
+    def _l10n_ve_post_discount_sample_line_for_taxes(self, taxes):
+        self.ensure_one()
+        lines = self.invoice_line_ids.filtered(
+            lambda line: (
+                line.display_type == "product"
+                and set(
+                    line.tax_ids.filtered(lambda tax: tax.amount_type != "fixed").ids
+                )
+                == set(taxes.ids)
+            )
+        )
+        return lines[:1]
+
+    def _l10n_ve_prepare_post_discount_credit_note_lines(self, amount, reason):
+        self.ensure_one()
+        subtotal_by_taxes = self._l10n_ve_post_discount_subtotal_by_taxes()
+        if not subtotal_by_taxes:
+            raise UserError(
+                _("La factura no tiene líneas de producto para prorratear el descuento.")
+            )
+        tax_groups = list(subtotal_by_taxes.keys())
+        weights = [subtotal_by_taxes[taxes] for taxes in tax_groups]
+        parts = self._l10n_ve_split_amount_by_weights(amount, weights)
+        line_name = _("Descuento: %(reason)s", reason=reason.name)
+        line_vals = []
+        for taxes, part in zip(tax_groups, parts):
+            if float_is_zero(part, precision_rounding=self.currency_id.rounding):
+                continue
+            sample = self._l10n_ve_post_discount_sample_line_for_taxes(taxes)
+            account = self._l10n_ve_post_discount_account_for_taxes(taxes)
+            if not account:
+                raise UserError(
+                    _("No se encontró una cuenta contable para la nota de crédito.")
+                )
+            vals = {
+                "name": line_name,
+                "quantity": 1.0,
+                "price_unit": part,
+                "account_id": account.id,
+                "tax_ids": [Command.set(taxes.ids)],
+            }
+            if sample.product_id:
+                vals["product_id"] = sample.product_id.id
+            line_vals.append(Command.create(vals))
+        if not line_vals:
+            raise UserError(_("No se pudo construir líneas para la nota de crédito."))
+        return line_vals
+
+    def _l10n_ve_adjust_post_discount_to_untaxed_amount(self, target_untaxed):
+        self.ensure_one()
+        current = self.amount_untaxed
+        if float_is_zero(current, precision_rounding=self.currency_id.rounding):
+            return
+        if (
+            float_compare(
+                current,
+                target_untaxed,
+                precision_digits=self.currency_id.decimal_places,
+            )
+            == 0
+        ):
+            return
+        factor = target_untaxed / current
+        lines = self.invoice_line_ids.filtered(
+            lambda invoice_line: invoice_line.display_type == "product"
+        )
+        for line in lines:
+            line.with_context(l10n_ve_skip_exempt_tax_line=True).write(
+                {"price_unit": self.currency_id.round(line.price_unit * factor)}
+            )
+
+    def _l10n_ve_create_post_discount_credit_note(self, amount, reason):
+        self.ensure_one()
+        line_vals = self._l10n_ve_prepare_post_discount_credit_note_lines(amount, reason)
+        credit_note = (
+            self.env["account.move"]
+            .with_context(l10n_ve_skip_exempt_tax_line=True)
+            .create(
+                {
+                    "move_type": "out_refund",
+                    "reversed_entry_id": self.id,
+                    "partner_id": self.partner_id.id,
+                    "journal_id": self.journal_id.id,
+                    "invoice_date": fields.Date.context_today(self),
+                    "currency_id": self.currency_id.id,
+                    "l10n_ve_discount_reason_id": reason.id,
+                    "ref": _(
+                        "Descuento post-factura %(invoice)s: %(reason)s",
+                        invoice=self.name,
+                        reason=reason.name,
+                    ),
+                    "invoice_line_ids": line_vals,
+                }
+            )
+        )
+        credit_note._l10n_ve_force_refund_to_company_currency()
+        credit_note.with_context(
+            l10n_ve_skip_exempt_tax_line=True
+        )._l10n_ve_adjust_post_discount_to_untaxed_amount(amount)
+        return credit_note
+
+    def action_l10n_ve_open_post_discount_wizard(self):
+        self.ensure_one()
+        self._l10n_ve_check_post_discount_allowed()
+        return {
+            "name": _("Descuento post-factura"),
+            "type": "ir.actions.act_window",
+            "res_model": "l10n.ve.account.move.post.discount.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_move_id": self.id,
+                "default_available_untaxed_amount": (
+                    self._l10n_ve_post_discount_available_untaxed()
+                ),
+                **(
+                    {"default_reason_id": default_reason.id}
+                    if (
+                        default_reason := self.env[
+                            "l10n.ve.discount.reason"
+                        ]._l10n_ve_get_default()
+                    )
+                    else {}
+                ),
+            },
+        }
 
     def _l10n_ve_global_discount_applies(self):
         self.ensure_one()
