@@ -172,10 +172,23 @@ class SaleOrderLine(models.Model):
                     if extra:
                         text = f"{text}\n{extra}" if text else extra
                 else:
-                    text = f"{text}\n{raw_stripped}" if text else raw_stripped
+                    cleaned_raw = line._l10n_ve_strip_default_code_prefix(raw_stripped)
+                    text = f"{text}\n{cleaned_raw}" if text else cleaned_raw
         if not (text or "").strip():
-            text = (line.name or "").strip()
+            text = (product.display_name or "").strip()
         return plaintext2html(text, with_paragraph=False)
+
+    def _l10n_ve_strip_default_code_prefix(self, text):
+        self.ensure_one()
+        if not text:
+            return text
+        lines = text.splitlines()
+        first_line = lines[0].strip()
+        if first_line.startswith("[") and "]" in first_line:
+            first_line = first_line.split("]", 1)[1].strip()
+            lines[0] = first_line
+            return "\n".join(line for line in lines if line.strip()).strip()
+        return text
 
     @api.constrains("discount", "order_id")
     def _l10n_ve_check_line_discount(self):
