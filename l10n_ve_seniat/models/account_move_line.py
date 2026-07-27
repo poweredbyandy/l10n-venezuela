@@ -313,6 +313,8 @@ class AccountMoveLine(models.Model):
 
     def _l10n_ve_must_use_exempt_tax(self):
         self.ensure_one()
+        if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
+            return False
         if self.move_id.country_code != "VE":
             return False
         if self.move_id.move_type not in (
