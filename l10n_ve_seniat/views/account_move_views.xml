@@ -161,6 +161,14 @@
                     groups="account.group_account_invoice"
                     invisible="country_code != 'VE' or move_type not in ('out_invoice', 'in_invoice') or state != 'posted' or not l10n_ve_show_debit_note_action"
                 />
+                <button
+                    name="action_l10n_ve_open_post_discount_wizard"
+                    string="Descuento"
+                    type="object"
+                    class="btn-secondary"
+                    groups="account.group_account_invoice"
+                    invisible="country_code != 'VE' or move_type != 'out_invoice' or state != 'posted' or not l10n_ve_show_post_discount_action"
+                />
             </xpath>
             <xpath expr="//field[@name='country_code']" position="after">
                 <field name="l10n_ve_on_behalf_of_third_party_enabled" invisible="1" />
@@ -169,6 +177,7 @@
                 <field name="l10n_ve_show_control_number_ui" invisible="1" />
                 <field name="l10n_ve_show_credit_debit_actions" invisible="1" />
                 <field name="l10n_ve_show_credit_note_action" invisible="1" />
+                <field name="l10n_ve_show_post_discount_action" invisible="1" />
                 <field name="l10n_ve_show_debit_note_action" invisible="1" />
                 <field name="l10n_ve_show_unreversed_debit_note_alert" invisible="1" />
                 <field name="l10n_ve_unreversed_debit_note_count" invisible="1" />
