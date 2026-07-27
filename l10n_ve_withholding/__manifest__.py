@@ -9,13 +9,14 @@
     "author": "BinauralDev, Anderson Armeya, Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/l10n-venezuela",
     "category": "Accountant/Accountant",
-    "version": "18.0.1.0.2",
+    "version": "18.0.1.1.0",
     "depends": [
         "base",
         "account",
         "product",
         "l10n_ve_seniat",
     ],
+    "external_dependencies": {"python": ["pandas"]},
     "data": [
         "security/ir.model.access.csv",
         "security/ir_rule.xml",
