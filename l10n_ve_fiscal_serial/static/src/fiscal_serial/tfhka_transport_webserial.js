@@ -94,6 +94,62 @@ export class TfhkaWebSerialTransport {
         return typeof navigator !== "undefined" && "serial" in navigator;
     }
 
+    static async getAuthorizedPorts() {
+        if (!TfhkaWebSerialTransport.isSupported()) {
+            return [];
+        }
+        return navigator.serial.getPorts();
+    }
+
+    static matchPortToMachine(ports, machine = {}) {
+        if (!ports?.length) {
+            return null;
+        }
+        const vendorId = machine.webserial_usb_vendor_id || 0;
+        const productId = machine.webserial_usb_product_id || 0;
+        const serialNumber = machine.webserial_usb_serial_number || "";
+        if (!vendorId && !productId && !serialNumber) {
+            return ports[0];
+        }
+        return (
+            ports.find((port) => {
+                const info = port.getInfo?.() || {};
+                if (vendorId && info.usbVendorId !== vendorId) {
+                    return false;
+                }
+                if (productId && info.usbProductId !== productId) {
+                    return false;
+                }
+                if (serialNumber && info.usbSerialNumber !== serialNumber) {
+                    return false;
+                }
+                return true;
+            }) || null
+        );
+    }
+
+    /**
+     * Resolve a Web Serial port for a fiscal machine.
+     * Prefers already-authorized ports; only opens the browser picker when needed.
+     *
+     * @returns {Promise<{port: SerialPort|null, requested: boolean}>}
+     */
+    static async resolvePort(machine = {}, { requestPort = false, filters = [] } = {}) {
+        const ports = await TfhkaWebSerialTransport.getAuthorizedPorts();
+        const matched = TfhkaWebSerialTransport.matchPortToMachine(ports, machine);
+        if (matched) {
+            return { port: matched, requested: false };
+        }
+        if (!requestPort) {
+            return { port: null, requested: false };
+        }
+        if (!TfhkaWebSerialTransport.isSupported()) {
+            throw new Error("Web Serial API no disponible en este navegador.");
+        }
+        const port = await navigator.serial.requestPort({ filters });
+        return { port, requested: true };
+    }
+
     async requestPort(filters = []) {
         if (!TfhkaWebSerialTransport.isSupported()) {
             throw new Error("Web Serial API no disponible en este navegador.");

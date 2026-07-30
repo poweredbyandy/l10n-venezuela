@@ -29,6 +29,15 @@ export async function verifyConnectedFiscalMachine(driver, expected, helpers = {
                 "Impresora en modo entrenamiento: se omitió la verificación del serial fiscal.",
         };
     }
+    if (expected.use_emulator) {
+        return {
+            training_mode: false,
+            emulator_mode: true,
+            verified: true,
+            message:
+                "Modo emulador activo: se omitió la verificación del serial fiscal.",
+        };
+    }
     const expectedSerial = normalizeSerial(expected.registered_serial);
     if (!expectedSerial) {
         throw new Error(

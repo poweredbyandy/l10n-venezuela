@@ -8,3 +8,6 @@ Incluye descuentos globales en borrador y descuentos post-factura mediante
 notas de crédito en borrador, con motivos predefinidos (pronto pago, pago en
 divisas, etc.), porcentaje o monto sobre el subtotal sin IVA e impuestos
 proporcionales.
+
+Permite configurar por compañía los medios de emisión de facturas y otros
+documentos (forma libre, máquina fiscal y facturación digital).

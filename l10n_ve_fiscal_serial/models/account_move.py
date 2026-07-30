@@ -32,10 +32,8 @@ class AccountMove(models.Model):
             base_name = line.name or ""
             default_code = ""
 
-        if (
-            self.company_id.l10n_ve_fiscal_serial_send_default_code_in_name
-            and default_code
-        ):
+        machine = self.journal_id.l10n_ve_fiscal_machine_id
+        if machine and machine.send_default_code_in_name and default_code:
             return f"[{default_code}] {base_name}".strip(), ""
         return base_name, default_code
 
@@ -68,6 +66,7 @@ class AccountMove(models.Model):
                 _("Configure la máquina fiscal en el diario de ventas.")
             )
         baud = machine.baudrate or "9600"
+        shared = machine.company_id.l10n_ve_fiscal_get_shared_config()
         return {
             "machine_id": machine.id,
             "name": machine.name or "",
@@ -76,9 +75,13 @@ class AccountMove(models.Model):
             "parity": machine.parity
             if machine.parity in ("none", "even", "odd")
             else "even",
-            "flag_21": machine.flag_21
-            or self.company_id.l10n_ve_fiscal_serial_flag_21
-            or "30",
+            "flag_21": shared.get("flag_21") or "30",
+            "flag_50": shared.get("flag_50") or "01",
+            "use_barcode": bool(shared.get("use_barcode")),
+            "footer_lines": shared.get("footer_lines") or [],
+            "payment_methods": shared.get("payment_methods") or [],
+            "use_emulator": bool(machine.use_emulator),
+            "send_default_code_in_name": bool(machine.send_default_code_in_name),
             "serial_port": machine.serial_port or "",
             "webserial_usb_vendor_id": machine.webserial_usb_vendor_id or 0,
             "webserial_usb_product_id": machine.webserial_usb_product_id or 0,
@@ -294,20 +297,27 @@ class AccountMove(models.Model):
     def _l10n_ve_fiscal_serial_base_payload(self):
         self.ensure_one()
         machine_cfg = self._l10n_ve_fiscal_serial_journal_machine_payload()
-        flag_21 = machine_cfg.get("flag_21") or (
-            self.company_id.l10n_ve_fiscal_serial_flag_21 or "30"
-        )
+        machine = self.journal_id.l10n_ve_fiscal_machine_id
+        use_barcode = bool(machine_cfg.get("use_barcode"))
+        barcode = False
+        if use_barcode:
+            digits = re.sub(r"\D", "", self.name or "")
+            if digits:
+                barcode = [digits]
         return {
             "company_id": self.company_id.id,
             "partner_id": self._l10n_ve_fiscal_serial_partner_payload(),
             "invoice_lines": self._l10n_ve_fiscal_serial_invoice_lines_payload(),
             "payment_lines": self._l10n_ve_fiscal_serial_payment_lines_payload(),
             "global_discount_amount": self._l10n_ve_fiscal_serial_global_discount_amount(),
-            "flag_21": flag_21,
+            "flag_21": machine_cfg.get("flag_21") or "30",
+            "flag_50": machine_cfg.get("flag_50") or "01",
+            "use_barcode": use_barcode,
+            "barcode": barcode,
             "fiscal_machine": machine_cfg or False,
             "aditional_lines": [],
             "has_cashbox": False,
-            "use_emulator": bool(self.company_id.l10n_ve_fiscal_serial_use_emulator),
+            "use_emulator": bool(machine.use_emulator) if machine else False,
         }
 
     def check_print_out_invoice(self):
@@ -398,6 +408,45 @@ class AccountMove(models.Model):
             "fiscal_machine": self._l10n_ve_fiscal_serial_journal_machine_payload(),
         }
 
+    def _l10n_ve_fiscal_serial_machine_counter_vals(self, data):
+        self.ensure_one()
+        machine_vals = {}
+        parsed = data.get("parsed_post") if isinstance(data, dict) else None
+        if isinstance(parsed, dict):
+            if parsed.get("LastInvoiceNumber"):
+                machine_vals["last_invoice_number"] = str(parsed["LastInvoiceNumber"])
+            if parsed.get("LastCreditNoteNumber"):
+                machine_vals["last_credit_note_number"] = str(
+                    parsed["LastCreditNoteNumber"]
+                )
+            if parsed.get("LastDebitNoteNumber"):
+                machine_vals["last_debit_note_number"] = str(
+                    parsed["LastDebitNoteNumber"]
+                )
+            if parsed.get("DailyClosureCounter") not in (None, False, ""):
+                machine_vals["daily_closure_counter"] = str(
+                    parsed["DailyClosureCounter"]
+                )
+        sequence = data.get("sequence") if isinstance(data, dict) else None
+        if sequence:
+            sequence = str(sequence)
+            if self.move_type == "out_refund":
+                machine_vals.setdefault("last_credit_note_number", sequence)
+            elif self.move_type == "out_invoice" and self.debit_origin_id:
+                machine_vals.setdefault("last_debit_note_number", sequence)
+            elif self.move_type == "out_invoice":
+                machine_vals.setdefault("last_invoice_number", sequence)
+        return machine_vals
+
+    def _l10n_ve_fiscal_serial_update_machine_counters(self, data):
+        self.ensure_one()
+        machine = self.journal_id.l10n_ve_fiscal_machine_id
+        if not machine:
+            return
+        machine_vals = self._l10n_ve_fiscal_serial_machine_counter_vals(data)
+        if machine_vals:
+            machine.write(machine_vals)
+
     def _l10n_ve_fiscal_serial_write_print_result(self, values):
         self.ensure_one()
         data = values.get("data") if isinstance(values, dict) and values.get("data") else values
@@ -417,6 +466,7 @@ class AccountMove(models.Model):
         if not self.l10n_ve_invoice_original_printed:
             vals["l10n_ve_invoice_original_printed"] = True
         self.write(vals)
+        self._l10n_ve_fiscal_serial_update_machine_counters(data)
         return True
 
     def print_out_invoice(self, values):
