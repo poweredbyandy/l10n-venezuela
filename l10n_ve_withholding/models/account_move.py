@@ -181,6 +181,10 @@ class AccountMoveRetention(models.Model):
     def action_post(self):
         """Create supplier retentions only after the move is actually posted."""
         res = super().action_post()
+        self._l10n_ve_create_post_retentions()
+        return res
+
+    def _l10n_ve_create_post_retentions(self):
         for move in self.filtered(lambda m: m.state == "posted"):
             if move.move_type not in ("in_invoice", "in_refund"):
                 continue
@@ -209,7 +213,7 @@ class AccountMoveRetention(models.Model):
         )
         for move in move_retention:
             move._set_retention_name()
-        return res
+
 
     def _set_retention_name(self):
         self.ensure_one()
