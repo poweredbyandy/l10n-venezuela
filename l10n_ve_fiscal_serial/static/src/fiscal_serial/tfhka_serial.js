@@ -98,6 +98,7 @@ export class TfhkaFiscal {
         this.portInfo = null;
         this._lastOpenBaudRate = 9600;
         this._lastOpenParity = "even";
+        this._lastPortRequested = false;
         this.auditLogger = null;
     }
 
@@ -310,11 +311,22 @@ export class TfhkaFiscal {
             }
             if (o.port != null && o.port.readable !== undefined) {
                 port = o.port;
+            } else if (o.machine || o.useAuthorizedPorts) {
+                const resolved = await TfhkaWebSerialTransport.resolvePort(
+                    o.machine || {},
+                    {
+                        requestPort: o.requestPort !== false,
+                        filters: o.filters || [],
+                    }
+                );
+                port = resolved.port;
+                this._lastPortRequested = resolved.requested;
             }
         }
         try {
             if (!port) {
                 port = await this.transport.requestPort([]);
+                this._lastPortRequested = true;
             }
             await this.transport.open(port, {
                 baudRate,

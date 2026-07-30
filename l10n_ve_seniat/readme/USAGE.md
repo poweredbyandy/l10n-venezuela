@@ -1,5 +1,12 @@
 # Usage
 
+Medios de emisión
+-----------------
+
+En **SENIAT → Empresas** el kanban muestra los medios de emisión asignados
+a cada compañía. La selección se realiza en los ajustes de Contabilidad
+(véase la sección de configuración).
+
 Notas de crédito y débito
 -------------------------
 

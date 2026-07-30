@@ -2,6 +2,7 @@
 
 import { _t } from "@web/core/l10n/translation";
 import { createFiscalSerialAuditLogger } from "./fiscal_serial_audit";
+import { TfhkaWebSerialTransport } from "./tfhka_transport_webserial";
 
 const REPORT_LABELS = {
     report_x: _t("Reporte X"),
@@ -14,11 +15,12 @@ export async function l10nVeFiscalSerialExecuteReport({
     logTag = "[l10n_ve_fiscal_serial]",
 }) {
     const fiscalSerial = env.services.l10n_ve_fiscal_serial;
+    const connection = env.services.l10n_ve_fiscal_connection;
     const notification = env.services.notification;
     const ui = env.services.ui;
     const progressLabel = REPORT_LABELS[action] || _t("Imprimiendo reporte fiscal");
 
-    if (!fiscalSerial) {
+    if (!fiscalSerial || !connection) {
         notification.add(
             _t("El servicio de máquina fiscal no está disponible."),
             { type: "danger" }
@@ -35,15 +37,8 @@ export async function l10nVeFiscalSerialExecuteReport({
         return false;
     }
 
-    notification.add(
-        _t("Seleccione la máquina fiscal en el cuadro de puertos del navegador."),
-        { type: "warning" }
-    );
-
-    let driver;
+    let borrowed = false;
     let auditLogger;
-    let hadError = false;
-    let errorDetail = "";
     let blocked = false;
     const setProgress = (percent, message) => {
         const pct = Math.max(0, Math.min(100, Math.round(percent)));
@@ -60,49 +55,44 @@ export async function l10nVeFiscalSerialExecuteReport({
         auditLogger = createFiscalSerialAuditLogger(env.services.orm, {
             source: "report",
         });
-        driver = fiscalSerial.createTfhkaFiscal();
-        auditLogger.attachDriver(driver);
-        const opened = await driver.openFpCtrl({ baudRate: 9600, parity: "even" });
-        if (!opened) {
-            throw new Error(driver.estado || _t("No fue posible abrir el puerto serial."));
+        const authorized = await TfhkaWebSerialTransport.resolvePort(
+            {},
+            { requestPort: false }
+        );
+        if (!authorized.port && !connection.state.portOpen) {
+            notification.add(
+                _t("Seleccione la máquina fiscal en el cuadro de puertos del navegador."),
+                { type: "warning" }
+            );
         }
+        const driver = await connection.borrowDriver({ requestPort: true });
+        borrowed = true;
+        auditLogger.attachDriver(driver);
         setProgress(50, progressLabel);
         const machine = fiscalSerial.createTfhkaFiscalMachine(driver);
         const response = await machine.runAction({ action, data: {} });
         if (!response?.valid) {
             throw new Error(response?.message || _t("No se pudo imprimir el reporte fiscal."));
         }
-        try {
-            await driver.closeFpCtrl({ reason: "success" });
-        } catch {
-        }
-        driver = null;
         setProgress(100, progressLabel);
         notification.add(response.message || `${progressLabel} ${_t("completado.")}`, {
             type: "success",
         });
         return true;
     } catch (error) {
-        hadError = true;
         const msg =
             error?.data?.message ||
             error?.data?.arguments?.[0] ||
             error?.message ||
             String(error || _t("Error al imprimir el reporte fiscal."));
-        errorDetail = msg;
         console.error(`${logTag} Error reporte fiscal:`, error);
         notification.add(msg, { type: "danger" });
         return false;
     } finally {
-        if (driver) {
-            try {
-                await driver.closeFpCtrl({
-                    reason: hadError ? "error" : "finally_cleanup",
-                    detail: errorDetail,
-                });
-            } catch {
-            }
-        } else if (auditLogger) {
+        if (borrowed) {
+            await connection.releaseDriver({ close: false });
+        }
+        if (auditLogger) {
             await auditLogger.flush();
         }
         if (blocked) {

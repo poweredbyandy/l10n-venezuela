@@ -51,7 +51,7 @@ class TestAccountJournalFiscalMachine(L10nVeSeniatCommon):
     def test_print_payload_uses_journal_machine(self):
         journal = self.company_data["default_journal_sale"]
         machine = self._create_machine()
-        machine.write({"flag_21": "01", "baudrate": "19200", "parity": "none"})
+        machine.write({"flag_21": "01", "baudrate": "19200", "parity": "none", "use_emulator": True})
         self._l10n_ve_configure_journal_fiscal_machine(
             journal,
             l10n_ve_fiscal_machine_id=machine.id,
@@ -93,3 +93,71 @@ class TestAccountJournalFiscalMachine(L10nVeSeniatCommon):
         self.assertEqual(payload["fiscal_machine"]["baudrate"], 19200)
         self.assertEqual(payload["fiscal_machine"]["parity"], "none")
         self.assertEqual(payload["flag_21"], "01")
+        self.assertTrue(payload["use_emulator"])
+
+    def test_print_result_updates_machine_counters(self):
+        journal = self.company_data["default_journal_sale"]
+        machine = self._create_machine()
+        machine.write(
+            {
+                "last_invoice_number": "00000001",
+                "last_credit_note_number": "00000002",
+                "last_debit_note_number": "00000003",
+            }
+        )
+        self._l10n_ve_configure_journal_fiscal_machine(
+            journal,
+            l10n_ve_fiscal_machine_id=machine.id,
+            l10n_ve_invoice_section_id=False,
+            l10n_ve_credit_note_section_id=False,
+        )
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente Contadores",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345671",
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "journal_id": journal.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Linea",
+                            "quantity": 1.0,
+                            "price_unit": 10.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        },
+                    )
+                ],
+            }
+        )
+        move.action_post()
+        move.print_out_invoice(
+            {
+                "valid": True,
+                "data": {
+                    "sequence": "00000042",
+                    "serial_machine": "JOURNALTEST1",
+                    "mf_reportz": "0005",
+                    "parsed_post": {
+                        "LastInvoiceNumber": "00000042",
+                        "LastCreditNoteNumber": "00000002",
+                        "LastDebitNoteNumber": "00000003",
+                        "DailyClosureCounter": "0004",
+                    },
+                },
+            }
+        )
+        self.assertEqual(move.l10n_ve_invoice_number, "00000042")
+        self.assertEqual(machine.last_invoice_number, "00000042")
+        self.assertEqual(machine.last_credit_note_number, "00000002")
+        self.assertEqual(machine.last_debit_note_number, "00000003")
+        self.assertEqual(machine.daily_closure_counter, "0004")

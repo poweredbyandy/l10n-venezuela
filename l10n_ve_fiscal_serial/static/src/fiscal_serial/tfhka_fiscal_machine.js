@@ -456,9 +456,33 @@ export class TfhkaFiscalMachine {
                 0
             ),
             invoice_affected: options.invoice_affected || move.invoice_affected || null,
+            use_barcode: Boolean(
+                options.use_barcode ?? move.use_barcode ?? options.fiscal_machine?.use_barcode
+            ),
             barcode: options.barcode || move.barcode || null,
         };
         return { data };
+    }
+
+    _resolveBarcodeValue(invoice) {
+        if (!invoice?.use_barcode) {
+            return null;
+        }
+        const raw = invoice.barcode;
+        if (Array.isArray(raw)) {
+            return raw.length ? String(raw[0] || "").trim() : null;
+        }
+        if (raw === null || raw === undefined || raw === false) {
+            return null;
+        }
+        return String(raw).trim() || null;
+    }
+
+    _appendBarcodeCommand(cmd, invoice) {
+        const barcode = this._resolveBarcodeValue(invoice);
+        if (barcode) {
+            cmd.push(`y${barcode}`);
+        }
     }
 
     normalizeInvoicePayload(input, options = {}) {
@@ -657,6 +681,7 @@ export class TfhkaFiscalMachine {
                 invoice.payment_lines,
                 config
             );
+            this._appendBarcodeCommand(cmd, invoice);
             if (invoice.has_cashbox) {
                 cmd.push("w");
             }
@@ -735,6 +760,7 @@ export class TfhkaFiscalMachine {
                 invoice.payment_lines,
                 config
             );
+            this._appendBarcodeCommand(cmd, invoice);
             if (invoice.has_cashbox) {
                 cmd.push("w");
             }
@@ -818,6 +844,7 @@ export class TfhkaFiscalMachine {
                 invoice.payment_lines,
                 config
             );
+            this._appendBarcodeCommand(cmd, invoice);
 
             if (invoice.has_cashbox) {
                 cmd.push("w");
@@ -991,13 +1018,14 @@ export class TfhkaFiscalMachine {
     }
 
     async finalizeDebitNote() {
-        const s1 = await this.getS1PrinterData();
+        const s1 = await this.getS1PrinterData("print_debit_note_post");
         return {
             valid: true,
             data: {
                 sequence: s1?.LastDebitNoteNumber || null,
                 serial_machine: s1?.RegisteredMachineNumber || null,
                 mf_reportz: mfReportzFromDailyClosureString(s1?.DailyClosureCounter),
+                parsed_post: s1,
             },
             message: "Nota de débito impresa correctamente",
             raw_status: s1?.raw || null,
@@ -1292,52 +1320,150 @@ export class TfhkaFiscalMachine {
         return { valid: true };
     }
 
-    async configureDevice(data) {
-        await this._ensureStatusReady();
-        const payload = maybeDataWrapper(data);
-        if (payload.flag_21) {
-            await this._sendCommand(`PJ21${payload.flag_21}`);
+    _normalizeFlag50Value(value) {
+        const key = String(value ?? "01").padStart(2, "0");
+        return key === "00" ? "00" : "01";
+    }
+
+    _paymentMethodCommands(payload = {}) {
+        const methods = toArray(payload.payment_methods || payload.paymentMethods);
+        if (methods.length) {
+            return methods
+                .map((method) => {
+                    const code = String(method.code || method.payment_method || "")
+                        .trim()
+                        .padStart(2, "0")
+                        .slice(-2);
+                    const name = cleanText(method.name || "", 14);
+                    if (!code || Number(code) < 1 || Number(code) > 24 || !name) {
+                        return null;
+                    }
+                    return `PE${code}${name}`;
+                })
+                .filter(Boolean);
         }
-        if (payload.flag_24) {
-            await this._sendCommand(`PJ24${payload.flag_24}`);
-        }
-        if (payload.show_version) {
-            await this._sendCommand(`PJ77${payload.show_version}`);
-        }
-        await this._sendCommand("PJ6300");
-        const paymentMethods = [
+        return [
             "PE01EFECTIVO 01",
             "PE02EFECTIVO 02",
             "PE03PAGO MOVIL 01",
             "PE04PAGO MOVIL 02",
             "PE05PAGO MOVIL 03",
             "PE06PAGO MOVIL 04",
-            "PE07TRANSFERENCIA 01 ",
+            "PE07TRANSFERENCIA 01",
             "PE08TRANSFERENCIA 02",
             "PE09TRANSFERENCIA 03",
             "PE10TRANSFERENCIA 04",
-            "PE11PDV 01 ",
+            "PE11PDV 01",
             "PE12PDV 02",
             "PE13PDV 03",
             "PE14PDV 04",
             "PE15CREDITO 01",
             "PE16CREDITO 02",
+            "PE17CREDITO 03",
+            "PE18CREDITO 04",
             "PE19DIVISA 02",
             "PE20DIVISA 01",
             "PE21ZELLE",
+            "PE22DIVISA 03",
+            "PE23DIVISA 04",
+            "PE24OTRO",
         ];
-        for (const line of paymentMethods) {
-            await this._sendCommand(line);
+    }
+
+    _footerCommands(payload = {}) {
+        const lines = toArray(payload.footer_lines || payload.footerLines);
+        return lines
+            .slice(0, 8)
+            .map((line, index) => {
+                const text = cleanText(line, 40);
+                if (!text) {
+                    return null;
+                }
+                return `PH${String(91 + index).padStart(2, "0")}${text}`;
+            })
+            .filter(Boolean);
+    }
+
+    async configureDevice(data, options = {}) {
+        const payload = maybeDataWrapper(data);
+        const flag21 = payload.flag_21
+            ? this._normalizeFlag21Value(payload.flag_21)
+            : null;
+        const flag50 = payload.flag_50
+            ? this._normalizeFlag50Value(payload.flag_50)
+            : null;
+        const paymentCommands = this._paymentMethodCommands(payload);
+        const footerCommands = this._footerCommands(payload);
+        const totalSteps =
+            (flag21 ? 1 : 0) +
+            (flag50 ? 1 : 0) +
+            (payload.flag_24 ? 1 : 0) +
+            (payload.show_version ? 1 : 0) +
+            1 +
+            paymentCommands.length +
+            footerCommands.length;
+        let step = 0;
+        const advance = (message) => {
+            step += 1;
+            const percent = totalSteps
+                ? Math.round((step / totalSteps) * 100)
+                : 100;
+            this._notifyProgress(options, percent, message);
+        };
+
+        this._notifyProgress(options, 0, "Configurando máquina fiscal...");
+        await this._ensureStatusReady();
+        if (flag21) {
+            await this._sendCommand(`PJ21${flag21}`);
+            advance("Enviando FLAG 21...");
         }
-        return { valid: true };
+        if (flag50) {
+            await this._sendCommand(`PJ50${flag50}`);
+            advance("Enviando FLAG 50...");
+        }
+        if (payload.flag_24) {
+            await this._sendCommand(`PJ24${payload.flag_24}`);
+            advance("Enviando FLAG 24...");
+        }
+        if (payload.show_version) {
+            await this._sendCommand(`PJ77${payload.show_version}`);
+            advance("Enviando versión...");
+        }
+        await this._sendCommand("PJ6300");
+        advance("Aplicando parámetros...");
+        for (const line of paymentCommands) {
+            await this._sendCommand(line);
+            advance("Programando métodos de pago...");
+        }
+        for (const line of footerCommands) {
+            await this._sendCommand(line);
+            advance("Programando pie de página...");
+        }
+        this._notifyProgress(options, 100, "Configuración enviada");
+        return {
+            valid: true,
+            message:
+                `Configuración enviada: FLAG_21=${flag21 || "-"}, ` +
+                `FLAG_50=${flag50 || "-"}, ` +
+                `${paymentCommands.length} métodos de pago` +
+                (footerCommands.length
+                    ? `, ${footerCommands.length} líneas de pie`
+                    : "") +
+                ".",
+            flag_21: flag21,
+            flag_50: flag50,
+            payment_methods: paymentCommands.length,
+            footer_lines: footerCommands.length,
+        };
     }
 
     async configureMachineFlag21(flag21, options = {}) {
         const normalizedFlag = this._normalizeFlag21Value(flag21);
+        const flag50 = this._normalizeFlag50Value(options.flag_50 || options.flag50);
         this._notifyProgress(options, 0, "Imprimiendo...");
         await this._sendCommand(`PJ21${normalizedFlag}`);
         this._notifyProgress(options, 30, "Imprimiendo... 30%");
-        await this._sendCommand("PJ5001");
+        await this._sendCommand(`PJ50${flag50}`);
         this._notifyProgress(options, 60, "Imprimiendo... 60%");
         await this._sendCommand("PJ1701");
         this._notifyProgress(options, 85, "Imprimiendo... 85%");
@@ -1345,8 +1471,9 @@ export class TfhkaFiscalMachine {
         this._notifyProgress(options, 100, "Imprimiendo... 100%");
         return {
             valid: true,
-            message: `Configuración fiscal enviada con FLAG_21=${normalizedFlag}.`,
+            message: `Configuración fiscal enviada con FLAG_21=${normalizedFlag}, FLAG_50=${flag50}.`,
             flag_21: normalizedFlag,
+            flag_50: flag50,
         };
     }
 
