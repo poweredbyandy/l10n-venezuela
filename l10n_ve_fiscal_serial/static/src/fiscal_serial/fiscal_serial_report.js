@@ -12,6 +12,7 @@ const REPORT_LABELS = {
 export async function l10nVeFiscalSerialExecuteReport({
     env,
     action,
+    machine = null,
     logTag = "[l10n_ve_fiscal_serial]",
 }) {
     const fiscalSerial = env.services.l10n_ve_fiscal_serial;
@@ -52,25 +53,34 @@ export async function l10nVeFiscalSerialExecuteReport({
 
     try {
         setProgress(0, progressLabel);
+        const machineId = Number(machine?.machine_id || machine?.id || 0) || 0;
+        if (machineId && connection.setPrimaryMachine) {
+            await connection.setPrimaryMachine(machineId);
+        }
         auditLogger = createFiscalSerialAuditLogger(env.services.orm, {
             source: "report",
+            machineId: machineId || connection.state.machine?.id || false,
         });
         const authorized = await TfhkaWebSerialTransport.resolvePort(
-            {},
+            machine || connection.state.machine || {},
             { requestPort: false }
         );
-        if (!authorized.port && !connection.state.portOpen) {
+        const needPortPicker = !authorized.port && !connection.state.portOpen;
+        if (needPortPicker) {
             notification.add(
                 _t("Seleccione la máquina fiscal en el cuadro de puertos del navegador."),
                 { type: "warning" }
             );
         }
-        const driver = await connection.borrowDriver({ requestPort: true });
+        const driver = await connection.borrowDriver({
+            machine: machine || undefined,
+            requestPort: needPortPicker,
+        });
         borrowed = true;
         auditLogger.attachDriver(driver);
         setProgress(50, progressLabel);
-        const machine = fiscalSerial.createTfhkaFiscalMachine(driver);
-        const response = await machine.runAction({ action, data: {} });
+        const tfhka = fiscalSerial.createTfhkaFiscalMachine(driver);
+        const response = await tfhka.runAction({ action, data: {} });
         if (!response?.valid) {
             throw new Error(response?.message || _t("No se pudo imprimir el reporte fiscal."));
         }

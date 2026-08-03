@@ -84,7 +84,8 @@ export async function l10nVeFiscalSerialExecuteConfigure({
         const authorized = await TfhkaWebSerialTransport.resolvePort(config, {
             requestPort: false,
         });
-        if (!authorized.port && !connection.state.portOpen) {
+        const needPortPicker = !authorized.port && !connection.state.portOpen;
+        if (needPortPicker) {
             notification.add(
                 _t("Seleccione la máquina fiscal en el cuadro de puertos del navegador."),
                 { type: "warning" }
@@ -92,7 +93,7 @@ export async function l10nVeFiscalSerialExecuteConfigure({
         }
         const driver = await connection.borrowDriver({
             machine: config,
-            requestPort: true,
+            requestPort: needPortPicker,
         });
         borrowed = true;
         auditLogger.attachDriver(driver);

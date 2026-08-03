@@ -1,14 +1,36 @@
 /** @odoo-module **/
 
 import { _t } from "@web/core/l10n/translation";
+import { createFiscalSerialAuditLogger } from "@l10n_ve_fiscal_serial/fiscal_serial/fiscal_serial_audit";
+import { TfhkaWebSerialTransport } from "@l10n_ve_fiscal_serial/fiscal_serial/tfhka_transport_webserial";
+
+export function l10nVeFiscalSerialPosGetInvoiceJournal(pos) {
+    const order = typeof pos.get_order === "function" ? pos.get_order() : null;
+    return order?.invoice_journal_id || pos.config?.invoice_journal_id || false;
+}
+
+export function l10nVeFiscalSerialPosGetEmissionMedium(pos) {
+    const journal = l10nVeFiscalSerialPosGetInvoiceJournal(pos);
+    return (
+        journal?.l10n_ve_emission_medium ||
+        pos.config?.l10n_ve_invoice_journal_emission_medium ||
+        ""
+    );
+}
+
+export function l10nVeFiscalSerialPosGetFiscalMachineId(pos) {
+    const journal = l10nVeFiscalSerialPosGetInvoiceJournal(pos);
+    const machine = journal?.l10n_ve_fiscal_machine_id;
+    if (!machine) {
+        return false;
+    }
+    return typeof machine === "object" ? machine.id : machine;
+}
 
 export function l10nVeFiscalSerialPosIsFiscalMachine(pos) {
     const country =
         pos.company?.country_id?.code || pos.company?.account_fiscal_country_id?.code;
-    return (
-        country === "VE" &&
-        pos.config.l10n_ve_invoice_journal_emission_medium === "fiscal_machine"
-    );
+    return country === "VE" && l10nVeFiscalSerialPosGetEmissionMedium(pos) === "fiscal_machine";
 }
 
 export function l10nVeFiscalSerialPosSyncOrderFiscalFields(order, response) {
@@ -39,10 +61,12 @@ export async function l10nVeFiscalSerialPosExecutePrint({
     logTag = "[l10n_ve_fiscal_serial_pos]",
 }) {
     const fiscalSerial = env.services.l10n_ve_fiscal_serial;
+    const connection = env.services.l10n_ve_fiscal_connection;
     const notification = env.services.notification;
+    const orm = env.services.orm;
     const ui = env.services.ui;
 
-    if (!fiscalSerial) {
+    if (!fiscalSerial || !connection) {
         notification.add(
             _t("El servicio de máquina fiscal no está disponible en el POS."),
             { type: "danger" }
@@ -78,16 +102,15 @@ export async function l10nVeFiscalSerialPosExecutePrint({
     const printAction = payload?.l10n_ve_print_action || "print_out_invoice";
     const data = { ...payload };
     delete data.l10n_ve_print_action;
+    const machineConfig = data.fiscal_machine || {};
 
     const progressLabel =
-        printAction === "reprint" ? _t("Reimprimiendo fiscalmente") : _t("Imprimiendo fiscalmente");
+        printAction === "reprint"
+            ? _t("Reimprimiendo fiscalmente")
+            : _t("Imprimiendo fiscalmente");
 
-    notification.add(
-        _t("Seleccione la máquina fiscal en el cuadro de puertos del navegador."),
-        { type: "warning" }
-    );
-
-    let driver;
+    let borrowed = false;
+    let auditLogger;
     let blocked = false;
     const setProgress = (percent, message) => {
         const pct = Math.max(0, Math.min(100, Math.round(percent)));
@@ -101,10 +124,54 @@ export async function l10nVeFiscalSerialPosExecutePrint({
 
     try {
         setProgress(0, progressLabel);
-        driver = fiscalSerial.createTfhkaFiscal();
-        const opened = await driver.openFpCtrl({ baudRate: 9600, parity: "even" });
-        if (!opened) {
-            throw new Error(driver.estado || _t("No fue posible abrir el puerto serial."));
+        auditLogger = createFiscalSerialAuditLogger(orm, {
+            source:
+                printAction === "print_out_refund"
+                    ? "refund_print"
+                    : printAction === "print_debit_note"
+                      ? "debit_note"
+                      : printAction === "reprint"
+                        ? "reprint"
+                        : "invoice_print",
+            moveId: data.move_id || false,
+            machineId: machineConfig.machine_id || false,
+        });
+        if (!machineConfig.machine_id) {
+            throw new Error(
+                _t(
+                    "El diario de facturación no tiene máquina fiscal configurada."
+                )
+            );
+        }
+        await connection.setPrimaryMachine(machineConfig.machine_id);
+        const authorized = await TfhkaWebSerialTransport.resolvePort(machineConfig, {
+            requestPort: false,
+        });
+        const needPortPicker = !authorized.port && !connection.state.portOpen;
+        if (needPortPicker) {
+            notification.add(
+                _t("Seleccione la máquina fiscal en el cuadro de puertos del navegador."),
+                { type: "warning" }
+            );
+        }
+        const driver = await connection.borrowDriver({
+            machine: machineConfig,
+            requestPort: needPortPicker,
+        });
+        borrowed = true;
+        auditLogger.attachDriver(driver);
+        setProgress(15, progressLabel);
+        if (machineConfig.machine_id) {
+            const verification = await fiscalSerial.verifyConnectedFiscalMachine(
+                driver,
+                machineConfig,
+                {
+                    parseTfhkaS1StatusResponse: fiscalSerial.parseTfhkaS1StatusResponse,
+                }
+            );
+            if (verification.training_mode || verification.emulator_mode) {
+                notification.add(verification.message, { type: "warning" });
+            }
         }
         setProgress(20, progressLabel);
         const machine = fiscalSerial.createTfhkaFiscalMachine(driver);
@@ -118,11 +185,6 @@ export async function l10nVeFiscalSerialPosExecutePrint({
         if (!response?.valid) {
             throw new Error(response?.message || _t("Falló la impresión fiscal."));
         }
-        try {
-            await driver.closeFpCtrl();
-        } catch {
-        }
-        driver = null;
         setProgress(95, progressLabel);
         if (printAction !== "reprint") {
             await pos.data.call("pos.order", "l10n_ve_fiscal_serial_register_print_result", [
@@ -152,11 +214,11 @@ export async function l10nVeFiscalSerialPosExecutePrint({
         notification.add(msg, { type: "danger" });
         return false;
     } finally {
-        if (driver) {
-            try {
-                await driver.closeFpCtrl();
-            } catch {
-            }
+        if (borrowed) {
+            await connection.releaseDriver({ close: false });
+        }
+        if (auditLogger) {
+            await auditLogger.flush();
         }
         if (blocked) {
             ui.unblock();
