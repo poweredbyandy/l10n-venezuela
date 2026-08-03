@@ -165,7 +165,9 @@ export class FiscalMoveButton extends Component {
                 machineConfig,
                 { requestPort: false }
             );
-            if (!authorized.port && !this.connection.state.portOpen) {
+            const needPortPicker =
+                !authorized.port && !this.connection.state.portOpen;
+            if (needPortPicker) {
                 this.notification.add(
                     "Seleccione la máquina fiscal en el cuadro de puertos del navegador.",
                     { type: "warning" }
@@ -173,7 +175,7 @@ export class FiscalMoveButton extends Component {
             }
             driver = await this.connection.borrowDriver({
                 machine: machineConfig,
-                requestPort: true,
+                requestPort: needPortPicker,
             });
             borrowed = true;
             auditLogger.attachDriver(driver);

@@ -443,13 +443,62 @@ export const l10nVeFiscalConnectionService = {
 
         const connect = async () => checkConnection({ requestPort: true });
 
+        const _resolveTargetMachine = (machine) => {
+            let target = machine || _getPrimaryMachine();
+            if (!target) {
+                return null;
+            }
+            const targetId = Number(target.machine_id || target.id || 0) || 0;
+            if (targetId && state.machines.length) {
+                const listed = state.machines.find((item) => item.id === targetId);
+                if (listed) {
+                    target = {
+                        ...listed,
+                        ...target,
+                        id: listed.id,
+                        baudrate: target.baudrate || listed.baudrate,
+                        parity: target.parity || listed.parity,
+                        serial_port: target.serial_port || listed.serial_port,
+                        webserial_usb_vendor_id:
+                            target.webserial_usb_vendor_id ||
+                            listed.webserial_usb_vendor_id,
+                        webserial_usb_product_id:
+                            target.webserial_usb_product_id ||
+                            listed.webserial_usb_product_id,
+                        webserial_usb_serial_number:
+                            target.webserial_usb_serial_number ||
+                            listed.webserial_usb_serial_number,
+                    };
+                }
+            } else if (targetId && !target.id) {
+                target = { ...target, id: targetId };
+            }
+            return target;
+        };
+
         const borrowDriver = async ({
             machine = null,
             requestPort = false,
         } = {}) => {
-            const target = machine || _getPrimaryMachine();
+            const target = _resolveTargetMachine(machine);
             if (!target) {
                 throw new Error("No hay máquina fiscal configurada.");
+            }
+            const targetId = Number(target.machine_id || target.id || 0) || 0;
+            const openId = Number(state.machine?.id || 0) || 0;
+            if (_isDriverOpen() && targetId && openId && targetId !== openId) {
+                if (borrowCount > 0) {
+                    throw new Error(
+                        "La máquina fiscal está en uso por otra operación. Espere e intente de nuevo."
+                    );
+                }
+                await _closeDriver();
+            }
+            if (targetId && Number(state.machine?.id) !== targetId) {
+                const listed = state.machines.find(
+                    (item) => Number(item.id) === targetId
+                );
+                state.machine = listed || { ...target, id: targetId };
             }
             heartbeatPaused = true;
             borrowCount += 1;
@@ -517,6 +566,35 @@ export const l10nVeFiscalConnectionService = {
         const openMachines = () =>
             action.doAction("l10n_ve_fiscal_serial.action_l10n_ve_fiscal_machine");
 
+        const setPrimaryMachine = async (machineId) => {
+            const id = Number(machineId) || 0;
+            if (!id || !state.machines.length) {
+                return false;
+            }
+            const next =
+                state.machines.find(
+                    (machine) => Number(machine.id) === id
+                ) || null;
+            if (!next) {
+                return false;
+            }
+            if (Number(state.machine?.id) === Number(next.id)) {
+                return true;
+            }
+            if (_isDriverOpen()) {
+                await _closeDriver();
+            }
+            state.machine = next;
+            state.portAuthorized = false;
+            state.portLabel = next.serial_port || "";
+            state.enqStatusLabel = "";
+            state.enqErrorLabel = "";
+            if (state.visible) {
+                await refreshAuthorization();
+            }
+            return true;
+        };
+
         const _clearAuthTimer = () => {
             if (authTimer) {
                 clearInterval(authTimer);
@@ -572,6 +650,7 @@ export const l10nVeFiscalConnectionService = {
             borrowDriver,
             releaseDriver,
             openMachines,
+            setPrimaryMachine,
             startAutoProbe,
             stopAutoProbe,
             bootstrap,

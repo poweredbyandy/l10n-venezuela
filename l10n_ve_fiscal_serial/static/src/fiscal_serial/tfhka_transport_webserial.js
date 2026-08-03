@@ -111,7 +111,7 @@ export class TfhkaWebSerialTransport {
         if (!vendorId && !productId && !serialNumber) {
             return ports[0];
         }
-        return (
+        const matched =
             ports.find((port) => {
                 const info = port.getInfo?.() || {};
                 if (vendorId && info.usbVendorId !== vendorId) {
@@ -124,8 +124,11 @@ export class TfhkaWebSerialTransport {
                     return false;
                 }
                 return true;
-            }) || null
-        );
+            }) || null;
+        if (matched) {
+            return matched;
+        }
+        return ports.length === 1 ? ports[0] : null;
     }
 
     /**
