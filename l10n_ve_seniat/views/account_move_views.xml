@@ -515,11 +515,32 @@
             <xpath expr="//field[@name='name']" position="after">
                 <field name="l10n_ve_journal_emission_medium" column_invisible="True" />
                 <field name="l10n_ve_show_control_number_ui" column_invisible="True" />
+                <field name="l10n_ve_on_behalf_of_third_party" column_invisible="True" />
                 <field
                     name="l10n_ve_control_number"
+                    string="N° Control"
+                    optional="show"
                     decoration-danger="1"
                     readonly="move_type in ('out_invoice', 'out_refund') and (state == 'posted' or not l10n_ve_journal_emission_medium or l10n_ve_journal_emission_medium == 'free' or l10n_ve_journal_emission_medium == 'digital')"
                     invisible="not l10n_ve_show_control_number_ui"
+                />
+                <field
+                    name="l10n_ve_invoice_number"
+                    string="N° Factura"
+                    optional="show"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
+                />
+                <field
+                    name="l10n_ve_report_z"
+                    string="Reporte Z"
+                    optional="show"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
+                />
+                <field
+                    name="l10n_ve_serial_number"
+                    string="Serial"
+                    optional="show"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
                 />
             </xpath>
             <xpath expr="//field[@name='move_type']" position="after">
