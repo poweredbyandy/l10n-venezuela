@@ -94,6 +94,157 @@ export function l10nVeFiscalSerialPosGetNextPlaceholders(pos) {
     };
 }
 
+export function l10nVeFiscalSerialPosIsOffline(pos) {
+    return Boolean(pos?.data?.network?.offline);
+}
+
+export function l10nVeFiscalSerialPosMapTaxCode(taxAmount) {
+    const amount = Math.abs(Number(taxAmount) || 0);
+    if (amount <= 0) {
+        return "0";
+    }
+    if (amount <= 8) {
+        return "2";
+    }
+    if (amount <= 16) {
+        return "1";
+    }
+    return "3";
+}
+
+export function l10nVeFiscalSerialPosPaymentCode(paymentMethod) {
+    const code = String(paymentMethod?.l10n_ve_fiscal_payment_code || "").trim();
+    if (code) {
+        return code.padStart(2, "0");
+    }
+    return paymentMethod?.is_cash_count ? "01" : "02";
+}
+
+export function l10nVeFiscalSerialPosMachineConfig(pos) {
+    const machine = l10nVeFiscalSerialPosGetFiscalMachine(pos);
+    if (!machine) {
+        return {};
+    }
+    const company = pos.company || {};
+    const baud = machine.baudrate || "9600";
+    return {
+        machine_id: machine.id,
+        name: machine.name || "",
+        registered_serial: machine.registered_serial || "",
+        baudrate: Number.parseInt(baud, 10) || 9600,
+        parity: ["none", "even", "odd"].includes(machine.parity) ? machine.parity : "even",
+        flag_21: company.l10n_ve_fiscal_flag_21 || "30",
+        flag_50: company.l10n_ve_fiscal_flag_50 || "01",
+        use_barcode: Boolean(company.l10n_ve_fiscal_use_barcode),
+        footer_lines: [],
+        payment_methods: [],
+        use_emulator: Boolean(machine.use_emulator),
+        send_default_code_in_name: Boolean(machine.send_default_code_in_name),
+        serial_port: machine.serial_port || "",
+        webserial_usb_vendor_id: machine.webserial_usb_vendor_id || 0,
+        webserial_usb_product_id: machine.webserial_usb_product_id || 0,
+        webserial_usb_serial_number: machine.webserial_usb_serial_number || "",
+    };
+}
+
+export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
+    const machineConfig = l10nVeFiscalSerialPosMachineConfig(pos);
+    if (!machineConfig.machine_id) {
+        throw new Error(
+            _t("El diario de facturación no tiene máquina fiscal configurada.")
+        );
+    }
+    const partner = order?.get_partner?.() || order?.partner_id || {};
+    const isRefund =
+        order && typeof order._isRefundOrder === "function" && order._isRefundOrder();
+    const invoiceLines = (order?.lines || []).map((line) => {
+        const product = line.product_id || {};
+        const tax = line.tax_ids?.[0] || line.get_taxes?.()?.[0];
+        const taxAmount = tax?.amount ?? 0;
+        let name = product.display_name || product.name || line.full_product_name || "";
+        let defaultCode = product.default_code || "";
+        if (machineConfig.send_default_code_in_name && defaultCode) {
+            name = `[${defaultCode}] ${name}`.trim();
+            defaultCode = "";
+        }
+        return {
+            tax: l10nVeFiscalSerialPosMapTaxCode(taxAmount),
+            tax_percent: taxAmount,
+            price_unit: Math.abs(Number(line.get_unit_price?.() ?? line.price_unit) || 0),
+            quantity: Math.abs(Number(line.get_quantity?.() ?? line.qty) || 0),
+            default_code: defaultCode,
+            name,
+            discount: Number(line.get_discount?.() ?? line.discount) || 0,
+            discount_amount: 0,
+        };
+    });
+    const paymentLines = (order?.payment_ids || [])
+        .filter((payment) => !payment.is_change && payment.payment_method_id?.type !== "pay_later")
+        .map((payment) => ({
+            amount: Math.abs(Number(payment.get_amount?.() ?? payment.amount) || 0),
+            payment_method: l10nVeFiscalSerialPosPaymentCode(payment.payment_method_id),
+        }))
+        .filter((line) => line.amount > 0);
+    if (!paymentLines.length) {
+        paymentLines.push({ amount: 0, payment_method: "01" });
+    }
+    const payload = {
+        l10n_ve_print_action: isRefund ? "print_out_refund" : "print_out_invoice",
+        company_id: pos.company?.id || false,
+        partner_id: {
+            name: partner.name || "",
+            vat: partner.vat || "",
+            address: partner.street || "",
+            phone: partner.phone || partner.mobile || "",
+        },
+        invoice_lines: invoiceLines,
+        payment_lines: paymentLines,
+        global_discount_amount: 0,
+        flag_21: machineConfig.flag_21,
+        flag_50: machineConfig.flag_50,
+        use_barcode: machineConfig.use_barcode,
+        barcode: false,
+        fiscal_machine: machineConfig,
+        aditional_lines: [],
+        has_cashbox: false,
+        use_emulator: machineConfig.use_emulator,
+        move_type: isRefund ? "out_refund" : "out_invoice",
+        move_id: false,
+    };
+    if (isRefund) {
+        const originLine = (order.lines || []).find((line) => line.refunded_orderline_id);
+        const originOrder =
+            originLine?.refunded_orderline_id?.order_id ||
+            originLine?.refunded_orderline_id?.order ||
+            false;
+        const originNumber =
+            originOrder?.l10n_ve_pos_fiscal_invoice_number ||
+            originOrder?.raw?.l10n_ve_pos_fiscal_invoice_number ||
+            false;
+        if (!originNumber) {
+            throw new Error(
+                _t(
+                    "La devolución requiere el N° fiscal de la factura origen. No está disponible offline."
+                )
+            );
+        }
+        const originDate = originOrder?.date_order || originOrder?.creation_date || new Date();
+        const dateObj = originDate instanceof Date ? originDate : new Date(originDate);
+        const dd = String(dateObj.getDate()).padStart(2, "0");
+        const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const yyyy = dateObj.getFullYear();
+        payload.invoice_affected = {
+            number: String(originNumber),
+            serial_machine:
+                originOrder?.l10n_ve_pos_fiscal_serial ||
+                machineConfig.registered_serial ||
+                "",
+            date: `${dd}/${mm}/${yyyy}`,
+        };
+    }
+    return payload;
+}
+
 export function l10nVeFiscalSerialPosSyncMachineCounters(pos, response) {
     const machine = l10nVeFiscalSerialPosGetFiscalMachine(pos);
     if (!machine?.update || !response?.data) {
@@ -115,11 +266,12 @@ export function l10nVeFiscalSerialPosSyncMachineCounters(pos, response) {
     if (d.serial_machine !== undefined && d.serial_machine !== null && d.serial_machine !== "") {
         vals.registered_serial = String(d.serial_machine);
     }
-    if (d.mf_reportz !== undefined && d.mf_reportz !== null) {
-        const zDigits = String(d.mf_reportz).replace(/\D/g, "");
-        if (zDigits) {
-            vals.daily_closure_counter = zDigits;
-        }
+    const closure =
+        d.parsed_post?.DailyClosureCounter ||
+        d.daily_closure_counter ||
+        false;
+    if (closure) {
+        vals.daily_closure_counter = String(closure);
     }
     if (Object.keys(vals).length) {
         machine.update(vals);
@@ -176,20 +328,33 @@ export async function l10nVeFiscalSerialPosExecutePrint({
         return false;
     }
 
+    const offline = l10nVeFiscalSerialPosIsOffline(pos);
+    const hasServerOrder = Boolean(orderId && Number(orderId) > 0);
     let payload;
-    try {
-        payload = await pos.data.call(
-            "pos.order",
-            "l10n_ve_fiscal_serial_pos_fiscal_action_payload",
-            [[orderId]]
-        );
-    } catch (error) {
-        const msg =
-            error?.data?.message ||
-            error?.message ||
-            String(error || _t("No se pudo preparar la impresión fiscal."));
-        notification.add(msg, { type: "danger" });
-        return false;
+    let usedLocalPayload = false;
+    if (!offline && hasServerOrder) {
+        try {
+            payload = await pos.data.call(
+                "pos.order",
+                "l10n_ve_fiscal_serial_pos_fiscal_action_payload",
+                [[orderId]]
+            );
+        } catch (error) {
+            console.warn(`${logTag} Payload servidor no disponible, usando local.`, error);
+            payload = false;
+        }
+    }
+    if (!payload) {
+        try {
+            payload = l10nVeFiscalSerialPosBuildLocalPayload(pos, order);
+            usedLocalPayload = true;
+        } catch (error) {
+            notification.add(
+                error?.message || _t("No se pudo preparar la impresión fiscal."),
+                { type: "danger" }
+            );
+            return false;
+        }
     }
 
     const printAction = payload?.l10n_ve_print_action || "print_out_invoice";
@@ -279,24 +444,52 @@ export async function l10nVeFiscalSerialPosExecutePrint({
             throw new Error(response?.message || _t("Falló la impresión fiscal."));
         }
         setProgress(95, progressLabel);
-        if (printAction !== "reprint") {
-            await pos.data.call("pos.order", "l10n_ve_fiscal_serial_register_print_result", [
-                [orderId],
-                response,
-            ]);
-        }
         if (order) {
             l10nVeFiscalSerialPosSyncOrderFiscalFields(order, response);
         }
         if (printAction !== "reprint") {
             l10nVeFiscalSerialPosSyncMachineCounters(pos, response);
         }
+        if (printAction !== "reprint" && !offline && hasServerOrder && !usedLocalPayload) {
+            try {
+                await pos.data.call(
+                    "pos.order",
+                    "l10n_ve_fiscal_serial_register_print_result",
+                    [[orderId], response]
+                );
+            } catch (error) {
+                console.warn(
+                    `${logTag} No se pudo registrar en servidor; queda en la orden local.`,
+                    error
+                );
+            }
+        } else if (
+            printAction !== "reprint" &&
+            !offline &&
+            hasServerOrder &&
+            usedLocalPayload
+        ) {
+            try {
+                await pos.data.call(
+                    "pos.order",
+                    "l10n_ve_fiscal_serial_register_print_result",
+                    [[orderId], response]
+                );
+            } catch (error) {
+                console.warn(
+                    `${logTag} Registro diferido; la orden local conserva los datos fiscales.`,
+                    error
+                );
+            }
+        }
         setProgress(100, progressLabel);
         notification.add(
             response.message ||
                 (printAction === "reprint"
                     ? _t("Reimpresión fiscal completada.")
-                    : _t("Impresión fiscal completada.")),
+                    : usedLocalPayload || offline
+                      ? _t("Impresión fiscal completada (modo local/offline).")
+                      : _t("Impresión fiscal completada.")),
             { type: "success" }
         );
         return true;
@@ -314,7 +507,11 @@ export async function l10nVeFiscalSerialPosExecutePrint({
             await connection.releaseDriver({ close: false });
         }
         if (auditLogger) {
-            await auditLogger.flush();
+            try {
+                await auditLogger.flush();
+            } catch (error) {
+                console.warn(`${logTag} Auditoría no enviada (posible offline).`, error);
+            }
         }
         if (blocked) {
             ui.unblock();

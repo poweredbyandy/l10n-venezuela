@@ -31,4 +31,6 @@ class L10nVeFiscalMachine(models.Model):
             "last_credit_note_number",
             "last_debit_note_number",
             "daily_closure_counter",
+            "use_emulator",
+            "send_default_code_in_name",
         ]

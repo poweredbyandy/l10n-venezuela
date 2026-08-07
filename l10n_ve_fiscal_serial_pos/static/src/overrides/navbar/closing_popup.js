@@ -59,10 +59,24 @@ patch(ClosePosPopup.prototype, {
             return;
         }
         if (!connection.state.machines?.length && connection.loadSystrayData) {
-            await connection.loadSystrayData();
+            try {
+                await connection.loadSystrayData();
+            } catch (error) {
+                console.warn(
+                    "[l10n_ve_fiscal_serial_pos] Cierre: systray fiscal offline",
+                    error
+                );
+            }
         }
         if (connection.refreshAuthorization) {
-            await connection.refreshAuthorization();
+            try {
+                await connection.refreshAuthorization();
+            } catch (error) {
+                console.warn(
+                    "[l10n_ve_fiscal_serial_pos] Cierre: autorización fiscal local falló",
+                    error
+                );
+            }
         }
         let machines = [...(connection.state.authorizedMachines || [])];
         if (!machines.length && connection.state.machines?.length) {

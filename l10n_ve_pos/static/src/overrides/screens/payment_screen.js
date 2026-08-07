@@ -35,16 +35,7 @@ patch(PaymentScreen.prototype, {
             await this.l10nVeRefreshEmissionPreview();
         }
     },
-    async l10nVeRefreshEmissionPreview() {
-        if (!isVenezuelaCompany(this.pos)) {
-            return;
-        }
-        const journalId = this.currentOrder?.invoice_journal_id?.id || false;
-        const data = await this.pos.data.call(
-            "pos.config",
-            "l10n_ve_get_invoice_emission_preview",
-            [[this.pos.config.id], journalId]
-        );
+    _l10nVeApplyEmissionPreview(data) {
         if (!data) {
             return;
         }
@@ -61,6 +52,50 @@ patch(PaymentScreen.prototype, {
             data.next_free_control_number || false;
         this.pos.config.l10n_ve_pos_free_book_section_name =
             data.free_book_section_name || false;
+    },
+
+    _l10nVeLocalEmissionPreviewFallback() {
+        const journal =
+            this.currentOrder?.invoice_journal_id || this.pos.config?.invoice_journal_id;
+        return {
+            emission_medium:
+                journal?.l10n_ve_emission_medium ||
+                this.pos.config?.l10n_ve_invoice_journal_emission_medium ||
+                "",
+            journal_display_name:
+                journal?.display_name ||
+                journal?.name ||
+                this.pos.config?.l10n_ve_invoice_journal_display_name ||
+                "",
+            next_free_control_number:
+                this.pos.config?.l10n_ve_pos_next_free_control_number || "",
+            next_fiscal_invoice_number: this.l10nVeEmission.next_fiscal_invoice_number || "",
+            next_fiscal_serial: this.l10nVeEmission.next_fiscal_serial || "",
+            next_fiscal_report_z: this.l10nVeEmission.next_fiscal_report_z || "",
+            free_book_section_name:
+                this.pos.config?.l10n_ve_pos_free_book_section_name || false,
+        };
+    },
+
+    async l10nVeRefreshEmissionPreview() {
+        if (!isVenezuelaCompany(this.pos)) {
+            return;
+        }
+        const journalId = this.currentOrder?.invoice_journal_id?.id || false;
+        try {
+            const data = await this.pos.data.call(
+                "pos.config",
+                "l10n_ve_get_invoice_emission_preview",
+                [[this.pos.config.id], journalId]
+            );
+            this._l10nVeApplyEmissionPreview(data);
+        } catch (error) {
+            console.warn(
+                "[l10n_ve_pos] Preview de emisión no disponible (offline); usando datos locales.",
+                error
+            );
+            this._l10nVeApplyEmissionPreview(this._l10nVeLocalEmissionPreviewFallback());
+        }
     },
     get isVenezuelaPos() {
         return isVenezuelaCompany(this.pos);

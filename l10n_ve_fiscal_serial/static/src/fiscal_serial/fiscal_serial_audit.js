@@ -67,9 +67,13 @@ function buildPortSnapshot(driver) {
 
 function isOrmLifecycleError(error) {
     const msg = String(error?.message || error || "");
+    const name = String(error?.name || "");
     return (
         /Component is destroyed/i.test(msg) ||
-        /RpcAborted|ConnectionLostError|\bAborted\b/i.test(msg) ||
+        /RpcAborted|ConnectionLostError|\bAborted\b|Failed to fetch|NetworkError|offline/i.test(
+            msg
+        ) ||
+        /ConnectionLostError|TypeError/i.test(name) ||
         error?.name === "AbortError"
     );
 }
@@ -196,7 +200,10 @@ export class FiscalSerialAuditLogger {
             .call(AUDIT_MODEL, "log_fiscal_serial_events", [events])
             .catch((error) => {
                 if (isOrmLifecycleError(error)) {
-                    this._closed = true;
+                    console.warn(
+                        "[l10n_ve_fiscal_serial][audit] flush omitido (offline/ciclo de vida)",
+                        error
+                    );
                     this.buffer.length = 0;
                     return [];
                 }
