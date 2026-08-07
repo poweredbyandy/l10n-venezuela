@@ -1,15 +1,12 @@
-Do not install this module together with OCA ``auditlog``. Both modules
-define the same models (``auditlog.*``).
+This module replaces OCA ``auditlog`` (same technical models ``auditlog.*``).
+Do not keep both installed.
 
-If you are migrating from OCA ``auditlog``:
+When you install or upgrade ``l10n_ve_audit`` / ``l10n_ve_auditlog`` while
+OCA ``auditlog`` is present, ``pre_init_hook`` automatically:
 
-1. Uninstall OCA ``auditlog`` (or remove it from the addons path after
-   backing up the database).
-2. Install or upgrade ``l10n_ve_auditlog``.
-3. Upgrade ``l10n_ve_audit`` (compatibility bridge).
+1. Reassigns XML-IDs from ``auditlog`` to ``l10n_ve_auditlog``.
+2. Marks ``auditlog`` (and modules that only depended on it) as uninstalled
+   without dropping ``auditlog.*`` tables, so existing logs and rules are kept.
+3. Continues with the normal install of ``l10n_ve_auditlog``.
 
-If you already had ``l10n_ve_audit`` installed, upgrade both modules. A
-pre-migration script moves XML IDs from ``l10n_ve_audit`` to
-``l10n_ve_auditlog``.
-
-Review subscribed rules and security groups after the migration.
+After the upgrade, review subscribed rules and security groups.

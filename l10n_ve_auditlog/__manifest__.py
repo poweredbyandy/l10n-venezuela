@@ -5,7 +5,7 @@
 {
     "name": "Venezuela - Audit Log",
     "summary": "ORM and SENIAT fiscal audit log for Venezuela",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "author": "ABF OSIELL, Anderson Armeya, andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "license": "AGPL-3",
@@ -21,7 +21,6 @@
         "l10n_ve_fiscal_serial",
         "l10n_ve_edi",
     ],
-    "excludes": ["auditlog"],
     "images": ["static/description/icon.png"],
     "data": [
         "security/res_groups.xml",
@@ -42,6 +41,7 @@
         "report/fiscal_event_report.xml",
         "data/auditlog_rule_data.xml",
     ],
+    "pre_init_hook": "pre_init_hook",
     "post_init_hook": "post_init_hook",
     "uninstall_hook": "uninstall_hook",
     "application": True,
