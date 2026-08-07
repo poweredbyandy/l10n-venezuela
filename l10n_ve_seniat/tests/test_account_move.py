@@ -1564,6 +1564,10 @@ class TestAccountMove(L10nVeSeniatCommon):
         list_arch = self.env.ref("l10n_ve_seniat.view_invoice_tree").get_combined_arch()
         self.assertIn('name="l10n_ve_invoice_date"', list_arch)
         self.assertNotIn('string="Invoice Date"', list_arch)
+        self.assertIn('name="l10n_ve_control_number"', list_arch)
+        self.assertIn('name="l10n_ve_invoice_number"', list_arch)
+        self.assertIn('name="l10n_ve_report_z"', list_arch)
+        self.assertIn('name="l10n_ve_serial_number"', list_arch)
 
     def test_free_posted_sets_l10n_ve_invoice_date(self):
         journal = self.company_data["default_journal_sale"]
