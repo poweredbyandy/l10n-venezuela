@@ -36,23 +36,26 @@ async function l10nVeFiscalSerialPersistReportZCounters({ env, machineId, respon
     if (!Object.keys(payload).length) {
         return false;
     }
-    const updated = await orm.call("l10n.ve.fiscal.machine", "apply_s1_counters", [
-        [targetId],
-        payload,
-    ]);
-    if (connection?.loadSystrayData) {
-        await connection.loadSystrayData();
-    }
     const pos = env.services.pos;
     const localMachine = pos?.models?.["l10n.ve.fiscal.machine"]?.get?.(targetId);
-    if (localMachine?.update && updated) {
-        localMachine.update({
-            daily_closure_counter: updated.daily_closure_counter || false,
-            last_invoice_number: updated.last_invoice_number || false,
-            last_credit_note_number: updated.last_credit_note_number || false,
-            last_debit_note_number: updated.last_debit_note_number || false,
-            registered_serial: updated.registered_serial || false,
-        });
+    if (localMachine?.update) {
+        localMachine.update(payload);
+    }
+    let updated = false;
+    try {
+        updated = await orm.call("l10n.ve.fiscal.machine", "apply_s1_counters", [
+            [targetId],
+            payload,
+        ]);
+        if (connection?.loadSystrayData) {
+            await connection.loadSystrayData();
+        }
+    } catch (error) {
+        console.warn(
+            "[l10n_ve_fiscal_serial] Contadores Z guardados localmente (sin servidor).",
+            error
+        );
+        updated = payload;
     }
     return Boolean(updated);
 }

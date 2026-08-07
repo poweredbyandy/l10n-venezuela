@@ -330,13 +330,54 @@ export const l10nVeFiscalConnectionService = {
             }, HEARTBEAT_INTERVAL_MS);
         };
 
+        const _machinesFromPosFallback = () => {
+            const pos = env.services.pos;
+            const model = pos?.models?.["l10n.ve.fiscal.machine"];
+            const localMachines =
+                (typeof model?.getAll === "function" && model.getAll()) ||
+                (typeof model?.readAll === "function" && model.readAll()) ||
+                [];
+            return localMachines.map((machine) => ({
+                id: machine.id,
+                name: machine.name,
+                registered_serial: machine.registered_serial || "",
+                serial_port: machine.serial_port || "",
+                baudrate: machine.baudrate || "9600",
+                parity: machine.parity || "even",
+                webserial_usb_vendor_id: machine.webserial_usb_vendor_id || 0,
+                webserial_usb_product_id: machine.webserial_usb_product_id || 0,
+                webserial_usb_serial_number: machine.webserial_usb_serial_number || "",
+                last_connection: false,
+                enq_status_label: "",
+                enq_error_label: "",
+            }));
+        };
+
         const loadSystrayData = async () => {
-            const data = await orm.call(
-                "l10n.ve.fiscal.machine",
-                "l10n_ve_fiscal_serial_get_systray_data",
-                [],
-                {}
-            );
+            let data;
+            try {
+                data = await orm.call(
+                    "l10n.ve.fiscal.machine",
+                    "l10n_ve_fiscal_serial_get_systray_data",
+                    [],
+                    {}
+                );
+            } catch (error) {
+                const fallbackMachines =
+                    state.machines.length > 0
+                        ? state.machines
+                        : _machinesFromPosFallback();
+                if (!fallbackMachines.length) {
+                    throw error;
+                }
+                data = {
+                    visible: true,
+                    company_name: state.companyName || "",
+                    primary_machine_id: state.machine?.id || fallbackMachines[0].id,
+                    machines: fallbackMachines,
+                    offline_cache: true,
+                };
+            }
             const wasVisible = state.visible;
             state.visible = !!data.visible;
             state.companyName = data.company_name || "";
@@ -651,12 +692,28 @@ export const l10nVeFiscalConnectionService = {
                 return false;
             }
             if (!state.machines.length) {
-                await loadSystrayData();
+                try {
+                    await loadSystrayData();
+                } catch (error) {
+                    console.warn(
+                        "[l10n_ve_fiscal_serial] setPrimaryMachine: systray offline",
+                        error
+                    );
+                }
             }
-            const next =
+            let next =
                 state.machines.find(
                     (machine) => Number(machine.id) === id
                 ) || null;
+            if (!next) {
+                const fromPos = _machinesFromPosFallback().find(
+                    (machine) => Number(machine.id) === id
+                );
+                if (fromPos) {
+                    state.machines = [...state.machines, fromPos];
+                    next = fromPos;
+                }
+            }
             if (!next) {
                 return false;
             }
