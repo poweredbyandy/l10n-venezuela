@@ -243,6 +243,99 @@ def uninstall_db_audit_triggers(env):
     )
 
 
+DB_AUDIT_TABLE_XMLIDS = {
+    "account_move": "db_audit_table_account_move",
+    "account_account": "db_audit_table_account_account",
+    "account_journal": "db_audit_table_account_journal",
+    "account_tax": "db_audit_table_account_tax",
+    "res_currency_rate": "db_audit_table_res_currency_rate",
+    "ir_sequence": "db_audit_table_ir_sequence",
+    "tax_unit": "db_audit_table_tax_unit",
+    "res_company": "db_audit_table_res_company",
+    "account_payment": "db_audit_table_account_payment",
+    "account_retention": "db_audit_table_account_retention",
+    "account_retention_line": "db_audit_table_account_retention_line",
+}
+
+
+def _move_xmlids(cr, src_module, dst_module, exclude_names=None):
+    exclude_names = list(exclude_names or [])
+    cr.execute(
+        """
+        UPDATE ir_model_data AS src
+           SET module = %s
+         WHERE src.module = %s
+           AND NOT (src.name = ANY(%s))
+           AND NOT EXISTS (
+                SELECT 1
+                  FROM ir_model_data AS dst
+                 WHERE dst.module = %s
+                   AND dst.name = src.name
+           )
+        """,
+        (dst_module, src_module, exclude_names or [""], dst_module),
+    )
+    return cr.rowcount
+
+
+def _ensure_db_audit_table_xmlids(cr):
+    if not _table_exists(cr, "l10n_ve_db_audit_table"):
+        return 0
+    created = 0
+    for table_name, xmlid_name in DB_AUDIT_TABLE_XMLIDS.items():
+        cr.execute(
+            """
+            SELECT id
+              FROM l10n_ve_db_audit_table
+             WHERE table_name = %s
+             LIMIT 1
+            """,
+            (table_name,),
+        )
+        row = cr.fetchone()
+        if not row:
+            continue
+        res_id = row[0]
+        cr.execute(
+            """
+            SELECT id
+              FROM ir_model_data
+             WHERE module = 'l10n_ve_auditlog'
+               AND name = %s
+             LIMIT 1
+            """,
+            (xmlid_name,),
+        )
+        if cr.fetchone():
+            continue
+        cr.execute(
+            """
+            UPDATE ir_model_data
+               SET module = 'l10n_ve_auditlog',
+                   res_id = %s,
+                   model = 'l10n.ve.db.audit.table',
+                   noupdate = TRUE
+             WHERE module = 'l10n_ve_audit'
+               AND name = %s
+            """,
+            (res_id, xmlid_name),
+        )
+        if cr.rowcount:
+            continue
+        cr.execute(
+            """
+            INSERT INTO ir_model_data (
+                module, name, model, res_id, noupdate
+            ) VALUES (
+                'l10n_ve_auditlog', %s, 'l10n.ve.db.audit.table', %s, TRUE
+            )
+            """,
+            (xmlid_name, res_id),
+        )
+        created += 1
+    return created
+
+
 def _takeover_from_auditlog(env):
     cr = env.cr
     cr.execute(
@@ -287,13 +380,7 @@ def _takeover_from_auditlog(env):
             (dependents,),
         )
 
-    cr.execute(
-        """
-        UPDATE ir_model_data
-           SET module = 'l10n_ve_auditlog'
-         WHERE module = 'auditlog'
-        """
-    )
+    _move_xmlids(cr, "auditlog", "l10n_ve_auditlog")
     cr.execute(
         """
         UPDATE ir_module_module
@@ -307,8 +394,29 @@ def _takeover_from_auditlog(env):
     return True
 
 
+def _takeover_from_l10n_ve_audit(env):
+    cr = env.cr
+    moved = _move_xmlids(
+        cr,
+        "l10n_ve_audit",
+        "l10n_ve_auditlog",
+        exclude_names=["module_l10n_ve_audit"],
+    )
+    ensured = _ensure_db_audit_table_xmlids(cr)
+    if moved or ensured:
+        _logger.info(
+            "Migrating l10n_ve_audit -> l10n_ve_auditlog "
+            "(moved %s xmlids, linked %s db audit tables)",
+            moved,
+            ensured,
+        )
+        env["ir.model.data"].invalidate_model(["module", "res_id", "model"])
+    return bool(moved or ensured)
+
+
 def pre_init_hook(env):
     _takeover_from_auditlog(env)
+    _takeover_from_l10n_ve_audit(env)
 
 
 def post_init_hook(env):
