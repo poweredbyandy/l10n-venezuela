@@ -20,17 +20,110 @@ export function l10nVeFiscalSerialPosGetEmissionMedium(pos) {
 
 export function l10nVeFiscalSerialPosGetFiscalMachineId(pos) {
     const journal = l10nVeFiscalSerialPosGetInvoiceJournal(pos);
-    const machine = journal?.l10n_ve_fiscal_machine_id;
+    if (!journal) {
+        return false;
+    }
+    const machine = journal.l10n_ve_fiscal_machine_id;
     if (!machine) {
         return false;
     }
-    return typeof machine === "object" ? machine.id : machine;
+    if (typeof machine === "object") {
+        return Number(machine.id) || false;
+    }
+    return Number(machine) || false;
 }
 
 export function l10nVeFiscalSerialPosIsFiscalMachine(pos) {
     const country =
         pos.company?.country_id?.code || pos.company?.account_fiscal_country_id?.code;
     return country === "VE" && l10nVeFiscalSerialPosGetEmissionMedium(pos) === "fiscal_machine";
+}
+
+export function l10nVeFiscalSerialPosGetFiscalMachine(pos) {
+    const journal = l10nVeFiscalSerialPosGetInvoiceJournal(pos);
+    const machine = journal?.l10n_ve_fiscal_machine_id;
+    if (!machine) {
+        return false;
+    }
+    if (typeof machine === "object") {
+        return machine;
+    }
+    const machineId = Number(machine) || 0;
+    if (!machineId) {
+        return false;
+    }
+    return pos.models?.["l10n.ve.fiscal.machine"]?.get?.(machineId) || false;
+}
+
+export function l10nVeFiscalSerialPosIncrementCounter(value, minWidth = 8) {
+    const digits = String(value || "").replace(/\D/g, "");
+    if (!digits) {
+        return false;
+    }
+    const width = Math.max(digits.length, minWidth);
+    return String(Number.parseInt(digits, 10) + 1).padStart(width, "0");
+}
+
+export function l10nVeFiscalSerialPosLastNumberForPlaceholders(pos, machine) {
+    const order = typeof pos.get_order === "function" ? pos.get_order() : null;
+    if (order && typeof order._isRefundOrder === "function" && order._isRefundOrder()) {
+        return machine.last_credit_note_number;
+    }
+    return machine.last_invoice_number;
+}
+
+export function l10nVeFiscalSerialPosGetNextPlaceholders(pos) {
+    const machine = l10nVeFiscalSerialPosGetFiscalMachine(pos);
+    if (!machine) {
+        return {
+            serial: false,
+            invoice_number: false,
+            report_z: false,
+        };
+    }
+    return {
+        serial: (machine.registered_serial || "").trim() || false,
+        invoice_number: l10nVeFiscalSerialPosIncrementCounter(
+            l10nVeFiscalSerialPosLastNumberForPlaceholders(pos, machine),
+            8
+        ),
+        report_z: l10nVeFiscalSerialPosIncrementCounter(
+            machine.daily_closure_counter,
+            4
+        ),
+    };
+}
+
+export function l10nVeFiscalSerialPosSyncMachineCounters(pos, response) {
+    const machine = l10nVeFiscalSerialPosGetFiscalMachine(pos);
+    if (!machine?.update || !response?.data) {
+        return;
+    }
+    const d = response.data;
+    const vals = {};
+    const sequence = d.sequence !== undefined && d.sequence !== null ? String(d.sequence) : false;
+    if (sequence) {
+        const order = typeof pos.get_order === "function" ? pos.get_order() : null;
+        const isRefund =
+            order && typeof order._isRefundOrder === "function" && order._isRefundOrder();
+        if (isRefund) {
+            vals.last_credit_note_number = sequence;
+        } else {
+            vals.last_invoice_number = sequence;
+        }
+    }
+    if (d.serial_machine !== undefined && d.serial_machine !== null && d.serial_machine !== "") {
+        vals.registered_serial = String(d.serial_machine);
+    }
+    if (d.mf_reportz !== undefined && d.mf_reportz !== null) {
+        const zDigits = String(d.mf_reportz).replace(/\D/g, "");
+        if (zDigits) {
+            vals.daily_closure_counter = zDigits;
+        }
+    }
+    if (Object.keys(vals).length) {
+        machine.update(vals);
+    }
 }
 
 export function l10nVeFiscalSerialPosSyncOrderFiscalFields(order, response) {
@@ -194,6 +287,9 @@ export async function l10nVeFiscalSerialPosExecutePrint({
         }
         if (order) {
             l10nVeFiscalSerialPosSyncOrderFiscalFields(order, response);
+        }
+        if (printAction !== "reprint") {
+            l10nVeFiscalSerialPosSyncMachineCounters(pos, response);
         }
         setProgress(100, progressLabel);
         notification.add(

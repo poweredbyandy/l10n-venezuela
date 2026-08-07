@@ -1536,6 +1536,32 @@ export class TfhkaFiscalMachine {
         return { valid: true, message: "Reimpresión enviada correctamente." };
     }
 
+    async _waitUntilReadyAfterReport({ attempts = 60, delayMs = 500 } = {}) {
+        let lastError = null;
+        for (let index = 0; index < attempts; index++) {
+            try {
+                await this._ensureStatusReady();
+                return true;
+            } catch (error) {
+                lastError = error;
+                await sleep(delayMs);
+            }
+        }
+        if (lastError) {
+            throw lastError;
+        }
+        return false;
+    }
+
+    _nextDailyClosureCounter(value) {
+        const digits = String(value || "").replace(/\D/g, "");
+        if (!digits) {
+            return null;
+        }
+        const width = Math.max(digits.length, 4);
+        return String(Number.parseInt(digits, 10) + 1).padStart(width, "0");
+    }
+
     async printXReport() {
         await this._ensureStatusReady();
         await this._sendCommand("I0X");
@@ -1543,9 +1569,32 @@ export class TfhkaFiscalMachine {
     }
 
     async printZReport() {
+        const preS1 = await this.getS1PrinterData("report_z_pre");
         await this._ensureStatusReady();
         await this._sendCommand("I0Z");
-        return { valid: true, message: "Reporte Z impreso correctamente." };
+        await this._waitUntilReadyAfterReport();
+        const postS1 = await this.getS1PrinterData("report_z_post");
+        let dailyClosure = postS1?.DailyClosureCounter || null;
+        if (!dailyClosure && preS1?.DailyClosureCounter) {
+            dailyClosure = this._nextDailyClosureCounter(preS1.DailyClosureCounter);
+        }
+        return {
+            valid: true,
+            message: "Reporte Z impreso correctamente.",
+            data: {
+                daily_closure_counter: dailyClosure,
+                report_z: dailyClosure,
+                mf_reportz: mfReportzFromDailyClosureString(dailyClosure),
+                serial_machine:
+                    postS1?.RegisteredMachineNumber ||
+                    preS1?.RegisteredMachineNumber ||
+                    null,
+                last_invoice_number: postS1?.LastInvoiceNumber || null,
+                last_credit_note_number: postS1?.LastCreditNoteNumber || null,
+                last_debit_note_number: postS1?.LastDebitNoteNumber || null,
+                parsed_post: postS1,
+            },
+        };
     }
 
     async programacion() {

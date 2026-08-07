@@ -1,6 +1,13 @@
 /** @odoo-module **/
 
-import { Component, onMounted, onWillStart, useEffect, useState } from "@odoo/owl";
+import {
+    Component,
+    onMounted,
+    onWillStart,
+    onWillUnmount,
+    useEffect,
+    useState,
+} from "@odoo/owl";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { useService } from "@web/core/utils/hooks";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
@@ -16,39 +23,73 @@ import {
 export class PosFiscalMachineSystray extends Component {
     static template = "l10n_ve_fiscal_serial_pos.PosFiscalMachineSystray";
     static components = { Dropdown };
-    static props = {};
+    static props = {
+        fiscalMachineId: { optional: true },
+        invoiceJournalId: { optional: true },
+    };
 
     setup() {
         this.pos = usePos();
         this.connection = useService("l10n_ve_fiscal_connection");
         this.state = useState(this.connection.state);
+        this._onJournalChanged = (ev) => {
+            const detail = ev?.detail || {};
+            void this._syncMachineFromJournal({
+                reconnect: true,
+                machineId: detail.machineId,
+            });
+        };
         onWillStart(async () => {
             await this.connection.bootstrap();
-            await this._syncMachineFromJournal();
+            await this.connection.loadSystrayData();
+            await this._syncMachineFromJournal({ reconnect: true });
         });
         onMounted(() => {
             void this.connection.refreshAuthorization();
+            this.env.bus.addEventListener(
+                "L10N_VE_FISCAL_POS_JOURNAL_CHANGED",
+                this._onJournalChanged
+            );
+        });
+        onWillUnmount(() => {
+            this.env.bus.removeEventListener(
+                "L10N_VE_FISCAL_POS_JOURNAL_CHANGED",
+                this._onJournalChanged
+            );
         });
         useEffect(
             () => {
-                void this._syncMachineFromJournal();
+                void this._syncMachineFromJournal({ reconnect: true });
             },
             () => [
-                this.pos.selectedOrderUuid,
-                l10nVeFiscalSerialPosGetInvoiceJournal(this.pos)?.id || false,
-                l10nVeFiscalSerialPosGetFiscalMachineId(this.pos) || false,
+                this.props.fiscalMachineId || false,
+                this.props.invoiceJournalId || false,
             ]
         );
     }
 
-    async _syncMachineFromJournal() {
+    async _syncMachineFromJournal({ reconnect = false, machineId = false } = {}) {
         if (!l10nVeFiscalSerialPosIsFiscalMachine(this.pos)) {
-            return;
+            return false;
         }
-        const machineId = l10nVeFiscalSerialPosGetFiscalMachineId(this.pos);
-        if (machineId && this.connection.setPrimaryMachine) {
-            await this.connection.setPrimaryMachine(machineId);
+        if (!this.connection.state.machines?.length) {
+            await this.connection.loadSystrayData();
         }
+        const targetMachineId =
+            Number(machineId) ||
+            Number(this.props.fiscalMachineId) ||
+            Number(l10nVeFiscalSerialPosGetFiscalMachineId(this.pos)) ||
+            false;
+        if (!targetMachineId || !this.connection.setPrimaryMachine) {
+            return false;
+        }
+        const previousId = Number(this.connection.state.machine?.id || 0) || 0;
+        const ok = await this.connection.setPrimaryMachine(targetMachineId);
+        const nextId = Number(this.connection.state.machine?.id || 0) || 0;
+        if (reconnect && ok && nextId && nextId !== previousId) {
+            await this.connection.checkConnection({ requestPort: false });
+        }
+        return ok;
     }
 
     get statusLabel() {
@@ -106,21 +147,26 @@ export class PosFiscalMachineSystray extends Component {
         return new Date(this.state.lastCheckAt).toLocaleString();
     }
 
+    get invoiceJournalLabel() {
+        const journal = l10nVeFiscalSerialPosGetInvoiceJournal(this.pos);
+        return journal?.display_name || journal?.name || "";
+    }
+
     async onDropdownOpened() {
         await this.connection.loadSystrayData();
-        await this._syncMachineFromJournal();
+        await this._syncMachineFromJournal({ reconnect: true });
         if (this.state.visible && this.state.machine) {
             await this.connection.checkConnection();
         }
     }
 
     async onCheckConnection() {
-        await this._syncMachineFromJournal();
+        await this._syncMachineFromJournal({ reconnect: false });
         await this.connection.checkConnection();
     }
 
     async onConnect() {
-        await this._syncMachineFromJournal();
+        await this._syncMachineFromJournal({ reconnect: false });
         await this.connection.connect();
     }
 }
@@ -130,13 +176,33 @@ Navbar.components = {
     PosFiscalMachineSystray,
 };
 
+function _posFiscalSystrayJournal(pos) {
+    void pos.selectedOrderUuid;
+    const order = typeof pos.get_order === "function" ? pos.get_order() : null;
+    const journal = order?.invoice_journal_id || pos.config?.invoice_journal_id || false;
+    void journal?.id;
+    void journal?.l10n_ve_emission_medium;
+    void journal?.l10n_ve_fiscal_machine_id;
+    void journal?.l10n_ve_fiscal_machine_id?.id;
+    return journal;
+}
+
 patch(Navbar.prototype, {
+    get fiscalSystrayJournalId() {
+        const journal = _posFiscalSystrayJournal(this.pos);
+        return journal?.id || false;
+    },
+    get fiscalSystrayMachineId() {
+        const journal = _posFiscalSystrayJournal(this.pos);
+        const machine = journal?.l10n_ve_fiscal_machine_id;
+        if (!machine) {
+            return false;
+        }
+        return typeof machine === "object" ? machine.id : machine;
+    },
     get showFiscalMachineSystray() {
-        void this.pos.selectedOrderUuid;
-        const order = this.pos.get_order();
-        void order?.invoice_journal_id?.id;
-        void order?.invoice_journal_id?.l10n_ve_emission_medium;
-        void order?.invoice_journal_id?.l10n_ve_fiscal_machine_id;
+        void this.fiscalSystrayJournalId;
+        void this.fiscalSystrayMachineId;
         return l10nVeFiscalSerialPosIsFiscalMachine(this.pos);
     },
 });

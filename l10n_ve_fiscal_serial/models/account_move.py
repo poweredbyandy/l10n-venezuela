@@ -1,13 +1,93 @@
 import json
 import re
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools import float_is_zero
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    l10n_ve_fiscal_serial_number_placeholder = fields.Char(
+        string="Próximo serial fiscal",
+        compute="_compute_l10n_ve_fiscal_placeholders",
+    )
+    l10n_ve_fiscal_invoice_number_placeholder = fields.Char(
+        string="Próximo N° fiscal",
+        compute="_compute_l10n_ve_fiscal_placeholders",
+    )
+    l10n_ve_fiscal_report_z_placeholder = fields.Char(
+        string="Próximo reporte Z",
+        compute="_compute_l10n_ve_fiscal_placeholders",
+    )
+
+    @api.model
+    def _l10n_ve_fiscal_serial_increment_counter(self, value, min_width=8):
+        digits = re.sub(r"\D", "", str(value or ""))
+        if not digits:
+            return False
+        width = max(len(digits), min_width)
+        return str(int(digits) + 1).zfill(width)
+
+    def _l10n_ve_fiscal_serial_machine_for_placeholders(self):
+        self.ensure_one()
+        if self.country_code != "VE":
+            return self.env["l10n.ve.fiscal.machine"]
+        if self.move_type not in ("out_invoice", "out_refund"):
+            return self.env["l10n.ve.fiscal.machine"]
+        if self.l10n_ve_journal_emission_medium != "fiscal_machine":
+            return self.env["l10n.ve.fiscal.machine"]
+        if self.l10n_ve_on_behalf_of_third_party:
+            return self.env["l10n.ve.fiscal.machine"]
+        return self.journal_id.l10n_ve_fiscal_machine_id
+
+    def _l10n_ve_fiscal_serial_last_number_for_placeholders(self, machine):
+        self.ensure_one()
+        if self.move_type == "out_refund":
+            return machine.last_credit_note_number
+        if self.move_type == "out_invoice" and self.debit_origin_id:
+            return machine.last_debit_note_number
+        return machine.last_invoice_number
+
+    @api.depends(
+        "l10n_ve_serial_number",
+        "l10n_ve_invoice_number",
+        "l10n_ve_report_z",
+        "move_type",
+        "debit_origin_id",
+        "country_code",
+        "l10n_ve_journal_emission_medium",
+        "l10n_ve_on_behalf_of_third_party",
+        "journal_id.l10n_ve_fiscal_machine_id",
+        "journal_id.l10n_ve_fiscal_machine_id.registered_serial",
+        "journal_id.l10n_ve_fiscal_machine_id.last_invoice_number",
+        "journal_id.l10n_ve_fiscal_machine_id.last_credit_note_number",
+        "journal_id.l10n_ve_fiscal_machine_id.last_debit_note_number",
+        "journal_id.l10n_ve_fiscal_machine_id.daily_closure_counter",
+    )
+    def _compute_l10n_ve_fiscal_placeholders(self):
+        for move in self:
+            serial_placeholder = False
+            invoice_placeholder = False
+            report_z_placeholder = False
+            machine = move._l10n_ve_fiscal_serial_machine_for_placeholders()
+            if machine:
+                if not (move.l10n_ve_serial_number or "").strip():
+                    serial_placeholder = (machine.registered_serial or "").strip() or False
+                if not (move.l10n_ve_invoice_number or "").strip():
+                    invoice_placeholder = move._l10n_ve_fiscal_serial_increment_counter(
+                        move._l10n_ve_fiscal_serial_last_number_for_placeholders(machine),
+                        min_width=8,
+                    )
+                if not (move.l10n_ve_report_z or "").strip():
+                    report_z_placeholder = move._l10n_ve_fiscal_serial_increment_counter(
+                        machine.daily_closure_counter,
+                        min_width=4,
+                    )
+            move.l10n_ve_fiscal_serial_number_placeholder = serial_placeholder
+            move.l10n_ve_fiscal_invoice_number_placeholder = invoice_placeholder
+            move.l10n_ve_fiscal_report_z_placeholder = report_z_placeholder
 
     def _l10n_ve_fiscal_serial_reprint_document_type(self):
         self.ensure_one()

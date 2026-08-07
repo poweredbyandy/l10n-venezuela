@@ -34,17 +34,26 @@
                 <div>
                     <span class="text-muted" t-esc="l10nVeLabelFiscalInvoiceNo"/>
                     <t t-esc="' '" />
-                    <t t-esc="l10nVeDash"/>
+                    <span
+                        class="text-danger fw-semibold fst-italic"
+                        t-esc="l10nVeFiscalNextInvoiceNumberDisplay"
+                    />
                 </div>
                 <div>
                     <span class="text-muted" t-esc="l10nVeLabelFiscalSerial"/>
                     <t t-esc="' '" />
-                    <t t-esc="l10nVeDash"/>
+                    <span
+                        class="text-danger fw-semibold fst-italic"
+                        t-esc="l10nVeFiscalNextSerialDisplay"
+                    />
                 </div>
                 <div>
                     <span class="text-muted" t-esc="l10nVeLabelFiscalZ"/>
                     <t t-esc="' '" />
-                    <t t-esc="l10nVeDash"/>
+                    <span
+                        class="text-danger fw-semibold fst-italic"
+                        t-esc="l10nVeFiscalNextReportZDisplay"
+                    />
                 </div>
             </div>
             <div t-elif="l10nVeJournalEmissionMedium === 'digital'">

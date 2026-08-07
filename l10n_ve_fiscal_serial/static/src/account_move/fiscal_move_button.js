@@ -156,7 +156,7 @@ export class FiscalMoveButton extends Component {
             const payload = await this._getPayload(actionName, moveId);
             const machineConfig = payload.fiscal_machine || {};
             this._setBlockingProgress(15, "Imprimiendo...");
-            auditLogger = createFiscalSerialAuditLogger(this.orm, {
+            auditLogger = createFiscalSerialAuditLogger(this.env.services.orm, {
                 source: ACTION_AUDIT_SOURCE[actionName] || "other",
                 moveId,
                 machineId: machineConfig.machine_id || false,
@@ -223,11 +223,15 @@ export class FiscalMoveButton extends Component {
                 type: "danger",
             });
         } finally {
+            if (auditLogger) {
+                try {
+                    await auditLogger.flush();
+                } finally {
+                    auditLogger.detachDriver(driver);
+                }
+            }
             if (borrowed) {
                 await this.connection.releaseDriver({ close: false });
-            }
-            if (auditLogger) {
-                await auditLogger.flush();
             }
             this._clearBlockingProgress();
         }
