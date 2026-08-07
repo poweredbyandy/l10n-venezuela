@@ -92,6 +92,8 @@ class PosOrder(models.Model):
     @api.model
     def _load_pos_data_fields(self, config_id):
         fields_list = super()._load_pos_data_fields(config_id)
+        if not fields_list:
+            return fields_list
         for field_name in (
             "invoice_journal_id",
             "l10n_ve_pos_fiscal_invoice_number",
