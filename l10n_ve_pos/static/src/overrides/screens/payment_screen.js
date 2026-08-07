@@ -17,6 +17,9 @@ patch(PaymentScreen.prototype, {
             emission_medium: this.pos.config.l10n_ve_invoice_journal_emission_medium || "",
             journal_display_name: this.pos.config.l10n_ve_invoice_journal_display_name || "",
             next_free_control_number: this.pos.config.l10n_ve_pos_next_free_control_number || "",
+            next_fiscal_invoice_number: "",
+            next_fiscal_serial: "",
+            next_fiscal_report_z: "",
         });
         onMounted(() => this.l10nVeRefreshEmissionPreview());
     },
@@ -48,6 +51,10 @@ patch(PaymentScreen.prototype, {
         this.l10nVeEmission.emission_medium = data.emission_medium || "";
         this.l10nVeEmission.journal_display_name = data.journal_display_name || "";
         this.l10nVeEmission.next_free_control_number = data.next_free_control_number || "";
+        this.l10nVeEmission.next_fiscal_invoice_number =
+            data.next_fiscal_invoice_number || "";
+        this.l10nVeEmission.next_fiscal_serial = data.next_fiscal_serial || "";
+        this.l10nVeEmission.next_fiscal_report_z = data.next_fiscal_report_z || "";
         this.pos.config.l10n_ve_invoice_journal_emission_medium = data.emission_medium || false;
         this.pos.config.l10n_ve_invoice_journal_display_name = data.journal_display_name || false;
         this.pos.config.l10n_ve_pos_next_free_control_number =
@@ -125,6 +132,15 @@ patch(PaymentScreen.prototype, {
     },
     get l10nVeNextFreeControlNumberDisplay() {
         return this.l10nVeNextFreeControlNumber || this.l10nVeDash;
+    },
+    get l10nVeFiscalNextInvoiceNumberDisplay() {
+        return this.l10nVeEmission.next_fiscal_invoice_number || this.l10nVeDash;
+    },
+    get l10nVeFiscalNextSerialDisplay() {
+        return this.l10nVeEmission.next_fiscal_serial || this.l10nVeDash;
+    },
+    get l10nVeFiscalNextReportZDisplay() {
+        return this.l10nVeEmission.next_fiscal_report_z || this.l10nVeDash;
     },
     get l10nVeLabelAmountWithoutTaxes() {
         return _t("Amount without taxes");

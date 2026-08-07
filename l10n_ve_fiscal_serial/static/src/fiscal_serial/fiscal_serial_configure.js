@@ -58,6 +58,7 @@ export async function l10nVeFiscalSerialExecuteConfigure({
     }
 
     let borrowed = false;
+    let driver = null;
     let auditLogger;
     let blocked = false;
     const setProgress = (percent, message) => {
@@ -91,7 +92,7 @@ export async function l10nVeFiscalSerialExecuteConfigure({
                 { type: "warning" }
             );
         }
-        const driver = await connection.borrowDriver({
+        driver = await connection.borrowDriver({
             machine: config,
             requestPort: needPortPicker,
         });
@@ -127,11 +128,15 @@ export async function l10nVeFiscalSerialExecuteConfigure({
         notification.add(msg, { type: "danger" });
         return false;
     } finally {
+        if (auditLogger) {
+            try {
+                await auditLogger.flush();
+            } finally {
+                auditLogger.detachDriver(driver);
+            }
+        }
         if (borrowed) {
             await connection.releaseDriver({ close: false });
-        }
-        if (auditLogger) {
-            await auditLogger.flush();
         }
         if (blocked) {
             ui.unblock();

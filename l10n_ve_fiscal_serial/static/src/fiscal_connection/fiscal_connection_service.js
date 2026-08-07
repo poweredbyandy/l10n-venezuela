@@ -28,6 +28,7 @@ export const l10nVeFiscalConnectionService = {
             message: "",
             machine: null,
             machines: [],
+            authorizedMachines: [],
             companyName: "",
             lastCheckAt: null,
             portLabel: "",
@@ -76,6 +77,19 @@ export const l10nVeFiscalConnectionService = {
 
         const _isDriverOpen = () => !!(driver && driver.transport?.isOpen?.());
 
+        const _clearDriverAudit = () => {
+            if (!driver?.auditLogger) {
+                return;
+            }
+            const auditLogger = driver.auditLogger;
+            if (typeof auditLogger.detachDriver === "function") {
+                auditLogger.detachDriver(driver);
+            } else {
+                driver.auditLogger = null;
+                auditLogger._closed = true;
+            }
+        };
+
         const _closeDriver = async () => {
             state.portOpen = false;
             _stopHeartbeat();
@@ -83,6 +97,7 @@ export const l10nVeFiscalConnectionService = {
                 return;
             }
             const current = driver;
+            _clearDriverAudit();
             driver = null;
             try {
                 await _withTimeout(
@@ -123,11 +138,28 @@ export const l10nVeFiscalConnectionService = {
             }
         };
 
+        const _syncAuthorizedMachines = async () => {
+            if (!fiscalSerial.isSupported() || !state.machines.length) {
+                state.authorizedMachines = [];
+                return state.authorizedMachines;
+            }
+            try {
+                state.authorizedMachines =
+                    await TfhkaWebSerialTransport.getAuthorizedMachines(
+                        state.machines
+                    );
+            } catch {
+                state.authorizedMachines = [];
+            }
+            return state.authorizedMachines;
+        };
+
         const refreshAuthorization = async () => {
             const machine = _getPrimaryMachine();
-            if (!machine || !fiscalSerial.isSupported()) {
+            if (!fiscalSerial.isSupported()) {
                 state.portAuthorized = false;
-                if (machine && !fiscalSerial.isSupported()) {
+                state.authorizedMachines = [];
+                if (machine) {
                     _setStatus(
                         CONNECTION_STATUS.UNSUPPORTED,
                         "Web Serial no está disponible. Use Chrome o Edge con HTTPS."
@@ -135,11 +167,22 @@ export const l10nVeFiscalConnectionService = {
                 }
                 return state.portAuthorized;
             }
+            if (!machine) {
+                state.portAuthorized = false;
+                await _syncAuthorizedMachines();
+                return state.portAuthorized;
+            }
             try {
                 const ports = await TfhkaWebSerialTransport.getAuthorizedPorts();
+                state.authorizedMachines =
+                    TfhkaWebSerialTransport.filterAuthorizedMachines(
+                        state.machines,
+                        ports
+                    );
                 const matched = TfhkaWebSerialTransport.matchPortToMachine(
                     ports,
-                    machine
+                    machine,
+                    { strict: true }
                 );
                 state.portAuthorized = !!matched;
                 if (matched && !state.portLabel) {
@@ -151,6 +194,7 @@ export const l10nVeFiscalConnectionService = {
                 }
             } catch {
                 state.portAuthorized = false;
+                state.authorizedMachines = [];
             }
             if (!_isDriverOpen()) {
                 _applyAuthorizationStatus(machine);
@@ -162,7 +206,7 @@ export const l10nVeFiscalConnectionService = {
             if (!port || !machine) {
                 return false;
             }
-            return !!TfhkaWebSerialTransport.matchPortToMachine([port], machine);
+            return TfhkaWebSerialTransport.portMatchesMachine(port, machine);
         };
 
         const _onSerialDisconnect = (event) => {
@@ -210,6 +254,13 @@ export const l10nVeFiscalConnectionService = {
             }
         };
 
+        const _waitHeartbeatIdle = async () => {
+            const deadline = Date.now() + HEARTBEAT_TIMEOUT_MS + 1000;
+            while (heartbeatRunning && Date.now() < deadline) {
+                await new Promise((resolve) => setTimeout(resolve, 25));
+            }
+        };
+
         const _runHeartbeat = async () => {
             if (
                 heartbeatPaused ||
@@ -223,11 +274,18 @@ export const l10nVeFiscalConnectionService = {
             heartbeatRunning = true;
             state.heartbeatCount += 1;
             try {
+                if (heartbeatPaused || borrowCount > 0) {
+                    return;
+                }
+                _clearDriverAudit();
                 const statusOk = await _withTimeout(
                     driver.readFpStatus(),
                     HEARTBEAT_TIMEOUT_MS,
                     "La máquina fiscal no responde (apagada o desconectada)."
                 );
+                if (heartbeatPaused || borrowCount > 0) {
+                    return;
+                }
                 state.portOpen = true;
                 state.lastCheckAt = Date.now();
                 state.enqStatusLabel = driver.descripStatus || "";
@@ -246,6 +304,9 @@ export const l10nVeFiscalConnectionService = {
                     );
                 }
             } catch (error) {
+                if (heartbeatPaused || borrowCount > 0) {
+                    return;
+                }
                 state.portOpen = _isDriverOpen();
                 state.lastCheckAt = Date.now();
                 const message =
@@ -283,13 +344,22 @@ export const l10nVeFiscalConnectionService = {
             if (!state.visible) {
                 await _closeDriver();
                 state.machine = null;
+                state.authorizedMachines = [];
                 state.portAuthorized = false;
                 _setStatus(CONNECTION_STATUS.HIDDEN);
                 return data;
             }
-            const primaryId = data.primary_machine_id;
+            await _syncAuthorizedMachines();
+            const currentId = Number(state.machine?.id || 0) || 0;
+            const primaryId = Number(data.primary_machine_id || 0) || 0;
             state.machine =
-                state.machines.find((machine) => machine.id === primaryId) ||
+                (currentId &&
+                    state.machines.find(
+                        (machine) => Number(machine.id) === currentId
+                    )) ||
+                state.machines.find(
+                    (machine) => Number(machine.id) === primaryId
+                ) ||
                 state.machines[0] ||
                 null;
             if (!fiscalSerial.isSupported()) {
@@ -402,6 +472,8 @@ export const l10nVeFiscalConnectionService = {
                         return;
                     }
                     state.lastCheckAt = Date.now();
+                    await _syncAuthorizedMachines();
+                    state.portAuthorized = true;
                     if (result.statusOk) {
                         _setStatus(
                             CONNECTION_STATUS.CONNECTED,
@@ -501,8 +573,11 @@ export const l10nVeFiscalConnectionService = {
                 state.machine = listed || { ...target, id: targetId };
             }
             heartbeatPaused = true;
+            _stopHeartbeat();
             borrowCount += 1;
             try {
+                await _waitHeartbeatIdle();
+                _clearDriverAudit();
                 if (!_isDriverOpen()) {
                     state.busy = true;
                     _setStatus(
@@ -542,6 +617,9 @@ export const l10nVeFiscalConnectionService = {
                 borrowCount = Math.max(0, borrowCount - 1);
                 if (borrowCount === 0) {
                     heartbeatPaused = false;
+                    if (_isDriverOpen()) {
+                        _startHeartbeat();
+                    }
                 }
                 throw error;
             }
@@ -555,6 +633,7 @@ export const l10nVeFiscalConnectionService = {
                 return;
             }
             if (borrowCount === 0) {
+                _clearDriverAudit();
                 heartbeatPaused = false;
                 if (_isDriverOpen()) {
                     _startHeartbeat();
@@ -568,8 +647,11 @@ export const l10nVeFiscalConnectionService = {
 
         const setPrimaryMachine = async (machineId) => {
             const id = Number(machineId) || 0;
-            if (!id || !state.machines.length) {
+            if (!id) {
                 return false;
+            }
+            if (!state.machines.length) {
+                await loadSystrayData();
             }
             const next =
                 state.machines.find(
@@ -579,6 +661,7 @@ export const l10nVeFiscalConnectionService = {
                 return false;
             }
             if (Number(state.machine?.id) === Number(next.id)) {
+                state.machine = next;
                 return true;
             }
             if (_isDriverOpen()) {
@@ -589,6 +672,8 @@ export const l10nVeFiscalConnectionService = {
             state.portLabel = next.serial_port || "";
             state.enqStatusLabel = "";
             state.enqErrorLabel = "";
+            state.registeredSerial = next.registered_serial || "";
+            state.heartbeatCount = 0;
             if (state.visible) {
                 await refreshAuthorization();
             }
@@ -651,6 +736,7 @@ export const l10nVeFiscalConnectionService = {
             releaseDriver,
             openMachines,
             setPrimaryMachine,
+            getAuthorizedMachines: () => state.authorizedMachines,
             startAutoProbe,
             stopAutoProbe,
             bootstrap,

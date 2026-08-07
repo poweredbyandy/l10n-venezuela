@@ -261,6 +261,35 @@ class L10nVeFiscalMachine(models.Model):
             "context": {"default_machine_id": self.id},
         }
 
+    def apply_s1_counters(self, payload):
+        """Persist printer counters after a fiscal report or status refresh."""
+        self.ensure_one()
+        if not isinstance(payload, dict):
+            raise ValidationError(_("Payload de contadores fiscales inválido."))
+        vals = {}
+        for field_name in (
+            "daily_closure_counter",
+            "last_invoice_number",
+            "last_credit_note_number",
+            "last_debit_note_number",
+            "registered_serial",
+        ):
+            value = payload.get(field_name)
+            if value not in (None, False, ""):
+                vals[field_name] = str(value).strip()
+        if not vals:
+            return False
+        vals["last_connection"] = fields.Datetime.now()
+        self.write(vals)
+        return {
+            "id": self.id,
+            "daily_closure_counter": self.daily_closure_counter or "",
+            "last_invoice_number": self.last_invoice_number or "",
+            "last_credit_note_number": self.last_credit_note_number or "",
+            "last_debit_note_number": self.last_debit_note_number or "",
+            "registered_serial": self.registered_serial or "",
+        }
+
     def apply_port_update_from_detect(self, payload):
         """Update connection fields after selecting a port on another PC.
 

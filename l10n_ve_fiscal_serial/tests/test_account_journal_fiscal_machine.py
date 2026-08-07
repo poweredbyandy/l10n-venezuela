@@ -161,3 +161,65 @@ class TestAccountJournalFiscalMachine(L10nVeSeniatCommon):
         self.assertEqual(machine.last_credit_note_number, "00000002")
         self.assertEqual(machine.last_debit_note_number, "00000003")
         self.assertEqual(machine.daily_closure_counter, "0004")
+
+    def test_fiscal_placeholders_from_machine_counters(self):
+        journal = self.company_data["default_journal_sale"]
+        machine = self._create_machine()
+        machine.write(
+            {
+                "last_invoice_number": "00000010",
+                "last_credit_note_number": "00000003",
+                "daily_closure_counter": "0012",
+            }
+        )
+        self._l10n_ve_configure_journal_fiscal_machine(
+            journal,
+            l10n_ve_fiscal_machine_id=machine.id,
+            l10n_ve_invoice_section_id=False,
+            l10n_ve_credit_note_section_id=False,
+        )
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente Placeholders",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345672",
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "journal_id": journal.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Linea",
+                            "quantity": 1.0,
+                            "price_unit": 10.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        },
+                    )
+                ],
+            }
+        )
+        self.assertEqual(
+            move.l10n_ve_fiscal_serial_number_placeholder, "JOURNALTEST1"
+        )
+        self.assertEqual(
+            move.l10n_ve_fiscal_invoice_number_placeholder, "00000011"
+        )
+        self.assertEqual(move.l10n_ve_fiscal_report_z_placeholder, "0013")
+        move.write(
+            {
+                "l10n_ve_serial_number": "JOURNALTEST1",
+                "l10n_ve_invoice_number": "00000011",
+                "l10n_ve_report_z": "0013",
+            }
+        )
+        self.assertFalse(move.l10n_ve_fiscal_serial_number_placeholder)
+        self.assertFalse(move.l10n_ve_fiscal_invoice_number_placeholder)
+        self.assertFalse(move.l10n_ve_fiscal_report_z_placeholder)

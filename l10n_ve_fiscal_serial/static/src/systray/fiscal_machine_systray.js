@@ -80,10 +80,29 @@ export class FiscalMachineSystray extends Component {
         return new Date(this.state.lastCheckAt).toLocaleString();
     }
 
+    machineLabel(machine) {
+        const serial = (machine.registered_serial || "").trim();
+        if (serial && machine.name && !machine.name.includes(serial)) {
+            return `${machine.name} (${serial})`;
+        }
+        return machine.name || serial || `Máquina #${machine.id}`;
+    }
+
     async onDropdownOpened() {
         await this.connection.loadSystrayData();
         if (this.state.visible && this.state.machine) {
             await this.connection.checkConnection();
+        }
+    }
+
+    async onSelectMachine(ev) {
+        const machineId = Number(ev.target.value) || 0;
+        if (!machineId) {
+            return;
+        }
+        const changed = await this.connection.setPrimaryMachine(machineId);
+        if (changed && this.state.visible && this.state.machine) {
+            await this.connection.checkConnection({ requestPort: false });
         }
     }
 

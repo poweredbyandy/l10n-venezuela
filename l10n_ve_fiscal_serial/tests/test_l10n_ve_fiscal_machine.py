@@ -48,6 +48,25 @@ class TestL10nVeFiscalMachine(L10nVeSeniatCommon):
         machine_id_again = machine_model.create_from_detect_payload(payload)
         self.assertEqual(machine_id_again, machine.id)
 
+    def test_apply_s1_counters(self):
+        machine = self.env["l10n.ve.fiscal.machine"].create(
+            {
+                "name": "HKA counters",
+                "company_id": self.env.company.id,
+                "registered_serial": "SER1234567",
+                "daily_closure_counter": "0138",
+                "last_invoice_number": "00000010",
+            }
+        )
+        result = machine.apply_s1_counters(
+            {
+                "daily_closure_counter": "0139",
+                "last_invoice_number": "00000010",
+            }
+        )
+        self.assertEqual(machine.daily_closure_counter, "0139")
+        self.assertEqual(result["daily_closure_counter"], "0139")
+
     def test_apply_port_update_from_detect(self):
         machine = self.env["l10n.ve.fiscal.machine"].create(
             {

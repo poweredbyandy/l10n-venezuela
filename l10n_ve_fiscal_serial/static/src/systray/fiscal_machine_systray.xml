@@ -25,9 +25,35 @@
                             t-esc="statusLabel"
                         />
                     </div>
+                    <t t-if="state.authorizedMachines.length > 1">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted mb-1">
+                                Equipo autorizado en este navegador
+                                <span class="ms-1">(<t t-esc="state.authorizedMachines.length"/>)</span>
+                            </label>
+                            <select
+                                class="form-select form-select-sm"
+                                t-att-disabled="state.busy"
+                                t-on-change="onSelectMachine"
+                            >
+                                <t t-foreach="state.authorizedMachines" t-as="machine" t-key="machine.id">
+                                    <option
+                                        t-att-value="machine.id"
+                                        t-att-selected="state.machine and state.machine.id === machine.id"
+                                        t-esc="machineLabel(machine)"
+                                    />
+                                </t>
+                            </select>
+                        </div>
+                    </t>
+                    <t t-elif="!state.authorizedMachines.length and state.machines.length">
+                        <div class="small text-muted mb-2">
+                            No hay máquinas autorizadas en este navegador. Use «Conectar» para autorizar un puerto USB.
+                        </div>
+                    </t>
                     <t t-if="state.machine">
                         <div class="small mb-2">
-                            <div>
+                            <div t-if="state.authorizedMachines.length &lt;= 1">
                                 <span class="text-muted">Equipo:</span>
                                 <span class="ms-1" t-esc="state.machine.name" />
                             </div>

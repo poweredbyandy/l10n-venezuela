@@ -9,6 +9,54 @@ const REPORT_LABELS = {
     report_z: _t("Reporte Z"),
 };
 
+async function l10nVeFiscalSerialPersistReportZCounters({ env, machineId, response }) {
+    const orm = env.services.orm;
+    const connection = env.services.l10n_ve_fiscal_connection;
+    const data = response?.data || {};
+    const targetId = Number(machineId) || 0;
+    if (!orm || !targetId) {
+        return false;
+    }
+    const payload = {};
+    if (data.daily_closure_counter) {
+        payload.daily_closure_counter = String(data.daily_closure_counter);
+    }
+    if (data.last_invoice_number) {
+        payload.last_invoice_number = String(data.last_invoice_number);
+    }
+    if (data.last_credit_note_number) {
+        payload.last_credit_note_number = String(data.last_credit_note_number);
+    }
+    if (data.last_debit_note_number) {
+        payload.last_debit_note_number = String(data.last_debit_note_number);
+    }
+    if (data.serial_machine) {
+        payload.registered_serial = String(data.serial_machine);
+    }
+    if (!Object.keys(payload).length) {
+        return false;
+    }
+    const updated = await orm.call("l10n.ve.fiscal.machine", "apply_s1_counters", [
+        [targetId],
+        payload,
+    ]);
+    if (connection?.loadSystrayData) {
+        await connection.loadSystrayData();
+    }
+    const pos = env.services.pos;
+    const localMachine = pos?.models?.["l10n.ve.fiscal.machine"]?.get?.(targetId);
+    if (localMachine?.update && updated) {
+        localMachine.update({
+            daily_closure_counter: updated.daily_closure_counter || false,
+            last_invoice_number: updated.last_invoice_number || false,
+            last_credit_note_number: updated.last_credit_note_number || false,
+            last_debit_note_number: updated.last_debit_note_number || false,
+            registered_serial: updated.registered_serial || false,
+        });
+    }
+    return Boolean(updated);
+}
+
 export async function l10nVeFiscalSerialExecuteReport({
     env,
     action,
@@ -39,6 +87,7 @@ export async function l10nVeFiscalSerialExecuteReport({
     }
 
     let borrowed = false;
+    let driver = null;
     let auditLogger;
     let blocked = false;
     const setProgress = (percent, message) => {
@@ -72,7 +121,7 @@ export async function l10nVeFiscalSerialExecuteReport({
                 { type: "warning" }
             );
         }
-        const driver = await connection.borrowDriver({
+        driver = await connection.borrowDriver({
             machine: machine || undefined,
             requestPort: needPortPicker,
         });
@@ -83,6 +132,14 @@ export async function l10nVeFiscalSerialExecuteReport({
         const response = await tfhka.runAction({ action, data: {} });
         if (!response?.valid) {
             throw new Error(response?.message || _t("No se pudo imprimir el reporte fiscal."));
+        }
+        if (action === "report_z") {
+            await l10nVeFiscalSerialPersistReportZCounters({
+                env,
+                machineId:
+                    machineId || Number(connection.state.machine?.id || 0) || 0,
+                response,
+            });
         }
         setProgress(100, progressLabel);
         notification.add(response.message || `${progressLabel} ${_t("completado.")}`, {
@@ -99,11 +156,15 @@ export async function l10nVeFiscalSerialExecuteReport({
         notification.add(msg, { type: "danger" });
         return false;
     } finally {
+        if (auditLogger) {
+            try {
+                await auditLogger.flush();
+            } finally {
+                auditLogger.detachDriver(driver);
+            }
+        }
         if (borrowed) {
             await connection.releaseDriver({ close: false });
-        }
-        if (auditLogger) {
-            await auditLogger.flush();
         }
         if (blocked) {
             ui.unblock();
