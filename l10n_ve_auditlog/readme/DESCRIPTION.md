@@ -10,5 +10,6 @@ This module provides the Venezuela audit stack:
   dispatch, retentions and cancellations.
 * PDF report of fiscal document events.
 
-It is based on OCA ``auditlog`` from `server-tools` and is incompatible with
-that module (same technical models ``auditlog.*``). Do not install both.
+It is based on OCA ``auditlog`` from `server-tools` and replaces that module
+(same technical models ``auditlog.*``). Installing this module migrates and
+uninstalls ``auditlog`` automatically when present.
