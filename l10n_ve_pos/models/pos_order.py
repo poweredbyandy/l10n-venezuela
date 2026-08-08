@@ -40,6 +40,32 @@ class PosOrder(models.Model):
             vals["journal_id"] = self.invoice_journal_id.id
         return vals
 
+    def _l10n_ve_pos_linked_sale_orders(self):
+        sale_orders = self.env["sale.order"]
+        if "sale_order_origin_id" not in self.lines._fields:
+            return sale_orders
+        sale_orders |= self.lines.mapped("sale_order_origin_id")
+        if "sale_order_line_id" in self.lines._fields:
+            sale_orders |= self.lines.mapped("sale_order_line_id").order_id
+        return sale_orders.exists()
+
+    def _l10n_ve_pos_apply_invoice_journal_to_sale_orders(self):
+        for order in self:
+            journal = order.invoice_journal_id
+            if not journal or "journal_id" not in self.env["sale.order"]._fields:
+                continue
+            sale_orders = order._l10n_ve_pos_linked_sale_orders().filtered(
+                lambda sale: sale.state in ("draft", "sent")
+            )
+            sale_orders.filtered(lambda sale: sale.journal_id != journal).write(
+                {"journal_id": journal.id}
+            )
+
+    def _process_saved_order(self, draft):
+        if not draft:
+            self._l10n_ve_pos_apply_invoice_journal_to_sale_orders()
+        return super()._process_saved_order(draft)
+
     def _l10n_ve_pos_apply_fiscal_fields_to_move(self):
         for order in self:
             move = order.account_move
