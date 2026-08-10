@@ -5,7 +5,7 @@
 {
     "name": "Venezuela - Audit Log",
     "summary": "ORM and SENIAT fiscal audit log for Venezuela",
-    "version": "18.0.1.2.1",
+    "version": "18.0.1.2.2",
     "author": "ABF OSIELL, Anderson Armeya, andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "license": "AGPL-3",
