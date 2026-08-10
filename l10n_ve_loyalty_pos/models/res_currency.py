@@ -18,11 +18,20 @@ class ResCurrency(models.Model):
         )
         if not program_currency_ids:
             return domain
+        # currency_pos (and similar) may already load all active currencies.
+        if domain and domain[0][0] == "active":
+            return domain
         currency_ids = set(program_currency_ids)
+        payment_currency_ids = config.payment_method_ids.mapped("payment_currency_id").ids
+        currency_ids.update(payment_currency_ids)
+        if config.company_id.currency_id:
+            currency_ids.add(config.company_id.currency_id.id)
+        if config.currency_id:
+            currency_ids.add(config.currency_id.id)
         if domain and domain[0][0] == "id" and domain[0][1] == "=":
             currency_ids.add(domain[0][2])
         elif domain and domain[0][0] == "id" and domain[0][1] == "in":
-            currency_ids.update(domain[0][2])
+            currency_ids.update(domain[0][2] or [])
         return [("id", "in", list(currency_ids))]
 
     @api.model
