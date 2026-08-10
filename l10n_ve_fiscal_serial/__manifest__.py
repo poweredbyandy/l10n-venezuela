@@ -1,7 +1,7 @@
 {
     "name": "Venezuela Fiscal Serial (TFHKA Web Serial)",
     "summary": "Cliente Web Serial para impresoras fiscales TFHKA en el navegador",
-    "version": "18.0.1.0.57",
+    "version": "18.0.1.0.58",
     "category": "Accounting/Localizations",
     "author": "andyengit",
     "maintainer": "andyengit",

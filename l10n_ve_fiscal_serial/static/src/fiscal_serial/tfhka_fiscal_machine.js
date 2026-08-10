@@ -1083,63 +1083,59 @@ export class TfhkaFiscalMachine {
             null;
 
         if (isEmulator) {
-            if (postSequence === null) {
-                postSequence = this._nextEmulatorInvoiceSequence(preSequence);
-            } else {
-                this._nextEmulatorInvoiceSequence(postSequence);
-            }
+            postSequence = this._nextEmulatorInvoiceSequence(
+                preSequence ?? postSequence
+            );
             if (!serialMachine) {
                 serialMachine = EMULATOR_MACHINE_SERIAL;
             }
-            if (reportZ === null) {
-                const closureCounter =
-                    postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter ?? null;
-                reportZ = String(this._nextEmulatorReportZ(closureCounter)).padStart(4, "0");
-            } else {
-                this._nextEmulatorReportZ(
-                    this._toIntOrNull(postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter)
-                );
+            const closureCounter =
+                postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter ?? null;
+            reportZ = String(this._nextEmulatorReportZ(closureCounter)).padStart(4, "0");
+        } else {
+            if (
+                preSequence !== null &&
+                postSequence !== null &&
+                postSequence <= preSequence
+            ) {
+                const detailMsg = `No se imprimió el documento fiscal: correlativo factura S1 antes=${preSequence} después=${postSequence}. Revise [l10n_ve_fiscal_serial][s1] en consola (pre/post).`;
+                console.warn("[l10n_ve_fiscal_serial][s1] validación correlativo fallida", {
+                    preSequence,
+                    postSequence,
+                    preParsed: preS1,
+                    postParsed: postS1,
+                });
+                return {
+                    valid: false,
+                    message: detailMsg,
+                    data: {
+                        sequence_before: preSequence,
+                        sequence_after: postSequence,
+                        parsed_pre: preS1,
+                        parsed_post: postS1,
+                        raw_pre: preS1?.raw || null,
+                        raw_post: postS1?.raw || null,
+                    },
+                };
             }
-        }
 
-        if (preSequence !== null && postSequence !== null && postSequence <= preSequence) {
-            const detailMsg = `No se imprimió el documento fiscal: correlativo factura S1 antes=${preSequence} después=${postSequence}. Revise [l10n_ve_fiscal_serial][s1] en consola (pre/post).`;
-            console.warn("[l10n_ve_fiscal_serial][s1] validación correlativo fallida", {
-                preSequence,
-                postSequence,
-                preParsed: preS1,
-                postParsed: postS1,
-            });
-            return {
-                valid: false,
-                message: detailMsg,
-                data: {
-                    sequence_before: preSequence,
-                    sequence_after: postSequence,
-                    parsed_pre: preS1,
-                    parsed_post: postS1,
-                    raw_pre: preS1?.raw || null,
-                    raw_post: postS1?.raw || null,
-                },
-            };
-        }
-
-        if (!isEmulator && preSequence === null && postSequence === null) {
-            console.warn("[l10n_ve_fiscal_serial][s1] sin correlativo parseado", {
-                preParsed: preS1,
-                postParsed: postS1,
-            });
-            return {
-                valid: false,
-                message:
-                    "No se pudo validar la impresión fiscal: S1 no devolvió correlativo de factura antes ni después. Revise consola [s1] y el preview del comando S1.",
-                data: {
-                    parsed_pre: preS1,
-                    parsed_post: postS1,
-                    raw_pre: preS1?.raw || null,
-                    raw_post: postS1?.raw || null,
-                },
-            };
+            if (preSequence === null && postSequence === null) {
+                console.warn("[l10n_ve_fiscal_serial][s1] sin correlativo parseado", {
+                    preParsed: preS1,
+                    postParsed: postS1,
+                });
+                return {
+                    valid: false,
+                    message:
+                        "No se pudo validar la impresión fiscal: S1 no devolvió correlativo de factura antes ni después. Revise consola [s1] y el preview del comando S1.",
+                    data: {
+                        parsed_pre: preS1,
+                        parsed_post: postS1,
+                        raw_pre: preS1?.raw || null,
+                        raw_post: postS1?.raw || null,
+                    },
+                };
+            }
         }
 
         this._notifyProgress(options, 100, "Imprimiendo... 100%");
@@ -1149,16 +1145,20 @@ export class TfhkaFiscalMachine {
             postSequence,
             serialMachine,
             reportZ,
+            emulator: isEmulator,
         });
+
+        const sequenceDisplay = isEmulator
+            ? String(postSequence).padStart(8, "0")
+            : postS1?.LastInvoiceNumber ||
+              (postSequence != null ? String(postSequence).padStart(8, "0") : null) ||
+              preS1?.LastInvoiceNumber ||
+              null;
 
         return {
             valid: true,
             data: {
-                sequence:
-                    postS1?.LastInvoiceNumber ||
-                    (postSequence != null ? String(postSequence).padStart(8, "0") : null) ||
-                    preS1?.LastInvoiceNumber ||
-                    null,
+                sequence: sequenceDisplay,
                 serial_machine: serialMachine,
                 mf_reportz: reportZ,
                 parsed_pre: preS1,
@@ -1208,71 +1208,62 @@ export class TfhkaFiscalMachine {
             null;
 
         if (isEmulator) {
-            if (postNc === null) {
-                postNc = this._nextEmulatorCreditNoteSequence(preNc);
-            } else {
-                this._nextEmulatorCreditNoteSequence(postNc);
-            }
+            postNc = this._nextEmulatorCreditNoteSequence(preNc ?? postNc);
             if (!serialMachine) {
                 serialMachine = EMULATOR_MACHINE_SERIAL;
             }
-            if (reportZ === null) {
-                const closureCounter =
-                    postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter ?? null;
-                reportZ = String(this._nextEmulatorReportZ(closureCounter)).padStart(4, "0");
-            } else {
-                this._nextEmulatorReportZ(
-                    this._toIntOrNull(postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter)
-                );
+            const closureCounter =
+                postS1?.DailyClosureCounter ?? preS1?.DailyClosureCounter ?? null;
+            reportZ = String(this._nextEmulatorReportZ(closureCounter)).padStart(4, "0");
+        } else {
+            if (preNc !== null && postNc !== null && postNc <= preNc) {
+                const detailMsg = `No se imprimió la nota de crédito fiscal: correlativo NC en S1 antes=${preNc} después=${postNc}. Revise [l10n_ve_fiscal_serial][s1] en consola (pre/post).`;
+                console.warn("[l10n_ve_fiscal_serial][s1] validación correlativo NC fallida", {
+                    preNc,
+                    postNc,
+                    preParsed: preS1,
+                    postParsed: postS1,
+                });
+                return {
+                    valid: false,
+                    message: detailMsg,
+                    data: {
+                        sequence_before: preNc,
+                        sequence_after: postNc,
+                        parsed_pre: preS1,
+                        parsed_post: postS1,
+                        raw_pre: preS1?.raw || null,
+                        raw_post: postS1?.raw || null,
+                    },
+                };
             }
-        }
 
-        if (preNc !== null && postNc !== null && postNc <= preNc) {
-            const detailMsg = `No se imprimió la nota de crédito fiscal: correlativo NC en S1 antes=${preNc} después=${postNc}. Revise [l10n_ve_fiscal_serial][s1] en consola (pre/post).`;
-            console.warn("[l10n_ve_fiscal_serial][s1] validación correlativo NC fallida", {
-                preNc,
-                postNc,
-                preParsed: preS1,
-                postParsed: postS1,
-            });
-            return {
-                valid: false,
-                message: detailMsg,
-                data: {
-                    sequence_before: preNc,
-                    sequence_after: postNc,
-                    parsed_pre: preS1,
-                    parsed_post: postS1,
-                    raw_pre: preS1?.raw || null,
-                    raw_post: postS1?.raw || null,
-                },
-            };
-        }
-
-        if (!isEmulator && preNc === null && postNc === null) {
-            console.warn("[l10n_ve_fiscal_serial][s1] sin correlativo NC parseado", {
-                preParsed: preS1,
-                postParsed: postS1,
-            });
-            return {
-                valid: false,
-                message:
-                    "No se pudo validar la impresión fiscal: S1 no devolvió correlativo de nota de crédito antes ni después.",
-                data: {
-                    parsed_pre: preS1,
-                    parsed_post: postS1,
-                    raw_pre: preS1?.raw || null,
-                    raw_post: postS1?.raw || null,
-                },
-            };
+            if (preNc === null && postNc === null) {
+                console.warn("[l10n_ve_fiscal_serial][s1] sin correlativo NC parseado", {
+                    preParsed: preS1,
+                    postParsed: postS1,
+                });
+                return {
+                    valid: false,
+                    message:
+                        "No se pudo validar la impresión fiscal: S1 no devolvió correlativo de nota de crédito antes ni después.",
+                    data: {
+                        parsed_pre: preS1,
+                        parsed_post: postS1,
+                        raw_pre: preS1?.raw || null,
+                        raw_post: postS1?.raw || null,
+                    },
+                };
+            }
         }
 
         this._notifyProgress(options, 100, "Imprimiendo... 100%");
 
-        const ncDisplay =
-            postS1?.LastCreditNoteNumber ||
-            (postNc != null ? String(postNc).padStart(8, "0") : null) ||
-            preS1?.LastCreditNoteNumber;
+        const ncDisplay = isEmulator
+            ? String(postNc).padStart(8, "0")
+            : postS1?.LastCreditNoteNumber ||
+              (postNc != null ? String(postNc).padStart(8, "0") : null) ||
+              preS1?.LastCreditNoteNumber;
 
         this._s1Trace("print_out_refund_ok", postS1, {
             preNc,
