@@ -34,11 +34,27 @@ class PosOrder(models.Model):
         copy=False,
     )
 
+    def _l10n_ve_pos_refund_origin_journal(self):
+        self.ensure_one()
+        origin = self.refunded_order_id
+        if not origin:
+            return self.env["account.journal"]
+        return origin.invoice_journal_id or origin.account_move.journal_id
+
     def _prepare_invoice_vals(self):
         vals = super()._prepare_invoice_vals()
-        if self.invoice_journal_id:
+        refund_journal = self._l10n_ve_pos_refund_origin_journal()
+        if refund_journal:
+            vals["journal_id"] = refund_journal.id
+        elif self.invoice_journal_id:
             vals["journal_id"] = self.invoice_journal_id.id
         return vals
+
+    def _l10n_ve_pos_lock_refund_invoice_journal(self):
+        for order in self:
+            refund_journal = order._l10n_ve_pos_refund_origin_journal()
+            if refund_journal and order.invoice_journal_id != refund_journal:
+                order.invoice_journal_id = refund_journal
 
     def _l10n_ve_pos_linked_sale_orders(self):
         sale_orders = self.env["sale.order"]
@@ -63,6 +79,7 @@ class PosOrder(models.Model):
 
     def _process_saved_order(self, draft):
         if not draft:
+            self._l10n_ve_pos_lock_refund_invoice_journal()
             self._l10n_ve_pos_apply_invoice_journal_to_sale_orders()
         return super()._process_saved_order(draft)
 

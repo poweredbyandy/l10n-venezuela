@@ -157,7 +157,24 @@ export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
     const partner = order?.get_partner?.() || order?.partner_id || {};
     const isRefund =
         order && typeof order._isRefundOrder === "function" && order._isRefundOrder();
-    const invoiceLines = (order?.lines || []).map((line) => {
+    let globalDiscountAmount = 0;
+    const invoiceLines = [];
+    for (const line of order?.lines || []) {
+        const isEwallet =
+            typeof order?._l10nVeIsEwalletRewardLine === "function" &&
+            order._l10nVeIsEwalletRewardLine(line);
+        if (isEwallet) {
+            continue;
+        }
+        const isGlobalDiscount =
+            Boolean(line?.l10n_ve_global_discount) ||
+            Boolean(line?.is_reward_line && line.reward_id?.reward_type === "discount");
+        if (isGlobalDiscount) {
+            globalDiscountAmount += Math.abs(
+                Number(line.get_price_without_tax?.() ?? line.price_subtotal ?? 0)
+            );
+            continue;
+        }
         const product = line.product_id || {};
         const tax = line.tax_ids?.[0] || line.get_taxes?.()?.[0];
         const taxAmount = tax?.amount ?? 0;
@@ -167,7 +184,7 @@ export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
             name = `[${defaultCode}] ${name}`.trim();
             defaultCode = "";
         }
-        return {
+        invoiceLines.push({
             tax: l10nVeFiscalSerialPosMapTaxCode(taxAmount),
             tax_percent: taxAmount,
             price_unit: Math.abs(Number(line.get_unit_price?.() ?? line.price_unit) || 0),
@@ -176,8 +193,8 @@ export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
             name,
             discount: Number(line.get_discount?.() ?? line.discount) || 0,
             discount_amount: 0,
-        };
-    });
+        });
+    }
     const paymentLines = (order?.payment_ids || [])
         .filter((payment) => !payment.is_change && payment.payment_method_id?.type !== "pay_later")
         .map((payment) => ({
@@ -185,6 +202,24 @@ export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
             payment_method: l10nVeFiscalSerialPosPaymentCode(payment.payment_method_id),
         }))
         .filter((line) => line.amount > 0);
+    const ewalletPayments =
+        typeof order?._l10nVeGetEwalletPaymentLines === "function"
+            ? order._l10nVeGetEwalletPaymentLines() || []
+            : [];
+    for (const walletPayment of ewalletPayments) {
+        const amount = Math.abs(Number(walletPayment.amount || 0));
+        if (!amount) {
+            continue;
+        }
+        paymentLines.push({
+            amount,
+            payment_method: String(
+                walletPayment.payment_method ||
+                    order._l10nVeEwalletFiscalPaymentCode?.() ||
+                    "24"
+            ).padStart(2, "0"),
+        });
+    }
     if (!paymentLines.length) {
         paymentLines.push({ amount: 0, payment_method: "01" });
     }
@@ -199,7 +234,7 @@ export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
         },
         invoice_lines: invoiceLines,
         payment_lines: paymentLines,
-        global_discount_amount: 0,
+        global_discount_amount: globalDiscountAmount,
         flag_21: machineConfig.flag_21,
         flag_50: machineConfig.flag_50,
         use_barcode: machineConfig.use_barcode,

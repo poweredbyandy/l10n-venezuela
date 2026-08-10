@@ -177,11 +177,9 @@ class AccountMove(models.Model):
         "country_code",
         "amount_untaxed",
         "currency_id",
-        "l10n_ve_show_credit_note_action",
         "reversal_move_ids.state",
         "reversal_move_ids.move_type",
         "reversal_move_ids.amount_untaxed",
-        "reversal_move_ids.l10n_ve_debit_note_reversed_ids",
     )
     def _compute_l10n_ve_show_post_discount_action(self):
         for move in self:
@@ -352,8 +350,9 @@ class AccountMove(models.Model):
             return False
         if self.state != "posted":
             return False
-        if not self.l10n_ve_show_credit_note_action:
-            return False
+        if "l10n_ve_show_credit_note_action" in self._fields:
+            if not self.l10n_ve_show_credit_note_action:
+                return False
         available = self._l10n_ve_post_discount_available_untaxed()
         return float_compare(
             available, 0.0, precision_digits=self.currency_id.decimal_places
@@ -382,13 +381,15 @@ class AccountMove(models.Model):
 
     def _l10n_ve_post_discount_credit_notes(self):
         self.ensure_one()
-        return self.reversal_move_ids.filtered(
-            lambda move: (
-                move.move_type == "out_refund"
-                and move.state != "cancel"
-                and not move.l10n_ve_debit_note_reversed_ids
-            )
-        )
+
+        def _is_post_discount_refund(move):
+            if move.move_type != "out_refund" or move.state == "cancel":
+                return False
+            if "l10n_ve_debit_note_reversed_ids" in move._fields:
+                return not move.l10n_ve_debit_note_reversed_ids
+            return True
+
+        return self.reversal_move_ids.filtered(_is_post_discount_refund)
 
     def _l10n_ve_post_discount_used_untaxed(self):
         self.ensure_one()

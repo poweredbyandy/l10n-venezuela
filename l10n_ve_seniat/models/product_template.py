@@ -261,21 +261,6 @@ class ProductTemplate(models.Model):
             if purchase_tax:
                 vals["supplier_taxes_id"] = [(6, 0, [purchase_tax.id])]
 
-    def _l10n_ve_is_sale_discount_template(self):
-        self.ensure_one()
-        Company = self.env["res.company"]
-        if "sale_discount_product_id" not in Company._fields:
-            return False
-        ve = self.env.ref("base.ve", raise_if_not_found=False)
-        if not ve:
-            return False
-        discount_products = Company.search(
-            [("account_fiscal_country_id", "=", ve.id)]
-        ).mapped("sale_discount_product_id")
-        if not discount_products:
-            return False
-        return bool(self.product_variant_ids & discount_products)
-
     def _l10n_ve_check_sale_price_vs_cost(self):
         ve_country = self.env.ref("base.ve", raise_if_not_found=False)
         if not ve_country:
@@ -395,6 +380,11 @@ class ProductTemplate(models.Model):
             return
         for tmpl in self:
             if tmpl._l10n_ve_is_sale_discount_template():
+                continue
+            if (
+                hasattr(tmpl, "_l10n_ve_is_loyalty_reward_discount_template")
+                and tmpl._l10n_ve_is_loyalty_reward_discount_template()
+            ):
                 continue
             for company in tmpl._l10n_ve_companies_for_tax_count():
                 n_sale = len(tmpl._l10n_ve_taxes_for_company(tmpl.taxes_id, company))
