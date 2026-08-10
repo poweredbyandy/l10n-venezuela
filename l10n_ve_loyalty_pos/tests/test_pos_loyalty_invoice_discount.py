@@ -329,3 +329,261 @@ class TestPosLoyaltyInvoiceGlobalDiscount(L10nVeSeniatCommon):
         self.assertAlmostEqual(card.points, expected_points, places=2)
         self.assertTrue(order.l10n_ve_ewallet_credit_done)
 
+    def test_ewallet_refund_skips_credit_when_original_paid_on_credit(self):
+        if "pos.order" not in self.env:
+            self.skipTest("point_of_sale not installed")
+        PosConfig = self.env["pos.config"]
+        config = PosConfig.search([], limit=1)
+        if not config:
+            self.skipTest("No POS config available")
+        if not config.current_session_id:
+            config.open_ui()
+        session = config.current_session_id
+        ewallet_program = self.env["loyalty.program"].create(
+            {
+                "name": "VE Ewallet Credit Skip",
+                "program_type": "ewallet",
+                "trigger": "auto",
+                "applies_on": "future",
+                "pos_ok": True,
+                "reward_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "reward_type": "discount",
+                            "discount_mode": "per_point",
+                            "discount": 1,
+                            "discount_applicability": "order",
+                            "required_points": 1,
+                            "description": "Monedero",
+                        },
+                    )
+                ],
+            }
+        )
+        card = self.env["loyalty.card"].create(
+            {
+                "program_id": ewallet_program.id,
+                "partner_id": self.partner_ve.id,
+                "points": 0,
+            }
+        )
+        pay_later = self.env["pos.payment.method"].search(
+            [("journal_id", "=", False)], limit=1
+        )
+        if not pay_later:
+            pay_later = self.env["pos.payment.method"].create(
+                {
+                    "name": "VE Credit",
+                    "split_transactions": True,
+                }
+            )
+        sale_amount = 1000.0
+        original = self.env["pos.order"].create(
+            {
+                "company_id": self.env.company.id,
+                "session_id": session.id,
+                "partner_id": self.partner_ve.id,
+                "amount_tax": 0.0,
+                "amount_total": sale_amount,
+                "amount_paid": sale_amount,
+                "amount_return": 0.0,
+                "lines": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": self.product.id,
+                            "qty": 1,
+                            "price_unit": sale_amount,
+                            "price_subtotal": sale_amount,
+                            "price_subtotal_incl": sale_amount,
+                        },
+                    )
+                ],
+            }
+        )
+        self.env["pos.payment"].create(
+            {
+                "pos_order_id": original.id,
+                "payment_method_id": pay_later.id,
+                "amount": sale_amount,
+            }
+        )
+        refund = self.env["pos.order"].create(
+            {
+                "company_id": self.env.company.id,
+                "session_id": session.id,
+                "partner_id": self.partner_ve.id,
+                "amount_tax": 0.0,
+                "amount_total": -sale_amount,
+                "amount_paid": -sale_amount,
+                "amount_return": 0.0,
+                "lines": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": self.product.id,
+                            "qty": -1,
+                            "price_unit": sale_amount,
+                            "price_subtotal": -sale_amount,
+                            "price_subtotal_incl": -sale_amount,
+                            "refunded_orderline_id": original.lines[0].id,
+                        },
+                    )
+                ],
+            }
+        )
+        self.env["pos.payment"].create(
+            {
+                "pos_order_id": refund.id,
+                "payment_method_id": pay_later.id,
+                "amount": -sale_amount,
+            }
+        )
+        self.assertTrue(refund._l10n_ve_refunded_order_paid_on_credit())
+        refund._l10n_ve_credit_ewallet_from_pay_later_refund()
+        self.assertAlmostEqual(card.points, 0.0, places=2)
+        self.assertFalse(refund.l10n_ve_ewallet_credit_done)
+
+    def test_ewallet_refund_credits_only_non_credit_portion(self):
+        if "pos.order" not in self.env:
+            self.skipTest("point_of_sale not installed")
+        PosConfig = self.env["pos.config"]
+        config = PosConfig.search([], limit=1)
+        if not config:
+            self.skipTest("No POS config available")
+        if not config.current_session_id:
+            config.open_ui()
+        session = config.current_session_id
+        ewallet_program = self.env["loyalty.program"].create(
+            {
+                "name": "VE Ewallet Mixed",
+                "program_type": "ewallet",
+                "trigger": "auto",
+                "applies_on": "future",
+                "pos_ok": True,
+                "reward_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "reward_type": "discount",
+                            "discount_mode": "per_point",
+                            "discount": 1,
+                            "discount_applicability": "order",
+                            "required_points": 1,
+                            "description": "Monedero",
+                        },
+                    )
+                ],
+            }
+        )
+        card = self.env["loyalty.card"].create(
+            {
+                "program_id": ewallet_program.id,
+                "partner_id": self.partner_ve.id,
+                "points": 0,
+            }
+        )
+        pay_later = self.env["pos.payment.method"].search(
+            [("journal_id", "=", False)], limit=1
+        )
+        if not pay_later:
+            pay_later = self.env["pos.payment.method"].create(
+                {
+                    "name": "VE Credit",
+                    "split_transactions": True,
+                }
+            )
+        cash_method = self.env["pos.payment.method"].search(
+            [("journal_id", "!=", False)], limit=1
+        )
+        if not cash_method:
+            self.skipTest("No cash/bank POS payment method available")
+        sale_amount = 1000.0
+        cash_amount = 400.0
+        credit_amount = 600.0
+        original = self.env["pos.order"].create(
+            {
+                "company_id": self.env.company.id,
+                "session_id": session.id,
+                "partner_id": self.partner_ve.id,
+                "amount_tax": 0.0,
+                "amount_total": sale_amount,
+                "amount_paid": sale_amount,
+                "amount_return": 0.0,
+                "lines": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": self.product.id,
+                            "qty": 1,
+                            "price_unit": sale_amount,
+                            "price_subtotal": sale_amount,
+                            "price_subtotal_incl": sale_amount,
+                        },
+                    )
+                ],
+            }
+        )
+        self.env["pos.payment"].create(
+            {
+                "pos_order_id": original.id,
+                "payment_method_id": cash_method.id,
+                "amount": cash_amount,
+            }
+        )
+        self.env["pos.payment"].create(
+            {
+                "pos_order_id": original.id,
+                "payment_method_id": pay_later.id,
+                "amount": credit_amount,
+            }
+        )
+        refund = self.env["pos.order"].create(
+            {
+                "company_id": self.env.company.id,
+                "session_id": session.id,
+                "partner_id": self.partner_ve.id,
+                "amount_tax": 0.0,
+                "amount_total": -sale_amount,
+                "amount_paid": -sale_amount,
+                "amount_return": 0.0,
+                "lines": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": self.product.id,
+                            "qty": -1,
+                            "price_unit": sale_amount,
+                            "price_subtotal": -sale_amount,
+                            "price_subtotal_incl": -sale_amount,
+                            "refunded_orderline_id": original.lines[0].id,
+                        },
+                    )
+                ],
+            }
+        )
+        self.env["pos.payment"].create(
+            {
+                "pos_order_id": refund.id,
+                "payment_method_id": pay_later.id,
+                "amount": -sale_amount,
+            }
+        )
+        self.assertFalse(refund._l10n_ve_refunded_order_paid_on_credit())
+        self.assertAlmostEqual(
+            refund._l10n_ve_get_pay_later_refund_credit_amount(),
+            cash_amount,
+            places=2,
+        )
+        refund._l10n_ve_credit_ewallet_from_pay_later_refund()
+        self.assertAlmostEqual(card.points, cash_amount, places=2)
+        self.assertTrue(refund.l10n_ve_ewallet_credit_done)
+        self.assertAlmostEqual(refund.l10n_ve_ewallet_credited_amount, cash_amount, places=2)
+

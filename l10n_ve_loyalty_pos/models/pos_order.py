@@ -18,6 +18,11 @@ class PosOrder(models.Model):
         copy=False,
         help="Technical flag: pay-later refund amount was already credited to eWallet.",
     )
+    l10n_ve_ewallet_credited_amount = fields.Float(
+        string="VE eWallet credited amount",
+        copy=False,
+        help="Amount in order currency already credited to eWallet from this refund.",
+    )
 
     def _l10n_ve_ewallet_payment_label(self):
         return _("Monedero D")
@@ -261,19 +266,82 @@ class PosOrder(models.Model):
         )
         return foreign_programs[:1] or programs[:1]
 
+    def _l10n_ve_is_pay_later_payment_method(self, method):
+        return bool(method) and not method.journal_id
+
+    def _l10n_ve_refunded_order_paid_on_credit(self):
+        """True when the original POS order was fully settled with pay-later/credit."""
+        self.ensure_one()
+        max_ewallet = self._l10n_ve_get_original_non_credit_paid_amount()
+        if max_ewallet is None:
+            return False
+        return float_is_zero(max_ewallet, precision_rounding=self.currency_id.rounding)
+
+    def _l10n_ve_get_original_non_credit_paid_amount(self):
+        """Cash/bank paid on the original order, in this refund's currency.
+
+        Returns None when there is no linked original order (no cap).
+        """
+        self.ensure_one()
+        original = self.refunded_order_id
+        if not original:
+            return None
+        rounding = original.currency_id.rounding
+        amount = 0.0
+        for payment in original.payment_ids:
+            if float_compare(payment.amount, 0.0, precision_rounding=rounding) <= 0:
+                continue
+            if self._l10n_ve_is_pay_later_payment_method(payment.payment_method_id):
+                continue
+            amount += payment.amount
+        if original.currency_id != self.currency_id:
+            amount = self._l10n_ve_convert_amount(
+                amount, original.currency_id, self.currency_id
+            )
+        return self.currency_id.round(amount)
+
+    def _l10n_ve_get_already_ewallet_credited_for_original(self):
+        """eWallet amount already credited by sibling refunds of the same original."""
+        self.ensure_one()
+        original = self.refunded_order_id
+        if not original:
+            return 0.0
+        sibling_refunds = (
+            original.lines.mapped("refund_orderline_ids.order_id") - self
+        ).filtered("l10n_ve_ewallet_credit_done")
+        total = 0.0
+        for refund in sibling_refunds:
+            amount = refund.l10n_ve_ewallet_credited_amount
+            if refund.currency_id != self.currency_id:
+                amount = self._l10n_ve_convert_amount(
+                    amount, refund.currency_id, self.currency_id
+                )
+            total += amount
+        return self.currency_id.round(total)
+
     def _l10n_ve_get_pay_later_refund_credit_amount(self):
-        """Amount to credit to eWallet from pay-later (no journal) refund payments."""
+        """Amount to credit to eWallet from pay-later (no journal) refund payments.
+
+        Only the non-credit portion of the original payment can become eWallet.
+        Credit/pay-later on the original only cancels the receivable.
+        """
         self.ensure_one()
         if float_compare(self.amount_total, 0.0, precision_rounding=self.currency_id.rounding) >= 0:
             return 0.0
         credit = 0.0
         for payment in self.payment_ids:
             method = payment.payment_method_id
-            if method.journal_id:
+            if not self._l10n_ve_is_pay_later_payment_method(method):
                 continue
             if float_compare(payment.amount, 0.0, precision_rounding=self.currency_id.rounding) < 0:
                 credit += abs(payment.amount)
-        return self.currency_id.round(credit)
+        credit = self.currency_id.round(credit)
+        max_from_original = self._l10n_ve_get_original_non_credit_paid_amount()
+        if max_from_original is None:
+            return credit
+        already = self._l10n_ve_get_already_ewallet_credited_for_original()
+        remaining = max(max_from_original - already, 0.0)
+        return self.currency_id.round(min(credit, remaining))
 
     def _l10n_ve_credit_ewallet_from_pay_later_refund(self):
         """Credit customer eWallet when a refund is settled with a no-journal method."""
@@ -327,6 +395,7 @@ class PosOrder(models.Model):
                     "order_id": order.id,
                 }
             )
+            order.l10n_ve_ewallet_credited_amount = amount
             order.l10n_ve_ewallet_credit_done = True
 
     def action_pos_order_paid(self):

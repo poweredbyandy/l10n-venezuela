@@ -178,8 +178,9 @@ patch(PosOrder.prototype, {
         let discountable = 0;
         const discountablePerTax = {};
         for (const line of this._l10nVeGetProductLinesForDiscount()) {
-            const taxKey = line.tax_ids
-                .filter((tax) => tax.amount_type !== "fixed")
+            const taxes = Array.isArray(line.tax_ids) ? line.tax_ids : [];
+            const taxKey = taxes
+                .filter((tax) => tax && tax.amount_type !== "fixed")
                 .map((tax) => tax.id)
                 .join(",");
             discountable += line.get_price_with_tax();
