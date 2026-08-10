@@ -16,8 +16,48 @@ function isPayLaterNoJournal(paymentMethod) {
 }
 
 patch(PaymentScreen.prototype, {
+    _l10nVeGetRefundedOriginalOrders(order) {
+        const refundedLines = (order?.lines || []).filter(
+            (line) => line.refunded_orderline_id
+        );
+        return [
+            ...new Set(
+                refundedLines
+                    .map((line) => line.refunded_orderline_id.order_id)
+                    .filter(Boolean)
+            ),
+        ];
+    },
+
+    _l10nVeGetOriginalNonCreditPaidAmount(order) {
+        const originalOrders = this._l10nVeGetRefundedOriginalOrders(order);
+        if (!originalOrders.length) {
+            return null;
+        }
+        return originalOrders.reduce((total, original) => {
+            const payments = (original.payment_ids || []).filter(
+                (payment) => Number(payment.amount || 0) > 0
+            );
+            const nonCredit = payments.reduce((sum, payment) => {
+                if (isPayLaterNoJournal(payment.payment_method_id)) {
+                    return sum;
+                }
+                return sum + Number(payment.amount || 0);
+            }, 0);
+            return total + nonCredit;
+        }, 0);
+    },
+
+    _l10nVeRefundedOrderPaidOnCredit(order) {
+        const maxNonCredit = this._l10nVeGetOriginalNonCreditPaidAmount(order);
+        return maxNonCredit !== null && maxNonCredit <= 0;
+    },
+
     _l10nVeOrderHasPayLaterRefundCredit(order) {
         if (!order || order.get_total_with_tax() >= 0) {
+            return false;
+        }
+        if (this._l10nVeRefundedOrderPaidOnCredit(order)) {
             return false;
         }
         return (order.payment_ids || []).some((payment) =>
@@ -31,7 +71,8 @@ patch(PaymentScreen.prototype, {
             isVenezuelaCompany(this.pos) &&
             order &&
             isPayLaterNoJournal(paymentMethod) &&
-            order.get_total_with_tax() < 0
+            order.get_total_with_tax() < 0 &&
+            !this._l10nVeRefundedOrderPaidOnCredit(order)
         ) {
             if (!order.get_partner()) {
                 this.notification.add(

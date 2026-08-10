@@ -107,6 +107,12 @@ patch(PosStore.prototype, {
             return;
         }
         order.setInvoiceJournal(selectedJournal);
+        if (typeof this.syncAllOrders === "function" && order) {
+            this.addPendingOrder?.([order.id]);
+            try {
+                await this.syncAllOrders({ orders: [order] });
+            } catch (_error) {}
+        }
         return selectedJournal;
     },
     async allowProductCreation() {

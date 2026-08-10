@@ -74,6 +74,54 @@ patch(ControlButtons.prototype, {
             });
     },
 
+    _l10nVeGetFixedDiscountCurrencies(order) {
+        const resolve = (currency) => order._l10nVeResolveCurrency(currency);
+        const currencies = [];
+        const seen = new Set();
+        const pushCurrency = (currency) => {
+            const resolved = resolve(currency);
+            if (!resolved || seen.has(resolved.id)) {
+                return;
+            }
+            seen.add(resolved.id);
+            currencies.push(resolved);
+        };
+
+        pushCurrency(order._l10nVeGetOrderCurrency());
+        pushCurrency(this.pos.company?.currency_id);
+        pushCurrency(this.pos.config?.currency_id);
+
+        const currencyModel = this.pos.models["res.currency"];
+        const allCurrencies = currencyModel?.getAll ? currencyModel.getAll() : [];
+        for (const currency of allCurrencies) {
+            if (currency.name === "USD" || currency.symbol === "$") {
+                pushCurrency(currency);
+            }
+        }
+        for (const method of this.pos.config?.payment_method_ids || []) {
+            pushCurrency(method.payment_currency_id);
+        }
+        return currencies;
+    },
+
+    async _l10nVeSelectFixedDiscountCurrency(order) {
+        const currencies = this._l10nVeGetFixedDiscountCurrencies(order);
+        if (!currencies.length) {
+            return order._l10nVeGetOrderCurrency();
+        }
+        if (currencies.length === 1) {
+            return currencies[0];
+        }
+        return await makeAwaitable(this.dialog, SelectionPopup, {
+            title: _t("Discount currency"),
+            list: currencies.map((currency) => ({
+                id: currency.id,
+                item: currency,
+                label: `${currency.name} (${currency.symbol})`,
+            })),
+        });
+    },
+
     async _l10nVeAddGlobalDiscount(order, discountType) {
         const reasons = this._l10nVeGetDiscountReasons();
         let reasonName = _t("Global discount");
@@ -95,8 +143,19 @@ patch(ControlButtons.prototype, {
         }
 
         const isPercentage = discountType === "percentage";
+        let amountCurrency = order._l10nVeGetOrderCurrency();
+        if (!isPercentage) {
+            amountCurrency = await this._l10nVeSelectFixedDiscountCurrency(order);
+            if (!amountCurrency) {
+                return;
+            }
+        }
+
+        const amountTitle = amountCurrency?.symbol
+            ? _t("Discount amount (%s)", amountCurrency.symbol)
+            : _t("Discount amount");
         const input = await makeAwaitable(this.dialog, NumberPopup, {
-            title: isPercentage ? _t("Discount percentage") : _t("Discount amount"),
+            title: isPercentage ? _t("Discount percentage") : amountTitle,
             startingValue: isPercentage ? 10 : 0,
         });
         if (input === undefined || input === null || input === "") {
@@ -111,8 +170,17 @@ patch(ControlButtons.prototype, {
             return;
         }
 
+        let amountInOrderCurrency = value;
+        if (!isPercentage) {
+            const orderCurrency = order._l10nVeGetOrderCurrency();
+            amountInOrderCurrency = order._l10nVeRoundInCurrency(
+                order._l10nVeConvertAmount(value, amountCurrency, orderCurrency),
+                orderCurrency
+            );
+        }
+
         const result = order._l10nVeApplyManualGlobalDiscount({
-            amount: isPercentage ? 0 : value,
+            amount: isPercentage ? 0 : amountInOrderCurrency,
             discountType: isPercentage ? "percentage" : "fixed",
             percentage: isPercentage ? value / 100 : 0,
             name: reasonName,
