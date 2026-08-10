@@ -17,16 +17,21 @@ class PosOrder(models.Model):
         if move.l10n_ve_journal_emission_medium != "fiscal_machine":
             raise UserError(_("El diario del documento no está configurado como máquina fiscal."))
 
-        if move.l10n_ve_invoice_number or self.l10n_ve_pos_fiscal_invoice_number:
+        fiscal_number = move.l10n_ve_invoice_number or self.l10n_ve_pos_fiscal_invoice_number
+        if fiscal_number:
             if move.l10n_ve_invoice_number:
                 data = move.check_reprint()
             else:
-                raise UserError(
-                    _(
-                        "La orden ya tiene número fiscal local. "
-                        "Espere la sincronización de la factura para reimprimir."
-                    )
-                )
+                move._l10n_ve_fiscal_serial_validate_print_base()
+                data = {
+                    "type": move.move_type,
+                    "reprint_document_type": move._l10n_ve_fiscal_serial_reprint_document_type(),
+                    "mf_number": move._l10n_ve_fiscal_serial_normalize_reprint_number(
+                        fiscal_number
+                    ),
+                    "move_id": move.id,
+                    "fiscal_machine": move._l10n_ve_fiscal_serial_journal_machine_payload(),
+                }
             data["l10n_ve_print_action"] = "reprint"
             return data
 

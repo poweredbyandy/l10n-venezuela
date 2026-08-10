@@ -147,7 +147,49 @@ export function l10nVeFiscalSerialPosMachineConfig(pos) {
     };
 }
 
+export function l10nVeFiscalSerialPosNormalizeReprintNumber(number) {
+    const digits = String(number || "").replace(/\D/g, "");
+    if (!digits) {
+        return "0000000";
+    }
+    return digits.slice(-7).padStart(7, "0");
+}
+
+export function l10nVeFiscalSerialPosOrderFiscalNumber(order) {
+    return (
+        order?.l10n_ve_pos_fiscal_invoice_number ||
+        order?.raw?.l10n_ve_pos_fiscal_invoice_number ||
+        false
+    );
+}
+
+export function l10nVeFiscalSerialPosBuildLocalReprintPayload(pos, order) {
+    const machineConfig = l10nVeFiscalSerialPosMachineConfig(pos);
+    if (!machineConfig.machine_id) {
+        throw new Error(
+            _t("El diario de facturación no tiene máquina fiscal configurada.")
+        );
+    }
+    const fiscalNumber = l10nVeFiscalSerialPosOrderFiscalNumber(order);
+    if (!fiscalNumber) {
+        throw new Error(_t("La orden no tiene número fiscal para reimprimir."));
+    }
+    const isRefund =
+        order && typeof order._isRefundOrder === "function" && order._isRefundOrder();
+    return {
+        l10n_ve_print_action: "reprint",
+        type: isRefund ? "out_refund" : "out_invoice",
+        reprint_document_type: isRefund ? "out_refund" : "out_invoice",
+        mf_number: l10nVeFiscalSerialPosNormalizeReprintNumber(fiscalNumber),
+        move_id: order?.raw?.account_move || false,
+        fiscal_machine: machineConfig,
+    };
+}
+
 export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
+    if (l10nVeFiscalSerialPosOrderFiscalNumber(order)) {
+        return l10nVeFiscalSerialPosBuildLocalReprintPayload(pos, order);
+    }
     const machineConfig = l10nVeFiscalSerialPosMachineConfig(pos);
     if (!machineConfig.machine_id) {
         throw new Error(
