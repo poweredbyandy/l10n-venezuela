@@ -1,5 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import json
+
 from odoo import _, api, fields, models
 from odoo.tools import float_compare, float_is_zero
 from odoo.tools.misc import formatLang
@@ -23,6 +25,27 @@ class PosOrder(models.Model):
         copy=False,
         help="Amount in order currency already credited to eWallet from this refund.",
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if "l10n_ve_manual_global_discounts" in vals:
+                vals["l10n_ve_manual_global_discounts"] = (
+                    self._l10n_ve_normalize_manual_global_discounts(
+                        vals["l10n_ve_manual_global_discounts"]
+                    )
+                )
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if "l10n_ve_manual_global_discounts" in vals:
+            vals = dict(vals)
+            vals["l10n_ve_manual_global_discounts"] = (
+                self._l10n_ve_normalize_manual_global_discounts(
+                    vals["l10n_ve_manual_global_discounts"]
+                )
+            )
+        return super().write(vals)
 
     def _l10n_ve_ewallet_payment_label(self):
         return _("Monedero D")
@@ -81,10 +104,27 @@ class PosOrder(models.Model):
         )
         return bool(country and country.code == "VE")
 
+    @api.model
+    def _l10n_ve_normalize_manual_global_discounts(self, value):
+        """POS may send a JSON string because serialize() stringifies objects."""
+        data = value
+        for _attempt in range(3):
+            if isinstance(data, list):
+                return data
+            if isinstance(data, str) and data:
+                try:
+                    data = json.loads(data)
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    return []
+                continue
+            break
+        return []
+
     def _l10n_ve_get_manual_global_discounts(self):
         self.ensure_one()
-        data = self.l10n_ve_manual_global_discounts or []
-        return data if isinstance(data, list) else []
+        return self._l10n_ve_normalize_manual_global_discounts(
+            self.l10n_ve_manual_global_discounts
+        )
 
     def _l10n_ve_manual_discount_base_lines(self):
         self.ensure_one()

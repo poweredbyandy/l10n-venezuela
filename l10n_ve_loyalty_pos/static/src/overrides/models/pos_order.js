@@ -10,9 +10,44 @@ import { _t } from "@web/core/l10n/translation";
 patch(PosOrder.prototype, {
     setup(vals) {
         super.setup(...arguments);
-        if (!Array.isArray(this.l10n_ve_manual_global_discounts)) {
-            this.l10n_ve_manual_global_discounts = [];
+        this.l10n_ve_manual_global_discounts = this._l10nVeNormalizeManualGlobalDiscounts(
+            this.l10n_ve_manual_global_discounts ?? vals?.l10n_ve_manual_global_discounts
+        );
+    },
+
+    /**
+     * POS serialize() JSON.stringifies object values. Json fields must be sent
+     * back as real arrays/objects or the backend stores a JSON string and the
+     * next sync wipes the discounts in setup().
+     */
+    serialize() {
+        const data = super.serialize(...arguments);
+        let discounts = this._l10nVeNormalizeManualGlobalDiscounts(
+            data.l10n_ve_manual_global_discounts ?? this.l10n_ve_manual_global_discounts
+        );
+        if (this._l10nVeCompanyIsVenezuela() && discounts.length) {
+            discounts = this._l10nVeGetEffectiveManualGlobalDiscounts();
         }
+        data.l10n_ve_manual_global_discounts = discounts;
+        return data;
+    },
+
+    _l10nVeNormalizeManualGlobalDiscounts(value) {
+        let current = value;
+        for (let attempt = 0; attempt < 3; attempt++) {
+            if (Array.isArray(current)) {
+                return current;
+            }
+            if (typeof current !== "string" || !current) {
+                break;
+            }
+            try {
+                current = JSON.parse(current);
+            } catch {
+                break;
+            }
+        }
+        return [];
     },
 
     _l10nVeCompanyIsVenezuela() {
@@ -160,9 +195,9 @@ patch(PosOrder.prototype, {
     },
 
     _l10nVeGetManualGlobalDiscounts() {
-        return Array.isArray(this.l10n_ve_manual_global_discounts)
-            ? this.l10n_ve_manual_global_discounts
-            : [];
+        return this._l10nVeNormalizeManualGlobalDiscounts(
+            this.l10n_ve_manual_global_discounts
+        );
     },
 
     _l10nVeGetProductLinesForDiscount() {
@@ -277,19 +312,9 @@ patch(PosOrder.prototype, {
     },
 
     _l10nVeSyncEffectiveManualGlobalDiscounts() {
-        const manuals = this._l10nVeGetManualGlobalDiscounts();
-        if (!manuals.length) {
-            return [];
-        }
-        const effective = this._l10nVeGetEffectiveManualGlobalDiscounts();
-        const fingerprint = JSON.stringify(
-            effective.map((d) => [d.id, d.amount, d.splits])
-        );
-        if (this._l10nVeManualDiscountFingerprint !== fingerprint) {
-            this._l10nVeManualDiscountFingerprint = fingerprint;
-            this.l10n_ve_manual_global_discounts = effective;
-        }
-        return effective;
+        // Read-only for UI totals: never mutate the order inside taxTotals.
+        // Effective amounts are persisted on serialize() before sync/payment.
+        return this._l10nVeGetEffectiveManualGlobalDiscounts();
     },
 
     pointsForPrograms(programs) {
@@ -638,7 +663,6 @@ patch(PosOrder.prototype, {
             amount: targetUntaxed,
             splits,
         };
-        this._l10nVeManualDiscountFingerprint = null;
         this.update({
             l10n_ve_manual_global_discounts: [
                 ...this._l10nVeGetManualGlobalDiscounts(),
