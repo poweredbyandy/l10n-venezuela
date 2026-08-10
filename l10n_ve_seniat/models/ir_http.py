@@ -47,7 +47,7 @@ class IrHttp(models.AbstractModel):
 
     def _l10n_ve_emission_medium_codes_for_companies(self, companies):
         return {
-            company.id: list(company._l10n_ve_emission_medium_codes())
+            company.id: list(company.sudo()._l10n_ve_emission_medium_codes())
             for company in companies
         }
 
@@ -55,7 +55,7 @@ class IrHttp(models.AbstractModel):
         self = self._l10n_ve_with_request_companies()
         session = super().session_info()
         session["l10n_ve_version"] = self._get_l10n_ve_version()
-        company = self.env.company
+        company = self.env.company.sudo()
         codes = list(company._l10n_ve_emission_medium_codes())
         session["l10n_ve_emission_medium_codes"] = codes
         allowed_companies = self.env.user.company_ids
