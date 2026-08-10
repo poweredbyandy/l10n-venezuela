@@ -184,15 +184,33 @@ export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
             name = `[${defaultCode}] ${name}`.trim();
             defaultCode = "";
         }
+        const priceUnit = Math.abs(
+            Number(line.get_unit_price?.() ?? line.price_unit) || 0
+        );
+        const quantity = Math.abs(Number(line.get_quantity?.() ?? line.qty) || 0);
+        const discountPercent = Number(line.get_discount?.() ?? line.discount) || 0;
+        let discountAmount = 0;
+        if (discountPercent > 0 && typeof line.get_all_prices === "function") {
+            const prices = line.get_all_prices();
+            discountAmount = Math.max(
+                0,
+                Math.abs(
+                    Number(prices?.priceWithoutTaxBeforeDiscount || 0) -
+                        Number(prices?.priceWithoutTax || 0)
+                )
+            );
+        } else if (discountPercent > 0) {
+            discountAmount = (priceUnit * quantity * discountPercent) / 100;
+        }
         invoiceLines.push({
             tax: l10nVeFiscalSerialPosMapTaxCode(taxAmount),
             tax_percent: taxAmount,
-            price_unit: Math.abs(Number(line.get_unit_price?.() ?? line.price_unit) || 0),
-            quantity: Math.abs(Number(line.get_quantity?.() ?? line.qty) || 0),
+            price_unit: priceUnit,
+            quantity,
             default_code: defaultCode,
             name,
-            discount: Number(line.get_discount?.() ?? line.discount) || 0,
-            discount_amount: 0,
+            discount: discountPercent,
+            discount_amount: discountAmount,
         });
     }
     const paymentLines = (order?.payment_ids || [])
