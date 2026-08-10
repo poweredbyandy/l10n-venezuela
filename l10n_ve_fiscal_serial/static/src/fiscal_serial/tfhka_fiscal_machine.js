@@ -406,15 +406,23 @@ export class TfhkaFiscalMachine {
     }
 
     _formatLineDiscountCommand(item, config) {
-        const discountAmount = asNumber(item.discount_amount, 0);
+        let discountAmount = asNumber(item.discount_amount, 0);
+        if (discountAmount <= 0) {
+            const discountPercent = asNumber(item.discount, 0);
+            const priceUnit = asNumber(item.price_unit, 0);
+            const quantity = asNumber(item.quantity, 0);
+            if (discountPercent > 0 && priceUnit > 0 && quantity > 0) {
+                discountAmount = (Math.abs(priceUnit) * Math.abs(quantity) * discountPercent) / 100;
+            }
+        }
         if (discountAmount <= 0) {
             return null;
         }
         const [amountI, amountD] = this.splitAmount(
-            this._limitDecimals(discountAmount, config.discDecimal),
+            this._limitDecimals(Math.abs(discountAmount), config.discDecimal),
             config.discDecimal
         );
-        return `p-${amountI.padStart(config.discInt, "0")}${amountD.padStart(
+        return `q-${amountI.padStart(config.discInt, "0")}${amountD.padStart(
             config.discDecimal,
             "0"
         )}`;

@@ -775,6 +775,8 @@ export class TfhkaFiscal {
                 return false;
             }
             this._darStatusError(0, 137);
+            this.estado =
+                "No se pudo leer ENQ: respuesta con longitud incorrecta.";
             this._consoleLogCommand("STATUS_ENQ_RESPONSE", {
                 status: this.status,
                 error: this.error,
@@ -784,7 +786,6 @@ export class TfhkaFiscal {
             this.reiniciarVariables();
             return false;
         } catch (e) {
-            this.estado = `Error... ${e.message || e}`;
             const nm = e?.name || "";
             const ioOrNull =
                 nm === "NetworkError" ||
@@ -795,6 +796,7 @@ export class TfhkaFiscal {
                         .toLowerCase()
                         .includes("null"));
             this._darStatusError(0, ioOrNull ? 128 : 145);
+            this.estado = `Error al leer ENQ: ${e.message || e}`;
             this._consoleLogCommand("STATUS_ENQ_RESPONSE", {
                 status: this.status,
                 error: this.error,
