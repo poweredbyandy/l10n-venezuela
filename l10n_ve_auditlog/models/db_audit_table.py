@@ -51,6 +51,39 @@ class L10nVeDbAuditTable(models.Model):
                     % record.table_name
                 )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not vals_list:
+            return super().create(vals_list)
+        ordered_ids = []
+        to_create = []
+        create_slots = []
+        for index, vals in enumerate(vals_list):
+            table_name = vals.get("table_name")
+            existing = (
+                self.search([("table_name", "=", table_name)], limit=1)
+                if table_name
+                else self.browse()
+            )
+            if existing:
+                write_vals = {
+                    key: value
+                    for key, value in vals.items()
+                    if key != "table_name"
+                }
+                if write_vals:
+                    existing.write(write_vals)
+                ordered_ids.append(existing.id)
+            else:
+                create_slots.append(index)
+                to_create.append(vals)
+                ordered_ids.append(None)
+        created = super().create(to_create) if to_create else self.browse()
+        created_ids = list(created.ids)
+        for slot, created_id in zip(create_slots, created_ids):
+            ordered_ids[slot] = created_id
+        return self.browse(ordered_ids)
+
     @api.model
     def init(self):
         super().init()

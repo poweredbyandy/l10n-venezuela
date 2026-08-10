@@ -278,6 +278,44 @@ def _move_xmlids(cr, src_module, dst_module, exclude_names=None):
     return cr.rowcount
 
 
+def _ensure_module_db_audit_table_xmlid(cr, module, xmlid_name, res_id):
+    cr.execute(
+        """
+        SELECT id, res_id
+          FROM ir_model_data
+         WHERE module = %s
+           AND name = %s
+         LIMIT 1
+        """,
+        (module, xmlid_name),
+    )
+    row = cr.fetchone()
+    if row:
+        if row[1] != res_id:
+            cr.execute(
+                """
+                UPDATE ir_model_data
+                   SET res_id = %s,
+                       model = 'l10n.ve.db.audit.table',
+                       noupdate = TRUE
+                 WHERE id = %s
+                """,
+                (res_id, row[0]),
+            )
+        return 0
+    cr.execute(
+        """
+        INSERT INTO ir_model_data (
+            module, name, model, res_id, noupdate
+        ) VALUES (
+            %s, %s, 'l10n.ve.db.audit.table', %s, TRUE
+        )
+        """,
+        (module, xmlid_name, res_id),
+    )
+    return 1
+
+
 def _ensure_db_audit_table_xmlids(cr):
     if not _table_exists(cr, "l10n_ve_db_audit_table"):
         return 0
@@ -298,18 +336,6 @@ def _ensure_db_audit_table_xmlids(cr):
         res_id = row[0]
         cr.execute(
             """
-            SELECT id
-              FROM ir_model_data
-             WHERE module = 'l10n_ve_auditlog'
-               AND name = %s
-             LIMIT 1
-            """,
-            (xmlid_name,),
-        )
-        if cr.fetchone():
-            continue
-        cr.execute(
-            """
             UPDATE ir_model_data
                SET module = 'l10n_ve_auditlog',
                    res_id = %s,
@@ -317,22 +343,21 @@ def _ensure_db_audit_table_xmlids(cr):
                    noupdate = TRUE
              WHERE module = 'l10n_ve_audit'
                AND name = %s
+               AND NOT EXISTS (
+                    SELECT 1
+                      FROM ir_model_data AS dst
+                     WHERE dst.module = 'l10n_ve_auditlog'
+                       AND dst.name = %s
+               )
             """,
-            (res_id, xmlid_name),
+            (res_id, xmlid_name, xmlid_name),
         )
-        if cr.rowcount:
-            continue
-        cr.execute(
-            """
-            INSERT INTO ir_model_data (
-                module, name, model, res_id, noupdate
-            ) VALUES (
-                'l10n_ve_auditlog', %s, 'l10n.ve.db.audit.table', %s, TRUE
-            )
-            """,
-            (xmlid_name, res_id),
+        created += _ensure_module_db_audit_table_xmlid(
+            cr, "l10n_ve_auditlog", xmlid_name, res_id
         )
-        created += 1
+        created += _ensure_module_db_audit_table_xmlid(
+            cr, "l10n_ve_audit", xmlid_name, res_id
+        )
     return created
 
 
