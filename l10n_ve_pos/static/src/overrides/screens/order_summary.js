@@ -38,6 +38,7 @@ patch(OrderSummary.prototype, {
     _veNumpadDecreaseLineQty(root) {
         const q = root.get_quantity();
         if (this.pos.isProductQtyZero(q)) {
+            this.currentOrder.removeOrderline(root);
             this.numberBuffer.reset();
             return;
         }
@@ -64,19 +65,6 @@ patch(OrderSummary.prototype, {
         }
         this.numberBuffer.reset();
     },
-    _veIsZeroQty(val) {
-        if (val === "remove") {
-            return false;
-        }
-        const numVal =
-            typeof val === "number"
-                ? val
-                : parseFloat(String(val ?? "").replace(",", "."));
-        if (Number.isNaN(numVal)) {
-            return false;
-        }
-        return this.pos.isProductQtyZero(numVal);
-    },
     handleOrderLineQuantityChange(selectedLine, buffer, currentQuantity, lastId) {
         if (
             isVenezuelaCompany(this.pos) &&
@@ -84,15 +72,6 @@ patch(OrderSummary.prototype, {
         ) {
             this.numberBuffer.reset();
             this.pos.numpadMode = "price";
-            return;
-        }
-        if (
-            isVenezuelaCompany(this.pos) &&
-            !selectedLine.refunded_orderline_id &&
-            this._veIsZeroQty(buffer)
-        ) {
-            this.numberBuffer.reset();
-            this.currentOrder.removeOrderline(this._veResolveComboParent(selectedLine));
             return;
         }
         return super.handleOrderLineQuantityChange(...arguments);
@@ -103,26 +82,8 @@ patch(OrderSummary.prototype, {
             isVenezuelaCompany(this.pos) &&
             this._veIsPriceOnlyLine(selectedLine)
         ) {
-            if (
-                newQuantity !== null &&
-                this.pos.isProductQtyZero(newQuantity) &&
-                !selectedLine.refunded_orderline_id
-            ) {
-                this.currentOrder.removeOrderline(this._veResolveComboParent(selectedLine));
-                return true;
-            }
             this.numberBuffer.reset();
             this.pos.numpadMode = "price";
-            return true;
-        }
-        if (
-            isVenezuelaCompany(this.pos) &&
-            newQuantity !== null &&
-            this.pos.isProductQtyZero(newQuantity)
-        ) {
-            if (selectedLine && !selectedLine.refunded_orderline_id) {
-                this.currentOrder.removeOrderline(this._veResolveComboParent(selectedLine));
-            }
             return true;
         }
         return await super.updateQuantityNumber(...arguments);
@@ -151,17 +112,11 @@ patch(OrderSummary.prototype, {
             if (
                 numpadMode === "quantity" &&
                 isVenezuelaCompany(this.pos) &&
-                !root.refunded_orderline_id
+                !root.refunded_orderline_id &&
+                (val === "" || val === "remove")
             ) {
-                if (val === "" || val === "remove") {
-                    this._veNumpadDecreaseLineQty(root);
-                    return;
-                }
-                if (this._veIsZeroQty(val)) {
-                    this.currentOrder.removeOrderline(root);
-                    this.numberBuffer.reset();
-                    return;
-                }
+                this._veNumpadDecreaseLineQty(root);
+                return;
             }
         }
         return super._setValue(...arguments);
