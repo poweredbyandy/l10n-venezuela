@@ -215,6 +215,23 @@ export class TfhkaFiscalMachine {
         return true;
     }
 
+    async _sendReportCommand(command, waitSeconds) {
+        if (typeof this.driver.sendReportCmd === "function") {
+            const sent = await this.driver.sendReportCmd(
+                String(command),
+                waitSeconds
+            );
+            if (!sent) {
+                throw new Error(
+                    this.driver.estado || `Fallo al enviar reporte ${command}`
+                );
+            }
+            await sleep(this.commandDelayMs);
+            return true;
+        }
+        return this._sendCommand(command);
+    }
+
     splitAmount(amount, dec = 2) {
         const factor = 10 ** dec;
         const normalized = (Math.round(asNumber(amount, 0) * factor) / factor).toFixed(dec);
@@ -1564,15 +1581,16 @@ export class TfhkaFiscalMachine {
 
     async printXReport() {
         await this._ensureStatusReady();
-        await this._sendCommand("I0X");
+        await this._sendReportCommand("I0X", 4);
+        await this._waitUntilReadyAfterReport({ attempts: 40, delayMs: 500 });
         return { valid: true, message: "Reporte X impreso correctamente." };
     }
 
     async printZReport() {
         const preS1 = await this.getS1PrinterData("report_z_pre");
         await this._ensureStatusReady();
-        await this._sendCommand("I0Z");
-        await this._waitUntilReadyAfterReport();
+        await this._sendReportCommand("I0Z", 9);
+        await this._waitUntilReadyAfterReport({ attempts: 90, delayMs: 500 });
         const postS1 = await this.getS1PrinterData("report_z_post");
         let dailyClosure = postS1?.DailyClosureCounter || null;
         if (!dailyClosure && preS1?.DailyClosureCounter) {

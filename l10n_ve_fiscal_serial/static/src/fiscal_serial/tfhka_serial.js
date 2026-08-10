@@ -484,6 +484,7 @@ export class TfhkaFiscal {
                 ack: true,
                 code: "ACK",
             });
+            this.estado = "OK";
             this.reiniciarVariables();
             return true;
         }
@@ -493,6 +494,7 @@ export class TfhkaFiscal {
                 ack: false,
                 code: "TIMEOUT",
             });
+            this.estado = `Comando ${cmd} sin respuesta ACK (timeout).`;
             return false;
         }
         let num1 = 0;
@@ -514,13 +516,97 @@ export class TfhkaFiscal {
             ));
         }
         const ok = num2 === 1 && bResp.length > 0 && bResp[0] === ACK;
+        const code = ok
+            ? "ACK"
+            : bResp[0] === NAK || num2 === -2
+              ? "NAK"
+              : "UNKNOWN";
         this._consoleLogCommand("SEND_CMD_RESPONSE", {
             command: cmd,
             ack: ok,
-            code: ok ? "ACK" : (bResp[0] === NAK || num2 === -2 ? "NAK" : "UNKNOWN"),
+            code,
         });
+        this.estado = ok
+            ? "OK"
+            : `Comando ${cmd} falló (${code}).`;
         this.reiniciarVariables();
         return ok;
+    }
+
+    async sendReportCmd(sCMD, waitSeconds = 4) {
+        if (sCMD == null) {
+            return false;
+        }
+        const cmd = String(sCMD);
+        const waitMs = Math.max(0, Number(waitSeconds) || 0) * 1000;
+        this._consoleLogCommand("SEND_REPORT_CMD_REQUEST", {
+            command: cmd,
+            waitSeconds,
+        });
+        const frame = buildSendCmdFrame(cmd);
+        try {
+            await this.transport.setSignals({
+                dataTerminalReady: true,
+                requestToSend: true,
+            });
+            await this._sleep(50);
+            if (typeof this.transport.drainInput === "function") {
+                await this.transport.drainInput();
+            }
+            await this.transport.writeBytes(frame, { postWriteDelayMs: 180 });
+            const early = await this.transport.readSome({
+                byteTimeout: 80,
+                totalTimeout: 2000,
+                maxLen: 256,
+            });
+            let sawNak = false;
+            let sawAck = false;
+            for (let i = 0; i < early.length; i++) {
+                if (early[i] === ACK) {
+                    sawAck = true;
+                }
+                if (early[i] === NAK) {
+                    sawNak = true;
+                }
+            }
+            if (sawNak) {
+                this.estado = `Comando de reporte ${cmd} rechazado (NAK).`;
+                this._consoleLogCommand("SEND_REPORT_CMD_RESPONSE", {
+                    command: cmd,
+                    ack: false,
+                    code: "NAK",
+                });
+                this.reiniciarVariables();
+                return false;
+            }
+            if (waitMs > 0) {
+                await this._sleep(waitMs);
+            }
+            const leftover = await this.transport.readSome({
+                byteTimeout: 40,
+                totalTimeout: 2500,
+                maxLen: 4096,
+            });
+            this.estado = "OK";
+            this._consoleLogCommand("SEND_REPORT_CMD_RESPONSE", {
+                command: cmd,
+                ack: sawAck,
+                code: sawAck ? "ACK" : "FIRE_AND_WAIT",
+                leftover: leftover.length,
+            });
+            this.reiniciarVariables();
+            return true;
+        } catch (error) {
+            this.estado = `Error reporte ${cmd}: ${error?.message || error}`;
+            this._consoleLogCommand("SEND_REPORT_CMD_RESPONSE", {
+                command: cmd,
+                ack: false,
+                code: "ERROR",
+                detail: error?.message || String(error),
+            });
+            this.reiniciarVariables();
+            return false;
+        }
     }
 
     async sendFileCmdFromLines(lines) {
