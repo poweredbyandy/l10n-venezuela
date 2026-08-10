@@ -25,7 +25,7 @@ class IrUiMenu(models.Model):
 
     @api.model
     def _l10n_ve_emission_medium_menus_blacklist(self):
-        company = self.env.company
+        company = self.env.company.sudo()
         blacklist = []
         for emission_code, menu_xmlids in self._l10n_ve_emission_medium_menu_rules().items():
             if company._l10n_ve_has_emission_medium(emission_code):
