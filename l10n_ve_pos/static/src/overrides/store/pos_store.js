@@ -24,6 +24,23 @@ function isRifLike(value) {
 }
 
 patch(PosStore.prototype, {
+    _l10nVePosHasZeroQtyLines(order) {
+        return (order?.lines || []).some(
+            (line) =>
+                !line.combo_parent_id && this.isProductQtyZero(line.get_quantity())
+        );
+    },
+    async pay() {
+        const currentOrder = this.get_order();
+        if (isVenezuelaCompany(this) && this._l10nVePosHasZeroQtyLines(currentOrder)) {
+            this.notification.add(
+                _t("Cannot go to payment while there are order lines with quantity 0."),
+                { type: "danger" }
+            );
+            return;
+        }
+        return await super.pay(...arguments);
+    },
     selectOrderLine(order, line) {
         super.selectOrderLine(...arguments);
         if (!isVenezuelaCompany(this)) {

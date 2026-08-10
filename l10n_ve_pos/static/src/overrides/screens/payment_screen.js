@@ -13,10 +13,21 @@ function isVenezuelaCompany(pos) {
 patch(PaymentScreen.prototype, {
     setup() {
         super.setup(...arguments);
+        const orderJournal = this.currentOrder?.invoice_journal_id;
+        const configJournal = this.pos.config?.invoice_journal_id;
         this.l10nVeEmission = useState({
-            emission_medium: this.pos.config.l10n_ve_invoice_journal_emission_medium || "",
-            journal_display_name: this.pos.config.l10n_ve_invoice_journal_display_name || "",
-            next_free_control_number: this.pos.config.l10n_ve_pos_next_free_control_number || "",
+            emission_medium:
+                orderJournal?.l10n_ve_emission_medium ||
+                configJournal?.l10n_ve_emission_medium ||
+                "",
+            journal_display_name:
+                orderJournal?.display_name ||
+                orderJournal?.name ||
+                configJournal?.display_name ||
+                configJournal?.name ||
+                "",
+            next_free_control_number:
+                this.pos.config.l10n_ve_pos_next_free_control_number || "",
             next_fiscal_invoice_number: "",
             next_fiscal_serial: "",
             next_fiscal_report_z: "",
@@ -56,27 +67,14 @@ patch(PaymentScreen.prototype, {
             data.next_fiscal_invoice_number || "";
         this.l10nVeEmission.next_fiscal_serial = data.next_fiscal_serial || "";
         this.l10nVeEmission.next_fiscal_report_z = data.next_fiscal_report_z || "";
-        this.pos.config.l10n_ve_invoice_journal_emission_medium = data.emission_medium || false;
-        this.pos.config.l10n_ve_invoice_journal_display_name = data.journal_display_name || false;
-        this.pos.config.l10n_ve_pos_next_free_control_number =
-            data.next_free_control_number || false;
-        this.pos.config.l10n_ve_pos_free_book_section_name =
-            data.free_book_section_name || false;
     },
 
     _l10nVeLocalEmissionPreviewFallback() {
         const journal =
             this.currentOrder?.invoice_journal_id || this.pos.config?.invoice_journal_id;
         return {
-            emission_medium:
-                journal?.l10n_ve_emission_medium ||
-                this.pos.config?.l10n_ve_invoice_journal_emission_medium ||
-                "",
-            journal_display_name:
-                journal?.display_name ||
-                journal?.name ||
-                this.pos.config?.l10n_ve_invoice_journal_display_name ||
-                "",
+            emission_medium: journal?.l10n_ve_emission_medium || "",
+            journal_display_name: journal?.display_name || journal?.name || "",
             next_free_control_number:
                 this.pos.config?.l10n_ve_pos_next_free_control_number || "",
             next_fiscal_invoice_number: this.l10nVeEmission.next_fiscal_invoice_number || "",
