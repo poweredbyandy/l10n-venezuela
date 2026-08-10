@@ -11,6 +11,27 @@ function isVenezuelaCompany(pos) {
 }
 
 patch(OrderSummary.prototype, {
+    _veIsPriceOnlyLine(line) {
+        return Boolean(line?.product_id?.l10n_ve_pos_allow_price_change);
+    },
+    async updateSelectedOrderline({ buffer, key }) {
+        const selectedLine = this.pos.get_order()?.get_selected_orderline();
+        if (
+            isVenezuelaCompany(this.pos) &&
+            selectedLine &&
+            this._veIsPriceOnlyLine(selectedLine) &&
+            this.pos.numpadMode !== "price"
+        ) {
+            this.numberBuffer.reset();
+            if (key === "Backspace") {
+                this._setValue("remove");
+            } else {
+                this.pos.numpadMode = "price";
+            }
+            return;
+        }
+        return await super.updateSelectedOrderline(...arguments);
+    },
     _veResolveComboParent(line) {
         return line.combo_parent_id || line;
     },
@@ -59,6 +80,14 @@ patch(OrderSummary.prototype, {
     handleOrderLineQuantityChange(selectedLine, buffer, currentQuantity, lastId) {
         if (
             isVenezuelaCompany(this.pos) &&
+            this._veIsPriceOnlyLine(selectedLine)
+        ) {
+            this.numberBuffer.reset();
+            this.pos.numpadMode = "price";
+            return;
+        }
+        if (
+            isVenezuelaCompany(this.pos) &&
             !selectedLine.refunded_orderline_id &&
             this._veIsZeroQty(buffer)
         ) {
@@ -69,12 +98,28 @@ patch(OrderSummary.prototype, {
         return super.handleOrderLineQuantityChange(...arguments);
     },
     async updateQuantityNumber(newQuantity) {
+        const selectedLine = this.currentOrder.get_selected_orderline();
+        if (
+            isVenezuelaCompany(this.pos) &&
+            this._veIsPriceOnlyLine(selectedLine)
+        ) {
+            if (
+                newQuantity !== null &&
+                this.pos.isProductQtyZero(newQuantity) &&
+                !selectedLine.refunded_orderline_id
+            ) {
+                this.currentOrder.removeOrderline(this._veResolveComboParent(selectedLine));
+                return true;
+            }
+            this.numberBuffer.reset();
+            this.pos.numpadMode = "price";
+            return true;
+        }
         if (
             isVenezuelaCompany(this.pos) &&
             newQuantity !== null &&
             this.pos.isProductQtyZero(newQuantity)
         ) {
-            const selectedLine = this.currentOrder.get_selected_orderline();
             if (selectedLine && !selectedLine.refunded_orderline_id) {
                 this.currentOrder.removeOrderline(this._veResolveComboParent(selectedLine));
             }
@@ -87,6 +132,22 @@ patch(OrderSummary.prototype, {
         const selectedLine = this.currentOrder.get_selected_orderline();
         if (selectedLine) {
             const root = this._veResolveComboParent(selectedLine);
+            const priceOnly = this._veIsPriceOnlyLine(root);
+            if (isVenezuelaCompany(this.pos) && priceOnly && val === "remove") {
+                this.currentOrder.removeOrderline(root);
+                this.numberBuffer.reset();
+                this.pos.numpadMode = "quantity";
+                return;
+            }
+            if (
+                isVenezuelaCompany(this.pos) &&
+                priceOnly &&
+                ["quantity", "discount"].includes(numpadMode)
+            ) {
+                this.numberBuffer.reset();
+                this.pos.numpadMode = "price";
+                return;
+            }
             if (
                 numpadMode === "quantity" &&
                 isVenezuelaCompany(this.pos) &&
@@ -106,7 +167,10 @@ patch(OrderSummary.prototype, {
         return super._setValue(...arguments);
     },
     async setLinePrice(line, price) {
-        if (isVenezuelaCompany(this.pos)) {
+        if (
+            isVenezuelaCompany(this.pos) &&
+            !line?.product_id?.l10n_ve_pos_allow_price_change
+        ) {
             this.pos.notification.add(
                 _t("Changing the price from the Point of Sale is not allowed."),
                 { type: "warning" }

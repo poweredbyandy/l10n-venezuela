@@ -11,7 +11,8 @@
             </button>
             <button t-if="isVenezuelaPos"
                 class="button js_invoice_journal btn btn-light btn-lg d-flex align-items-center text-start w-100 w-md-50 lh-lg"
-                t-att-class="{ 'highlight active': true }"
+                t-att-class="{ 'highlight active': true, disabled: !canChangeInvoiceJournal }"
+                t-att-disabled="!canChangeInvoiceJournal"
                 t-on-click="clickInvoiceJournal">
                 <i class="fa fa-book me-2" />
                 <span class="text-truncate">

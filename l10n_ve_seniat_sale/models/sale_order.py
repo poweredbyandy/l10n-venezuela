@@ -6,7 +6,7 @@ from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_compare, float_is_zero, float_round
 
-from odoo.addons.l10n_ve_seniat.models import l10n_ve_global_discount as l10n_ve_discount_logic
+from odoo.addons.l10n_ve_loyalty.models import l10n_ve_global_discount as l10n_ve_discount_logic
 
 
 class SaleOrder(models.Model):

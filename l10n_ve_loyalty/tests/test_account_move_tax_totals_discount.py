@@ -4,7 +4,7 @@ from odoo import Command
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
-from .common import L10nVeSeniatCommon
+from odoo.addons.l10n_ve_seniat.tests.common import L10nVeSeniatCommon
 
 
 @tagged("post_install", "-at_install")

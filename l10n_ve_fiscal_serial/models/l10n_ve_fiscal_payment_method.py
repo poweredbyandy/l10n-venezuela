@@ -27,7 +27,7 @@ DEFAULT_FISCAL_PAYMENT_METHODS = [
     ("21", "ZELLE"),
     ("22", "DIVISA 03"),
     ("23", "DIVISA 04"),
-    ("24", "OTRO"),
+    ("24", "Monedero D"),
 ]
 
 

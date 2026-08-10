@@ -24,6 +24,17 @@ function isRifLike(value) {
 }
 
 patch(PosStore.prototype, {
+    selectOrderLine(order, line) {
+        super.selectOrderLine(...arguments);
+        if (!isVenezuelaCompany(this)) {
+            return;
+        }
+        if (line?.product_id?.l10n_ve_pos_allow_price_change) {
+            this.numpadMode = "price";
+        } else {
+            this.numpadMode = "quantity";
+        }
+    },
     createNewOrder(data = {}) {
         const order = super.createNewOrder(data);
         if (!isVenezuelaCompany(this)) {
@@ -52,6 +63,13 @@ patch(PosStore.prototype, {
     },
     async selectInvoiceJournal(order = this.get_order()) {
         if (!order || !isVenezuelaCompany(this)) {
+            return;
+        }
+        if (typeof order.canChangeInvoiceJournal === "function" && !order.canChangeInvoiceJournal()) {
+            this.notification.add(
+                _t("The invoice journal of a refund cannot be changed; it must match the original order."),
+                { type: "warning" }
+            );
             return;
         }
         const journals = this.getAvailableInvoiceJournals();

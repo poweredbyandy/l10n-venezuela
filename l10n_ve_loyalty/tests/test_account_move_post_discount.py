@@ -4,7 +4,7 @@ from odoo import Command, fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
-from .common import L10nVeSeniatCommon
+from odoo.addons.l10n_ve_seniat.tests.common import L10nVeSeniatCommon
 
 
 @tagged("post_install", "-at_install")
@@ -23,7 +23,7 @@ class TestAccountMovePostDiscount(L10nVeSeniatCommon):
             {"l10n_ve_emission_medium": "free"}
         )
         cls.reason_early = cls.env.ref(
-            "l10n_ve_seniat.l10n_ve_discount_reason_early_payment",
+            "l10n_ve_loyalty.l10n_ve_discount_reason_early_payment",
             raise_if_not_found=False,
         )
         if not cls.reason_early:

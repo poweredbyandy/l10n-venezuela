@@ -29,7 +29,17 @@ patch(PaymentScreen.prototype, {
         }
         return this.pos.getAvailableInvoiceJournals();
     },
+    get canChangeInvoiceJournal() {
+        return (
+            !this.currentOrder ||
+            typeof this.currentOrder.canChangeInvoiceJournal !== "function" ||
+            this.currentOrder.canChangeInvoiceJournal()
+        );
+    },
     async clickInvoiceJournal() {
+        if (!this.canChangeInvoiceJournal) {
+            return;
+        }
         const journal = await this.pos.selectInvoiceJournal(this.currentOrder);
         if (journal) {
             await this.l10nVeRefreshEmissionPreview();
