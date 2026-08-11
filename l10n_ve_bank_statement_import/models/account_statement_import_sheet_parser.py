@@ -17,12 +17,18 @@ _logger = logging.getLogger(__name__)
 _BDV_LINE_RE = re.compile(
     r"^(?P<date>\d{2}/\d{2}/\d{4})\s+"
     r"(?P<body>.+?)\s+"
-    r"(?P<operation>Nota de D[eé]bito|Nota de Cr[eé]dito|Saldo Inicial)\s+"
+    r"(?P<operation>Nota de D[eé]bito|Nota de Cr[eé]dito|Saldo Inicial|Saldo Final)\s+"
     r"(?P<amount>-?[\d.]+,\d{2})\s+"
     r"(?P<balance>-?[\d.]+,\d{2})\s*$"
 )
 _BDV_REF_RE = re.compile(r"^(?P<concept>.*?)\s+(?P<ref>\d{10,})\s*$")
-_BDV_SKIP_OPERATIONS = {"saldo inicial"}
+_BALANCE_MARKER_CODES = {"SI", "SF"}
+_BALANCE_MARKER_TEXTS = {
+    "saldo inicial",
+    "saldo final",
+    "si",
+    "sf",
+}
 _US_AMOUNT_RE = re.compile(r"^-?\d{1,3}(?:,\d{3})*\.\d{2}$|^-?\d+\.\d{2}$")
 
 
@@ -81,6 +87,34 @@ class AccountStatementImportSheetParser(models.TransientModel):
         parser.feed(text)
         return parser.rows
 
+    def _is_balance_marker_value(self, value):
+        if value is None:
+            return False
+        text = str(value).strip()
+        if not text:
+            return False
+        if text.upper() in _BALANCE_MARKER_CODES:
+            return True
+        normalized = " ".join(text.casefold().split())
+        return normalized in _BALANCE_MARKER_TEXTS
+
+    def _is_opening_or_closing_balance_row(self, values, columns=None):
+        if any(self._is_balance_marker_value(value) for value in values):
+            return True
+        if not columns:
+            return False
+        for column_name in (
+            "debit_credit_column",
+            "description_column",
+            "notes_column",
+        ):
+            if not columns.get(column_name):
+                continue
+            value = self._get_values_from_column(values, columns, column_name)
+            if self._is_balance_marker_value(value):
+                return True
+        return False
+
     def _read_bdv_comprobante_rows(self, data_file, mapping):
         encoding = mapping.file_encoding or "utf-8-sig"
         try:
@@ -96,8 +130,6 @@ class AccountStatementImportSheetParser(models.TransientModel):
             if not match:
                 continue
             operation = match.group("operation").strip()
-            if operation.casefold() in _BDV_SKIP_OPERATIONS:
-                continue
             body = match.group("body").strip()
             ref_match = _BDV_REF_RE.match(body)
             if ref_match:
@@ -106,16 +138,17 @@ class AccountStatementImportSheetParser(models.TransientModel):
             else:
                 concept = body
                 reference = ""
-            rows.append(
-                [
-                    match.group("date"),
-                    concept,
-                    reference,
-                    operation,
-                    match.group("amount"),
-                    match.group("balance"),
-                ]
-            )
+            row = [
+                match.group("date"),
+                concept,
+                reference,
+                operation,
+                match.group("amount"),
+                match.group("balance"),
+            ]
+            if self._is_opening_or_closing_balance_row(row):
+                continue
+            rows.append(row)
         return rows
 
     def _parse_lines_from_rows(self, mapping, rows, currency_code):
@@ -285,20 +318,8 @@ class AccountStatementImportSheetParser(models.TransientModel):
         return None
 
     def _process_row_values(self, values, mapping, currency_code, columns):
-        if any(
-            isinstance(value, str) and value.strip().casefold() == "saldo inicial"
-            for value in values
-        ):
+        if self._is_opening_or_closing_balance_row(values, columns=columns):
             return None
-        if columns.get("debit_credit_column"):
-            debit_credit_code = self._get_values_from_column(
-                values, columns, "debit_credit_column"
-            )
-            if debit_credit_code and str(debit_credit_code).strip().upper() in {
-                "SI",
-                "SF",
-            }:
-                return None
         timestamp = self._get_values_from_column(values, columns, "timestamp_column")
         currency = (
             self._get_values_from_column(values, columns, "currency_column")
