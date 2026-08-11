@@ -27,36 +27,9 @@ class AccountMove(models.Model):
             if move.country_code != "VE" or not move.tax_totals:
                 continue
             if move.is_invoice(include_receipts=True):
-                discount_totals = AccountTax._l10n_ve_get_global_discount_totals(
+                move.tax_totals = AccountTax._l10n_ve_apply_global_discount_to_tax_totals(
                     move,
                     move.tax_totals,
-                )
-                move.tax_totals["l10n_ve_show_global_discount"] = discount_totals[
-                    "show_global_discount"
-                ]
-                move.tax_totals["l10n_ve_subtotal_gross_currency"] = discount_totals[
-                    "subtotal_gross_currency"
-                ]
-                move.tax_totals["l10n_ve_subtotal_gross"] = discount_totals[
-                    "subtotal_gross"
-                ]
-                move.tax_totals["l10n_ve_global_discount_amount_currency"] = (
-                    discount_totals["global_discount_amount_currency"]
-                )
-                move.tax_totals["l10n_ve_global_discount_amount"] = discount_totals[
-                    "global_discount_amount"
-                ]
-                move.tax_totals["l10n_ve_global_discount_amount_foreign"] = (
-                    discount_totals["global_discount_amount_foreign"]
-                )
-                move.tax_totals["l10n_ve_subtotal_gross_foreign"] = discount_totals[
-                    "subtotal_gross_foreign"
-                ]
-                move.tax_totals["l10n_ve_global_discount_lines"] = discount_totals[
-                    "global_discount_lines"
-                ]
-                move.tax_totals["l10n_ve_global_discount_percentage"] = (
-                    discount_totals["global_discount_percentage"]
                 )
         return res
 
