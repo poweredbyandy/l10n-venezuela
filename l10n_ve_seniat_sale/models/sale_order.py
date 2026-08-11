@@ -950,39 +950,12 @@ class SaleOrder(models.Model):
                 or not order.tax_totals
             ):
                 continue
-            discount_totals = AccountTax._l10n_ve_get_global_discount_totals(
+            totals = AccountTax._l10n_ve_apply_global_discount_to_tax_totals(
                 order,
                 order.tax_totals,
             )
-            order.tax_totals["l10n_ve_show_global_discount"] = discount_totals[
-                "show_global_discount"
-            ]
-            order.tax_totals["l10n_ve_subtotal_gross_currency"] = discount_totals[
-                "subtotal_gross_currency"
-            ]
-            order.tax_totals["l10n_ve_subtotal_gross"] = discount_totals[
-                "subtotal_gross"
-            ]
-            order.tax_totals["l10n_ve_global_discount_amount_currency"] = (
-                discount_totals["global_discount_amount_currency"]
-            )
-            order.tax_totals["l10n_ve_global_discount_amount"] = discount_totals[
-                "global_discount_amount"
-            ]
-            order.tax_totals["l10n_ve_global_discount_amount_foreign"] = (
-                discount_totals["global_discount_amount_foreign"]
-            )
-            order.tax_totals["l10n_ve_subtotal_gross_foreign"] = discount_totals[
-                "subtotal_gross_foreign"
-            ]
-            order.tax_totals["l10n_ve_global_discount_lines"] = discount_totals[
-                "global_discount_lines"
-            ]
-            order.tax_totals["l10n_ve_global_discount_percentage"] = (
-                discount_totals["global_discount_percentage"]
-            )
-            order.tax_totals["same_tax_base"] = False
-            for subtotal in order.tax_totals.get("subtotals", []):
+            totals["same_tax_base"] = False
+            for subtotal in totals.get("subtotals", []):
                 for tax_group in subtotal.get("tax_groups", []):
                     if tax_group.get("display_base_amount_currency") is False:
                         tax_group["display_base_amount_currency"] = tax_group.get(
@@ -992,3 +965,4 @@ class SaleOrder(models.Model):
                         tax_group["display_base_amount"] = tax_group.get(
                             "base_amount", 0.0
                         )
+            order.tax_totals = totals

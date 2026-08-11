@@ -24,6 +24,27 @@ class AccountTax(models.Model):
         return fields.Date.context_today(self.env)
 
     @api.model
+    def _l10n_ve_amount_currency_to_company(self, document, amount_currency):
+        """Convert an amount in document currency to company currency."""
+        currency = document.currency_id
+        company = document.company_id
+        if not currency or currency == company.currency_id:
+            return amount_currency
+        inverse_rate = getattr(document, "l10n_ve_inverse_rate", None) or 0.0
+        if inverse_rate:
+            return company.currency_id.round(amount_currency * inverse_rate)
+        rate = self._l10n_ve_get_document_currency_rate(document) or 0.0
+        if rate:
+            return company.currency_id.round(amount_currency / rate)
+        conversion_date = self._l10n_ve_get_document_conversion_date(document)
+        return currency._convert(
+            amount_currency,
+            company.currency_id,
+            company,
+            conversion_date,
+        )
+
+    @api.model
     def _l10n_ve_build_discount_totals_result(
         self, document, tax_totals, global_discount_amount_currency, global_discount_lines
     ):
@@ -47,14 +68,10 @@ class AccountTax(models.Model):
                 "global_discount_lines": [],
             }
 
-        rate = self._l10n_ve_get_document_currency_rate(document)
         company = document.company_id
-        if currency == company.currency_id:
-            global_discount_amount = global_discount_amount_currency
-        else:
-            global_discount_amount = company.currency_id.round(
-                global_discount_amount_currency / rate
-            )
+        global_discount_amount = self._l10n_ve_amount_currency_to_company(
+            document, global_discount_amount_currency
+        )
 
         global_discount_amount_foreign = 0.0
         if document._name == "account.move":
@@ -73,6 +90,7 @@ class AccountTax(models.Model):
             )
 
         subtotal_gross_currency = base_amount_currency + global_discount_amount_currency
+        subtotal_gross = company.currency_id.round(base_amount + global_discount_amount)
         overall_percentage = False
         percentage_lines = [
             line
@@ -99,11 +117,49 @@ class AccountTax(models.Model):
             "global_discount_amount_foreign": global_discount_amount_foreign,
             "global_discount_percentage": overall_percentage,
             "subtotal_gross_currency": subtotal_gross_currency,
-            "subtotal_gross": base_amount + global_discount_amount,
+            "subtotal_gross": subtotal_gross,
             "subtotal_gross_foreign": (base_amount_foreign or 0.0)
             + global_discount_amount_foreign,
             "global_discount_lines": global_discount_lines,
         }
+
+    @api.model
+    def _l10n_ve_apply_global_discount_to_tax_totals(self, document, tax_totals):
+        """Return a new tax_totals dict with VE global discount display fields."""
+        if not tax_totals:
+            return tax_totals
+        totals = dict(tax_totals)
+        discount_totals = self._l10n_ve_get_global_discount_totals(document, totals)
+        totals["l10n_ve_show_global_discount"] = discount_totals["show_global_discount"]
+        totals["l10n_ve_subtotal_gross_currency"] = discount_totals[
+            "subtotal_gross_currency"
+        ]
+        totals["l10n_ve_subtotal_gross"] = discount_totals["subtotal_gross"]
+        totals["l10n_ve_global_discount_amount_currency"] = discount_totals[
+            "global_discount_amount_currency"
+        ]
+        totals["l10n_ve_global_discount_amount"] = discount_totals[
+            "global_discount_amount"
+        ]
+        totals["l10n_ve_global_discount_amount_foreign"] = discount_totals[
+            "global_discount_amount_foreign"
+        ]
+        totals["l10n_ve_subtotal_gross_foreign"] = discount_totals[
+            "subtotal_gross_foreign"
+        ]
+        totals["l10n_ve_global_discount_lines"] = discount_totals[
+            "global_discount_lines"
+        ]
+        totals["l10n_ve_global_discount_percentage"] = discount_totals[
+            "global_discount_percentage"
+        ]
+        company_currency = document.company_id.currency_id
+        totals["display_in_company_currency"] = bool(
+            document.currency_id and document.currency_id != company_currency
+        )
+        if not totals.get("company_currency_id") and company_currency:
+            totals["company_currency_id"] = company_currency.id
+        return totals
 
     @api.model
     def _l10n_ve_get_product_line_discount_totals(self, document, tax_totals):
