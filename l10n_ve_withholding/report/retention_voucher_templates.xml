@@ -855,16 +855,7 @@
                     <div class="col-auto" style="width:7%">
                         <span style="visibility:hidden">--</span>
                     </div>
-                    <div
-                        class=""
-                        style="width:3%"
-                    >
-                        <span
-                            t-esc="imp"
-                            t-options='{"widget": "float", "precision": get_digits}'
-                        />
-                    </div>
-                    <div t-else="" class="" style="width:12%">
+                    <div class="" style="width:15%">
                         <span
                             t-esc="imp"
                             t-options='{"widget": "float", "precision": get_digits}'

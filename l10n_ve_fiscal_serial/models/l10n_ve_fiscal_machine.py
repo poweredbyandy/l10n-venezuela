@@ -102,6 +102,12 @@ class L10nVeFiscalMachine(models.Model):
         readonly=False,
         string="Métodos de pago",
     )
+    l10n_ve_fiscal_default_payment_method_id = fields.Many2one(
+        related="company_id.l10n_ve_fiscal_default_payment_method_id",
+        readonly=False,
+        string="Método de pago por defecto",
+        domain="[('company_id', '=', company_id)]",
+    )
     use_emulator = fields.Boolean(
         string="Usando emulador fiscal",
         help=(

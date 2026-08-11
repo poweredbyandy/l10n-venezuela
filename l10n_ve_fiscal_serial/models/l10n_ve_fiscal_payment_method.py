@@ -57,6 +57,13 @@ class L10nVeFiscalPaymentMethod(models.Model):
         help="Descriptor del medio de pago (máximo 14 caracteres).",
     )
 
+    @api.depends("code", "name")
+    def _compute_display_name(self):
+        for method in self:
+            code = method.code or ""
+            name = method.name or ""
+            method.display_name = f"{code} - {name}".strip(" -")
+
     _sql_constraints = [
         (
             "code_company_uniq",

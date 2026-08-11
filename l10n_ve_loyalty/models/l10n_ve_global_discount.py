@@ -19,6 +19,17 @@ class L10nVeGlobalDiscountMixin(models.AbstractModel):
         required=True,
     )
     discount_percentage = fields.Float(string="Discount percentage", digits="Discount")
+    amount_base = fields.Selection(
+        selection=[
+            ("untaxed", "Subtotal"),
+            ("total", "Total"),
+        ],
+        string="Base del monto",
+        default="untaxed",
+        required=True,
+        help="Para monto fijo: si el importe ingresado aplica sobre el subtotal "
+        "o sobre el total con impuestos.",
+    )
 
 
 def l10n_ve_ordered_global_discounts(discounts):
@@ -27,6 +38,68 @@ def l10n_ve_ordered_global_discounts(discounts):
         "id"
     )
     return percentage + fixed
+
+
+def l10n_ve_taxes_total_factor(taxes):
+    factor = 1.0
+    for tax in taxes.flatten_taxes_hierarchy():
+        if tax.amount_type == "percent":
+            factor += tax.amount / 100.0
+    return factor
+
+
+def l10n_ve_remaining_subtotal_by_taxes(document, subtotal_by_taxes=None):
+    if subtotal_by_taxes is None:
+        subtotal_by_taxes = document._l10n_ve_global_discount_subtotal_by_taxes()
+    running = dict(subtotal_by_taxes)
+    for _discount, amount in l10n_ve_sequential_global_discount_amounts(
+        document, subtotal_by_taxes
+    ):
+        tax_groups = list(running.keys())
+        weights = [running[taxes] for taxes in tax_groups]
+        parts = document._l10n_ve_split_amount_by_weights(amount, weights)
+        for taxes, part in zip(tax_groups, parts):
+            running[taxes] = max(0.0, running[taxes] - part)
+    return running
+
+
+def l10n_ve_fixed_discount_to_untaxed(document, amount, amount_base, subtotal_by_taxes=None):
+    currency = document.currency_id
+    if subtotal_by_taxes is None:
+        subtotal_by_taxes = l10n_ve_remaining_subtotal_by_taxes(document)
+    if amount_base != "total":
+        return currency.round(amount)
+
+    tax_groups = list(subtotal_by_taxes.keys())
+    if not tax_groups:
+        return currency.round(amount)
+
+    weights = []
+    factors = []
+    for taxes in tax_groups:
+        untaxed = subtotal_by_taxes[taxes]
+        factor = l10n_ve_taxes_total_factor(taxes) or 1.0
+        factors.append(factor)
+        weights.append(untaxed * factor)
+
+    available_total = sum(weights)
+    if float_is_zero(available_total, precision_rounding=currency.rounding):
+        return 0.0
+
+    capped = min(amount, available_total)
+    parts = document._l10n_ve_split_amount_by_weights(capped, weights)
+    untaxed_sum = 0.0
+    for part, factor in zip(parts, factors):
+        untaxed_sum += part / factor
+    return currency.round(untaxed_sum)
+
+
+def l10n_ve_available_total_for_discount(document, subtotal_by_taxes=None):
+    remaining = l10n_ve_remaining_subtotal_by_taxes(document, subtotal_by_taxes)
+    return sum(
+        untaxed * (l10n_ve_taxes_total_factor(taxes) or 1.0)
+        for taxes, untaxed in remaining.items()
+    )
 
 
 def l10n_ve_sequential_global_discount_amounts(document, subtotal_by_taxes):

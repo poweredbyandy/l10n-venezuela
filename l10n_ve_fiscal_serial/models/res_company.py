@@ -55,6 +55,16 @@ class ResCompany(models.Model):
         inverse_name="company_id",
         string="Métodos de pago fiscales",
     )
+    l10n_ve_fiscal_default_payment_method_id = fields.Many2one(
+        comodel_name="l10n.ve.fiscal.payment.method",
+        string="Método de pago fiscal por defecto",
+        check_company=True,
+        domain="[('company_id', '=', id)]",
+        help=(
+            "Método de pago fiscal usado al imprimir cuando la factura "
+            "no tiene pagos conciliados."
+        ),
+    )
 
     def _l10n_ve_fiscal_footer_lines(self):
         self.ensure_one()
@@ -88,6 +98,13 @@ class ResCompany(models.Model):
                 )
             if to_create:
                 Method.create(to_create)
+            if not company.l10n_ve_fiscal_default_payment_method_id:
+                default_method = Method.search(
+                    [("company_id", "=", company.id), ("code", "=", "01")],
+                    limit=1,
+                )
+                if default_method:
+                    company.l10n_ve_fiscal_default_payment_method_id = default_method
 
     @api.model_create_multi
     def create(self, vals_list):

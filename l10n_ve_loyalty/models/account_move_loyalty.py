@@ -14,6 +14,7 @@ class AccountMove(models.Model):
         reason=None,
         discount_type="fixed",
         discount_percentage=0.0,
+        amount_base="untaxed",
     ):
         """Create a VE global discount from a loyalty/POS reward amount."""
         self.ensure_one()
@@ -35,5 +36,6 @@ class AccountMove(models.Model):
                 "discount_percentage": discount_percentage
                 if discount_type == "percentage"
                 else 0.0,
+                "amount_base": amount_base or "untaxed",
             }
         )

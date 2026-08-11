@@ -233,6 +233,59 @@ patch(PosOrder.prototype, {
         );
     },
 
+    _l10nVeTaxesTotalFactor(taxIds) {
+        let factor = 1.0;
+        const ids = taxIds || [];
+        for (const taxId of ids) {
+            const tax =
+                typeof taxId === "object"
+                    ? taxId
+                    : this.models["account.tax"]?.get?.(taxId);
+            if (tax?.amount_type === "percent") {
+                factor += (Number(tax.amount) || 0) / 100;
+            }
+        }
+        return factor || 1.0;
+    },
+
+    _l10nVeFixedDiscountToUntaxed(amount, amountBase, discountablePerTax) {
+        const requested = Math.abs(amount || 0);
+        if (floatIsZero(requested) || amountBase !== "total") {
+            return requested;
+        }
+        const entries = Object.entries(discountablePerTax || {});
+        if (!entries.length) {
+            return requested;
+        }
+        let availableTotal = 0;
+        const weights = [];
+        const factors = [];
+        for (const [taxKey, untaxed] of entries) {
+            const taxIds =
+                taxKey === "" ? [] : taxKey.split(",").map((str) => parseInt(str, 10));
+            const factor = this._l10nVeTaxesTotalFactor(taxIds);
+            factors.push(factor);
+            const weight = untaxed * factor;
+            weights.push(weight);
+            availableTotal += weight;
+        }
+        if (floatIsZero(availableTotal)) {
+            return 0;
+        }
+        const capped = Math.min(requested, availableTotal);
+        let untaxedSum = 0;
+        let allocated = 0;
+        for (let index = 0; index < weights.length; index++) {
+            const isLast = index === weights.length - 1;
+            const part = isLast
+                ? capped - allocated
+                : (capped * weights[index]) / availableTotal;
+            allocated += part;
+            untaxedSum += part / (factors[index] || 1);
+        }
+        return untaxedSum;
+    },
+
     _l10nVeBuildSplitsFromBases(discountablePerTax, targetUntaxed) {
         const untaxedAvailable = Object.values(discountablePerTax).reduce(
             (sum, value) => sum + value,
@@ -286,7 +339,13 @@ patch(PosOrder.prototype, {
                     const requested = Math.abs(
                         discount.requested_amount ?? discount.amount ?? 0
                     );
-                    targetUntaxed = Math.min(requested, untaxedAvailable);
+                    const amountBase = discount.amount_base || "untaxed";
+                    targetUntaxed = this._l10nVeFixedDiscountToUntaxed(
+                        requested,
+                        amountBase,
+                        running
+                    );
+                    targetUntaxed = Math.min(targetUntaxed, untaxedAvailable);
                 }
             }
             const splits = floatIsZero(targetUntaxed)
@@ -623,6 +682,7 @@ patch(PosOrder.prototype, {
         percentage,
         name,
         reasonId,
+        amountBase = "untaxed",
     }) {
         const effectiveExisting = this._l10nVeGetEffectiveManualGlobalDiscounts();
         const { discountablePerTax } = this._l10nVeGetDiscountablePerTax();
@@ -644,8 +704,16 @@ patch(PosOrder.prototype, {
         }
 
         let targetUntaxed = amount;
+        const resolvedAmountBase =
+            discountType === "percentage" ? "untaxed" : amountBase || "untaxed";
         if (discountType === "percentage") {
             targetUntaxed = untaxedAvailable * percentage;
+        } else {
+            targetUntaxed = this._l10nVeFixedDiscountToUntaxed(
+                amount,
+                resolvedAmountBase,
+                running
+            );
         }
         targetUntaxed = Math.min(Math.abs(targetUntaxed), untaxedAvailable);
         if (floatIsZero(targetUntaxed)) {
@@ -660,6 +728,7 @@ patch(PosOrder.prototype, {
             discount_type: discountType,
             percentage: discountType === "percentage" ? percentage : 0,
             requested_amount: discountType === "percentage" ? 0 : Math.abs(amount),
+            amount_base: resolvedAmountBase,
             amount: targetUntaxed,
             splits,
         };
@@ -670,6 +739,24 @@ patch(PosOrder.prototype, {
             ],
         });
         return true;
+    },
+
+    _l10nVeGetFiscalGlobalDiscountAmount() {
+        let amount = 0;
+        for (const line of this.lines || []) {
+            if (this._l10nVeIsEwalletRewardLine(line)) {
+                continue;
+            }
+            if (this._l10nVeIsGlobalDiscountLine(line)) {
+                amount += Math.abs(
+                    Number(line.get_price_without_tax?.() ?? line.price_subtotal ?? 0)
+                );
+            }
+        }
+        for (const discount of this._l10nVeGetEffectiveManualGlobalDiscounts()) {
+            amount += Math.abs(Number(discount.amount) || 0);
+        }
+        return this._l10nVeRoundInCurrency(amount, this._l10nVeGetOrderCurrency());
     },
 
     _l10nVeRemoveGlobalDiscountGroup(groupId) {

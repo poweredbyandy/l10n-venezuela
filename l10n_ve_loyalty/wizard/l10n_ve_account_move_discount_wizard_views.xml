@@ -18,6 +18,13 @@
                         required="discount_mode == 'percentage'"
                     />
                     <field
+                        name="amount_base"
+                        widget="radio"
+                        options="{'horizontal': true}"
+                        invisible="discount_mode != 'amount'"
+                        required="discount_mode == 'amount'"
+                    />
+                    <field
                         name="amount"
                         invisible="discount_mode != 'amount'"
                         required="discount_mode == 'amount'"

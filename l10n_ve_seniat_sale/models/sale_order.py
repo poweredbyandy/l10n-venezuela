@@ -416,6 +416,7 @@ class SaleOrder(models.Model):
                         "amount": amount,
                         "discount_type": sale_discount.discount_type,
                         "discount_percentage": sale_discount.discount_percentage,
+                        "amount_base": sale_discount.amount_base or "untaxed",
                         "l10n_ve_sale_discount_id": sale_discount.id,
                     }
                 )

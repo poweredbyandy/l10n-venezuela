@@ -7,10 +7,33 @@ class PosPaymentMethod(models.Model):
     _inherit = "pos.payment.method"
 
     l10n_ve_fiscal_payment_code = fields.Char(
-        related="journal_id.l10n_ve_fiscal_payment_code",
         string="Fiscal payment code",
-        readonly=True,
+        compute="_compute_l10n_ve_fiscal_payment_code",
     )
+
+    @api.depends(
+        "journal_id.l10n_ve_fiscal_payment_code",
+        "journal_id.inbound_payment_method_line_ids."
+        "l10n_ve_fiscal_payment_method_id.code",
+        "journal_id.outbound_payment_method_line_ids."
+        "l10n_ve_fiscal_payment_method_id.code",
+    )
+    def _compute_l10n_ve_fiscal_payment_code(self):
+        for method in self:
+            code = False
+            journal = method.journal_id
+            if journal:
+                for line in (
+                    journal.inbound_payment_method_line_ids
+                    | journal.outbound_payment_method_line_ids
+                ):
+                    fiscal_method = line.l10n_ve_fiscal_payment_method_id
+                    if fiscal_method and fiscal_method.code:
+                        code = fiscal_method.code
+                        break
+                if not code:
+                    code = journal.l10n_ve_fiscal_payment_code or False
+            method.l10n_ve_fiscal_payment_code = code
 
     @api.model
     def _load_pos_data_fields(self, config_id):

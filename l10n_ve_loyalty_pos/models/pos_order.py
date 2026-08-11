@@ -264,6 +264,7 @@ class PosOrder(models.Model):
                 amount=amount,
                 reason=reason,
                 discount_type="fixed",
+                amount_base=discount.get("amount_base") or "untaxed",
             )
 
     def _l10n_ve_convert_amount(self, amount, from_currency, to_currency):
