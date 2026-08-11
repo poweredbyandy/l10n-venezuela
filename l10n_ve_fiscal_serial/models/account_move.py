@@ -229,9 +229,26 @@ class AccountMove(models.Model):
             )
         return lines
 
+    def _l10n_ve_fiscal_serial_default_payment_code(self):
+        self.ensure_one()
+        method = self.company_id.l10n_ve_fiscal_default_payment_method_id
+        if method and method.code:
+            return str(method.code).strip().zfill(2)
+        if self.l10n_ve_igtf_document_has_igtf():
+            return "21"
+        return "01"
+
+    def _l10n_ve_fiscal_serial_payment_method_line_code(self, payment_method_line):
+        if not payment_method_line:
+            return False
+        method = payment_method_line.l10n_ve_fiscal_payment_method_id
+        if method and method.code:
+            return str(method.code).strip().zfill(2)
+        return False
+
     def _l10n_ve_fiscal_serial_journal_fiscal_payment_code(self, journal):
         if not journal:
-            return "01"
+            return self._l10n_ve_fiscal_serial_default_payment_code()
         journal_code = getattr(journal, "l10n_ve_fiscal_payment_code", False)
         if journal_code:
             code = str(journal_code).strip()
@@ -242,7 +259,26 @@ class AccountMove(models.Model):
         )
         if fallback:
             return str(fallback).strip().zfill(2)
-        return "01"
+        for line in journal.inbound_payment_method_line_ids:
+            code = self._l10n_ve_fiscal_serial_payment_method_line_code(line)
+            if code:
+                return code
+        for line in journal.outbound_payment_method_line_ids:
+            code = self._l10n_ve_fiscal_serial_payment_method_line_code(line)
+            if code:
+                return code
+        return self._l10n_ve_fiscal_serial_default_payment_code()
+
+    def _l10n_ve_fiscal_serial_resolve_payment_code(self, payment=None, journal=None):
+        self.ensure_one()
+        if payment:
+            code = self._l10n_ve_fiscal_serial_payment_method_line_code(
+                payment.payment_method_line_id
+            )
+            if code:
+                return code
+            journal = journal or payment.journal_id
+        return self._l10n_ve_fiscal_serial_journal_fiscal_payment_code(journal)
 
     def _l10n_ve_fiscal_serial_payment_lines_from_pos_orders(self):
         self.ensure_one()
@@ -277,8 +313,8 @@ class AccountMove(models.Model):
                 lines.append(
                     {
                         "amount": amount_company,
-                        "payment_method": self._l10n_ve_fiscal_serial_journal_fiscal_payment_code(
-                            journal
+                        "payment_method": self._l10n_ve_fiscal_serial_resolve_payment_code(
+                            journal=journal
                         ),
                     }
                 )
@@ -330,6 +366,7 @@ class AccountMove(models.Model):
             ):
                 continue
             journal = False
+            payment = False
             payment_id = item.get("account_payment_id")
             if payment_id:
                 payment = self.env["account.payment"].browse(payment_id)
@@ -337,7 +374,10 @@ class AccountMove(models.Model):
             else:
                 counterpart_move = self.env["account.move"].browse(item.get("move_id"))
                 journal = counterpart_move.journal_id
-            payment_method = self._l10n_ve_fiscal_serial_journal_fiscal_payment_code(journal)
+            payment_method = self._l10n_ve_fiscal_serial_resolve_payment_code(
+                payment=payment,
+                journal=journal,
+            )
             lines.append(
                 {
                     "amount": amount_company,
@@ -348,10 +388,10 @@ class AccountMove(models.Model):
 
     def _l10n_ve_fiscal_serial_fallback_payment_line(self):
         self.ensure_one()
-        payment_method = "01"
-        if self.l10n_ve_igtf_document_has_igtf():
-            payment_method = "21"
-        return {"amount": 0, "payment_method": payment_method}
+        return {
+            "amount": 0,
+            "payment_method": self._l10n_ve_fiscal_serial_default_payment_code(),
+        }
 
     def _l10n_ve_fiscal_serial_payment_lines_payload(self):
         self.ensure_one()

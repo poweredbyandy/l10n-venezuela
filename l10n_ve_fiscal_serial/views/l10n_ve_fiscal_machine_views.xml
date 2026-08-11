@@ -118,6 +118,13 @@
                                 </group>
                             </group>
                             <group string="Métodos de pago (01-24)">
+                                <group>
+                                    <field
+                                        name="l10n_ve_fiscal_default_payment_method_id"
+                                        options="{'no_create': True}"
+                                        domain="[('company_id', '=', company_id)]"
+                                    />
+                                </group>
                                 <field name="fiscal_payment_method_ids" nolabel="1" colspan="2">
                                     <list editable="bottom" create="false" delete="false">
                                         <field name="code" readonly="1" width="80px"/>
@@ -128,6 +135,8 @@
                                 <div class="text-muted" colspan="2">
                                     Los descriptores se comparten entre todas las
                                     máquinas fiscales de la compañía (comando PE).
+                                    El método por defecto se usa al imprimir cuando
+                                    la factura no tiene pagos.
                                 </div>
                             </group>
                         </page>

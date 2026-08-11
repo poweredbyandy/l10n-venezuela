@@ -200,6 +200,11 @@ export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
     const isRefund =
         order && typeof order._isRefundOrder === "function" && order._isRefundOrder();
     let globalDiscountAmount = 0;
+    if (typeof order?._l10nVeGetFiscalGlobalDiscountAmount === "function") {
+        globalDiscountAmount = Math.abs(
+            Number(order._l10nVeGetFiscalGlobalDiscountAmount()) || 0
+        );
+    }
     const invoiceLines = [];
     for (const line of order?.lines || []) {
         const isEwallet =
@@ -212,9 +217,11 @@ export function l10nVeFiscalSerialPosBuildLocalPayload(pos, order) {
             Boolean(line?.l10n_ve_global_discount) ||
             Boolean(line?.is_reward_line && line.reward_id?.reward_type === "discount");
         if (isGlobalDiscount) {
-            globalDiscountAmount += Math.abs(
-                Number(line.get_price_without_tax?.() ?? line.price_subtotal ?? 0)
-            );
+            if (typeof order?._l10nVeGetFiscalGlobalDiscountAmount !== "function") {
+                globalDiscountAmount += Math.abs(
+                    Number(line.get_price_without_tax?.() ?? line.price_subtotal ?? 0)
+                );
+            }
             continue;
         }
         const product = line.product_id || {};

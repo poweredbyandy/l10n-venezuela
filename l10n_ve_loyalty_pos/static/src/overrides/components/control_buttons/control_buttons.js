@@ -144,11 +144,31 @@ patch(ControlButtons.prototype, {
 
         const isPercentage = discountType === "percentage";
         let amountCurrency = order._l10nVeGetOrderCurrency();
+        let amountBase = "untaxed";
         if (!isPercentage) {
             amountCurrency = await this._l10nVeSelectFixedDiscountCurrency(order);
             if (!amountCurrency) {
                 return;
             }
+            const baseChoice = await makeAwaitable(this.dialog, SelectionPopup, {
+                title: _t("Discount amount base"),
+                list: [
+                    {
+                        id: "untaxed",
+                        item: "untaxed",
+                        label: _t("Subtotal"),
+                    },
+                    {
+                        id: "total",
+                        item: "total",
+                        label: _t("Total"),
+                    },
+                ],
+            });
+            if (!baseChoice) {
+                return;
+            }
+            amountBase = baseChoice;
         }
 
         const amountTitle = amountCurrency?.symbol
@@ -185,6 +205,7 @@ patch(ControlButtons.prototype, {
             percentage: isPercentage ? value / 100 : 0,
             name: reasonName,
             reasonId,
+            amountBase,
         });
         if (result !== true) {
             this.dialog.add(AlertDialog, {

@@ -96,6 +96,46 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeSeniatCommon):
         self.assertAlmostEqual(lines[0]["amount"], subtotal * 0.5, places=2)
         self.assertAlmostEqual(lines[1]["amount"], 10.0, places=2)
 
+    def test_fixed_discount_wizard_on_total_reduces_amount_total(self):
+        move = self._create_invoice(price_unit=100.0)
+        tax = self.company_data["default_tax_sale"]
+        self.assertAlmostEqual(tax.amount, 16.0, places=2)
+        self.assertAlmostEqual(move.amount_untaxed, 100.0, places=2)
+        self.assertAlmostEqual(move.amount_total, 116.0, places=2)
+        wizard = self.env["l10n.ve.account.move.discount.wizard"].create(
+            {
+                "move_id": move.id,
+                "discount_mode": "amount",
+                "amount_base": "total",
+                "amount": 10.0,
+                "reason_id": self._get_discount_reason("Desc total").id,
+            }
+        )
+        wizard.action_apply_discount()
+        self.assertAlmostEqual(move.amount_total, 106.0, places=2)
+        discount = move.l10n_ve_global_discount_ids
+        self.assertEqual(len(discount), 1)
+        self.assertEqual(discount.amount_base, "total")
+        expected_untaxed = move.currency_id.round(10.0 / 1.16)
+        self.assertAlmostEqual(discount.amount, expected_untaxed, places=2)
+
+    def test_fixed_discount_wizard_on_untaxed_keeps_subtotal_base(self):
+        move = self._create_invoice(price_unit=100.0)
+        wizard = self.env["l10n.ve.account.move.discount.wizard"].create(
+            {
+                "move_id": move.id,
+                "discount_mode": "amount",
+                "amount_base": "untaxed",
+                "amount": 10.0,
+                "reason_id": self._get_discount_reason("Desc subtotal").id,
+            }
+        )
+        wizard.action_apply_discount()
+        self.assertAlmostEqual(move.amount_untaxed, 90.0, places=2)
+        self.assertAlmostEqual(move.amount_total, 104.4, places=2)
+        self.assertEqual(move.l10n_ve_global_discount_ids.amount_base, "untaxed")
+        self.assertAlmostEqual(move.l10n_ve_global_discount_ids.amount, 10.0, places=2)
+
     def test_only_one_percentage_global_discount_allowed(self):
         move = self._create_invoice()
         self._add_global_discount(

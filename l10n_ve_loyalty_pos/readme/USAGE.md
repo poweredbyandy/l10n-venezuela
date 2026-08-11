@@ -8,11 +8,14 @@
      en el carrito; se refleja en totales como descuento global.
    - **Descuento global manual**: en Acciones use *Descuento global* para agregar
      monto o porcentaje (con motivo) o para quitar uno existente. En monto fijo
-     puede capturar el valor en BS o en USD ($); si elige dólares, se convierte
+     elija la base (**Subtotal** o **Total**, igual que en factura) y puede
+     capturar el valor en BS o en USD ($); si elige dólares, se convierte
      a la moneda del pedido con la tasa vigente. No usa producto en el carrito;
-     solo afecta totales y la factura.
+     solo afecta totales, la factura y la impresión fiscal (`q-` sobre subtotal).
 4. En el resumen del pedido verá Subtotal, Descuentos, Impuestos y Total.
 5. Al facturar, esos descuentos se registran en `l10n_ve_global_discount_ids`.
+   Si la base fue **Total**, el monto guardado ya es la base imponible equivalente
+   (la máquina fiscal recibe ese valor, no el bruto con IVA).
 6. **Reembolso a monedero**: en un reembolso, si paga con un método **sin diario**
    (crédito / `pay_later`), el monto se abona al monedero electrónico del cliente
    (debe tener cliente seleccionado y un programa eWallet activo en el TPV).
