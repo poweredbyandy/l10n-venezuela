@@ -1,0 +1,706 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_igtf
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:53+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_exchange_rate_inverse
+msgid "1 unit of payment currency = X units of company currency."
+msgstr "1 unidad de moneda de pago = X unidades de moneda de la compañía."
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_account_payment_register_form_l10n_ve_igtf
+msgid "<span>Abono permitido en Bs (IGTF en el saldo actual): </span>"
+msgstr "<span>Abono permitido en Bs (IGTF en el saldo actual): </span>"
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_account_payment_register_form_l10n_ve_igtf
+msgid ""
+"<span>Abono permitido en Bs (base documento, según reglas de cupo): </span>"
+msgstr ""
+"<span>Abono permitido en Bs (base documento, según reglas de cupo): </span>"
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_move_form_igtf_hide_register_payment
+msgid ""
+"<span>La factura no se ha pagado en su totalidad en la moneda del documento "
+"(p. ej. dólares).</span>"
+msgstr ""
+"<span>La factura no se ha pagado en su totalidad en la moneda del documento "
+"(p. ej. dólares).</span>"
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_account_payment_register_form_l10n_ve_igtf
+msgid "<span>Tope de pago de Bs: </span>"
+msgstr "<span>Tope de pago de Bs: </span>"
+
+#. module: l10n_ve_igtf
+#: model:ir.model,name:l10n_ve_igtf.model_account_chart_template
+msgid "Account Chart Template"
+msgstr "Plantilla del plan de cuentas"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__action
+msgid "Action"
+msgstr "Acción"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment_register__l10n_ve_base_amount_company_currency
+msgid "Amount to which IGTF is applied, expressed in the company currency."
+msgstr ""
+"Monto al que se aplica el IGTF, expresado en la moneda de la compañía."
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.res_config_settings_view_form_inherit_l10n_ve_igtf
+#| msgid "Apply IGTF"
+msgid "Aplicar IGTF"
+msgstr "Aplicar IGTF"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment__l10n_ve_apply_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_apply_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_company__l10n_ve_igtf_enabled
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_enabled
+msgid "Apply IGTF"
+msgstr "Aplicar IGTF"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_base_amount_company_currency
+msgid "Base amount (Company currency)"
+msgstr "Monto base (Moneda de la compañía)"
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_l10n_ve_igtf_unreconcile_payment_wizard
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields.selection,name:l10n_ve_igtf.selection__l10n_ve_igtf_unreconcile_payment_wizard__action__cancel
+msgid "Cancel payment"
+msgstr "Cancelar pago"
+
+#. module: l10n_ve_igtf
+#: model:ir.model,name:l10n_ve_igtf.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_amount_company_currency
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_amount_company_currency
+msgid "Computed IGTF amount expressed in the company currency."
+msgstr "Monto de IGTF calculado expresado en la moneda de la compañía."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_amount_currency
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_amount_currency
+msgid "Computed IGTF amount expressed in the payment currency."
+msgstr "Computed IGTF monto expressed en el pago moneda."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_payment.py:0
+msgid ""
+"Computed IGTF exceeds the payment amount. Please review the IGTF percentage."
+msgstr ""
+"Computed IGTF exceeds el pago monto. Por favor review el IGTF porcentaje."
+
+#. module: l10n_ve_igtf
+#: model:ir.model,name:l10n_ve_igtf.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_l10n_ve_igtf_unreconcile_payment_wizard
+msgid "Confirm"
+msgstr "Confirmar"
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_move_form_igtf_hide_register_payment
+msgid "Crear nota de crédito por la diferencia"
+msgstr "Crear nota de crédito por la diferencia"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.res_config_settings_view_form_inherit_l10n_ve_igtf
+msgid "Cuenta IGTF"
+msgstr "Cuenta IGTF"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_currency_ids
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_currency_ids
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_company__l10n_ve_igtf_currency_ids
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_currency_ids
+msgid "Currencies for which IGTF should apply (for example, USD)."
+msgstr "Currencies para which IGTF should aplicar (para example, USD)."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+msgid "Debe configurar la cuenta contable de IGTF."
+msgstr "Debe configurar la cuenta contable de IGTF."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__display_name
+msgid "Display Name"
+msgstr "Nombre para mostrar"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_move_line__display_type
+#| msgid "Display Name"
+msgid "Display Type"
+msgstr "Tipo de visualización"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_payment_register.py:0
+msgid ""
+"El IGTF calculado (%(this)s %(currency)s) supera el máximo permitido "
+"(%(max)s %(currency)s, equivalente al %(pct)s%% del total de la factura en "
+"moneda del sistema). Ya se cobró %(already)s %(currency)s en pagos "
+"anteriores."
+msgstr ""
+"El IGTF calculado (%(this)s %(currency)s) supera el máximo permitido "
+"(%(max)s %(currency)s, equivalente al %(pct)s%% del total de la factura en "
+"moneda del sistema). Ya se cobró %(already)s %(currency)s en pagos "
+"anteriores."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_payment_register.py:0
+msgid ""
+"El IGTF es obligatorio cuando el pago es en las monedas configuradas (ej. "
+"USD). Debe aplicar IGTF para continuar."
+msgstr ""
+"El IGTF es obligatorio cuando el pago es en las monedas configuradas (ej. "
+"USD). Debe aplicar IGTF para continuar."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_payment_register.py:0
+msgid ""
+"En bolívares el abono no puede ser mayor al saldo pendiente total (incluye "
+"el importe que corresponde a la base en moneda documento e IGTF). Máximo "
+"permitido ahora: %(max)s %(cur)s."
+msgstr ""
+"En bolívares el abono no puede ser mayor al saldo pendiente total (incluye "
+"la importación que corresponde a la base en moneda documento e IGTF). Máximo"
+" permitido ahora: %(max)s %(cur)s."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_exchange_rate_inverse
+msgid "Exchange rate"
+msgstr "Exchange tasa"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields.selection,name:l10n_ve_igtf.selection__account_move_line__display_type__l10n_ve_igtf
+msgid "IGTF"
+msgstr "IGTF"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_collected_amount_currency
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_move__l10n_ve_igtf_collected_amount_currency
+msgid "IGTF %"
+msgstr "%IGTF"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_collected_amount_company_currency
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_move__l10n_ve_igtf_collected_amount_company_currency
+msgid "IGTF % (Company Currency)"
+msgstr "IGTF % (Compañía Moneda)"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+msgid "IGTF %(percent)s %%"
+msgstr "IGTF %(percent)s %%"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+msgid "IGTF %s%%"
+msgstr "IGTF %s%%"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_company__l10n_ve_igtf_percent
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_percent
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.res_config_settings_view_form_inherit_l10n_ve_igtf
+msgid "IGTF (%)"
+msgstr "IGTF (%)"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_payment.py:0
+msgid "IGTF (%s%%)"
+msgstr "IGTF (%s%%)"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_amount_company_currency
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_amount_company_currency
+msgid "IGTF (Company currency)"
+msgstr "IGTF (Compañía moneda)"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_amount_currency
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_amount_currency
+msgid "IGTF (Payment currency)"
+msgstr "IGTF (Pago moneda)"
+
+#. module: l10n_ve_igtf
+#. odoo-javascript
+#: code:addons/l10n_ve_igtf/static/src/components/account_payment_field/account_payment.xml:0
+msgid "IGTF -"
+msgstr "IGTF-"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_company__l10n_ve_igtf_account_id
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_account_id
+msgid "IGTF Account"
+msgstr "IGTF Cuenta"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_cap_amount_company_currency
+msgid "IGTF Cap (Company currency)"
+msgstr "IGTF Cap (Compañía moneda)"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_currency_ids
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_currency_ids
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_company__l10n_ve_igtf_currency_ids
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_currency_ids
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.res_config_settings_view_form_inherit_l10n_ve_igtf
+msgid "IGTF Currencies"
+msgstr "Monedas IGTF"
+
+#. module: l10n_ve_igtf
+#: model:account.account,name:l10n_ve_igtf.l10n_ve_igtf_account_igtf_payable
+msgid "IGTF Payable"
+msgstr "IGTF Por pagar"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_l10n_ve_igtf_unreconcile_payment_wizard
+msgid "IGTF Payment"
+msgstr "IGTF Pago"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_residual_amount_company_currency
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_move__l10n_ve_igtf_residual_amount_company_currency
+msgid "IGTF Residual (Company Currency)"
+msgstr "IGTF Residual (Compañía Moneda)"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_company__l10n_ve_igtf_allow_invoice_accrual
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_allow_invoice_accrual
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.res_config_settings_view_form_inherit_l10n_ve_igtf
+msgid "IGTF en facturas"
+msgstr "IGTF en facturas"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_exceeds_max_explanation
+msgid "IGTF exceeds max explanation"
+msgstr "IGTF supera la explicación máxima"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_exceeds_max
+msgid "IGTF exceeds maximum"
+msgstr "IGTF exceeds máximo"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_limit_explanation
+msgid "IGTF limit explanation"
+msgstr "IGTF límite explanation"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_limit_reached
+msgid "IGTF limit reached"
+msgstr "IGTF límite reached"
+
+#. module: l10n_ve_igtf
+#: model:ir.model,name:l10n_ve_igtf.model_l10n_ve_igtf_unreconcile_payment_wizard
+msgid "IGTF payment unreconcile decision"
+msgstr "IGTF pago unreconcile decision"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/res_company.py:0
+msgid "IGTF percentage must be between 0 and 100."
+msgstr "IGTF porcentaje must be between 0 y 100."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_company__l10n_ve_igtf_percent
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_percent
+msgid ""
+"IGTF percentage to split from the payment and post to the IGTF account."
+msgstr ""
+"IGTF porcentaje hasta split desde el pago y post hasta el IGTF cuenta."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_feature_active
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_move__l10n_ve_igtf_feature_active
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_feature_active
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_feature_active
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_company__l10n_ve_igtf_feature_active
+msgid "IGTF regime active"
+msgstr "IGTF regime activo"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+msgid "IGTF sobrante"
+msgstr "IGTF sobrante"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+msgid "IGTF sobrante de %s"
+msgstr "IGTF sobrante de %s"
+
+#. module: l10n_ve_igtf
+#. odoo-javascript
+#: code:addons/l10n_ve_igtf/static/src/components/account_payment_field/account_payment.xml:0
+msgid "IGTF:"
+msgstr "IGTF:"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_hide_register_payment
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_move__l10n_ve_igtf_hide_register_payment
+msgid "IGTF: ocultar Pagar en factura"
+msgstr "IGTF: ocultar Pagar en factura"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_company__l10n_ve_igtf_enabled
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_enabled
+msgid ""
+"If disabled, IGTF is not calculated or shown for this company, even if the "
+"module is installed. Requires fiscal country Venezuela and taxpayer type "
+"Special."
+msgstr ""
+"Si está deshabilitado, el IGTF no se calcula ni se muestra para esta "
+"empresa, incluso si el módulo está instalado. Requiere país fiscal Venezuela"
+" y tipo de contribuyente Especial."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_included
+msgid ""
+"If enabled, the payment amount already includes IGTF. Example: Invoice 100, "
+"IGTF 3% => pay 103 to settle the invoice and record 3 as IGTF."
+msgstr ""
+"If habilitado, el pago monto already includes IGTF. Example: Factura 100, "
+"IGTF 3% => pay 103 hasta settle el factura y registro 3 as IGTF."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_included
+msgid "If enabled, the suggested amount includes IGTF (residual + IGTF)."
+msgstr "If habilitado, el suggested monto includes IGTF (residual + IGTF)."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_included
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_included
+msgid "Include IGTF in amount"
+msgstr "Include IGTF en monto"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__move_id
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: l10n_ve_igtf
+#: model:ir.model,name:l10n_ve_igtf.model_account_move
+#| msgid "Journal Entry Info"
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_igtf
+#. odoo-javascript
+#: code:addons/l10n_ve_igtf/static/src/components/account_payment_field/account_payment_field_patch.js:0
+msgid "Journal Entry Info"
+msgstr "Información del Asiento"
+
+#. module: l10n_ve_igtf
+#: model:ir.model,name:l10n_ve_igtf.model_account_move_line
+#| msgid "Journal Entry Info"
+msgid "Journal Item"
+msgstr "Apunte contable"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields.selection,name:l10n_ve_igtf.selection__l10n_ve_igtf_unreconcile_payment_wizard__action__keep_remove_igtf
+msgid "Keep payment but remove IGTF"
+msgstr "Mantener pago pero eliminar IGTF"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_show_unpaid_in_doc_currency
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_move__l10n_ve_igtf_show_unpaid_in_doc_currency
+msgid "L10N Ve Igtf Show Unpaid In Doc Currency"
+msgstr "L10N Ve Igtf Mostrar impago en moneda Doc"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_config_settings__l10n_ve_is_ve_country
+msgid "L10N Ve Is Ve Country"
+msgstr "Es País Venezuela"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_ves_show_bolivar_split
+msgid "L10N Ve Ves Show Bolivar Split"
+msgstr "L10N Ve Ves Mostrar Bolivar Split"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/res_company.py:0
+msgid "La cuenta de IGTF debe ser de tipo pasivo (corriente o no corriente)."
+msgstr "La cuenta de IGTF debe ser de tipo pasivo (corriente o no corriente)."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+msgid ""
+"La nota de crédito por IGTF sobrante solo se puede crear cuando no queda "
+"base pendiente en la moneda del documento."
+msgstr ""
+"La nota de crédito por IGTF sobrante solo se puede crear cuando no queda "
+"base pendiente en la moneda del documento."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_company__l10n_ve_igtf_account_id
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_account_id
+msgid "Liability account used to record IGTF generated by payments."
+msgstr "Pasivo cuenta used hasta registro IGTF generado por payments."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_ves_suggested_base
+msgid "Límite abono Bs (excl. IGTF en saldo)"
+msgstr "Límite abono Bs (excl. IGTF en saldo)"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_ves_suggested_igtf
+msgid "Límite abono Bs (parte IGTF del saldo)"
+msgstr "Límite abono Bs (parte IGTF del saldo)"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_cap_amount_company_currency
+msgid "Maximum IGTF allowed for this payment from invoice residual IGTF."
+msgstr "Máximo IGTF allowed para este pago desde factura residual IGTF."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/wizard/unreconcile_igtf_payment.py:0
+msgid "Missing data to process the request."
+msgstr "Missing data hasta procesar el solicitud."
+
+#. module: l10n_ve_igtf
+#. odoo-javascript
+#: code:addons/l10n_ve_igtf/static/src/components/account_payment_field/account_payment.xml:0
+msgid "Net reconciled:"
+msgstr "Neto conciliado:"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/wizard/unreconcile_igtf_payment.py:0
+msgid "No IGTF account is configured for the company."
+msgstr "No hay ninguna cuenta IGTF configurada para la empresa."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_payment_register.py:0
+msgid ""
+"No puede confirmar un pago en bolívares en el estado actual de la factura "
+"%(name)s: el asistente o las reglas de cupo/IGTF no lo permiten. Compruebe "
+"el abono o utilice otra moneda, o abra una nota de crédito si corresponde a "
+"la diferencia en moneda de la factura."
+msgstr ""
+"No puede confirmar un pago en bolívares en el estado actual de la factura "
+"%(name)s: el asistente o las reglas de cupo/IGTF no lo permiten. Compruebe "
+"el abono o utilice otra moneda, o abra una nota de crédito si corresponde a "
+"la diferencia en moneda de la factura."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_payment_register.py:0
+msgid ""
+"No se puede aplicar IGTF porque el monto máximo de IGTF permitido (%(max)s "
+"%(currency)s, equivalente al %(pct)s%% del total de la factura en moneda del"
+" sistema) ya fue cobrado en pagos anteriores (%(already)s %(currency)s)."
+msgstr ""
+"No se puede aplicar IGTF porque el monto máximo de IGTF permitido (%(max)s "
+"%(currency)s, equivalente al %(pct)s%% del total de la factura en moneda del"
+" sistema) ya fue cobrado en pagos anteriores (%(already)s %(currency)s)."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_surplus_credit_note
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_move__l10n_ve_igtf_surplus_credit_note
+msgid "Nota de crédito por IGTF sobrante"
+msgstr "Nota de crédito por IGTF sobrante"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__partial_id
+msgid "Partial Reconcile"
+msgstr "Partial Conciliar"
+
+#. module: l10n_ve_igtf
+#: model:ir.model,name:l10n_ve_igtf.model_account_payment_register
+#| msgid "Payment"
+msgid "Pay"
+msgstr "Pagar"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_l10n_ve_igtf_unreconcile_payment_wizard__payment_id
+msgid "Payment"
+msgstr "Pago"
+
+#. module: l10n_ve_igtf
+#: model:ir.model,name:l10n_ve_igtf.model_account_payment
+#| msgid "Payment"
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment__l10n_ve_show_apply_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_show_apply_igtf
+msgid "Show Apply IGTF"
+msgstr "Mostrar Aplicar IGTF"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_settings_eligible
+msgid "Show IGTF settings (Venezuela, special taxpayer)"
+msgstr "Mostrar IGTF ajustes (Venezuela, special contribuyente)"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_company__l10n_ve_igtf_allow_invoice_accrual
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_config_settings__l10n_ve_igtf_allow_invoice_accrual
+msgid ""
+"Si está activo, al confirmar facturas de venta en monedas IGTF (p. ej. USD) "
+"se generan líneas de IGTF en el asiento. Si está desactivado, el IGTF solo "
+"se calcula y registra en cobros y pagos."
+msgstr ""
+"Si está activo, al confirmar facturas de venta en monedas IGTF (p. ej. USD) "
+"se generan líneas de IGTF en el asiento. Si está desactivado, el IGTF solo "
+"se calcula y registra en cobros y pagos."
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.res_config_settings_view_form_inherit_l10n_ve_igtf
+msgid ""
+"Si está desactivado, el IGTF solo se aplica al registrar cobros o pagos;\n"
+"                                    no se generan líneas de IGTF al confirmar la factura en divisa."
+msgstr ""
+"Si está desactivado, el IGTF solo se aplica al registrador de cobros o pagos;\n"
+"                                    no se generan líneas de IGTF al confirmar la factura en divisa."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_hide_register_payment
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_move__l10n_ve_igtf_hide_register_payment
+msgid ""
+"Solo aplica en facturas con IGTF en VE: no mostrar Pagar si solo queda el "
+"IGTF o el cupo en Bs se agotó."
+msgstr ""
+"Solo aplica en facturas con IGTF en VE: no mostrar Pagar si solo queda el "
+"IGTF o el cupo en Bs se agotó."
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.res_config_settings_view_form_inherit_l10n_ve_igtf
+msgid ""
+"Solo para compañías con país fiscal Venezuela y tipo de contribuyente "
+"Especial. Active la casilla para aplicar IGTF en facturas, pagos y totales."
+msgstr ""
+"Solo para compañías con país fiscal Venezuela y tipo de contribuyente "
+"Especial. Activo la casilla para aplicar IGTF en facturas, pagos y totales."
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_bank_statement_line__l10n_ve_igtf_feature_active
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_move__l10n_ve_igtf_feature_active
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment__l10n_ve_igtf_feature_active
+#: model:ir.model.fields,help:l10n_ve_igtf.field_account_payment_register__l10n_ve_igtf_feature_active
+#: model:ir.model.fields,help:l10n_ve_igtf.field_res_company__l10n_ve_igtf_feature_active
+msgid "Technical: IGTF applies (Venezuela, special taxpayer, option enabled)."
+msgstr ""
+"Technical: IGTF applies (Venezuela, special contribuyente, option "
+"habilitado)."
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/wizard/unreconcile_igtf_payment.py:0
+msgid "The payment amount would become negative after removing IGTF."
+msgstr "El pago monto would become negative after removing IGTF."
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.view_l10n_ve_igtf_unreconcile_payment_wizard
+msgid "This payment includes IGTF. What do you want to do?"
+msgstr "Este pago includes IGTF. What do you want hasta do?"
+
+#. module: l10n_ve_igtf
+#: model:ir.model.fields,field_description:l10n_ve_igtf.field_account_payment_register__l10n_ve_ves_payment_cap
+msgid "Tope de pago de Bs"
+msgstr "Tope de pago de Bs"
+
+#. module: l10n_ve_igtf
+#. odoo-javascript
+#: code:addons/l10n_ve_igtf/static/src/components/tax_totals/tax_totals_company_currency_igtf.xml:0
+#: code:addons/l10n_ve_igtf/static/src/components/tax_totals/tax_totals_igtf.xml:0
+msgid "Total"
+msgstr "Total"
+
+#. module: l10n_ve_igtf
+#. odoo-javascript
+#: code:addons/l10n_ve_igtf/static/src/components/tax_totals/tax_totals_company_currency_igtf.xml:0
+#: code:addons/l10n_ve_igtf/static/src/components/tax_totals/tax_totals_igtf.xml:0
+msgid "Total con IGTF"
+msgstr "Total con IGTF"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_move.py:0
+msgid "Untaxed Amount"
+msgstr "Untaxed Monto"
+
+#. module: l10n_ve_igtf
+#: model_terms:ir.ui.view,arch_db:l10n_ve_igtf.res_config_settings_view_form_inherit_l10n_ve_igtf
+msgid "Venezuela - IGTF"
+msgstr "Venezuela-IGTF"
+
+#. module: l10n_ve_igtf
+#. odoo-python
+#: code:addons/l10n_ve_igtf/models/account_payment.py:0
+msgid ""
+"You cannot enable IGTF directly on the payment. Please register the payment "
+"from the invoice wizard (Register Payment)."
+msgstr ""
+"No puedes habilitar IGTF directamente en el pago. Por favor registra el pago"
+" desde el asistente de factura (Registrar Pago)."
