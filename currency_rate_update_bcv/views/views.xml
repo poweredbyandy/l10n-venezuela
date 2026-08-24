@@ -8,13 +8,12 @@
             ref="currency_rate_update.res_currency_rate_update_wizard_form"
         />
         <field name="arch" type="xml">
-          <xpath expr="//group[@name='date_range']" position="attributes">
-            <attribute name="invisible">1</attribute>
-          </xpath>
-          <xpath expr="//group[@name='filter']" position="inside">
-            <h2>Se tomará la tasa de Hoy</h2>
-          </xpath>
-
+            <xpath expr="//group[@name='date_range']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='filter']" position="inside">
+                <h2>Se tomará la tasa de Hoy</h2>
+            </xpath>
         </field>
     </record>
 </odoo>
