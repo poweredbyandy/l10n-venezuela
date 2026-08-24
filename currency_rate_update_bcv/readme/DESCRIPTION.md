@@ -1,7 +1,5 @@
-Este módulo es un proveedor de tasa de cambio para [Currency Rate
-Update](https://github.com/OCA/currency/tree/16.0/currency_rate_update).
+Update Venezuelan official exchange rates by scraping the Banco Central de
+Venezuela (BCV) website.
 
-Consultará la página web del Banco Central de Venezuela para obtener las
-tasas de:
-
-Dólar (USD), Euro (EUR), Yuan (CNY), Rublo (RUB), Lira (TRY)
+The provider reads today's published rates for USD, EUR, CNY, TRY and RUB
+and stores them in Odoo as inverse rates (company currency VES).

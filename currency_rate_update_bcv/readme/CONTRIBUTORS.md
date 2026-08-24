@@ -1,1 +1,3 @@
 - Luis Pinzón <elpinzon@gmail.com>
+- Anderson Armeya
+- andyengit

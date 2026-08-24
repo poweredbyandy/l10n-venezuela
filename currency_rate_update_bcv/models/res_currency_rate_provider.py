@@ -1,8 +1,13 @@
+# Copyright 2023 Luis Pinzón
+# Copyright 2026 Anderson Armeya
+# Copyright 2026 andyengit
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+
 import logging
 from collections import defaultdict
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-import pytz
 import requests
 from lxml import etree
 
@@ -10,14 +15,12 @@ from odoo import fields, models
 
 _logger = logging.getLogger(__name__)
 
-TIMEOUT = 5000
+TIMEOUT = (10, 60)
 MONEDAS = {"EUR": "euro", "CNY": "yuan", "TRY": "lira", "RUB": "rublo", "USD": "dolar"}
-CARACAS_TZ = pytz.timezone(
-    "America/Caracas"
-)  # se necesita porque la hora de bcv es de vzla
+CARACAS_TZ = ZoneInfo("America/Caracas")  # se necesita porque la hora de bcv es de vzla
 
 
-class ResCompany(models.Model):
+class ResCurrencyRateProvider(models.Model):
     _inherit = "res.currency.rate.provider"
     service = fields.Selection(
         selection_add=[("bcv", "BCV scrapping")],
@@ -41,7 +44,7 @@ class ResCompany(models.Model):
         bcv_data = self._scrap(currencies)
 
         for k, v in bcv_data.items():
-            dt = v[1].isoformat()
+            dt = v[1].date().isoformat()
             content[dt][k] = v[0]
 
         return content
@@ -54,6 +57,10 @@ class ResCompany(models.Model):
             fetched_data = requests.get(request_url, verify=False, timeout=TIMEOUT)
         except Exception as e:
             _logger.debug("%s, %s", self._name, e)
+            return rslt
+
+        if fetched_data.status_code != 200:
+            _logger.debug("%s, HTTP %s", self._name, fetched_data.status_code)
             return rslt
 
         available_currency_names = available_currencies
