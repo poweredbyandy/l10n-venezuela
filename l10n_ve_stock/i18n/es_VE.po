@@ -751,6 +751,40 @@ msgstr "m³"
 
 #. module: l10n_ve_stock
 #. odoo-python
+#: code:addons/l10n_ve_stock/models/account_journal_dashboard.py:0
+msgid "Guías de despacho no facturadas"
+msgstr "Guías de despacho no facturadas"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/account_journal_dashboard.py:0
+msgid "Las guías de despacho requieren el módulo de inventario SENIAT."
+msgstr "Las guías de despacho requieren el módulo de inventario SENIAT."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/sale_order.py:0
+msgid ""
+"No se puede confirmar el pedido: con diario en «forma libre» debe "
+"configurar en el almacén «%(warehouse)s» el tramo del talonario para "
+"guías de despacho (SENIAT)."
+msgstr ""
+"No se puede confirmar el pedido: con diario en «forma libre» debe "
+"configurar en el almacén «%(warehouse)s» el tramo del talonario para "
+"guías de despacho (SENIAT)."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/sale_order.py:0
+msgid ""
+"No se puede confirmar el pedido: indique el almacén para validar el "
+"correlativo de guía de despacho (SENIAT)."
+msgstr ""
+"No se puede confirmar el pedido: indique el almacén para validar el "
+"correlativo de guía de despacho (SENIAT)."
+
+#. module: l10n_ve_stock
+#. odoo-python
 #: code:addons/l10n_ve_stock/wizard/l10n_ve_stock_picking_validate_confirmation.py:0
 msgid "Are you sure you want to confirm these deliveries?"
 msgstr "¿Está seguro de confirmar estas entregas?"

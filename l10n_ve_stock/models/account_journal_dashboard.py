@@ -12,7 +12,44 @@ class AccountJournal(models.Model):
         enabled_companies = companies.filtered("l10n_ve_dispatch_guide_enabled")
         if not enabled_companies:
             return self.env["stock.picking"].browse(), False
-        return super()._l10n_ve_seniat_unfactured_dispatch_guides(enabled_companies)
+        candidates = self.env["stock.picking"].search(
+            [
+                ("company_id", "in", enabled_companies.ids),
+                ("state", "=", "done"),
+                ("picking_type_code", "=", "outgoing"),
+                ("l10n_ve_control_number", "!=", False),
+                ("l10n_ve_control_number", "!=", ""),
+            ]
+        )
+        unfactured = candidates.filtered(
+            lambda picking: picking.l10n_ve_is_ve_country
+            and not picking._l10n_ve_dispatch_outgoing_moves_fully_invoiced()
+        )
+        return unfactured, True
+
+    @api.model
+    def get_l10n_ve_invoice_dashboard(self):
+        data = super().get_l10n_ve_invoice_dashboard()
+        if not data.get("visible"):
+            return data
+        ve_companies = self._l10n_ve_seniat_ve_companies()
+        dispatch_guides, dispatch_available = (
+            self._l10n_ve_seniat_unfactured_dispatch_guides(ve_companies)
+        )
+        if not dispatch_available:
+            return data
+        items = list(data.get("items") or [])
+        items.insert(
+            0,
+            {
+                "key": "unfactured_dispatch_guides",
+                "label": _("Guías de despacho no facturadas"),
+                "count": len(dispatch_guides),
+                "show_month_label": False,
+            },
+        )
+        data["items"] = items
+        return data
 
     @api.model
     def action_l10n_ve_invoice_dashboard_open(self, key):

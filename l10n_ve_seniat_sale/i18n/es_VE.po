@@ -250,18 +250,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/l10n_ve_seniat_sale/models/sale_order.py:0
 msgid ""
-"No se puede confirmar el pedido: con diario en «forma libre» debe configurar"
-" en el almacén «%(warehouse)s» el tramo del talonario para guías de despacho"
-" (SENIAT)."
-msgstr ""
-"No se puede confirmar el pedido: con diario en «forma libre» debe configurar"
-" en el almacén «%(warehouse)s» el tramo del talonario para guías de despacho"
-" (SENIAT)."
-
-#. module: l10n_ve_seniat_sale
-#. odoo-python
-#: code:addons/l10n_ve_seniat_sale/models/sale_order.py:0
-msgid ""
 "No se puede confirmar el pedido: el diario de ventas «%(journal)s» está en "
 "«forma libre» (correlativo de talonario) y debe tener configurado el tramo "
 "SENIAT de facturas de cliente."
@@ -269,16 +257,6 @@ msgstr ""
 "No se puede confirmar el pedido: el diario de ventas «%(journal)s» está en "
 "«forma libre» (correlativo de talonario) y debe tener configurado el tramo "
 "SENIAT de facturas de cliente."
-
-#. module: l10n_ve_seniat_sale
-#. odoo-python
-#: code:addons/l10n_ve_seniat_sale/models/sale_order.py:0
-msgid ""
-"No se puede confirmar el pedido: indique el almacén para validar el "
-"correlativo de guía de despacho (SENIAT)."
-msgstr ""
-"No se puede confirmar el pedido: indique el almacén para validar el "
-"correlativo de guía de despacho (SENIAT)."
 
 #. module: l10n_ve_seniat_sale
 #. odoo-python

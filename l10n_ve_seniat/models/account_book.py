@@ -785,15 +785,10 @@ class AccountBookDocument(models.Model):
 
     @api.model
     def _selection_document_ref(self):
-        selection = [
+        return [
             ("account.move", "Invoice / credit note / debit note"),
             ("l10n_ve.book.folio.void", "Anulación de folio (sin movimiento)"),
         ]
-        if "stock.picking" in self.env:
-            selection.append(
-                ("stock.picking", "Dispatch guide (picking)"),
-            )
-        return selection
 
     @api.model
     def _l10n_ve_allowed_res_models(self):
@@ -944,11 +939,7 @@ class AccountBookDocument(models.Model):
             if not ref:
                 continue
             book_company = line.book_id.company_id
-            doc_company = False
-            if line.res_model == "account.move" and "company_id" in ref._fields:
-                doc_company = ref.company_id
-            elif line.res_model == "stock.picking" and "company_id" in ref._fields:
-                doc_company = ref.company_id
+            doc_company = ref.company_id if "company_id" in ref._fields else False
             if doc_company and doc_company != book_company:
                 raise ValidationError(
                     _("The document company must match the book company (%(c)s).")
