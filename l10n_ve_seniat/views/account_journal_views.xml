@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_journal_form_inherit" model="ir.ui.view">
+        <field name="name">account.journal.ve.form</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.view_account_journal_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_sequence']" position="after">
+                <!-- Art. 14 PA SNAT/2011/0071: código forma de pago máquina fiscal. -->
+                <field
+                    name="l10n_ve_fiscal_payment_code"
+                    invisible="country_code != 'VE' or type not in ('bank', 'cash', 'credit')"
+                    placeholder="01"
+                />
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <!-- Art. 6-8 PA SNAT/2011/0071; Art. 3-7 PA SNAT/2024/000102: medio de emisión. -->
+                <page
+                    name="l10n_ve_seniat_page"
+                    string="SENIAT"
+                    invisible="type != 'sale'"
+                >
+                    <group string="Configuración">
+                        <field name="l10n_ve_emission_medium" />
+                        <field
+                            name="l10n_ve_free_form_print_medium"
+                            invisible="l10n_ve_emission_medium != 'free'"
+                        />
+                    </group>
+                    <group
+                        string="Tramos (talonario)"
+                        invisible="type != 'sale' or l10n_ve_emission_medium != 'free'"
+                    >
+                        <!-- Art. 13 num. 3-4 y Art. 27 PA SNAT/2011/0071: tramos NC/ND/factura. -->
+                        <field
+                            name="l10n_ve_invoice_section_id"
+                            required="type == 'sale' and l10n_ve_emission_medium == 'free'"
+                            options="{'no_create': False, 'no_quick_create': True}"
+                        />
+                        <field
+                            name="l10n_ve_debit_note_section_id"
+                            options="{'no_create': False, 'no_quick_create': True}"
+                        />
+                        <field
+                            name="l10n_ve_credit_note_section_id"
+                            required="type == 'sale' and l10n_ve_emission_medium == 'free'"
+                            options="{'no_create': False, 'no_quick_create': True}"
+                        />
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//page[@name='advanced_settings']/group" position="inside">
+                <group
+                    name="l10n_ve_journal_order_limits"
+                    string="Límites por pedido"
+                    invisible="type != 'sale' or country_code != 'VE' or l10n_ve_emission_medium in ('free', 'fiscal_machine')"
+                >
+                    <field name="l10n_ve_limit_invoice_lines" />
+                    <field
+                        name="l10n_ve_max_invoice_lines"
+                        invisible="not l10n_ve_limit_invoice_lines"
+                        required="l10n_ve_limit_invoice_lines"
+                    />
+                    <field name="l10n_ve_limit_picking_lines" />
+                    <field
+                        name="l10n_ve_max_picking_lines"
+                        invisible="not l10n_ve_limit_picking_lines"
+                        required="l10n_ve_limit_picking_lines"
+                    />
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

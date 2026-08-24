@@ -1,0 +1,2980 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_seniat
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:54+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "%(book)s — %(section)s (SENIAT)"
+msgstr "%(book)s — %(section)s (SENIAT)"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "- RIF:"
+msgstr "- RIF:"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#| msgid ""
+#| "<span class=\"d-block text-uppercase fw-bold\">Por cuenta de: </span>"
+msgid ""
+"<span class=\"d-block text-uppercase fw-bold\">FACTURA POR CUENTA DE "
+"TERCEROS:</span>"
+msgstr ""
+"<span class=\"d-block text-uppercase fw-bold\">FACTURA POR CUENTA DE "
+"TERCEROS:</span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+#| msgid "<span>1</span>"
+msgid "<span class=\"mx-1\">–</span>"
+msgstr "<span class=\"mx-1\">–</span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid ""
+"<span class=\"o_form_label\" invisible=\"country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'free'\">\n"
+"                    <span class=\"text-muted\"> - </span>\n"
+"                    <span class=\"text-success\" invisible=\"not l10n_ve_invoice_original_printed\">Original impreso</span>\n"
+"                    <span class=\"text-warning\" invisible=\"l10n_ve_invoice_original_printed\">No impreso</span>\n"
+"                </span>\n"
+"                <span class=\"o_form_label\" invisible=\"country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'digital'\">\n"
+"                    <span class=\"text-muted\"> - </span>\n"
+"                    <span class=\"text-success\" invisible=\"not l10n_ve_digital_invoice_sent\">Enviado</span>\n"
+"                    <span class=\"text-warning\" invisible=\"l10n_ve_digital_invoice_sent\">No enviado</span>\n"
+"                </span>"
+msgstr ""
+"<span class=\"o_form_label\" invisible=\"country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'free'\">\n"
+"                    <span class=\"text-muted\"> - </span>\n"
+"                    <span class=\"text-success\" invisible=\"not l10n_ve_invoice_original_printed\">Original impreso</span>\n"
+"                    <span class=\"text-warning\" invisible=\"l10n_ve_invoice_original_printed\">No impreso</span>\n"
+"                </span>\n"
+"                <span class=\"o_form_label\" invisible=\"country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'digital'\">\n"
+"                    <span class=\"text-muted\"> - </span>\n"
+"                    <span class=\"text-success\" invisible=\"not l10n_ve_digital_invoice_sent\">Enviado</span>\n"
+"                    <span class=\"text-warning\" invisible=\"l10n_ve_digital_invoice_sent\">No enviado</span>\n"
+"                </span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#| msgid ""
+#| "<span class=\"text-uppercase opacity-25 text-danger\" style=\"font-size: "
+#| "40px !important;\">Copia fiel su original</span>"
+msgid ""
+"<span class=\"text-uppercase opacity-25 text-danger\" style=\"font-size: "
+"40px !important;\">ANULADA</span>"
+msgstr ""
+"<span class=\"text-uppercase opacity-25 text-danger\" style=\"font-size: "
+"40px !important;\">ANULADA</span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid ""
+"<span class=\"text-uppercase opacity-25 text-danger\" style=\"font-size: "
+"40px !important;\">Copia fiel su original</span>"
+msgstr ""
+"<span class=\"text-uppercase opacity-25 text-danger\" style=\"font-size: "
+"40px !important;\">Copia fiel su original</span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid ""
+"<span>\n"
+"                        La tasa de cambio de esta factura no coincide con la tasa\n"
+"                        vigente para la fecha del documento.\n"
+"                    </span>"
+msgstr ""
+"<span>\n"
+"                        La tasa de cambio de esta factura no coincide con la tasa\n"
+"                        vigente para la fecha del documento.\n"
+"                    </span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#| msgid "<span>1</span>"
+msgid "<span> - </span>"
+msgstr "<span> - </span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "<span>1</span>"
+msgstr "<span>1</span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "<span>=</span>"
+msgstr "<span>=</span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<span>Ventas por cuenta de terceros Art. 10 de la Ley del IVA.</span>"
+msgstr "<span>Ventas por cuenta de terceros Art. 10 de la Ley del IVA.</span>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#| msgid "<strong>Dirección:</strong>"
+msgid "<strong class=\"me-1\">Dirección:</strong>"
+msgstr "<strong class=\"me-1\">Dirección:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#| msgid "<strong>Términos de pago:</strong>"
+msgid "<strong>Condición de pago:</strong>"
+msgstr "<strong>Condición de pago:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<strong>Factura:</strong>"
+msgstr "<strong>Factura:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<strong>Fecha:</strong>"
+msgstr "<strong>Fecha:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#| msgid "<strong>Fecha:</strong>"
+msgid "<strong>Moneda:</strong>"
+msgstr "<strong>Moneda:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#| msgid "<strong>Factura:</strong>"
+msgid "<strong>Monto Original:</strong>"
+msgstr "<strong>Monto original:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<strong>N° de Control:</strong>"
+msgstr "<strong>N° de Control:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<strong>RIF:</strong>"
+msgstr "<strong>RIF:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<strong>Razón Social:</strong>"
+msgstr "<strong>Razón Social:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<strong>Referencia:</strong>"
+msgstr "<strong>Referencia:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<strong>Términos de pago:</strong>"
+msgstr "<strong>Términos de pago:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "<strong>Vencimiento:</strong>"
+msgstr "<strong>Vencimiento:</strong>"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "A note, whose content usually applies to the section or product above."
+msgstr ""
+"Una nota, cuyo contenido generalmente aplica a la sección o producto "
+"anterior."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "A section title"
+msgstr "Un título de sección"
+
+#. module: l10n_ve_seniat
+#: model:res.groups,comment:l10n_ve_seniat.group_seniat
+msgid "Acceso al menú principal SENIAT"
+msgstr "Acceso al menú principal SENIAT"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_chart_template
+msgid "Account Chart Template"
+msgstr "Plantilla del plan de cuentas"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_move_reversal
+msgid "Account Move Reversal"
+msgstr "Reversión de movimiento de cuenta"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_needaction
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_needaction
+msgid "Action Needed"
+msgstr "Acción Necesaria"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__active
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__active
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__active
+msgid "Active"
+msgstr "Activo"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_ids
+#| msgid "Active"
+msgid "Activities"
+msgstr "Actividades"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Actividad Exception Decoration"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_state
+#| msgid "Active"
+msgid "Activity State"
+msgstr "Estado de actividad"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Icono del tipo de actividad"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_debit_note
+msgid "Add Debit Note wizard"
+msgstr "Asistente para agregar nota de débito"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_line.py:0
+msgid "Added default sales tax to line: %s."
+msgstr "Se agregó impuesto de venta por defecto a la línea: %s."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_book__l10n_ve_max_picking_lines
+msgid ""
+"Al confirmar un pedido, si un albarán supera este número de movimientos de "
+"producto, se dividirá en varias guías de despacho."
+msgstr ""
+"Al confirmar un pedido, si un albarán supera este número de movimientos de "
+"producto, se dividirá en varias guías de despacho."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_book__l10n_ve_max_invoice_lines
+msgid ""
+"Al facturar desde ventas, si el pedido supera este número de líneas de "
+"producto, se generarán varias facturas respetando el límite."
+msgstr ""
+"Al facturar desde ventas, si el pedido supera este número de líneas de "
+"producto, se generarán varias facturas respetando el límite."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_void_folio_count_month
+msgid "Anulaciones de folio (mes actual)"
+msgstr "Anulaciones de folio (mes actual)"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Anular"
+msgstr "Anular"
+
+#. module: l10n_ve_seniat
+#: model:res.groups,name:l10n_ve_seniat.group_l10n_ve_invoice_void
+msgid "Anular Facturas"
+msgstr "Facturas Anulares"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.l10n_ve_account_move_cancel_wizard_view_form
+msgid "Anular documento"
+msgstr "Anular documento"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_l10n_ve_account_move_cancel_wizard
+msgid "Anular documento con motivo (Venezuela)"
+msgstr "Anular documento con motivo (Venezuela)"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_l10n_ve_book_folio_void_wizard_form
+msgid "Anular folio"
+msgstr "Anular folio"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_l10n_ve_book_folio_void_wizard
+msgid "Anular folio en talonario (saltar correlativo)"
+msgstr "Anular folio en talonario (saltar correlativo)"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+msgid "Archived"
+msgstr "Archivado"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_attachment_count
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_attachment_count
+msgid "Attachment Count"
+msgstr "Contador Adjuntos"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_footer_cn_bs
+msgid "B.I"
+msgstr "BI"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_footer_cn_bs
+msgid "Base Imponible IGTF:"
+msgstr "Base Imponible IGTF:"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__l10n_ve_lock_partner_fiscal_data
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__l10n_ve_lock_partner_fiscal_data
+msgid "Bloquear datos fiscales con movimientos"
+msgstr "Bloquear datos fiscales con movimientos"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__book_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__book_id
+msgid "Book"
+msgstr "Libro"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+#: code:addons/l10n_ve_seniat/models/account_move_refund_currency.py:0
+msgid "Borrador"
+msgstr "Borrador"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Buscar nombre o RIF..."
+msgstr "Buscar nombre o RIF..."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_l10n_ve_book_folio_void_wizard_form
+#| msgid "Cancel"
+msgid "Cancelar"
+msgstr "Cancelar"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Canceled"
+msgstr "Cancelado"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_partner.py:0
+msgid ""
+"Cannot change the name or VAT of contact “%(name)s” because it already has "
+"posted accounting entries, invoices or related records. Ask a settings "
+"administrator to apply the change."
+msgstr ""
+"Cannot change el nombre o IVA de contacto “%(name)s” because it already has "
+"publicado accounting entries, facturas o relacionado registros. Ask a "
+"ajustes administrador hasta aplicar el change."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Cant."
+msgstr "Cant."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.l10n_ve_account_move_cancel_wizard_view_form
+msgid "Cerrar"
+msgstr "Cerrar"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_payment__is_retention
+msgid "Check this box if this payment is a retention"
+msgstr "Valida si el pago es una retención"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__code
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__code
+msgid "Code"
+msgstr "Código"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Codigo"
+msgstr "Código"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__company_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__company_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__company_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_debit_note__company_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Company Fiscal Info"
+msgstr "Información fiscal de la empresa"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
+
+#. module: l10n_ve_seniat
+#: model:res.groups,name:l10n_ve_seniat.group_fiscal_config_support
+msgid "Configuraciones fiscales soporte"
+msgstr "Configuraciones fiscales soporte"
+
+#. module: l10n_ve_seniat
+#: model:res.groups,name:l10n_ve_seniat.group_fiscal_config_user
+msgid "Configuraciones fiscales usuario"
+msgstr "Configuraciones fiscales usuario"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_journal_form_inherit
+msgid "Configuración"
+msgstr "Configuración"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"Configure en el diario de ventas los tramos del talonario (facturas, notas "
+"de débito y notas de crédito) para poder asignar el correlativo y el número "
+"de control SENIAT."
+msgstr ""
+"Configure en el diario de ventas los tramos del talonario (facturas, notas "
+"de débito y notas de crédito) para poder asignar el correlativo y el número "
+"de control SENIAT."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_l10n_ve_book_folio_void_wizard_form
+msgid "Confirmar"
+msgstr "Confirmar"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.l10n_ve_account_move_cancel_wizard_view_form
+msgid "Confirmar anulación"
+msgstr "Confirmar anulación"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_res_partner
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_emission_medium__contingency
+msgid "Contingencia"
+msgstr "Contingencia"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Contribuyente Formal"
+msgstr "Contribuyente Formal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_control_number
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_control_number
+msgid "Control Number"
+msgstr "Control Número"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_book_document
+msgid "Control correlatives assigned to a document"
+msgstr "Control correlatives asignado hasta a documento"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_certified_copy
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_certified_copy
+msgid "Copia certificada adjunta"
+msgstr "Copia certificada adjunta"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_certified_copy_delivered
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_certified_copy_delivered
+msgid "Copia certificada entregada"
+msgstr "Copia certificada entregada"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "Correlative %(num)s is outside the book range %(bf)s–%(bt)s."
+msgstr "Correlative %(num)s es outside el libro range %(bf)s–%(bt)s."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "Correlative %(num)s must be between %(bf)s and %(bt)s for this book."
+msgstr "Correlative %(num)s must be between %(bf)s y %(bt)s para este libro."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"Correlative %(num)s must fall within section “%(sec)s” (%(sf)s–%(st)s)."
+msgstr ""
+"Correlative %(num)s must fall within sección “%(sec)s” (%(sf)s–%(st)s)."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__number
+msgid "Correlative number"
+msgstr "Correlative número"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__document_ids
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_tree
+msgid "Correlatives"
+msgstr "Correlativos"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+msgid "Correlativo"
+msgstr "Correlativo"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__country_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__country_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_users__country_id
+msgid "Country"
+msgstr "País"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_debit_note__l10n_ve_fiscal_country_code
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move_reversal__l10n_ve_fiscal_country_code
+#| msgid "Country"
+msgid "Fiscal Country Code"
+msgstr "Código de país fiscal"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.actions.act_window,help:l10n_ve_seniat.action_account_book
+msgid "Create a control number book (talonario)"
+msgstr "Crear talonario de números de control"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_account_move_cancel_wizard__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__create_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__create_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__create_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_account_move_cancel_wizard__create_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__create_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__create_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__create_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__create_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_res_currency
+msgid "Currency"
+msgstr "Moneda"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_res_currency_rate
+msgid "Currency Rate"
+msgstr "Tasa de cambio"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_fiscal_payment_code
+msgid "Código forma de pago fiscal"
+msgstr "Código forma de pago fiscal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_fiscal_payment_code
+msgid ""
+"Código numérico de forma de pago para máquina fiscal TFHKA (01–24). Se usa "
+"al enviar pagos en la impresión fiscal cuando el registro proviene de este "
+"diario."
+msgstr ""
+"Código numérico de forma de pago para máquina fiscal TFHKA (01–24). Se usa "
+"al enviar pagos en la impresión fiscal cuando el registro proviene de este "
+"diario."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__purchase_tax_data
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__purchase_tax_data
+msgid "Datos de Impuestos para Libro de Compras"
+msgstr "Datos de Impuestos para Libro de Compras"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__sale_tax_data
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__sale_tax_data
+msgid "Datos de Impuestos para Libro de Ventas"
+msgstr "Datos de Impuestos para Libro de Ventas"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid "Debe confirmar la factura antes de imprimirla."
+msgstr "Debe confirmar la factura antes de imprimirla."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/wizard/l10n_ve_book_folio_void_wizard.py:0
+msgid "Debe indicar el motivo de la anulación del folio."
+msgstr "Debe indicar el motivo de la anulación del folio."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_reversal.py:0
+msgid "Debe indicar el motivo de reversión antes de continuar."
+msgstr "Debe indicar el motivo de reversión antes de continuar."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.actions.act_window,help:l10n_ve_seniat.action_account_book
+msgid ""
+"Define the global range (e.g. from 1 to 1000) and split it into\n"
+"                sections (e.g. 1–500 and 501–1000) without overlaps."
+msgstr ""
+"Define el global range (e.g. desde 1 hasta 1000) y split it into\n"
+"                sections (e.g. 1–500 y 501–1000) sin overlaps."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Descripción"
+msgstr "Descripción"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__display_name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__display_name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__display_name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_account_move_cancel_wizard__display_name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__display_name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__display_name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__display_name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__display_name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__display_name
+msgid "Display Name"
+msgstr "Nombre para mostrar"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__l10n_ve_correlative_label
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+msgid "Documento / motivo"
+msgstr "Documento / motivo"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Documento afectado"
+msgstr "Documento afectado"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__document_count
+msgid "Documents count"
+msgstr "Documentos conteo"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_certified_copy_deadline
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_certified_copy_deadline
+msgid "Día 5 del mes siguiente a la emisión (Art. 32 PA00071)."
+msgstr "Día 5 del mes siguiente a la emisión (Art. 32 PA00071)."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_currency_form_l10n_ve_rate_list
+msgid "Ediciones"
+msgstr "Ediciones"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__l10n_ve_rate_edit_count
+msgid "Ediciones de tasa"
+msgstr "Ediciones de tasa"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_partner.py:0
+msgid ""
+"El RIF («%(vat)s») no tiene un formato válido para contactos venezolanos. "
+"Use [V/E/J/C/P/G] y el número (ej.: V12345678, J-12.345.678-9)."
+msgstr ""
+"El RIF («%(vat)s») no tiene un formato válido para contactos venezolanos. "
+"Utilice [V/E/J/C/P/G] y el número (ej.: V12345678, J-12.345.678-9)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_journal.py:0
+msgid ""
+"El código forma de pago fiscal del diario “%(journal)s” debe estar entre 01 "
+"y 24."
+msgstr ""
+"El código forma de pago fiscal del diario “%(journal)s” debe estar entre 01 "
+"y 24."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_journal.py:0
+msgid ""
+"El código forma de pago fiscal del diario “%(journal)s” debe ser dos dígitos"
+" (ej.: 01)."
+msgstr ""
+"El código forma de pago fiscal del diario “%(journal)s” debe ser dos dígitos"
+" (ej.: 01)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"El diario está configurado para papel continuo. Instale el módulo "
+"«l10n_ve_invoice_escp» para imprimir la factura en formato ESC/P por USB "
+"(WebUSB), o cambie la impresión en forma libre a PDF en el diario."
+msgstr ""
+"El diario está configurado para papel continuo. Instale el módulo "
+"«l10n_ve_invoice_escp» para imprimir la factura en formato ESC/P por USB "
+"(WebUSB), o cambie la impresión en forma libre a PDF en el diario."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "El espaciado de encabezado de la factura PDF debe ser positivo o cero."
+msgstr ""
+"El espaciado de encabezado de la factura PDF debe ser positivo o cero."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_journal.py:0
+msgid ""
+"El formato «Papel continuo» solo está permitido cuando el medio de emisión "
+"del diario «%(journal)s» es «Forma libre»."
+msgstr ""
+"El formato «Papel continuo» solo está permitido cuando el medio de emisión "
+"del diario «%(journal)s» es «Forma libre»."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "El máximo de líneas por factura debe ser al menos 1."
+msgstr "El máximo de líneas por factura debe ser al menos 1."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_journal.py:0
+msgid ""
+"El máximo de líneas por factura del diario «%(journal)s» debe ser al menos "
+"1."
+msgstr ""
+"El máximo de líneas por factura del diario «%(journal)s» debe ser al menos "
+"1."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "El máximo de líneas por guía de despacho debe ser al menos 1."
+msgstr "El máximo de líneas por guía de despacho debe ser al menos 1."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_journal.py:0
+msgid ""
+"El máximo de líneas por guía del diario «%(journal)s» debe ser al menos 1."
+msgstr ""
+"El máximo de líneas por guía del diario «%(journal)s» debe ser al menos 1."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"El número de control '%(num)s' ya está asignado a otro documento en el "
+"diario '%(journal)s' (empresa %(company)s)."
+msgstr ""
+"El número de control '%(num)s' ya está asignado a otro documento en el "
+"diario '%(journal)s' (empresa %(company)s)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/product_template.py:0
+msgid ""
+"El precio de venta del producto \"%(name)s\" debe ser mayor que cero "
+"(variante: %(variant)s)."
+msgstr ""
+"El precio de venta del producto \"%(name)s\" debe ser mayor que cero "
+"(variante: %(variant)s)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/product_template.py:0
+msgid ""
+"El precio de venta del producto \"%(name)s\" no puede ser inferior al coste "
+"(variante: %(variant)s)."
+msgstr ""
+"El precio de venta del producto \"%(name)s\" no puede ser inferior al costo "
+"(variante: %(variant)s)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/product_template.py:0
+msgid ""
+"El producto \"%(name)s\" debe tener exactamente un impuesto de compras en "
+"compañías venezolanas (tiene %(n)d)."
+msgstr ""
+"El producto \"%(name)s\" debe tener exactamente un impuesto de compras en "
+"compañías venezolanas (tiene %(n)d)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/product_template.py:0
+msgid ""
+"El producto \"%(name)s\" debe tener exactamente un impuesto de ventas en "
+"compañías venezolanas (tiene %(n)d)."
+msgstr ""
+"El producto \"%(name)s\" debe tener exactamente un impuesto de ventas en "
+"compañías venezolanas (tiene %(n)d)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "El tramo no pertenece a este talonario."
+msgstr "El tramo no pertenece a este talonario."
+
+#. module: l10n_ve_seniat
+#: model:ir.actions.act_window,name:l10n_ve_seniat.action_seniat_companies
+#: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_companies
+msgid "Empresas"
+msgstr "Empresas"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid "En contingencia no esta permitido abrir la vista previa del documento."
+msgstr ""
+"En contingencia no esta permitido abrir la vista previa del documento."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid "En contingencia no esta permitido enviar el documento por correo."
+msgstr "En contingencia no esta permitido enviar el documento por correo."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/ir_actions_report.py:0
+msgid ""
+"En contingencia no esta permitido imprimir ni descargar el PDF de la factura"
+" (ni en borrador ni confirmada)."
+msgstr ""
+"En contingencia no esta permitido imprimir ni descargar el PDF de la factura"
+" (ni en borrador ni confirmada)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"En contingencia no esta permitido imprimir ni enviar el documento desde esta"
+" acción."
+msgstr ""
+"En contingencia no esta permitido imprimir ni enviar el documento desde esta"
+" acción."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"En el diario de ventas (Contabilidad → Diarios → pestaña SENIAT Talonario) "
+"asigne el tramo de facturas, el de notas de crédito y, si lo usa, el de "
+"notas de débito. Sin tramo no se asignará correlativo al publicar."
+msgstr ""
+"En el diario de ventas (Contabilidad → Diarios → pestaña SENIAT Talonario) "
+"asigne el tramo de facturas, el de notas de crédito y, si lo usa, el de "
+"notas de débito. Sin tramo no se asignará correlativo al público."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"En el tramo «%(sec)s» del talonario «%(book)s», los correlativos deben "
+"empezar en %(start)s."
+msgstr ""
+"En el tramo «%(sec)s» del talonario «%(book)s», los correlativos deben "
+"empezar en %(start)s."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"En la pestaña «Tramos», divida el rango en segmentos contiguos sin "
+"solaparse. Cada tramo recibe una secuencia interna enlazada automáticamente."
+msgstr ""
+"En la pestaña «Tramos», divida el rango en segmentos contiguos sin "
+"solaparse. Cada tramo recibe una secuencia interna enlazada automáticamente."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"En una nota de crédito (VE) no puede incluirse el producto «%(product)s» "
+"porque no está en la factura original %(origin)s."
+msgstr ""
+"En una nota de crédito (VE) no puede incluirse el producto «%(product)s» "
+"porque no está en la factura original %(origin)s."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"En una nota de crédito (VE), una línea sin producto no puede usar la "
+"descripción «%(text)s» porque coincide con el nombre de un producto "
+"existente."
+msgstr ""
+"En una nota de crédito (VE), una línea sin producto no puede usar la "
+"descripción «%(text)s» porque coincide con el nombre de un producto "
+"existente."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__number_to
+msgid "End number"
+msgstr "End número"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_invoice_header_spacing
+msgid "Espaciado de encabezado (factura PDF)"
+msgstr "Espaciado de encabezado (factura PDF)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_book__l10n_ve_invoice_header_spacing
+msgid ""
+"Espaciado superior del encabezado al imprimir facturas en PDF. Se aplica "
+"mediante el formato de papel asociado a este talonario."
+msgstr ""
+"Espaciado superior del encabezado al imprimir facturas en PDF. Se aplica "
+"mediante el formato de papel asociado a este talonario."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/wizard/l10n_ve_account_move_cancel_wizard.py:0
+msgid "Este asistente solo aplica a documentos de Venezuela."
+msgstr "Este asistente solo aplica a documentos de Venezuela."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"Este documento se expresa conforme a la normativa tributaria vigente "
+"(SENIAT)."
+msgstr ""
+"Este documento se expresa conforme a la normativa tributaria vigente "
+"(SENIAT)."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__purchase_tax_data
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__sale_tax_data
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__purchase_tax_data
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__sale_tax_data
+msgid ""
+"Estructura: {tax_group_id: {'base': X, 'amount': Y, 'tax_type': "
+"'exempt|reduced|general|extend'}}"
+msgstr ""
+"Estructura: {tax_group_id: {'base': X, 'monto': Y, 'tax_type': "
+"'exempt|reduced|general|extend'}}"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Exempt Aliquot"
+msgstr "Alícuota exenta"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__exent_aliquot_purchase
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__exent_aliquot_purchase
+msgid "Exent Aliquot Purchase"
+msgstr "Exent Aliquot Compra"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__exent_aliquot_sale
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__exent_aliquot_sale
+msgid "Exent Aliquot Sale"
+msgstr "Exent Aliquot Venta"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__l10n_ve_enforce_sale_price_ge_cost
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__l10n_ve_enforce_sale_price_ge_cost
+msgid "Exigir precio de venta mayor o igual al coste"
+msgstr "Exigir precio de venta mayor o igual al coste"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__extend_aliquot_purchase
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__extend_aliquot_purchase
+msgid "Extend Aliquot Purchase"
+msgstr "Extend Aliquot Compra"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__extend_aliquot_sale
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__extend_aliquot_sale
+msgid "Extend Aliquot Sale"
+msgstr "Extend Aliquot Venta"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Extended Aliquot"
+msgstr "Alícuota extendida"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "FACTURA"
+msgstr "FACTURA"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "Factura VE - %(book)s (%(company)s)"
+msgstr "Factura VE - %(book)s (%(company)s)"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Factura:"
+msgstr "Factura:"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_emission_medium__digital
+msgid "Facturación digital"
+msgstr "Facturación digital"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party_enabled
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_on_behalf_of_third_party_enabled
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__l10n_ve_on_behalf_of_third_party_enabled
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__l10n_ve_on_behalf_of_third_party_enabled
+msgid "Facturación por cuenta de terceros habilitada"
+msgstr "Facturación por cuenta de terceros habilitada"
+
+#. module: l10n_ve_seniat
+#: model:l10n_ve.invoice.cancel.reason,name:l10n_ve_seniat.l10n_ve_cancel_reason_print_fail
+msgid "Falló de Impresión"
+msgstr "Falló de Impresión"
+
+#. module: l10n_ve_seniat
+#: model:l10n_ve.invoice.cancel.reason,name:l10n_ve_seniat.l10n_ve_cancel_reason_paper_fail
+msgid "Falló de Papel"
+msgstr "Falló de Papel"
+
+#. module: l10n_ve_seniat
+#: model:l10n_ve.invoice.cancel.reason,name:l10n_ve_seniat.l10n_ve_cancel_reason_correlative_fail
+msgid "Falló del Correlativo"
+msgstr "Falló del Correlativo"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_process_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_process_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_payment__l10n_ve_process_date
+msgid "Fecha de proceso"
+msgstr "Fecha de proceso"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_invoice_date
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_invoice_tree
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Fecha del documento"
+msgstr "Fecha y hora de la factura"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_number
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_invoice_number
+msgid "Fiscal Invoice Number"
+msgstr "Número de factura fiscal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_serial_number
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_serial_number
+msgid "Fiscal Machine Serial"
+msgstr "Serie de máquinas fiscales"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_book
+msgid "Fiscal control book (talonario)"
+msgstr "Libro de control fiscal (talonario)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_book_section
+msgid "Fiscal control book section"
+msgstr "Sección libro de control fiscal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_follower_ids
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_follower_ids
+msgid "Followers"
+msgstr "Seguidores"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_partner_ids
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Seguidores (Socios)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "Fuente awesome icono e.g. fa-tasks"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_emission_medium__free
+msgid "Forma libre (correlativo de talonario)"
+msgstr "Forma libre (correlativo de talonario)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_journal_emission_medium
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_emission_medium
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_journal_emission_medium
+msgid ""
+"Forma libre: asigna correlativo desde el talonario interno. Contingencia: no"
+" usa el talonario; el N° de control se indica en la factura antes de "
+"confirmar. Máquina fiscal y facturación digital: tampoco generan correlativo"
+" automático del talonario; el N° de control debe consignarse manualmente "
+"antes de confirmar."
+msgstr ""
+"Forma libre: asigna correlativo desde el talonario interno. Contingencia: no"
+" usa el talonario; el N° de control se indica en la factura antes de "
+"confirmar. Máquina fiscal y facturación digital: tampoco generan correlativo"
+" automático del talonario; el N° de control debe consignarse manualmente "
+"antes de confirmar."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_date
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_invoice_date
+msgid ""
+"Forma libre: se asigna al confirmar. Contingencia: indíquela antes de "
+"confirmar. Facturación digital: fecha de sincronización con la imprenta. "
+"Máquina fiscal: fecha en que se imprimió el documento."
+msgstr ""
+"Forma libre: se asigna al confirmar. Contingencia: indíquela antes de "
+"confirmar. Facturación digital: fecha de sincronización con la imprenta. "
+"Máquina fiscal: fecha en que se imprimió el documento."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__res_partner__taxpayer_type__formal
+msgid "Formal"
+msgstr "Formal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__paperformat_id
+msgid "Formato de papel (factura PDF)"
+msgstr "Formato de papel (factura PDF)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_book__paperformat_id
+msgid ""
+"Formato de papel generado automáticamente para imprimir facturas asignadas a"
+" este talonario."
+msgstr ""
+"Formato de papel generado automáticamente para imprimir facturas asignadas a"
+" este talonario."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "General Aliquot"
+msgstr "Alícuota general"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__general_aliquot_purchase
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__general_aliquot_purchase
+msgid "General Aliquot Purchase"
+msgstr "General Aliquot Compra"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__general_aliquot_sale
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__general_aliquot_sale
+msgid "General Aliquot Sale"
+msgstr "General Aliquot Venta"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_setup_guide
+msgid "Guía de configuración del talonario"
+msgstr "Guía de configuración del talonario"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_ir_http
+msgid "HTTP Routing"
+msgstr "Enrutamiento HTTP"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__has_message
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__has_message
+msgid "Has Message"
+msgstr "Tiene Mensaje"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"Hay %(n)s anulación(es) de folio registrada(s) en el mes actual en este "
+"talonario."
+msgstr ""
+"Hay %(n)s anulación(es) de folio registrada(s) en el mes actual en este "
+"talonario."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_account_move_cancel_wizard__id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__id
+msgid "ID"
+msgstr "ID"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_footer_cn_bs
+msgid "IGTF"
+msgstr "IGTF"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_exception_icon
+msgid "Icon"
+msgstr "Icono"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Icono hasta indicate an exception actividad."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__message_needaction
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency_rate__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si activado, los nuevos mensajes requieren su atención."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__message_has_error
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__message_has_sms_error
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency_rate__message_has_error
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency_rate__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si activado, algunos mensajes tienen un error de entrega."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_free_form_print_medium
+msgid "Impresión en forma libre"
+msgstr "Impresión en forma libre"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Impuesto"
+msgstr "Impuesto"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_on_behalf_of_third_party
+msgid "Indicador por cuenta de terceros"
+msgstr "Indicador por cuenta de terceros"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__reception_date
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__reception_date
+msgid ""
+"Date when the invoice was received by the client/company. When set, "
+"payment terms and installment due dates are computed from this date "
+"instead of the invoice date."
+msgstr ""
+"Fecha en que el cliente o la empresa recibió la factura. Si está definida, "
+"los plazos de pago y el vencimiento de las cuotas se calculan a partir de "
+"esta fecha en lugar de la fecha de la factura."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_l10n_ve_book_folio_void_wizard_form
+msgid ""
+"Indique el motivo por el que consume un correlativo sin factura u otro "
+"documento."
+msgstr ""
+"Indique el motivo por el que consume un correlativo sin factura u otro "
+"documento."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"Indique el rango global del talonario (desde / hasta). Todos los números de "
+"control deben quedar dentro de ese intervalo."
+msgstr ""
+"Indique el rango global del talonario (desde / hasta). Todos los números de "
+"control deben quedar dentro de ese intervalo."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_number
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_invoice_number
+msgid "Invoice number from the fiscal machine"
+msgstr "Número de factura de la máquina fiscal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_is_follower
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_is_follower
+msgid "Is Follower"
+msgstr "Es Seguidor"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_payment__is_retention
+msgid "Is retention"
+msgstr "Es Retención"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_journal
+msgid "Journal"
+msgstr "Diario"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_move
+#| msgid "Country"
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_move_line
+msgid "Journal Item"
+msgstr "Apunte contable"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_digital_invoice_sent
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_digital_invoice_sent
+msgid "L10N Ve Digital Invoice Sent"
+msgstr "L10N Ve Digital Factura Enviado"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_hide_invoice_preview_send
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_hide_invoice_preview_send
+msgid "L10N Ve Hide Invoice Preview Send"
+msgstr "L10N Ve Ocultar Factura Preview Enviar"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_hide_invoice_print_pdf
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_hide_invoice_print_pdf
+msgid "L10N Ve Hide Invoice Print Pdf"
+msgstr "L10N Ve Ocultar Factura Imprimir Pdf"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__l10n_ve_is_today
+msgid "L10N Ve Is Today"
+msgstr "L10N Ve Es Today"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_lock_credit_debit_journal
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_lock_credit_debit_journal
+msgid "L10N Ve Lock Credit Debit Journal"
+msgstr "L10N Ve Lock Crédito Débito Diario"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__l10n_ve_rate_count_readonly
+msgid "L10N Ve Rate Count Readonly"
+msgstr "L10N Ve Recuento de tasas Sólo lectura"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_product_product__l10n_ve_sale_taxes_readonly
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_product_template__l10n_ve_sale_taxes_readonly
+msgid "L10N Ve Sale Taxes Readonly"
+msgstr "L10N Ve Impuestos sobre la venta Sólo lectura"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_show_control_number_ui
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_show_control_number_ui
+msgid "L10N Ve Show Control Number Ui"
+msgstr "L10N Ve Mostrar Control Número Ui"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_show_credit_debit_actions
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_show_credit_debit_actions
+msgid "L10N Ve Show Credit Debit Actions"
+msgstr "L10N Ve Mostrar Crédito Débito Acciones"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_void_folio_alert
+msgid "L10N Ve Void Folio Alert"
+msgstr "Alerta de folio vacío L10N Ve"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_void_folio_alert_text
+msgid "L10N Ve Void Folio Alert Text"
+msgstr "L10N Ve Void Folio Alert Texto"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"La fecha de vencimiento no puede ser anterior a la fecha de la factura."
+msgstr ""
+"La fecha de vencimiento no puede ser anterior a la fecha de la factura."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_refund_currency.py:0
+msgid ""
+"La nota de crédito '%(credit)s' no coincide en líneas con la factura origen "
+"'%(origin)s'. Revise el borrador o cree la reversión desde el asistente "
+"estándar."
+msgstr ""
+"La nota de crédito '%(credit)s' no coincide en líneas con la factura origen "
+"'%(origin)s'. Revise el borrador o crea la reversión desde el asistente "
+"estándar."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"La pestaña «Correlatives» permite al administrador contable corregir o "
+"eliminar correlativos. Al modificar una línea se actualiza el N° de control "
+"del documento enlazado; al eliminarla se limpia ese N° de control."
+msgstr ""
+"La pestaña «Correlatives» permite al administrador contable corregir o "
+"eliminar correlativos. Al modificar una línea se actualiza el N° de control "
+"del documento enlazado; al eliminarla se limpia ese N° de control."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_refund_currency.py:0
+msgid ""
+"Las líneas de la nota de crédito no coinciden con la factura origen (tipo de"
+" línea distinto)."
+msgstr ""
+"Las líneas de la nota de crédito no coinciden con el origen de la factura "
+"(tipo de línea distinta)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "Las líneas de margen ESC/P deben estar entre 0 y 127."
+msgstr "Las líneas de margen ESC/P deben estar entre 0 y 127."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_account_move_cancel_wizard__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__write_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__write_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__write_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_account_move_cancel_wizard__write_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__write_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__write_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__write_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__write_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: l10n_ve_seniat
+#: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_localization
+msgid "Localización"
+msgstr "Localización"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_journal_form_inherit
+msgid "Límites por pedido (otros medios de emisión)"
+msgstr "Límites por pedido (otros medios de emisión)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_escp_invoice_margin_lines
+msgid "Líneas de margen (factura ESC/P)"
+msgstr "Líneas de margen (factura ESC/P)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_book__l10n_ve_escp_invoice_margin_lines
+msgid ""
+"Líneas en blanco al inicio del papel continuo antes del encabezado al "
+"imprimir la factura en formato ESC/P (impresora matriz). Use 0 si no "
+"requiere margen superior."
+msgstr ""
+"Líneas en blanco al inicio del papel continuo antes del encabezado al "
+"imprimir la factura en formato ESC/P (impresora matriz). Utilice 0 si no "
+"requiere margen superior."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_emission_medium
+msgid "Medio de emisión"
+msgstr "Medio de emisión"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_journal_emission_medium
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_journal_emission_medium
+msgid "Medio de emisión (diario)"
+msgstr "Medio de emisión (diario)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_has_error
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_has_error
+msgid "Message Delivery error"
+msgstr "Error de Entrega de Mensaje"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_ids
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_ids
+msgid "Messages"
+msgstr "Mensajes"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "Model “%(m)s” is not allowed for fiscal correlatives."
+msgstr "No se permite el modelo “%(m)s” para correlativos fiscales."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__reason
+msgid "Motivo"
+msgstr "Motivo"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_cancel_reason_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_cancel_reason_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_account_move_cancel_wizard__reason_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Motivo de anulación"
+msgstr "Motivo de anulación"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_l10n_ve_invoice_cancel_reason
+msgid "Motivo de anulación de documento fiscal (Venezuela)"
+msgstr "Motivo de anulación de documento fiscal (Venezuela)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_l10n_ve_book_folio_void
+msgid "Motivo de anulación de folio (talonario sin movimiento)"
+msgstr "Motivo de anulación de folio (talonario sin movimiento)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__reason
+msgid ""
+"Motivo por el cual se consume un número de control sin documento asociado."
+msgstr ""
+"Motivo por el cual se consume un número de control sin documento asociado."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_account_move_cancel_wizard__move_id
+msgid "Move"
+msgstr "Mover"
+
+#. module: l10n_ve_seniat
+#: model:ir.actions.act_window,name:l10n_ve_seniat.action_res_country_municipality
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_res_country_municipality_tree
+msgid "Municipalities"
+msgstr "Municipios"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_res_country_municipality
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__municipality_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__municipality_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_users__municipality_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_partner_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_res_country_municipality_form
+msgid "Municipality"
+msgstr "Municipio"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "My Actividad Fecha límite"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Máquina Fiscal"
+msgstr "Máquina Fiscal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_emission_medium__fiscal_machine
+msgid "Máquina fiscal"
+msgstr "Máquina fiscal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_max_invoice_lines
+msgid "Máximo de líneas por factura"
+msgstr "Máximo de líneas por factura"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_max_invoice_lines
+msgid "Máximo de líneas por factura (diario)"
+msgstr "Máximo de líneas por factura (diario)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_max_picking_lines
+msgid "Máximo de líneas por guía de despacho"
+msgstr "Máximo de líneas por guía de despacho"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_max_picking_lines
+msgid "Máximo de líneas por guía de despacho (diario)"
+msgstr "Máximo de líneas por guía de despacho (diario)"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "NOTA DE CREDITO"
+msgstr "NOTA DE CREDITO"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "NOTA DE DEBITO"
+msgstr "NOTA DE DEBITO"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__name
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_parish__name
+msgid "Name"
+msgstr "Nombre"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "Siguiente Actividad Calendario Event"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Siguiente Actividad Fecha límite"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_summary
+msgid "Next Activity Summary"
+msgstr "Siguiente Actividad Resumen"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_type_id
+msgid "Next Activity Type"
+msgstr "Siguiente tipo de actividad"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_tax.py:0
+msgid ""
+"No está permitido modificar el nombre de los impuestos del país Venezuela."
+msgstr ""
+"No está permitido modificar el nombre de los impuestos del país Venezuela."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_tax.py:0
+msgid ""
+"No está permitido modificar la alícuota de los impuestos del país Venezuela."
+msgstr ""
+"No está permitido modificar la alícuota de los impuestos del país Venezuela."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"No hay correlativos disponibles en el tramo «%(sec)s» (%(sf)s–%(st)s) del "
+"talonario «%(book)s»."
+msgstr ""
+"No hay correlativos disponibles en el tramo «%(sec)s» (%(sf)s–%(st)s) del "
+"talonario «%(book)s»."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No puede confirmar esta nota de crédito o débito: el contacto debe ser el "
+"mismo que el de la factura de origen (%(partner)s)."
+msgstr ""
+"No puede confirmar esta nota de crédito o débito: el contacto debe ser el "
+"mismo que el de la factura de origen (%(partner)s)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No puede confirmar esta nota de crédito o débito: el diario (%(journal)s) "
+"debe ser el mismo que el de la factura de origen (%(origin_journal)s)."
+msgstr ""
+"No puede confirmar esta nota de crédito o débito: el diario (%(journal)s) "
+"debe ser el mismo que el de la factura de origen (%(origin_journal)s)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No puede crear una nota de crédito o débito: la factura aún no fue emitida."
+msgstr ""
+"No puede crear una nota de crédito o débito: la factura aún no fue emitida."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No puede crear una nota de crédito o débito: la factura debe enviarse por "
+"facturación digital antes de revertirla."
+msgstr ""
+"No puede crear una nota de crédito o débito: la factura debe enviarse por "
+"facturación digital antes de revertirla."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No puede crear una nota de crédito o débito: la factura debe imprimirse en "
+"forma libre antes de revertirla."
+msgstr ""
+"No puede crear una nota de crédito o débito: la factura debe imprimirse en "
+"forma libre antes de revertirla."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No puede crear una nota de crédito o débito: la factura debe imprimirse en "
+"máquina fiscal antes de revertirla."
+msgstr ""
+"No puede crear una nota de crédito o débito: la factura debe imprimirse en "
+"la máquina fiscal antes de revertirla."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/ir_actions_report.py:0
+msgid ""
+"No puede imprimir ni descargar la factura hasta que el envio a la imprenta "
+"digital finalice correctamente (estado EDI: enviado)."
+msgstr ""
+"No puede imprimir ni descargar la factura hasta que el envío a la impresión "
+"digital finalice correctamente (estado EDI: enviado)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No puede modificar el diario ni el contacto en notas de crédito o débito "
+"para empresas con fiscalidad venezolana."
+msgstr ""
+"No puede modificar el diario ni el contacto en notas de crédito o débito "
+"para empresas con fiscalidad venezolana."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_debit_note.py:0
+msgid ""
+"No puede modificar el diario ni la fecha de la nota de débito para empresas "
+"con fiscalidad venezolana."
+msgstr ""
+"No puede modificar el diario ni la fecha de la nota de débito para empresas "
+"con fiscalidad venezolana."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_reversal.py:0
+msgid ""
+"No puede modificar el diario ni la fecha de reversión en notas de crédito "
+"para empresas con fiscalidad venezolana."
+msgstr ""
+"No puede modificar el diario ni la fecha de reversión en notas de crédito "
+"para empresas con fiscalidad venezolana."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/product_template.py:0
+msgid ""
+"No puede modificar el impuesto de ventas de un producto que ya figura en "
+"facturas de cliente o notas de crédito confirmadas."
+msgstr ""
+"No puede modificar el impuesto de ventas de un producto que ya figura en "
+"facturas de cliente o notas de crédito confirmadas."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_currency_rate.py:0
+msgid "No puede modificar manualmente el contador de ediciones de la tasa."
+msgstr "No puede modificar manualmente el contador de ediciones de la tasa."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_line.py:0
+msgid ""
+"No se permite un descuento del 100%% en la línea de factura. La línea "
+"\"%(line)s\" tiene %(discount)s%%."
+msgstr ""
+"No se permite un descuento del 100%% en la línea de factura. La línea "
+"\"%(line)s\" tiene %(discount)s%%."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_line.py:0
+msgid ""
+"No se permiten líneas con precio menor o igual a cero. La línea \"%(line)s\""
+" tiene precio %(price)s. Use el producto de descuento de la compañía "
+"(asistente Descuento en pedidos) o corrija el importe."
+msgstr ""
+"No se permiten líneas con precio menor o igual a cero. La línea \"%(line)s\""
+" tiene precio %(price)s. Use el producto de descuento de la compañía "
+"(asistente de descuento en pedidos) o corrija el importado."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"No se permiten saltos en el tramo «%(sec)s» del talonario «%(book)s». Falta "
+"el número %(missing)s."
+msgstr ""
+"No se permiten saltos en el tramo «%(sec)s» del talonario «%(book)s». Falta "
+"el número %(missing)s."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar el documento “%(doc)s”. Configure los tramos del "
+"talonario (SENIAT) en el diario de ventas “%(journal)s”."
+msgstr ""
+"No se puede confirmar el documento “%(doc)s”. Configure los tramos del "
+"talonario (SENIAT) en el diario de ventas “%(journal)s”."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar el documento “%(doc)s”. En contingencia debe indicar "
+"la fecha del documento."
+msgstr ""
+"No se puede confirmar el documento “%(doc)s”. En contingencia debe indicar "
+"la fecha del documento."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar el documento “%(doc)s”. En contingencia el N° de "
+"control SENIAT es obligatorio."
+msgstr ""
+"No se puede confirmar el documento “%(doc)s”. En contingencia el N° de "
+"control SENIAT es obligatorio."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar el documento “%(doc)s”. Indique el N° de control "
+"SENIAT (este diario no usa correlativo automático del talonario)."
+msgstr ""
+"No se puede confirmar el documento “%(doc)s”. Indique el N° de control "
+"SENIAT (este diario no usa correlativo automático del talonario)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar la factura '%(move)s'. El RIF '%(vat)s' del contacto "
+"'%(partner)s' no tiene un formato válido. El formato correcto es: "
+"[V/E/J/C/P/G] seguido del número de identificación (ej: V12345678, "
+"J-12.345.678-9)."
+msgstr ""
+"No se puede confirmar la factura '%(move)s'. El RIF '%(vat)s' del contacto "
+"'%(partner)s' no tiene un formato válido. El formato correcto es: "
+"[V/E/J/C/P/G] seguido del número de identificación (ej: V12345678, "
+"J-12.345.678-9)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar la factura '%(move)s'. El contacto '%(partner)s' no "
+"tiene el RIF (VAT) configurado."
+msgstr ""
+"No se puede confirmar la factura '%(move)s'. El contacto '%(partner)s' no "
+"tiene el RIF (IVA) configurado."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar la factura por cuenta de terceros '%(move)s'. Debe "
+"habilitar la opción 'Facturación por cuenta de terceros' en Configuración > "
+"Contabilidad."
+msgstr ""
+"No se puede confirmar la factura por cuenta de terceros '%(move)s'. Debe "
+"habilitar la opción 'Facturación por cuenta de terceros' en Configuración > "
+"Contabilidad."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar la factura por cuenta de terceros '%(move)s'. El RIF "
+"'%(vat)s' del tercero '%(third)s' no tiene un formato válido."
+msgstr ""
+"No se puede confirmar la factura por cuenta de terceros '%(move)s'. El RIF "
+"'%(vat)s' del tercero '%(third)s' no tiene un formato válido."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar la factura por cuenta de terceros '%(move)s'. El "
+"tercero '%(third)s' no tiene el RIF configurado."
+msgstr ""
+"No se puede confirmar la factura por cuenta de terceros '%(move)s'. El "
+"tercero '%(third)s' no tiene el RIF configurado."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede confirmar la nota de crédito '%(move)s'. Debe indicar el "
+"documento origen (factura afectada)."
+msgstr ""
+"No se puede confirmar la nota de crédito '%(move)s'. Debe indicar el origen "
+"del documento (factura afectada)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_refund_currency.py:0
+msgid ""
+"No se puede confirmar la nota de crédito '%(move)s'. Las notas de crédito "
+"deben registrarse en bolívares (moneda de la compañía)."
+msgstr ""
+"No se puede confirmar la nota de crédito '%(move)s'. Las notas de crédito "
+"deben registrarse en bolívares (moneda de la compañía)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"No se puede facturar con un total de 0. Por favor, verifique las líneas de "
+"la factura."
+msgstr ""
+"No se puede facturar con un total de 0. Por favor, verifique las líneas de "
+"la factura."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid "No se puede imprimir una factura anulada."
+msgstr "No se puede imprimir una factura anulada."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_currency_rate.py:0
+msgid ""
+"No se puede modificar la tasa del %(date)s para %(currency)s porque existen "
+"facturas confirmadas que la utilizan: %(invoices)s. Vuelva esas facturas a "
+"borrador para poder actualizar la tasa."
+msgstr ""
+"No se puede modificar la tasa del %(date)s para %(currency)s porque existen "
+"facturas confirmadas que la utilizan: %(invoices)s. Vuelva esas facturas a "
+"borrador para poder actualizar la tasa."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+#: code:addons/l10n_ve_seniat/wizard/l10n_ve_account_move_cancel_wizard.py:0
+msgid "No tiene permiso para anular facturas de cliente."
+msgstr "No tiene permiso para facturas anulares de cliente."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_certified_copy_filename
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_certified_copy_filename
+msgid "Nombre archivo copia certificada"
+msgstr "Nombre archivo copia certificada"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Nota de Crédito:"
+msgstr "Nota de Crédito:"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Nota de Debito"
+msgstr "Nota de Debito"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Nota de Débito:"
+msgstr "Nota de Débito:"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__number_from
+msgid "Number From"
+msgstr "Número Desde"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__number_to
+msgid "Number To"
+msgstr "Número Hasta"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_needaction_counter
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Número de Acciones"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_has_error_counter
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_has_error_counter
+msgid "Number of errors"
+msgstr "Número de errores"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__message_needaction_counter
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency_rate__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Número de mensajes que requieren una acción"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__message_has_error_counter
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency_rate__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Número de mensajes con error de entrega"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+msgid "Number range"
+msgstr "Número range"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.constraint,message:l10n_ve_seniat.constraint_account_book_account_book_number_positive
+msgid "Numbers must be positive or zero."
+msgstr "Numbers must be positive o cero."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "N° Control:"
+msgstr "N°Control:"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "N° Factura"
+msgstr "N° Factura"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__l10n_ve_control_number
+msgid "N° de control"
+msgstr "N° de control"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid ""
+"Obligación Art. 32 PA00071: Entregar copia certificada al cliente a más "
+"tardar el"
+msgstr ""
+"Obligación Art. 32 PA00071: Entregar copia certificada al cliente a más "
+"tardar el"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__res_partner__taxpayer_type__ordinary
+msgid "Ordinary"
+msgstr "Ordinario"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_payment_form_l10n_ve
+msgid "Otra información"
+msgstr "Otra información"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_free_form_print_medium__pdf
+msgid "PDF"
+msgstr "PDF"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "PRECIO U."
+msgstr "PRECIO U."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_free_form_print_medium__continuous
+msgid "Papel continuo (ESC/P USB)"
+msgstr "Papel continuo (ESC/P USB)"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"Para anular este documento debe indicar el motivo mediante el asistente "
+"(botón «Cancelar» en el encabezado)."
+msgstr ""
+"Para anular este documento debe indicar el motivo mediante el asistente "
+"(botón «Cancelar» en el encabezado)."
+
+#. module: l10n_ve_seniat
+#: model:ir.actions.act_window,name:l10n_ve_seniat.action_res_country_parish
+#: model:ir.model,name:l10n_ve_seniat.model_res_country_parish
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__parish_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_users__parish_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_partner_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_res_country_parish_form
+msgid "Parish"
+msgstr "Parroquia"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_res_country_parish_tree
+msgid "Parishes"
+msgstr "Parroquias"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "Pasos para configurar el talonario (SENIAT)"
+msgstr "Pasos para configurar el talonario (SENIAT)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_payment
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: l10n_ve_seniat
+#: model:ir.module.category,description:l10n_ve_seniat.module_category_l10n_ve_seniat_access
+msgid ""
+"Permisos de fiscalización y documentos venezolanos, independientes del "
+"apartado de contabilidad."
+msgstr ""
+"Permisos de fiscalización y documentos venezolanos, independientes del "
+"apartado de contabilidad."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_certified_copy_deadline
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_certified_copy_deadline
+msgid "Plazo entrega copia certificada"
+msgstr "Plazo entrega copia certificada"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_third_party_partner_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_third_party_partner_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Por cuenta de Terceros"
+msgstr "Por cuenta de Terceros"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_book__l10n_ve_series_prefix
+msgid ""
+"Prefijo de establecimiento o serie SENIAT. Se aplica al número de control y "
+"al prefijo de las secuencias de todos los tramos."
+msgstr ""
+"Prefijo de establecimiento o serie SENIAT. Se aplica al número de control y "
+"al prefijo de las secuencias de todos los tramos."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_series_prefix
+msgid "Prefijo/Serie"
+msgstr "Prefijo/Serie"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__prefix_vat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_users__prefix_vat
+msgid "Prefix vat"
+msgstr "Prefijo Identificación"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move_line__price_unit_company_currency
+#| msgid "Subtotal Company Currency"
+msgid "Price Unit Company Currency"
+msgstr "Precio Unidad Empresa Moneda"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_product_template
+msgid "Product"
+msgstr "Producto"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_product_template_attribute_value
+msgid "Product Template Attribute Value"
+msgstr "Valor del atributo del modelo de producto"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_product_product
+msgid "Product Variant"
+msgstr "Variante del producto"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_control_number_placeholder
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_control_number_placeholder
+msgid "Próximo N° de control (previsto)"
+msgstr "Próximo N° de control (previsto)"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Purchase Tax Rates"
+msgstr "Compra Impuesto Rates"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_partner_form
+msgid "Rango de cliente"
+msgstr "Rango de cliente"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_partner_form
+msgid "Rango de proveedor"
+msgstr "Rango de proveedor"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__reason
+msgid "Reason"
+msgstr "Motivo"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Recalcular tasa"
+msgstr "Recalcular tasa"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__reception_date
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__reception_date
+msgid "Reception Date"
+msgstr "Fecha de recepción"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__l10n_ve_reception_date_payment_term_customer
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__l10n_ve_reception_date_payment_term_customer
+msgid "Use reception date on customer invoices"
+msgstr "Usar fecha de recepción en facturas de cliente"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__l10n_ve_reception_date_payment_term_vendor
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__l10n_ve_reception_date_payment_term_vendor
+msgid "Use reception date on vendor bills"
+msgstr "Usar fecha de recepción en facturas de proveedor"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_company__l10n_ve_reception_date_payment_term_customer
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_config_settings__l10n_ve_reception_date_payment_term_customer
+msgid ""
+"When enabled, payment terms and installment due dates on customer "
+"invoices start from the reception date."
+msgstr ""
+"Si está activo, los plazos de pago y el vencimiento de las cuotas en "
+"facturas de cliente se calculan a partir de la fecha de recepción."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_company__l10n_ve_reception_date_payment_term_vendor
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_config_settings__l10n_ve_reception_date_payment_term_vendor
+msgid ""
+"When enabled, payment terms and installment due dates on vendor "
+"bills start from the reception date."
+msgstr ""
+"Si está activo, los plazos de pago y el vencimiento de las cuotas en "
+"facturas de proveedor se calculan a partir de la fecha de recepción."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid ""
+"En facturas de cliente, los plazos de pago y las cuotas se calculan desde "
+"la fecha de recepción."
+msgstr ""
+"En facturas de cliente, los plazos de pago y las cuotas se calculan desde "
+"la fecha de recepción."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid ""
+"En facturas de proveedor, los plazos de pago y las cuotas se calculan "
+"desde la fecha de recepción."
+msgstr ""
+"En facturas de proveedor, los plazos de pago y las cuotas se calculan "
+"desde la fecha de recepción."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Reduced Aliquot"
+msgstr "Alícuota reducida"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__reduced_aliquot_purchase
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__reduced_aliquot_purchase
+msgid "Reduced Aliquot Purchase"
+msgstr "Reduced Aliquot Compra"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__reduced_aliquot_sale
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__reduced_aliquot_sale
+msgid "Reduced Aliquot Sale"
+msgstr "Reduced Aliquot Venta"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__res_model
+msgid "Referenced model"
+msgstr "Referenced modelo"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__source_record
+msgid "Referenced record"
+msgstr "Referenced registro"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__res_id
+msgid "Referenced record id"
+msgstr "Referenced registro id"
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_ir_actions_report
+msgid "Report Action"
+msgstr "Acción de reporte"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_report_z
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_report_z
+msgid "Report Z Number"
+msgstr "Reporte Z Número"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_report_z
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_report_z
+msgid "Report Z number from the fiscal machine"
+msgstr "Reportar número Z de la máquina fiscal"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Reporte Z"
+msgstr "Reporte Z"
+
+#. module: l10n_ve_seniat
+#: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_reports
+msgid "Reports"
+msgstr "Reportes"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__activity_user_id
+msgid "Responsible User"
+msgstr "Responsable Usuario"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/template_ve.py:0
+#: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_root
+#: model:res.groups,name:l10n_ve_seniat.group_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_journal_form_inherit
+msgid "SENIAT"
+msgstr "SENIAT"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/template_ve.py:0
+msgid "SENIAT - Basic"
+msgstr "SÉNIAT - Básico"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/template_ve.py:0
+msgid "SENIAT - Empty"
+msgstr "SENIAT - Vacío"
+
+#. module: l10n_ve_seniat
+#: model:res.groups,name:l10n_ve_seniat.group_seniat_readonly
+msgid "SENIAT - Lectura contable"
+msgstr "SENIAT - Lectura contable"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__seniat_invoice_tag
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__seniat_invoice_tag
+msgid "SENIAT Invoice Tag"
+msgstr "SENIAT Factura Etiqueta"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_credit_note_section_id
+msgid "SENIAT fiscal book section (credit notes)"
+msgstr "Sección libro fiscal SENIAT (notas de crédito)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_debit_note_section_id
+msgid "SENIAT fiscal book section (debit notes)"
+msgstr "Sección libro fiscal SENIAT (notas de débito)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_invoice_section_id
+msgid "SENIAT fiscal book section (invoices)"
+msgstr "Sección libro fiscal SENIAT (facturas)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_section__l10n_ve_sequence_id
+msgid "SENIAT sequence"
+msgstr "SENIAT secuencia"
+
+#. module: l10n_ve_seniat
+#: model:res.groups,name:l10n_ve_seniat.group_l10n_ve_override_locked_master_data
+msgid "SENIAT: omitir bloqueo de datos maestros sensibles"
+msgstr "SENIAT: omitir bloqueo de datos maestros sensibles"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_has_sms_error
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Error de entrega de SMS"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "SUBTOTAL"
+msgstr "SUBTOTAL"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "SUBTOTAL BS"
+msgstr "SUBTOTAL BS"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Sales Tax Rates"
+msgstr "Ventas Impuesto Rates"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_currency_rate.py:0
+msgid "Se alcanzó el máximo de 2 ediciones de la tasa para esta línea."
+msgstr "Se alcanzó el máximo de 2 ediciones de la tasa para esta línea."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__section_id
+msgid "Section"
+msgstr "Sección"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.constraint,message:l10n_ve_seniat.constraint_account_book_section_account_book_section_number_positive
+msgid "Section numbers must be positive or zero."
+msgstr "Sección numbers must be positive o cero."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"Section “%(sec)s” (from %(sf)s to %(st)s) must fall within the book range "
+"%(bf)s–%(bt)s."
+msgstr ""
+"Sección “%(sec)s” (desde %(sf)s hasta %(st)s) must fall within el libro "
+"range %(bf)s–%(bt)s."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"Section “%(sec)s” cannot be changed: correlative %(num)s would fall outside "
+"the new range."
+msgstr ""
+"Sección “%(sec)s” cannot be changed: correlative %(num)s would fall outside "
+"el nuevo range."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__section_ids
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_tree
+msgid "Sections"
+msgstr "Secciones"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"Sections cannot overlap: %(a)s (%(af)s–%(at)s) and %(b)s (%(bf)s–%(bt)s)."
+msgstr ""
+"Sections cannot overlap: %(a)s (%(af)s–%(at)s) y %(b)s (%(bf)s–%(bt)s)."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__section_count
+msgid "Sections count"
+msgstr "Sections conteo"
+
+#. module: l10n_ve_seniat
+#: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_sequences
+msgid "Secuencias"
+msgstr "Secuencias"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_invoice_cancel_reason__sequence
+msgid "Sequence"
+msgstr "Secuencia"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
+msgid "Serial"
+msgstr "Serial"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_serial_number
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_serial_number
+msgid "Serial number of the fiscal machine"
+msgstr "Número de serie de la máquina fiscal."
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_ir_actions_server
+msgid "Server Action"
+msgstr "Acción del servidor"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_max_picking_lines
+msgid ""
+"Si el medio de emisión no es «Forma libre», al confirmar el pedido se "
+"dividen los albaranes de salida que superen este número de movimientos de "
+"producto. Con «Forma libre» y talonario en el tramo del diario, se usa el "
+"máximo del talonario."
+msgstr ""
+"Si el medio de emisión no es «Forma libre», al confirmar el pedido se divide"
+" los albaranes de salida que superen este número de movimientos de producto."
+" Con «Forma libre» y talonario en el tramo del diario, se usa el máximo del "
+"talonario."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_max_invoice_lines
+msgid ""
+"Si el medio de emisión no es «Forma libre», al facturar desde ventas se "
+"parte el pedido en varias facturas cuando supera este número de líneas de "
+"producto. Con «Forma libre» y tramo de talonario configurado, se usa el "
+"máximo definido en el talonario."
+msgstr ""
+"Si el medio de emisión no es «Forma libre», al facturar desde ventas se "
+"parte el pedido en varias facturas cuando supera este número de líneas de "
+"producto. Con «Forma libre» y tramo de talonario configurado, se usa el "
+"máximo definido en el talonario."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move_line.py:0
+msgid "Sin nombre"
+msgstr "Sin nombre"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+msgid "Sincronizar secuencias de tramos"
+msgstr "Sincronizar secuencias de tramos"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_free_form_print_medium
+msgid ""
+"Solo aplica con medio de emisión «Forma libre». PDF usa el informe estándar."
+" Papel continuo requiere el módulo «l10n_ve_invoice_escp» e imprime la "
+"factura en formato ESC/P Epson por WebUSB."
+msgstr ""
+"Solo aplica con medio de emisión «Forma libre». PDF usa el informe estándar."
+" Papel continuo requiere el módulo «l10n_ve_invoice_escp» e imprime la "
+"factura en formato ESC/P Epson por WebUSB."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_currency_rate.py:0
+msgid ""
+"Solo se pueden modificar las tasas con fecha de hoy (%(today)s). Esta línea "
+"es del %(rate_date)s."
+msgstr ""
+"Solo se pueden modificar las tasas con fecha de hoy (%(today)s). Esta línea "
+"es del %(rate_date)s."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"Solo un administrador contable puede modificar o eliminar correlativos del "
+"talonario."
+msgstr ""
+"Solo un administrador contable puede modificar o eliminar correlativos del "
+"talonario."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__res_partner__taxpayer_type__special
+msgid "Special"
+msgstr "Especial"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__number_from
+msgid "Start number"
+msgstr "Start número"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_country_municipality__state_id
+msgid "State"
+msgstr "Estado"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Estado based en actividades\n"
+"Vencido: Vencido fecha es already passed\n"
+"Today: Actividad fecha es today\n"
+"Planned: Future actividades."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move_line__price_subtotal_currency
+msgid "Subtotal in Company Currency"
+msgstr "Subtotal en moneda de la compañía"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move_line__subtotal_company_currency
+msgid "Subtotal Company Currency"
+msgstr "Subtotal moneda de la empresa"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_footer_cn_bs
+msgid "Subtotal:"
+msgstr "Subtotal:"
+
+#. module: l10n_ve_seniat
+#: model:res.groups,name:l10n_ve_seniat.group_support_user
+msgid "Support User (Journals)"
+msgstr "Support Usuario (Journals)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__book_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__book_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+msgid "Talonario"
+msgstr "Talonario"
+
+#. module: l10n_ve_seniat
+#: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_account_book
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_tree
+msgid "Talonarios"
+msgstr "Talonarios"
+
+#. module: l10n_ve_seniat
+#: model:ir.ui.menu,name:l10n_ve_seniat.menu_config_invoicing_account_book
+msgid "Talonarios (N° control)"
+msgstr "Talonarios (N° control)"
+
+#. module: l10n_ve_seniat
+#: model:ir.actions.act_window,name:l10n_ve_seniat.action_account_book
+msgid "Talonarios (N° de control)"
+msgstr "Talonarios (N° de control)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_inverse_rate
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_inverse_rate
+msgid "Tasa de Cambio Inversa"
+msgstr "Tasa de Cambio Inversa"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_currency_rate_outdated
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_currency_rate_outdated
+msgid "Tasa de cambio desactualizada"
+msgstr "Tasa de cambio desactualizada"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_inverse_rate
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_inverse_rate
+msgid ""
+"Tasa de cambio inversa (inverse_rate) de la moneda de la factura para la "
+"fecha de la factura"
+msgstr ""
+"Tasa de cambio inversa (inverse_rate) de la moneda de la factura para la "
+"fecha de la factura"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_currency_rate.py:0
+msgid "Tasa del %(date)s: %(old)s → %(new)s (edición %(count)s/2)."
+msgstr "Tasa del %(date)s: %(old)s → %(new)s (edición %(count)s/2)."
+
+#. module: l10n_ve_seniat
+#: model:ir.model,name:l10n_ve_seniat.model_account_tax
+msgid "Tax"
+msgstr "Impuesto"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__vat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_users__vat
+msgid "Tax ID"
+msgstr "NIF"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__taxpayer_type
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__taxpayer_type
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__taxpayer_type
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_users__taxpayer_type
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_company_form_view_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Taxpayer Type"
+msgstr "Tipo de contribuyente"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_original_printed
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_invoice_original_printed
+msgid ""
+"Technical flag used by the VE invoice report to determine if a printed copy "
+"should display a 'faithful copy' label."
+msgstr ""
+"Technical flag used por el VE factura reporte hasta determine if a printed "
+"copia should display a 'faithful copia' etiqueta."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_debit_note__l10n_ve_fiscal_country_code
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move_reversal__l10n_ve_fiscal_country_code
+msgid ""
+"The ISO country code in two chars. \n"
+"You can use this field for quick search."
+msgstr ""
+"El ISO código de país en dos chars. \n"
+"You can use este campo para quick buscar."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_partner__vat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_users__vat
+msgid ""
+"The Tax Identification Number. Values here will be validated based on the "
+"country format. You can use '/' to indicate that the partner is not subject "
+"to tax."
+msgstr ""
+"El número de Identificación Fiscal. Los valores aquí se validarán en función"
+" del formato de cada país. Puedes usar '/' para indicar que el partner no "
+"está sujeto a tener una identificación fiscal."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "The document company must match the book company (%(c)s)."
+msgstr "El documento compañía must match el libro compañía (%(c)s)."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_journal.py:0
+msgid ""
+"The fiscal book section “%(sec)s” belongs to another company than journal "
+"“%(journal)s”."
+msgstr ""
+"La sección del libro fiscal “%(sec)s” pertenece a otra empresa distinta del "
+"diario “%(journal)s”."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_country_municipality.py:0
+msgid "The municipality is already registered"
+msgstr "El municipio ya está registrado"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid "The section belongs to another book."
+msgstr "El sección belongs hasta another libro."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.constraint,message:l10n_ve_seniat.constraint_account_book_section_account_book_section_number_range
+msgid "The section start number must be less than or equal to the end number."
+msgstr ""
+"El sección start número must be less than o equal hasta el end número."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.constraint,message:l10n_ve_seniat.constraint_account_book_account_book_number_range
+msgid "The start number must be less than or equal to the end number."
+msgstr "El start número must be less than o equal hasta el end número."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/res_partner.py:0
+msgid ""
+"The taxpayer type can only be set for Venezuelan partners (country code "
+"'VE')."
+msgstr ""
+"El tipo de contribuyente solo puede establecerse para contactos venezolanos "
+"(código de país 'VE')."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "Thirty one dollar and Five cents"
+msgstr "Thirty uno dollar y Cinco cents"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.constraint,message:l10n_ve_seniat.constraint_account_book_document_account_book_document_number_book_uniq
+msgid "This correlative number is already used in this book."
+msgstr "Este correlative número es already used en este libro."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.constraint,message:l10n_ve_seniat.constraint_account_book_document_account_book_document_book_res_uniq
+msgid "This record is already linked to a correlative in this book."
+msgstr "Este registro es already vinculado hasta a correlative en este libro."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_footer_cn_bs
+msgid "Total a Pagar"
+msgstr "Total a pagar"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_footer_cn_bs
+msgid "Total amount in words: <br/>"
+msgstr "Importe total en palabras: <br/>"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_origin_affected_total_company
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_origin_affected_total_company
+msgid "Total documento origen (moneda compañía)"
+msgstr "Origen total del documento (moneda compañía)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void__section_id
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_l10n_ve_book_folio_void_wizard__section_id
+msgid "Tramo"
+msgstr "Tramo"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_invoice_section_id
+msgid ""
+"Tramo del talonario para facturas de cliente. Si la ND usa otro tramo, "
+"configúrelo en “Notas de débito”."
+msgstr ""
+"Tramo del talonario para facturas de cliente. Si la ND usa otro tramo, "
+"configúrelo en “Notas de débito”."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_credit_note_section_id
+msgid "Tramo del talonario para notas de crédito de cliente (out_refund)."
+msgstr "Tramo del talonario para notas de crédito de cliente (out_refund)."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_debit_note_section_id
+msgid ""
+"Tramo opcional para notas de débito de cliente. Si está vacío, se usa el "
+"tramo de facturas."
+msgstr ""
+"Tramo opcional para notas de débito de cliente. Si está vacío, se usa el "
+"tramo de facturas."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_journal_form_inherit
+msgid "Tramos (talonario)"
+msgstr "Tramos (talonario)"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "Tipo de el exception actividad en registro."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_partner_form
+msgid "VAT"
+msgstr "IVA"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_original_printed
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_invoice_original_printed
+msgid "VE Invoice Original Printed"
+msgstr "Factura VE original impresa"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__l10n_ve_validate_partner_vat_format
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__l10n_ve_validate_partner_vat_format
+msgid "Validar formato de RIF/CI"
+msgstr "Validar formato de RIF/CI"
+
+#. module: l10n_ve_seniat
+#: model:ir.module.category,name:l10n_ve_seniat.module_category_l10n_ve_seniat_access
+msgid "Venezuela (SENIAT)"
+msgstr "Venezuela (SENIAT)"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Venezuela - Retenciones e IGTF"
+msgstr "Venezuela - Retenciones e IGTF"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
+msgid "Venezuela - Tax Configuration"
+msgstr "Venezuela - Impuesto Configuración"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party
+#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_on_behalf_of_third_party
+msgid ""
+"Verdadero si hay un contacto en Por cuenta de Terceros en facturas de "
+"cliente. Según Art. 11 PA00071, esas operaciones deben emitirse en forma "
+"libre."
+msgstr ""
+"Verdadero si hay un contacto en Por cuenta de Terceros en facturas de "
+"cliente. Según Art. 11 PA00071, esas operaciones deben emitirse en forma "
+"libre."
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__website_message_ids
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency_rate__website_message_ids
+msgid "Website Messages"
+msgstr "Mensajes Web"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__website_message_ids
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency_rate__website_message_ids
+msgid "Website communication history"
+msgstr "Histórico de comunicación web"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"You cannot assign more than one tax to a single invoice line. Please create separate lines for each tax. \n"
+"%s"
+msgstr ""
+"You cannot assign more than uno impuesto hasta a single factura línea. Por favor crear separate líneas para each impuesto. \n"
+"%s"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_move.py:0
+msgid ""
+"You cannot reset to draft an invoice in the Venezuelan localization.\n"
+"Please create a credit note instead.\n"
+"        "
+msgstr ""
+"No puedes restablecer a borrador una factura en la localización venezolana.\n"
+"Por favor crea una nota de crédito en su lugar."
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
+msgid "de contado"
+msgstr "de contado"
+
+#. module: l10n_ve_seniat
+#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
+msgid "e.g. Talonario facturas 2025"
+msgstr "p.ej. Talonario facturas 2025"
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"«Prefijo/Serie» (por defecto 00) forma parte del número de control y del "
+"prefijo de las secuencias de los tramos. Si lo modifica tras crear tramos, "
+"pulse «Sincronizar secuencias de tramos»."
+msgstr ""
+"«Prefijo/Serie» (por defecto 00) forma parte del número de control y del "
+"prefijo de las secuencias de los tramos. Si lo modifica tras crear tramos, "
+"pulse «Sincronizar secuencias de tramos»."
+
+#. module: l10n_ve_seniat
+#. odoo-python
+#: code:addons/l10n_ve_seniat/models/account_book.py:0
+msgid ""
+"«Sincronizar secuencias de tramos» alinea prefijos y el siguiente número de "
+"cada secuencia con los correlativos ya registrados en el talonario."
+msgstr ""
+"«Sincronizar secuencias de tramos» alinea prefijos y el siguiente número de "
+"cada secuencia con los correlativos ya registrados en el talonario."
+
+#~ msgid "00-00000000-0"
+#~ msgstr "00-00000000-0"
+
+#~ msgid "Invoice Datetime"
+#~ msgstr "Fecha y hora de la factura"
+
+#~ msgid ""
+#~ "This action will cancel the document. Are you sure you want to proceed?"
+#~ msgstr ""
+#~ "Esta acción cancelará el documento. ¿Está seguro de que desea continuar?"

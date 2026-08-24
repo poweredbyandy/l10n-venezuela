@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_book_tree" model="ir.ui.view">
+        <field name="name">account.book.list</field>
+        <field name="model">account.book</field>
+        <field name="arch" type="xml">
+            <list string="Talonarios">
+                <field name="name" />
+                <field name="l10n_ve_series_prefix" optional="show" />
+                <field name="company_id" groups="base.group_multi_company" />
+                <field name="number_from" />
+                <field name="number_to" />
+                <field name="section_count" string="Sections" />
+                <field name="document_count" string="Correlatives" />
+                <field name="l10n_ve_max_invoice_lines" optional="hide" />
+                <field name="l10n_ve_escp_invoice_margin_lines" optional="hide" />
+                <field name="l10n_ve_max_picking_lines" optional="hide" />
+                <field name="active" column_invisible="True" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_account_book_form" model="ir.ui.view">
+        <field name="name">account.book.form</field>
+        <field name="model">account.book</field>
+        <field name="arch" type="xml">
+            <form string="Talonario">
+                <header>
+                    <!-- Art. 27-28 PA SNAT/2011/0071: anulación de folio del talonario. -->
+                    <button
+                        name="action_l10n_ve_open_void_folio_wizard"
+                        string="Anular folio"
+                        type="object"
+                        class="btn-secondary"
+                        groups="account.group_account_invoice"
+                    />
+                    <button
+                        name="action_l10n_ve_sync_section_sequences"
+                        string="Sincronizar secuencias de tramos"
+                        type="object"
+                        class="btn-secondary"
+                    />
+                </header>
+                <sheet>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
+                    <div
+                        class="alert alert-warning"
+                        role="alert"
+                        invisible="not l10n_ve_void_folio_alert"
+                    >
+                        <field
+                            name="l10n_ve_void_folio_alert_text"
+                            nolabel="1"
+                            readonly="1"
+                        />
+                    </div>
+                    <field name="l10n_ve_void_folio_alert" invisible="1" />
+                    <field name="l10n_ve_void_folio_count_month" invisible="1" />
+                    <div class="oe_title">
+                        <label for="name" />
+                        <h1>
+                            <field
+                                name="name"
+                                placeholder="e.g. Talonario facturas 2025"
+                            />
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="active" />
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                            />
+                            <!-- Art. 27 PA SNAT/2011/0071: prefijo de serie SENIAT. -->
+                            <field name="l10n_ve_series_prefix" />
+                        </group>
+                        <group>
+                            <label for="number_from" string="Number range" />
+                            <div class="o_row">
+                                <field name="number_from" class="oe_inline" />
+                                <span class="mx-1">–</span>
+                                <field name="number_to" class="oe_inline" />
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Sections" name="sections">
+                            <field name="section_ids">
+                                <list editable="bottom" string="Sections">
+                                    <field name="name" />
+                                    <field name="number_from" />
+                                    <field name="number_to" />
+                                    <field
+                                        name="l10n_ve_sequence_id"
+                                        options="{'no_create': True}"
+                                    />
+                                    <field name="company_id" column_invisible="True" />
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Configuración" name="configuration">
+                            <group>
+                                <group>
+                                    <field name="l10n_ve_max_invoice_lines" />
+                                    <field name="l10n_ve_invoice_header_spacing" />
+                                    <field name="l10n_ve_escp_invoice_margin_lines" />
+                                </group>
+                                <group>
+                                    <field name="l10n_ve_max_picking_lines" />
+                                    <field name="paperformat_id" readonly="1" />
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Correlatives" name="documents">
+                            <field
+                                name="document_ids"
+                                groups="account.group_account_manager"
+                            >
+                                <list
+                                    string="Correlatives"
+                                    create="false"
+                                    editable="bottom"
+                                    default_order="number desc, id desc"
+                                >
+                                    <field
+                                        name="l10n_ve_control_number"
+                                        string="Correlativo"
+                                        readonly="1"
+                                    />
+                                    <field name="number" column_invisible="True" />
+                                    <field
+                                        name="section_id"
+                                        optional="hide"
+                                        readonly="1"
+                                    />
+                                    <field
+                                        name="l10n_ve_correlative_label"
+                                        string="Documento / motivo"
+                                        readonly="1"
+                                    />
+                                    <field
+                                        name="source_record"
+                                        column_invisible="True"
+                                    />
+                                    <field name="company_id" column_invisible="True" />
+                                </list>
+                            </field>
+                            <field
+                                name="document_ids"
+                                readonly="1"
+                                groups="!account.group_account_manager"
+                            >
+                                <list
+                                    string="Correlatives"
+                                    create="false"
+                                    delete="false"
+                                    edit="false"
+                                    default_order="number desc, id desc"
+                                >
+                                    <field
+                                        name="l10n_ve_control_number"
+                                        string="Correlativo"
+                                    />
+                                    <field name="number" column_invisible="True" />
+                                    <field name="section_id" optional="hide" />
+                                    <field
+                                        name="l10n_ve_correlative_label"
+                                        string="Documento / motivo"
+                                    />
+                                    <field
+                                        name="source_record"
+                                        column_invisible="True"
+                                    />
+                                    <field name="company_id" column_invisible="True" />
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <field
+                        name="l10n_ve_setup_guide"
+                        colspan="2"
+                        nolabel="1"
+                        readonly="1"
+                    />
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_book" model="ir.actions.act_window">
+        <field name="name">Talonarios (N° de control)</field>
+        <field name="res_model">account.book</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a control number book (talonario)
+            </p>
+            <p>
+                Define the global range (e.g. from 1 to 1000) and split it into
+                sections (e.g. 1–500 and 501–1000) without overlaps.
+            </p>
+        </field>
+    </record>
+</odoo>
