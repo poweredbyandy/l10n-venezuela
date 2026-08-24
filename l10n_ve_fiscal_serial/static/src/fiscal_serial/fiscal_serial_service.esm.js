@@ -3,35 +3,35 @@ import {
     TAX_MAP,
     TfhkaFiscalMachine,
     createTfhkaFiscalMachine,
-} from "./tfhka_fiscal_machine";
+} from "./tfhka_fiscal_machine.esm";
 import {
     FiscalSerialAuditLogger,
     createFiscalSerialAuditLogger,
-} from "./fiscal_serial_audit";
+} from "./fiscal_serial_audit.esm";
 import {
     PrinterStatus,
     SVPrinterData,
     TfhkaFiscal,
     createTfhkaFiscal,
     encodeLatin1,
-} from "./tfhka_serial";
+} from "./tfhka_serial.esm";
 import {
     TfhkaWebSerialTransport,
     formatWebSerialError,
     formatWebSerialPortLabel,
     readWebSerialPortInfo,
-} from "./tfhka_transport_webserial";
+} from "./tfhka_transport_webserial.esm";
 import {
     autoDetectFiscalMachine,
     parseTfhkaSvStatusResponse,
-} from "../fiscal_machine/fiscal_machine_detect";
+} from "../fiscal_machine/fiscal_machine_detect.esm";
 import {
     mfReportzFromDailyClosureString,
     parseTfhkaS1StatusResponse,
-} from "./tfhka_s1_parser";
-import {getSampleHkaInvoiceLines} from "./tfhka_invoice_samples";
+} from "./tfhka_s1_parser.esm";
+import {getSampleHkaInvoiceLines} from "./tfhka_invoice_samples.esm";
 import {registry} from "@web/core/registry";
-import {verifyConnectedFiscalMachine} from "../fiscal_machine/fiscal_machine_verify";
+import {verifyConnectedFiscalMachine} from "../fiscal_machine/fiscal_machine_verify.esm";
 
 export const l10nVeFiscalSerialService = {
     dependencies: [],

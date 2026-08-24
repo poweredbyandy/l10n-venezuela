@@ -13,16 +13,16 @@ import {
     describeTfhkaEnqSts2,
     doXorCommand,
     encodeLatin1,
-} from "./tfhka_protocol";
+} from "./tfhka_protocol.esm";
 import {
     TfhkaWebSerialTransport,
     formatWebSerialError,
     readWebSerialPortInfo,
-} from "./tfhka_transport_webserial";
+} from "./tfhka_transport_webserial.esm";
 import {
     mfReportzFromDailyClosureString,
     parseTfhkaS1StatusResponse,
-} from "./tfhka_s1_parser";
+} from "./tfhka_s1_parser.esm";
 
 const ENQ_READ_OPTS = {
     byteTimeout: 280,
@@ -878,4 +878,4 @@ export function createTfhkaFiscal() {
 }
 
 export {TfhkaFiscal as TfhkaCommon};
-export {encodeLatin1} from "./tfhka_protocol";
+export {encodeLatin1} from "./tfhka_protocol.esm";

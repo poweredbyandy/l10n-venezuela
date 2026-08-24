@@ -1,5 +1,5 @@
-import {AccountReport} from "@l10n_ve_reports/components/account_report/account_report";
-import {AccountReportFilters} from "@l10n_ve_reports/components/account_report/filters/filters";
+import {AccountReport} from "@l10n_ve_reports/components/account_report/account_report.esm";
+import {AccountReportFilters} from "@l10n_ve_reports/components/account_report/filters/filters.esm";
 import {WarningDialog} from "@web/core/errors/error_dialogs";
 import {_t} from "@web/core/l10n/translation";
 

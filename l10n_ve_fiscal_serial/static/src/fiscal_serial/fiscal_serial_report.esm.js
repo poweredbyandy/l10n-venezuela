@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
-import {TfhkaWebSerialTransport} from "./tfhka_transport_webserial";
+import {TfhkaWebSerialTransport} from "./tfhka_transport_webserial.esm";
 import {_t} from "@web/core/l10n/translation";
-import {createFiscalSerialAuditLogger} from "./fiscal_serial_audit";
+import {createFiscalSerialAuditLogger} from "./fiscal_serial_audit.esm";
 
 const REPORT_LABELS = {
     report_x: _t("Reporte X"),

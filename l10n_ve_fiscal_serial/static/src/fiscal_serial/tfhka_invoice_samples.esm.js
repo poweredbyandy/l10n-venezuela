@@ -1,4 +1,4 @@
-import {TfhkaFiscalMachine} from "./tfhka_fiscal_machine";
+import {TfhkaFiscalMachine} from "./tfhka_fiscal_machine.esm";
 
 const SAMPLE_PARTNER = {
     vat: "J123456789",

@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
-import {TfhkaWebSerialTransport} from "@l10n_ve_fiscal_serial/fiscal_serial/tfhka_transport_webserial";
+import {TfhkaWebSerialTransport} from "@l10n_ve_fiscal_serial/fiscal_serial/tfhka_transport_webserial.esm";
 import {_t} from "@web/core/l10n/translation";
-import {createFiscalSerialAuditLogger} from "@l10n_ve_fiscal_serial/fiscal_serial/fiscal_serial_audit";
+import {createFiscalSerialAuditLogger} from "@l10n_ve_fiscal_serial/fiscal_serial/fiscal_serial_audit.esm";
 
 export function l10nVeFiscalSerialPosGetInvoiceJournal(pos) {
     const order = typeof pos.get_order === "function" ? pos.get_order() : null;

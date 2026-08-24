@@ -1,5 +1,5 @@
 import {Component} from "@odoo/owl";
-import {FiscalMachineDebugConsole} from "./fiscal_machine_debug_console";
+import {FiscalMachineDebugConsole} from "./fiscal_machine_debug_console.esm";
 import {registry} from "@web/core/registry";
 import {standardWidgetProps} from "@web/views/widgets/standard_widget_props";
 

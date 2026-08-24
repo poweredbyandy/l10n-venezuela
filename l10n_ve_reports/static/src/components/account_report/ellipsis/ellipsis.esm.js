@@ -1,5 +1,5 @@
 import {Component, useState} from "@odoo/owl";
-import {AccountReportEllipsisPopover} from "@l10n_ve_reports/components/account_report/ellipsis/popover/ellipsis_popover";
+import {AccountReportEllipsisPopover} from "@l10n_ve_reports/components/account_report/ellipsis/popover/ellipsis_popover.esm";
 import {_t} from "@web/core/l10n/translation";
 import {localization} from "@web/core/l10n/localization";
 import {useService} from "@web/core/utils/hooks";

@@ -3,9 +3,9 @@ import {Component, onWillUnmount, status, useComponent, useState} from "@odoo/ow
 import {
     describeTfhkaEnqSts1,
     describeTfhkaEnqSts2,
-} from "../fiscal_serial/tfhka_protocol";
-import {autoDetectFiscalMachine} from "./fiscal_machine_detect";
-import {createFiscalSerialAuditLogger} from "../fiscal_serial/fiscal_serial_audit";
+} from "../fiscal_serial/tfhka_protocol.esm";
+import {autoDetectFiscalMachine} from "./fiscal_machine_detect.esm";
+import {createFiscalSerialAuditLogger} from "../fiscal_serial/fiscal_serial_audit.esm";
 import {registry} from "@web/core/registry";
 import {standardWidgetProps} from "@web/views/widgets/standard_widget_props";
 import {useService} from "@web/core/utils/hooks";

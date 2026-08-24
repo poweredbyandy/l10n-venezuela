@@ -6,7 +6,7 @@ import {MultiRecordSelector} from "@web/core/record_selectors/multi_record_selec
 import {WarningDialog} from "@web/core/errors/error_dialogs";
 import {_t} from "@web/core/l10n/translation";
 import {formatDate} from "@web/core/l10n/dates";
-import {logAccountReportDate} from "../account_report_date_debug";
+import {logAccountReportDate} from "../account_report_date_debug.esm";
 import {useService} from "@web/core/utils/hooks";
 
 const {DateTime} = luxon;

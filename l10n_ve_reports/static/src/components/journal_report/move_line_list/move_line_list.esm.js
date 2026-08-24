@@ -1,7 +1,7 @@
 import {
     AccountMoveLineListRenderer,
     AccountMoveLineListView,
-} from "@l10n_ve_reports/components/move_line_list/move_line_list";
+} from "@l10n_ve_reports/components/move_line_list/move_line_list.esm";
 import {registry} from "@web/core/registry";
 
 export class JournalReportAccountMoveLineReconcileListRenderer extends AccountMoveLineListRenderer {

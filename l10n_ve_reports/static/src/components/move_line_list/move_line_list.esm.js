@@ -1,5 +1,5 @@
 import {useChildSubEnv, useState} from "@odoo/owl";
-import {AttachmentViewMoveLine} from "./attachment_view_move_line";
+import {AttachmentViewMoveLine} from "./attachment_view_move_line.esm";
 import {ListController} from "@web/views/list/list_controller";
 import {ListRenderer} from "@web/views/list/list_renderer";
 import {SIZES} from "@web/core/ui/ui_service";

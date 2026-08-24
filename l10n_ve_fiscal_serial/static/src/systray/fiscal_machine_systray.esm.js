@@ -1,5 +1,5 @@
 import {Component, onMounted, onWillStart, useState} from "@odoo/owl";
-import {CONNECTION_STATUS} from "../fiscal_connection/fiscal_connection_service";
+import {CONNECTION_STATUS} from "../fiscal_connection/fiscal_connection_service.esm";
 import {Dropdown} from "@web/core/dropdown/dropdown";
 import {DropdownItem} from "@web/core/dropdown/dropdown_item";
 import {registry} from "@web/core/registry";

@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
 import {Component, xml} from "@odoo/owl";
-import {TfhkaWebSerialTransport} from "../fiscal_serial/tfhka_transport_webserial";
-import {createFiscalSerialAuditLogger} from "../fiscal_serial/fiscal_serial_audit";
+import {TfhkaWebSerialTransport} from "../fiscal_serial/tfhka_transport_webserial.esm";
+import {createFiscalSerialAuditLogger} from "../fiscal_serial/fiscal_serial_audit.esm";
 import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
 

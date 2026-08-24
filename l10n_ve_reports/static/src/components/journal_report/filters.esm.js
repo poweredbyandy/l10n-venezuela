@@ -1,4 +1,4 @@
-import {AccountReportFilters} from "@l10n_ve_reports/components/account_report/filters/filters";
+import {AccountReportFilters} from "@l10n_ve_reports/components/account_report/filters/filters.esm";
 import {patch} from "@web/core/utils/patch";
 
 patch(AccountReportFilters.prototype, {

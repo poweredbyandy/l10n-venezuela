@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import {Component, onWillUnmount, useState} from "@odoo/owl";
-import {createFiscalSerialAuditLogger} from "../fiscal_serial/fiscal_serial_audit";
+import {createFiscalSerialAuditLogger} from "../fiscal_serial/fiscal_serial_audit.esm";
 import {useService} from "@web/core/utils/hooks";
 
 const TFHKA_COMMAND_DELAY_MS = 200;

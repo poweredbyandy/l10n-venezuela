@@ -1,8 +1,8 @@
 /* eslint-disable complexity */
 import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
-import {TfhkaWebSerialTransport} from "./tfhka_transport_webserial";
+import {TfhkaWebSerialTransport} from "./tfhka_transport_webserial.esm";
 import {_t} from "@web/core/l10n/translation";
-import {createFiscalSerialAuditLogger} from "./fiscal_serial_audit";
+import {createFiscalSerialAuditLogger} from "./fiscal_serial_audit.esm";
 
 export async function l10nVeFiscalSerialExecuteConfigure({
     env,

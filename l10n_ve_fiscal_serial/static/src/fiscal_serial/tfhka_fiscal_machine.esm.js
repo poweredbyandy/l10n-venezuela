@@ -1,9 +1,9 @@
 /* eslint-disable complexity */
-import {isTfhkaEnqSts1Operativa, isTfhkaEnqSts2SinErrorFiscal} from "./tfhka_protocol";
+import {isTfhkaEnqSts1Operativa, isTfhkaEnqSts2SinErrorFiscal} from "./tfhka_protocol.esm";
 import {
     mfReportzFromDailyClosureString,
     parseTfhkaS1StatusResponse,
-} from "./tfhka_s1_parser";
+} from "./tfhka_s1_parser.esm";
 
 const FLAG_21 = {
     30: {
@@ -1857,4 +1857,4 @@ export {FLAG_21, TAX_MAP};
 export {
     mfReportzFromDailyClosureString,
     parseTfhkaS1StatusResponse,
-} from "./tfhka_s1_parser";
+} from "./tfhka_s1_parser.esm";

@@ -2,7 +2,7 @@ import {
     buildLineId,
     parseLineId,
     removeTaxGroupingFromLineId,
-} from "@l10n_ve_reports/js/util";
+} from "@l10n_ve_reports/js/util.esm";
 import {expect, test} from "@odoo/hoot";
 
 test("can build a line id from a list of [markup, res_model, res_id]", () => {

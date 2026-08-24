@@ -1,6 +1,6 @@
 import {Component, markup, useState} from "@odoo/owl";
-import {AccountReportCarryoverPopover} from "@l10n_ve_reports/components/account_report/line_cell/popover/carryover_popover";
-import {AccountReportEditPopover} from "@l10n_ve_reports/components/account_report/line_cell/popover/edit_popover";
+import {AccountReportCarryoverPopover} from "@l10n_ve_reports/components/account_report/line_cell/popover/carryover_popover.esm";
+import {AccountReportEditPopover} from "@l10n_ve_reports/components/account_report/line_cell/popover/edit_popover.esm";
 import {localization} from "@web/core/l10n/localization";
 import {useService} from "@web/core/utils/hooks";
 

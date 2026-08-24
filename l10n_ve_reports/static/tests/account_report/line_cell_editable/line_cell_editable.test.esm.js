@@ -5,7 +5,7 @@ import {
     mountWithCleanup,
 } from "@web/../tests/web_test_helpers";
 import {expect, test} from "@odoo/hoot";
-import {AccountReportLineCellEditable} from "@l10n_ve_reports/components/account_report/line_cell_editable/line_cell_editable";
+import {AccountReportLineCellEditable} from "@l10n_ve_reports/components/account_report/line_cell_editable/line_cell_editable.esm";
 import {animationFrame} from "@odoo/hoot-mock";
 import {mailModels} from "@mail/../tests/mail_test_helpers";
 

@@ -1,5 +1,5 @@
 import {useRef, useState} from "@odoo/owl";
-import {AccountReportLineCell} from "@l10n_ve_reports/components/account_report/line_cell/line_cell";
+import {AccountReportLineCell} from "@l10n_ve_reports/components/account_report/line_cell/line_cell.esm";
 import {useHotkey} from "@web/core/hotkeys/hotkey_hook";
 
 export class AccountReportLineCellEditable extends AccountReportLineCell {

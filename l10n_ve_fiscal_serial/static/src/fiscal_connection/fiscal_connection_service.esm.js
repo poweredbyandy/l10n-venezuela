@@ -1,5 +1,5 @@
 /* eslint-disable complexity */
-import {TfhkaWebSerialTransport} from "../fiscal_serial/tfhka_transport_webserial";
+import {TfhkaWebSerialTransport} from "../fiscal_serial/tfhka_transport_webserial.esm";
 import {reactive} from "@odoo/owl";
 import {registry} from "@web/core/registry";
 

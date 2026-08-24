@@ -1,8 +1,8 @@
 /* eslint-disable complexity */
 
 import {browser} from "@web/core/browser/browser";
-import {logAccountReportDate} from "./account_report_date_debug";
-import {removeTaxGroupingFromLineId} from "@l10n_ve_reports/js/util";
+import {logAccountReportDate} from "./account_report_date_debug.esm";
+import {removeTaxGroupingFromLineId} from "@l10n_ve_reports/js/util.esm";
 import {session} from "@web/session";
 import {useService} from "@web/core/utils/hooks";
 

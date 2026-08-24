@@ -11,7 +11,7 @@ import {
     l10nVeFiscalSerialPosGetInvoiceJournal,
     l10nVeFiscalSerialPosIsFiscalMachine,
 } from "../../fiscal_serial_pos_print.esm";
-import {CONNECTION_STATUS} from "@l10n_ve_fiscal_serial/fiscal_connection/fiscal_connection_service";
+import {CONNECTION_STATUS} from "@l10n_ve_fiscal_serial/fiscal_connection/fiscal_connection_service.esm";
 import {Dropdown} from "@web/core/dropdown/dropdown";
 import {Navbar} from "@point_of_sale/app/navbar/navbar";
 import {patch} from "@web/core/utils/patch";

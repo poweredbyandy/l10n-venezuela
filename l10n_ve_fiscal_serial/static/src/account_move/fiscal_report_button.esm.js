@@ -1,6 +1,6 @@
 import {Component, xml} from "@odoo/owl";
 import {_t} from "@web/core/l10n/translation";
-import {l10nVeFiscalSerialExecuteReport} from "../fiscal_serial/fiscal_serial_report";
+import {l10nVeFiscalSerialExecuteReport} from "../fiscal_serial/fiscal_serial_report.esm";
 import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
 
