@@ -1,10 +1,35 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import models
+from odoo import _, models
+from odoo.exceptions import UserError
 
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
+
+    def _l10n_ve_check_free_emission_correlatives(self):
+        self.ensure_one()
+        super()._l10n_ve_check_free_emission_correlatives()
+        journal = self.journal_id
+        if not journal or journal.l10n_ve_emission_medium != "free":
+            return
+        warehouse = self.warehouse_id
+        if not warehouse:
+            raise UserError(
+                _(
+                    "No se puede confirmar el pedido: indique el almacén para validar "
+                    "el correlativo de guía de despacho (SENIAT)."
+                )
+            )
+        if not warehouse.l10n_ve_dispatch_guide_section_id:
+            raise UserError(
+                _(
+                    "No se puede confirmar el pedido: con diario en «forma libre» debe "
+                    "configurar en el almacén «%(warehouse)s» el tramo del talonario "
+                    "para guías de despacho (SENIAT)."
+                )
+                % {"warehouse": warehouse.display_name}
+            )
 
     def _action_confirm(self):
         res = super()._action_confirm()

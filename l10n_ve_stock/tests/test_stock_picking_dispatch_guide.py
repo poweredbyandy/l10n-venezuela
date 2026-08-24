@@ -2,42 +2,15 @@ from odoo import Command
 from odoo.exceptions import UserError
 from odoo.tests import Form, tagged
 
-from odoo.addons.l10n_ve_seniat.tests.common import L10nVeSeniatCommon
+from odoo.addons.l10n_ve_stock.tests.common import L10nVeStockCommon
 
 
 @tagged("post_install", "-at_install")
-class TestL10nVeStockDispatchGuide(L10nVeSeniatCommon):
+class TestL10nVeStockDispatchGuide(L10nVeStockCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # Digital journal: free-form confirmation requires a dispatch guide section.
         cls._l10n_ve_configure_journal_digital(cls.company_data["default_journal_sale"])
-        cls._setup_l10n_ve_dispatch_section()
-
-    @classmethod
-    def _setup_l10n_ve_dispatch_section(cls):
-        company = cls.env.company
-        book = cls.env["account.book"].create(
-            {
-                "name": "Talonario guías test",
-                "company_id": company.id,
-                "number_from": 1,
-                "number_to": 99_999_999,
-                "l10n_ve_series_prefix": "01",
-            }
-        )
-        sec = cls.env["account.book.section"].create(
-            {
-                "book_id": book.id,
-                "name": "Guías despacho",
-                "number_from": 40_000_000,
-                "number_to": 49_999_999,
-            }
-        )
-        warehouse = cls.env["stock.warehouse"].search(
-            [("company_id", "=", company.id)], limit=1
-        )
-        warehouse.l10n_ve_dispatch_guide_section_id = sec
 
     def _prepare_outgoing_sale_picking(self, product, qty):
         so = self.env["sale.order"].create(
