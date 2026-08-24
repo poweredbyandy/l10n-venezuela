@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_picking_form_inherit_l10n_ve" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.l10n.ve</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <field name="l10n_ve_is_ve_country" invisible="1" />
+                <field name="l10n_ve_dispatch_guide_enabled" invisible="1" />
+                <field name="l10n_ve_show_control_number_ui" invisible="1" />
+            </xpath>
+            <xpath expr="//field[@name='picking_type_id']" position="after">
+                <field
+                    name="l10n_ve_internal_transfer_reason_id"
+                    string="Motivo de traslado"
+                    context="{'default_company_id': company_id}"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or return_id or (picking_type_code not in ('internal', 'outgoing')) or (picking_type_code == 'outgoing' and sale_id)"
+                    required="l10n_ve_dispatch_guide_enabled and l10n_ve_is_ve_country and state != 'draft' and not return_id and (picking_type_code == 'internal' or (picking_type_code == 'outgoing' and not sale_id))"
+                />
+            </xpath>
+            <xpath expr="//field[@name='partner_id'][@nolabel='1']" position="after">
+                <field
+                    name="l10n_ve_partner_contact_phone_display"
+                    readonly="1"
+                    invisible="not l10n_ve_is_ve_country or not partner_id"
+                />
+            </xpath>
+            <xpath expr="//field[@name='origin']" position="after">
+                <field
+                    name="l10n_ve_sales_user_id"
+                    readonly="1"
+                    invisible="not l10n_ve_is_ve_country or not sale_id"
+                />
+                <field
+                    name="l10n_ve_transport_partner_id"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
+                />
+                <field
+                    name="l10n_ve_fleet_vehicle_id"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
+                />
+            </xpath>
+            <xpath
+                expr="//div[hasclass('o_td_label')][label[@for='partner_id']]"
+                position="before"
+            >
+                <div class="o_td_label" invisible="not l10n_ve_show_control_number_ui">
+                    <label
+                        for="l10n_ve_control_number"
+                        class="text-danger"
+                        invisible="l10n_ve_control_number_placeholder and not l10n_ve_control_number"
+                    >N° Control:</label>
+                    <label
+                        for="l10n_ve_control_number_placeholder"
+                        class="text-danger"
+                        invisible="not l10n_ve_control_number_placeholder or l10n_ve_control_number"
+                    >N° Control:</label>
+                </div>
+                <field
+                    name="l10n_ve_control_number"
+                    class="text-danger"
+                    placeholder="00-00000000-0"
+                    nolabel="1"
+                    invisible="not l10n_ve_show_control_number_ui or (l10n_ve_control_number_placeholder and not l10n_ve_control_number)"
+                    readonly="picking_type_code == 'outgoing' or state in ('done', 'cancel')"
+                />
+                <field
+                    name="l10n_ve_control_number_placeholder"
+                    class="text-danger fst-italic opacity-75"
+                    nolabel="1"
+                    readonly="1"
+                    invisible="not l10n_ve_show_control_number_ui or l10n_ve_control_number or not l10n_ve_control_number_placeholder"
+                />
+            </xpath>
+            <xpath expr="//field[@name='picking_properties']" position="before">
+                <group
+                    string="Precios guía (sin pedido de venta)"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing' or sale_id"
+                >
+                    <field name="l10n_ve_dispatch_pricelist_id" />
+                    <field name="l10n_ve_dispatch_currency_id" />
+                </group>
+            </xpath>
+            <xpath
+                expr="//field[@name='move_ids_without_package']/list/field[@name='quantity']"
+                position="after"
+            >
+                <field name="l10n_ve_dispatch_currency_id" column_invisible="1" />
+                <field
+                    name="l10n_ve_dispatch_price_unit"
+                    readonly="1"
+                    optional="show"
+                    column_invisible="parent.picking_type_code != 'outgoing' or not parent.l10n_ve_is_ve_country or not parent.l10n_ve_dispatch_guide_enabled"
+                />
+            </xpath>
+            <xpath expr="//header/button[@name='do_print_picking']" position="after">
+                <button
+                    name="action_l10n_ve_print_dispatch_guide"
+                    string="Dispatch Guide"
+                    type="object"
+                    groups="stock.group_stock_user"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing' or state != 'done'"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_picking_tree_inherit_l10n_ve" model="ir.ui.view">
+        <field name="name">stock.picking.list.inherit.l10n.ve</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="l10n_ve_show_control_number_ui" column_invisible="True" />
+                <field
+                    name="l10n_ve_control_number"
+                    string="N° control"
+                    optional="show"
+                    invisible="not l10n_ve_show_control_number_ui"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_picking_search_inherit_l10n_ve" model="ir.ui.view">
+        <field name="name">stock.picking.internal.search.inherit.l10n.ve</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_internal_search" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="l10n_ve_control_number" string="N° control" />
+            </xpath>
+            <xpath expr="//filter[@name='delivery']" position="after">
+                <filter
+                    name="l10n_ve_dispatch_guides_with_control"
+                    string="Guías de despacho (con N° control)"
+                    domain="['&amp;', '&amp;', ('picking_type_code', '=', 'outgoing'), ('l10n_ve_control_number', '!=', False), ('l10n_ve_control_number', '!=', '')]"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

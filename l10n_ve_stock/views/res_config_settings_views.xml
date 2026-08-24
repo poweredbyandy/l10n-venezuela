@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_l10n_ve_stock" model="ir.ui.view">
+        <field name="name">res.config.settings.form.l10n.ve.stock</field>
+        <field name="model">res.config.settings</field>
+        <field
+            name="inherit_id"
+            ref="l10n_ve_seniat.res_config_settings_l10n_ve_seniat"
+        />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//div[@id='l10n_ve_seniat_div_lock_fiscal_data']"
+                position="after"
+            >
+                <div
+                    id="l10n_ve_stock_div_dispatch_guide"
+                    class="col-12 col-lg-6 o_setting_box"
+                >
+                    <div class="o_setting_left_pane">
+                        <field name="l10n_ve_dispatch_guide_enabled" />
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="l10n_ve_dispatch_guide_enabled" />
+                        <div class="text-muted">
+                            Habilita el uso y reporte de guías de despacho
+                            ante el SENIAT.
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

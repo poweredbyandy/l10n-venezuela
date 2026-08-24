@@ -1,0 +1,777 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_stock
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:54+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid ""
+"<span class=\"text-uppercase opacity-25 text-danger\" style=\"font-size: "
+"36px !important;\">Copia fiel su original</span>"
+msgstr ""
+"<span class=\"text-uppercase opacity-25 text-danger\" style=\"font-size: "
+"36px !important;\">Copia fiel al original</span>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "<strong class=\"text-danger\">Sin derecho a Crédito Fiscal</strong>"
+msgstr "<strong class=\"text-danger\">Sin derecho a Crédito Fiscal</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Volumen</strong>"
+msgid "<strong>Albarán: </strong>"
+msgstr "<strong>Albarán: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_company_header
+#| msgid "<strong>Peso</strong>"
+msgid "<strong>Correo: </strong>"
+msgstr "<strong>Correo: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Receptor</strong>"
+msgid "<strong>Dirección de entrega: </strong>"
+msgstr "<strong>Dirección de entrega: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Motivo del Traslado</strong>"
+msgid "<strong>Dirección de salida: </strong>"
+msgstr "<strong>Dirección de salida: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Peso</strong>"
+msgid "<strong>Fecha: </strong>"
+msgstr "<strong>Fecha: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_invoice_document_inherit_l10n_ve_stock_dispatch
+#| msgid "<strong>Peso</strong>"
+msgid "<strong>GUÍA DE DESPACHO:</strong>"
+msgstr "<strong>GUÍA DE DESPACHO:</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>RIF del Receptor</strong>"
+msgid "<strong>Modelo vehículo: </strong>"
+msgstr "<strong>Modelo vehículo: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Motivo del Traslado</strong>"
+msgid "<strong>Motivo de traslado: </strong>"
+msgstr "<strong>Motivo de traslado: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "<strong>Motivo del Traslado</strong>"
+msgstr "<strong>Motivo del Traslado</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_company_header
+#| msgid "<strong>Peso Total:</strong>"
+msgid "<strong>N° Registro / Información fiscal: </strong>"
+msgstr "<strong>N° Registro / Información fiscal: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Peso Total:</strong>"
+msgid "<strong>N° de control: </strong>"
+msgstr "<strong>N° de control: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "<strong>Peso Total:</strong>"
+msgstr "<strong>Peso Total:</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "<strong>Peso</strong>"
+msgstr "<strong>Peso</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Peso</strong>"
+msgid "<strong>Placa: </strong>"
+msgstr "<strong>Placa: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "<strong>RIF del Receptor</strong>"
+msgstr "<strong>RIF del Receptor</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_company_header
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Peso</strong>"
+msgid "<strong>RIF: </strong>"
+msgstr "<strong>RIF: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Peso Total:</strong>"
+msgid "<strong>Razón social: </strong>"
+msgstr "<strong>Razón social: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "<strong>Receptor</strong>"
+msgstr "<strong>Receptor</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Peso Total:</strong>"
+msgid "<strong>Subtotal:</strong>"
+msgstr "<strong>Subtotal:</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+#| msgid "<strong>RIF del Receptor</strong>"
+msgid "<strong>Teléfono del contacto</strong>"
+msgstr "<strong>Teléfono del contacto</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_company_header
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Peso</strong>"
+msgid "<strong>Teléfono: </strong>"
+msgstr "<strong>Teléfono: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Volumen</strong>"
+msgid "<strong>Total (con impuestos, documento):</strong>"
+msgstr "<strong>Total (con impuestos, documento):</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Peso Total:</strong>"
+msgid "<strong>Transportista: </strong>"
+msgstr "<strong>Transportista: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+#| msgid "<strong>Receptor</strong>"
+msgid "<strong>Vendedor: </strong>"
+msgstr "<strong>Vendedor: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "<strong>Volumen Total:</strong>"
+msgstr "<strong>Volumen Total:</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "<strong>Volumen</strong>"
+msgstr "<strong>Volumen</strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_company_header
+#| msgid "<strong>Peso</strong>"
+msgid "<strong>Web: </strong>"
+msgstr "<strong>Web: </strong>"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.view_l10n_ve_stock_picking_validate_confirmation
+msgid "Cancelar"
+msgstr "Cancelar"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/product_template.py:0
+msgid ""
+"Cannot change sales taxes on product “%s” after it has completed stock "
+"moves. Ask a settings administrator."
+msgstr ""
+"Cannot change ventas impuestos en producto “%s” after it has completed "
+"inventario moves. Ask a ajustes administrador."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/product_product.py:0
+#: code:addons/l10n_ve_stock/models/product_template.py:0
+msgid ""
+"Cannot change the internal reference of product “%s” after it has completed "
+"stock moves. Ask a settings administrator."
+msgstr ""
+"Cannot change el interno referencia de producto “%s” after it has completed "
+"inventario moves. Ask a ajustes administrador."
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Cant."
+msgstr "Cant."
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__company_id
+msgid "Compañía"
+msgstr "Compañía"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_l10n_ve_stock_picking_validate_confirmation
+msgid "Confirmación de validación de guía de despacho"
+msgstr "Confirmación de validación de guía de despacho"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.view_l10n_ve_stock_picking_validate_confirmation
+msgid "Confirmar entrega"
+msgstr "Confirmar entrega"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.view_l10n_ve_stock_picking_validate_confirmation
+msgid "Confirmar guía de despacho"
+msgstr "Confirmar guía de despacho"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+msgid "Confirme la entrega antes de imprimir la guía de despacho."
+msgstr "Confirme la entrega antes de imprimir la guía de despacho."
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Contribuyente Formal"
+msgstr "Contribuyente Formal"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__create_uid
+msgid "Created by"
+msgstr "Created por"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__create_date
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__create_date
+msgid "Created on"
+msgstr "Created en"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Código"
+msgstr "Código"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Descripción"
+msgstr "Descripción"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__display_name
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__display_name
+msgid "Display Name"
+msgstr "Nombre para mostrar"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+msgid ""
+"El almacén del tipo de operación debe pertenecer a la misma compañía que el "
+"albarán “%(picking)s”."
+msgstr ""
+"El almacén del tipo de operación debe pertenecer a la misma compañía que el "
+"albarán “%(picking)s”."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+msgid ""
+"El tramo de guía de despacho debe pertenecer a la misma compañía que el "
+"albarán “%(picking)s”."
+msgstr ""
+"El tramo de guía de despacho debe pertenecer a la misma compañía que el "
+"albarán “%(picking)s”."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+msgid ""
+"En albaranes internos o en entregas sin pedido de venta venezolanos debe "
+"indicar el motivo de traslado."
+msgstr ""
+"En albaranes internos o en entregas sin pedido de venta venezolanos debe "
+"indicar el motivo de traslado."
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__picking_ids
+msgid "Entregas"
+msgstr "Entregas"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/wizard/l10n_ve_stock_picking_validate_confirmation.py:0
+msgid ""
+"This delivery will assign control number <strong>%(number)s</strong>."
+msgstr ""
+"Esta entrega asignará el número correlativo <strong>%(number)s</strong>."
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "GUÍA DE DESPACHO"
+msgstr "GUÍA DE DESPACHO"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "Guía de Despacho:"
+msgstr "Guía de Despacho:"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/account_move.py:0
+msgid "Guía de Despacho: %s"
+msgstr "Guía de Despacho: %s"
+
+#. module: l10n_ve_stock
+#: model:ir.actions.report,name:l10n_ve_stock.action_report_l10n_ve_dispatch_guide
+msgid "Guía de despacho"
+msgstr "Guía de despacho"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_account_bank_statement_line__l10n_ve_invoice_dispatch_guides
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_account_move__l10n_ve_invoice_dispatch_guides
+msgid "Guías de despacho"
+msgstr "Guías de despacho"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.stock_picking_search_inherit_l10n_ve
+msgid "Guías de despacho (con N° control)"
+msgstr "Guías de despacho (con N° control)"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__id
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__id
+msgid "ID"
+msgstr "ID"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.view_picking_form_inherit_l10n_ve
+msgid "Dispatch Guide"
+msgstr "Guía de despacho"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_move__l10n_ve_dispatch_tax_ids
+msgid "Impuestos (guía)"
+msgstr "Impuestos (guía)"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+msgid "Indique el motivo de traslado antes de imprimir la guía."
+msgstr "Indique el motivo de traslado antes de imprimir la guía."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+msgid "Indique la moneda del total con impuestos para la guía."
+msgstr "Indique la moneda del total con impuestos para la guía."
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__invoice_ids
+msgid "Invoices"
+msgstr "Facturas"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "J-12345678-9"
+msgstr "J-12345678-9"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_account_move
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_move__l10n_ve_dispatch_currency_id
+#| msgid "L10N Ve Is Ve Country"
+msgid "L10N Ve Dispatch Currency"
+msgstr "Moneda de despacho L10N Ve"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_display_currency_id
+msgid "L10N Ve Dispatch Display Currency"
+msgstr "Moneda de visualización del despacho"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_guide_original_printed
+msgid "L10N Ve Dispatch Guide Original Printed"
+msgstr "Guía de envío L10N Ve Original impresa"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_is_ve_country
+msgid "L10N Ve Is Ve Country"
+msgstr "Es País Venezuela"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_show_control_number_ui
+msgid "L10N Ve Show Control Number Ui"
+msgstr "L10N Ve Mostrar Control Número Ui"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__write_uid
+msgid "Last Updated by"
+msgstr "Último Updated por"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__write_date
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__write_date
+msgid "Last Updated on"
+msgstr "Último Updated en"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_pricelist_id
+msgid "Lista de precios (guía)"
+msgstr "Lista de precios (guía)"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_company_header
+msgid "Logo"
+msgstr "Logo"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__l10n_ve_confirmation_message
+msgid "Mensaje"
+msgstr "Mensaje"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_currency_id
+msgid "Moneda total (guía)"
+msgstr "Moneda total (guía)"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_internal_transfer_reason_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.view_picking_form_inherit_l10n_ve
+#| msgid "<strong>Motivo del Traslado</strong>"
+msgid "Motivo de traslado"
+msgstr "Motivo de traslado"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_l10n_ve_stock_transfer_reason
+msgid "Motivo de traslado (Venezuela)"
+msgstr "Motivo de traslado (Venezuela)"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,help:l10n_ve_stock.field_stock_picking__l10n_ve_internal_transfer_reason_id
+msgid ""
+"Motivo del traslado de los bienes muebles en albaranes internos o en "
+"entregas sin pedido de venta, según el Artículo 10, numeral 4, de la "
+"Providencia Administrativa del SENIAT."
+msgstr ""
+"Motivo del traslado de los bienes muebles en albaranes internos o en "
+"entregas sin pedido de venta, según el Artículo 10, numeral 4, de la "
+"Providencia Administrativa del SENIAT."
+
+#. module: l10n_ve_stock
+#: model:ir.actions.act_window,name:l10n_ve_stock.action_l10n_ve_stock_transfer_reason
+msgid "Motivos de traslado (VE)"
+msgstr "Motivos de traslado (VE)"
+
+#. module: l10n_ve_stock
+#: model:ir.ui.menu,name:l10n_ve_stock.menu_l10n_ve_stock_transfer_reason
+msgid "Motivos traslado VE"
+msgstr "Motivos traslado VE"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_transfer_reason__name
+msgid "Name"
+msgstr "Nombre"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/wizard/l10n_ve_stock_picking_validate_confirmation.py:0
+msgid "No hay entregas seleccionadas para validar."
+msgstr "No hay entregas seleccionadas para validar."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+msgid ""
+"No puede imprimir operaciones de picking mezclando entregas venezolanas con "
+"otros albaranes."
+msgstr ""
+"No se pueden imprimir operaciones de recolección mezclando entregas "
+"venezolanas con otros albaranes."
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "Nombre del receptor"
+msgstr "Nombre del receptor"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.view_picking_form_inherit_l10n_ve
+msgid "N° Control:"
+msgstr "N°Control:"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.stock_picking_search_inherit_l10n_ve
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.stock_picking_tree_inherit_l10n_ve
+msgid "N° control"
+msgstr "N° control"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_control_number
+msgid "N° de control"
+msgstr "N° de control"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,help:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_pricelist_id
+msgid ""
+"Obligatoria en la guía cuando el albarán no proviene de un pedido de venta."
+msgstr ""
+"Obligatoria en la guía cuando el albarán no proviene de un pedido de venta."
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "Orden de Entrega:"
+msgstr "Orden de Entrega:"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Peso"
+msgstr "Peso"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Precio U."
+msgstr "Precio U."
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_move__l10n_ve_dispatch_price_unit
+msgid "Precio unitario (guía)"
+msgstr "Precio unitario (guía)"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.view_picking_form_inherit_l10n_ve
+msgid "Precios guía (sin pedido de venta)"
+msgstr "Precios guía (sin pedido de venta)"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_product_template
+msgid "Product"
+msgstr "Producto"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_product_product
+msgid "Product Variant"
+msgstr "Variante del producto"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_l10n_ve_stock_picking_validate_confirmation__l10n_ve_next_control_number
+msgid "Próximo N° de control"
+msgstr "Próximo N° de control"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_control_number_placeholder
+msgid "Próximo N° de control (previsto)"
+msgstr "Próximo N° de control (previsto)"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_ir_actions_report
+msgid "Report Action"
+msgstr "Acción de reporte"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_sale_order
+msgid "Sales Order"
+msgstr "Orden de venta"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/wizard/l10n_ve_stock_picking_validate_confirmation.py:0
+msgid ""
+"The following control numbers will be assigned: <strong>%(number)s</strong>."
+msgstr ""
+"Se asignarán los números correlativos: <strong>%(number)s</strong>."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/stock_picking.py:0
+msgid ""
+"Seleccione la lista de precios para la guía (albarán sin pedido de venta "
+"vinculado)."
+msgstr ""
+"Seleccione la lista de precios para la guía (albarán sin pedido de venta "
+"vinculado)."
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_ir_actions_server
+msgid "Server Action"
+msgstr "Acción del servidor"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Sin derecho a crédito fiscal"
+msgstr "Sin derecho a crédito fiscal"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_stock_move
+msgid "Stock Move"
+msgstr "Movimiento de stock"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_display_subtotal
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_partner_contact_phone_display
+msgid "Teléfono (contacto)"
+msgstr "Teléfono (contacto)"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_display_total
+msgid "Total"
+msgstr "Total"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_amount_total
+msgid "Total con impuestos (guía)"
+msgstr "Total con impuestos (guía)"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,help:l10n_ve_stock.field_stock_picking__l10n_ve_dispatch_amount_total
+msgid ""
+"Total documental con impuestos cuando no hay pedido de venta (multimoneda)."
+msgstr ""
+"Total documental con impuestos cuando no hay pedido de venta (multimoneda)."
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_move__l10n_ve_dispatch_subtotal
+msgid "Total línea (guía, s/ imp.)"
+msgstr "Línea total (guía, s/ imp.)"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_move__l10n_ve_dispatch_price_total
+msgid "Total línea c/ imp. (guía)"
+msgstr "Línea total c/ imp. (guía)"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,help:l10n_ve_stock.field_stock_warehouse__l10n_ve_dispatch_guide_section_id
+msgid ""
+"Tramo del talonario SENIAT para el N° de control de guías de despacho en "
+"albaranes de venta validados sin factura vinculada, para operaciones de este"
+" almacén."
+msgstr ""
+"Tramo del talonario SENIAT para el N° de control de guías de despacho en "
+"albaranes de venta validados sin factura vinculada, para operaciones de este"
+" almacén."
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_warehouse__l10n_ve_dispatch_guide_section_id
+msgid "Tramo talonario (guía de despacho)"
+msgstr "Tramo talonario (guía de despacho)"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_stock_picking
+msgid "Transfer"
+msgstr "Transferencia"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_transport_partner_id
+msgid "Transportista"
+msgstr "Transportista"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/wizard/l10n_ve_stock_picking_validate_confirmation.py:0
+msgid ""
+"After validation, the document will be recorded as a dispatch guide and "
+"cannot be adjusted soon."
+msgstr ""
+"Tras validar, el documento quedará registrado como guía de despacho y no "
+"podrá ajustarse próximamente."
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/wizard/l10n_ve_stock_picking_validate_confirmation.py:0
+msgid ""
+"After validation, the documents will be recorded as dispatch guides and "
+"cannot be adjusted soon."
+msgstr ""
+"Tras validar, los documentos quedarán registrados como guías de despacho y "
+"no podrán ajustarse próximamente."
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_fleet_vehicle_id
+msgid "Vehículo"
+msgstr "Vehículo"
+
+#. module: l10n_ve_stock
+#: model:ir.model.fields,field_description:l10n_ve_stock.field_stock_picking__l10n_ve_sales_user_id
+msgid "Vendedor"
+msgstr "Vendedor"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_dispatch_guide_document
+msgid "Volumen"
+msgstr "Volumen"
+
+#. module: l10n_ve_stock
+#: model:ir.model,name:l10n_ve_stock.model_stock_warehouse
+msgid "Warehouse"
+msgstr "Almacén"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/models/product_template.py:0
+msgid ""
+"With Venezuelan fiscal localization, each product must have exactly one "
+"sales tax."
+msgstr ""
+"Con la localización fiscal venezolana, cada producto debe tener exactamente "
+"un impuesto a las ventas."
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "kg"
+msgstr "kg"
+
+#. module: l10n_ve_stock
+#: model_terms:ir.ui.view,arch_db:l10n_ve_stock.report_delivery_document_inherit_l10n_ve_stock
+msgid "m³"
+msgstr "m³"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/wizard/l10n_ve_stock_picking_validate_confirmation.py:0
+msgid "Are you sure you want to confirm these deliveries?"
+msgstr "¿Está seguro de confirmar estas entregas?"
+
+#. module: l10n_ve_stock
+#. odoo-python
+#: code:addons/l10n_ve_stock/wizard/l10n_ve_stock_picking_validate_confirmation.py:0
+msgid ""
+"Are you sure you want to confirm delivery <strong>%(picking)s</strong>?"
+msgstr ""
+"¿Está seguro de confirmar la entrega <strong>%(picking)s</strong>?"
+
+#~ msgid "0.00"
+#~ msgstr "0.00"
+
+#~ msgid "0.0000"
+#~ msgstr "0.0000"
+
+#~ msgid ""
+#~ "Indique el motivo del traslado de los bienes (ej: Consignación, Préstamo, "
+#~ "Muestra, Reubicación, etc.)"
+#~ msgstr ""
+#~ "Indique el motivo del traslado de los bienes (ej: Consignación, Préstamo, "
+#~ "Muestra, Reubicación, etc.)"
