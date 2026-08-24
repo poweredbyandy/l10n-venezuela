@@ -1,0 +1,5090 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_reports
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:53+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "\" account balance is affected by"
+msgstr "\" el saldo de la cuenta está afectado por"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+#| msgid "Carryover from %(date_from)s to %(date_to)s"
+msgid "%(date_from)s — %(date_to)s"
+msgstr "%(date_from)s — %(date_to)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "%(journal)s - %(account)s"
+msgstr "%(journal)s - %(account)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+#| msgid "%(journal)s - %(account)s"
+msgid "%(journal)s — %(label)s: %(currency)s"
+msgstr "%(journal)s — %(label)s: %(currency)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "%(n)s documentos"
+msgstr "%(n)s documentos"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "%(n)s operaciones"
+msgstr "%(n)s operaciones"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "%(names)s and %(remaining)s others"
+msgstr "%(names)s y %(remaining)s más"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "%(names)s and one other"
+msgstr "%(names)s y uno más"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/res_company.py:0
+msgid "%(report_label)s: %(period)s"
+msgstr "%(report_label)s: %(period)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/budget.py:0
+msgid "%s (copy)"
+msgstr "%s (copia)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "%s is not a numeric value"
+msgstr "%s no es un valor numérico"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "%s selected"
+msgstr "%s seleccionado(s)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"'Open General Ledger' caret option is only available form report lines "
+"targetting accounts."
+msgstr ""
+"La opción 'Abrir Libro Mayor' solo está disponible para líneas de reporte "
+"dirigidas a cuentas."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"'View Bank Statement' caret option is only available for report lines "
+"targeting bank statements."
+msgstr ""
+"La opción 'Ver Estado de Cuenta Bancario' solo está disponible para líneas "
+"de reporte dirigidas a estados de cuenta bancarios."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "'external' engine does not support groupby, limit nor offset."
+msgstr "El motor 'external' no soporta groupby, limit ni offset."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "(%s lines)"
+msgstr "(%s líneas)"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.outstanding_receipts
+msgid "(+) Outstanding Receipts"
+msgstr "(+) Cobros Pendientes"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.outstanding_payments
+msgid "(-) Outstanding Payments"
+msgstr "(-) Pagos Pendientes"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "(1 line)"
+msgstr "(1 línea)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "(No Group)"
+msgstr "(Sin Grupo)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid ", leading to an unexplained difference of"
+msgstr ", lo que lleva a una diferencia sin explicar de"
+
+#. module: l10n_ve_reports
+#: model:mail.template,body_html:l10n_ve_reports.email_template_customer_statement
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                <p style=\"margin: 0px; padding: 0px;\">\n"
+"                    <t t-if=\"object.id != object.commercial_partner_id.id\">Dear <t t-out=\"object.name or ''\"/> (<t t-out=\"object.commercial_partner_id.name or ''\"/>),</t>\n"
+"                    <t t-else=\"\">Dear <t t-out=\"object.name or ''\"/>,</t>\n"
+"                    <br/>\n"
+"                    Please find enclosed the statement of your account.\n"
+"                    <br/>\n"
+"                    Do not hesitate to contact us if you have any questions.\n"
+"                    <br/>\n"
+"                    Sincerely,\n"
+"                    <br/>\n"
+"\t                <t t-out=\"object._get_followup_responsible().name if is_html_empty(object._get_followup_responsible().signature) else object._get_followup_responsible().signature\"/>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                <p style=\"margin: 0px; padding: 0px;\">\n"
+"                    <t t-if=\"object.id != object.commercial_partner_id.id\">Estimado/a <t t-out=\"object.name or ''\"/> (<t t-out=\"object.commercial_partner_id.name or ''\"/>),</t>\n"
+"                    <t t-else=\"\">Estimado/a <t t-out=\"object.name or ''\"/>,</t>\n"
+"                    <br/>\n"
+"                    Adjunto encontrará el estado de su cuenta.\n"
+"                    <br/>\n"
+"                    No dude en contactarnos si tiene alguna pregunta.\n"
+"                    <br/>\n"
+"                    Atentamente,\n"
+"                    <br/>\n"
+"\t                <t t-out=\"object._get_followup_responsible().name if is_html_empty(object._get_followup_responsible().signature) else object._get_followup_responsible().signature\"/>\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_send_form
+msgid ""
+"<i class=\"fa fa-question-circle ml4\" role=\"img\" aria-label=\"Warning\" "
+"title=\"The email address is unknown on the partner\" invisible=\"not "
+"send_mail_readonly\"/>"
+msgstr ""
+"<i class=\"fa fa-question-circle ml4\" role=\"img\" aria-label=\"Warning\" "
+"title=\"The email address is unknown on the partner\" invisible=\"not "
+"send_mail_readonly\"/>"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_file_download_error_wizard_form
+msgid ""
+"<i>Errors marked with <i class=\"fa fa-warning\"/> are critical and prevent "
+"the file generation.</i>"
+msgstr ""
+"<i>Los errores marcados con <i class=\"fa fa-warning\"/> son críticos y "
+"previenen la generación del archivo.</i>"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_reports_journal_dashboard_kanban_view
+msgid "<span role=\"separator\">Reconciliation</span>"
+msgstr "<span role=\"separator\">Conciliación</span>"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_file_download_error_wizard_form
+msgid "<span>One or more error(s) occurred during file generation:</span>"
+msgstr ""
+"<span>Ocurrió uno o más error(es) durante la generación del archivo:</span>"
+
+#. module: l10n_ve_reports
+#: model:ir.model.constraint,message:l10n_ve_reports.constraint_account_report_horizontal_group_oca_name_uniq
+msgid "A horizontal group with the same name already exists."
+msgstr "Ya existe un grupo horizontal con el mismo nombre."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/widgets/account_report_x2many/account_report_x2many.js:0
+msgid "A line with a 'Group By' value cannot have children."
+msgstr "Una línea con un valor 'Agrupar Por' no puede tener hijos."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_tax.py:0
+msgid ""
+"A tax unit can only be created between companies sharing the same main "
+"currency."
+msgstr ""
+"Una unidad fiscal solo puede crearse entre empresas que comparten la misma "
+"moneda principal."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_tax.py:0
+msgid ""
+"A tax unit must contain a minimum of two companies. You might want to delete"
+" the unit."
+msgstr ""
+"Una unidad fiscal debe contener un mínimo de dos empresas. Podría querer "
+"eliminar la unidad."
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_total_assets0
+msgid "ASSETS"
+msgstr "ACTIVOS"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_account_name
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_account_name
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_account_code
+#: model:ir.model,name:l10n_ve_reports.model_account_account
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__account_id
+msgid "Account"
+msgstr "Cuenta"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_chart_template
+#| msgid "Account Name"
+msgid "Account Chart Template"
+msgstr "Plantilla del plan de cuentas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "Account Code"
+msgstr "Código de Cuenta"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Account Code / Tag"
+msgstr "Código de Cuenta / Etiqueta"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "Account Label"
+msgstr "Etiqueta de Cuenta"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Account Name"
+msgstr "Nombre de Cuenta"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_annotation_oca
+msgid "Account Report Annotation"
+msgstr "Anotación de Reporte Contable"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_custom_handler_oca
+msgid "Account Report Custom Handler"
+msgstr "Manejador Personalizado de Reporte Contable"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_tax_report_handler_oca
+msgid "Account Report Handler for Tax Reports"
+msgstr "Manejador de Reporte para Reportes Fiscales"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_send
+msgid "Account Report Send"
+msgstr "Enviar Reporte Contable"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_res_company__account_revaluation_journal_id
+msgid "Account Revaluation Journal"
+msgstr "Diario de Revaluación Contable"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_account_type.xml:0
+msgid "Account:"
+msgstr "Cuenta:"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report
+msgid "Accounting Report"
+msgstr "Reporte contable"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_budget_oca
+msgid "Accounting Report Budget"
+msgstr "Presupuesto de Reporte Contable"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_budget_item_oca
+msgid "Accounting Report Budget Item"
+msgstr "Ítem de Presupuesto de Reporte Contable"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_expression
+msgid "Accounting Report Expression"
+msgstr "Expresión de reporte contable"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_line
+msgid "Accounting Report Line"
+msgstr "Línea del reporte contable"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_search
+msgid "Accounting Reports"
+msgstr "Reportes Contables"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_analytic.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_analytic_groupby.xml:0
+msgid "Accounts"
+msgstr "Cuentas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "Accounts Coverage Report"
+msgstr "Reporte de Cobertura de Cuentas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Accounts coverage"
+msgstr "Cobertura de cuentas"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_mail_activity_type__category
+msgid "Action"
+msgstr "Acción"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__actionable_errors
+msgid "Actionable Errors"
+msgstr "Errores Accionables"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_mail_activity_type__category
+msgid ""
+"Actions may trigger specific behavior like opening calendar view or "
+"automatically mark as done when a document is uploaded"
+msgstr ""
+"Las acciones pueden activar comportamientos específicos, como abrir la vista"
+" de calendario o marcar la actividad como hecha de forma automática al subir"
+" un documento"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_mail_activity
+msgid "Activity"
+msgstr "Actividad"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_mail_activity_type
+msgid "Activity Type"
+msgstr "Tipo de actividad"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_display_currency.xml:0
+msgid "Actualizando reporte..."
+msgstr "Actualizando reporte..."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_name/popover/annotations_popover.xml:0
+#: code:addons/l10n_ve_reports/static/src/widgets/account_report_x2many/account_report_x2many.xml:0
+msgid "Add a line"
+msgstr "Agregar una línea"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_send_form
+msgid "Add contacts to notify..."
+msgstr "Agregar contactos para notificar..."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_purchase_book_report.py:0
+msgid "Adjustments to Tax Credits from Previous Periods"
+msgstr "Ajustes a Créditos Fiscales de Períodos Anteriores"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "Adjustments to Tax Debits from Previous Periods"
+msgstr "Ajustes a Débitos Fiscales de Períodos Anteriores"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Advance Payments received from customers"
+msgstr "Anticipos recibidos de clientes"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Advance payments made to suppliers"
+msgstr "Anticipos realizados a proveedores"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "Advanced"
+msgstr "Avanzado"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_aged_partner_balance_report_handler_oca
+msgid "Aged Partner Balance Custom Handler"
+msgstr "Manejador Personalizado de Balance de Terceros Vencido"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.aged_payable_line
+msgid "Aged Payable"
+msgstr "🇻🇪 Cuentas por Pagar Vencidas"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_aged_payable_report_handler_oca
+msgid "Aged Payable Custom Handler"
+msgstr "Manejador Personalizado de Cuentas por Pagar Vencidas"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.aged_receivable_line
+msgid "Aged Receivable"
+msgstr "🇻🇪 Cuentas por Cobrar Vencidas"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_aged_receivable_report_handler_oca
+msgid "Aged Receivable Custom Handler"
+msgstr "Manejador Personalizado de Cuentas por Cobrar Vencidas"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_general_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_general_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_general_aliquot
+msgid "Alicuota (16%)"
+msgstr "Alicuota (16%)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_extend_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_extend_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_extend_aliquot
+msgid "Alicuota (31%)"
+msgstr "Alicuota (31%)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_reduced_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_reduced_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_reduced_aliquot
+msgid "Alicuota (8%)"
+msgstr "Alicuota (8%)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_general_aliquot
+msgid "Alicuota 16% (terceros)"
+msgstr "Alicuota 16% (terceros)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_extend_aliquot
+msgid "Alicuota 31% (terceros)"
+msgstr "Alicuota 31% (terceros)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_reduced_aliquot
+msgid "Alicuota 8% (terceros)"
+msgstr "Alicuota 8% (terceros)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_fiscal_position.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/filters/filters.js:0
+msgid "All"
+msgstr "Todos"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "All Journals"
+msgstr "Todos los Diarios"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "All Payable"
+msgstr "Todos los Pagos"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "All Receivable"
+msgstr "Todos los Cobros"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "All Report Variants"
+msgstr "Todas las Variantes del Reporte"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/tax_report/warnings.xml:0
+msgid ""
+"All selected companies or branches do not share the same Tax ID. Please "
+"check the Tax ID of the selected companies."
+msgstr ""
+"Todas las empresas o sucursales seleccionadas no comparten el mismo RIF. Por"
+" favor verifique el RIF de las empresas seleccionadas."
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.account_financial_report_ec_sales_amount
+#: model:account.report.column,name:l10n_ve_reports.bank_reconciliation_report_amount
+#: model:account.report.column,name:l10n_ve_reports.customer_statement_amount
+#: model:account.report.column,name:l10n_ve_reports.followup_report_amount
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__amount
+msgid "Amount"
+msgstr "Monto"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_amount_currency
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_amount_currency
+#: model:account.report.column,name:l10n_ve_reports.bank_reconciliation_report_amount_currency
+#: model:account.report.column,name:l10n_ve_reports.customer_statement_report_amount_currency
+#: model:account.report.column,name:l10n_ve_reports.followup_report_report_amount_currency
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_amount_currency
+msgid "Amount Currency"
+msgstr "Monto en Moneda"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "Amount in currency: %s"
+msgstr "Monto en moneda: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Amounts in Lakhs"
+msgstr "Montos en Lakhs"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Amounts in Millions"
+msgstr "Montos en Millones"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Amounts in Thousands"
+msgstr "Montos en Miles"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_analytic.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_analytic_groupby.xml:0
+msgid "Analytic"
+msgstr "Analítico"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__filter_analytic_groupby
+msgid "Analytic Group By"
+msgstr "Agrupar Por Analítico"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+msgid "Analytic Simulations"
+msgstr "Simulaciones Analíticas"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_name/line_name.xml:0
+msgid "Annotate"
+msgstr "Anotar"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_name/popover/annotations_popover.xml:0
+msgid "Annotation"
+msgstr "Anotación"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__annotations_ids
+msgid "Annotations"
+msgstr "Anotaciones"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Anulaciones (documentos cancelados en el período)"
+msgstr "Anulaciones (documentos cancelados en el período)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Arqueo por forma de cobro / diario"
+msgstr "Arqueo por forma de cobro / diario"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "As of %s"
+msgstr "A partir del %s"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Ascending"
+msgstr "Ascendente"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_period0
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_period0
+msgid "At Date"
+msgstr "A la Fecha"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_send_form
+msgid "Attach a file"
+msgstr "Adjuntar un archivo"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line_name.xml:0
+msgid "Audit"
+msgstr "Auditoría"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_avgcre0
+msgid "Average creditors days"
+msgstr "Promedio creditors days"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_avdebt0
+msgid "Average debtors days"
+msgstr "Promedio debtors days"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "B: %s"
+msgstr "B: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: model:account.report.column,name:l10n_ve_reports.balance_sheet_balance
+#: model:account.report.column,name:l10n_ve_reports.cash_flow_report_balance
+#: model:account.report.column,name:l10n_ve_reports.customer_statement_report_balance
+#: model:account.report.column,name:l10n_ve_reports.executive_summary_column
+#: model:account.report.column,name:l10n_ve_reports.followup_report_report_balance
+#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_balance
+#: model:account.report.column,name:l10n_ve_reports.journal_report_balance
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_balance
+#: model:account.report.column,name:l10n_ve_reports.profit_and_loss_column
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_reports_journal_dashboard_kanban_view
+msgid "Balance"
+msgstr "Saldo"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_balancesheet0
+msgid "Balance Sheet"
+msgstr "🇻🇪 Balance General"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_balance_sheet_report_handler_oca
+msgid "Balance Sheet Custom Handler"
+msgstr "Saldo general Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/bank_reconciliation_report.py:0
+msgid "Balance of '%s'"
+msgstr "Saldo de '%s'"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.balance_bank
+msgid "Balance of Bank"
+msgstr "Saldo del Banco"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Balance tax advance payment account"
+msgstr "Saldo cuenta de anticipo de impuesto"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Balance tax current account (payable)"
+msgstr "Saldo cuenta corriente de impuesto (por pagar)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Balance tax current account (receivable)"
+msgstr "Saldo cuenta corriente de impuesto (por cobrar)"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_bank_reconciliation_report_handler_oca
+msgid "Bank Reconciliation Report Custom Handler"
+msgstr "Banco Conciliación Reporte Custom Handler"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_bank_view0
+msgid "Bank and Cash Accounts"
+msgstr "Cuentas Bancarias y de Efectivo"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_general_ledger.py:0
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Base Amount"
+msgstr "Monto Base"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_tax_base_general_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_tax_base_general_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_tax_base_general_aliquot
+msgid "Base imponible (16%)"
+msgstr "Base imponible (16%)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_tax_base_extend_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_tax_base_extend_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_tax_base_extend_aliquot
+msgid "Base imponible (31%)"
+msgstr "Base imponible (31%)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_tax_base_reduced_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_tax_base_reduced_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_tax_base_reduced_aliquot
+msgid "Base imponible (8%)"
+msgstr "Base imponible (8%)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_tax_base_general_aliquot
+msgid "Base imponible 16% (terceros)"
+msgstr "Base imponible 16% (terceros)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_tax_base_extend_aliquot
+msgid "Base imponible 31% (terceros)"
+msgstr "Base imponible 31% (terceros)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_tax_base_reduced_aliquot
+msgid "Base imponible 8% (terceros)"
+msgstr "Base imponible 8% (terceros)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — adicional"
+msgstr "Base imponible — adicional"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — adicional (NC)"
+msgstr "Base imponible — adicional (NC)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — adicional (ND)"
+msgstr "Base imponible — adicional (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — alícuota adicional (%(p)s%%)"
+msgstr "Base imponible — alícuota adicional (%(p)s%%)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — alícuota adicional (%(p)s%%) (ND)"
+msgstr "Base imponible — alícuota adicional (%(p)s%%) (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — alícuota general"
+msgstr "Base imponible — alícuota general"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — alícuota general (%(p)s%%)"
+msgstr "Base imponible — alícuota general (%(p)s%%)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — alícuota general (%(p)s%%) (ND)"
+msgstr "Base imponible — alícuota general (%(p)s%%) (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — alícuota general (ND)"
+msgstr "Base imponible — alícuota general (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — alícuota reducida (%(p)s%%)"
+msgstr "Base imponible — alícuota reducida (%(p)s%%)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — alícuota reducida (%(p)s%%) (ND)"
+msgstr "Base imponible — alícuota reducida (%(p)s%%) (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — general (NC)"
+msgstr "Base imponible — general (NC)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — reducida"
+msgstr "Base imponible — reducida"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — reducida (NC)"
+msgstr "Base imponible — reducida (NC)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Base imponible — reducida (ND)"
+msgstr "Base imponible — reducida (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/filter_aging.xml:0
+msgid "Based on"
+msgstr "Basado en"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Borrador"
+msgstr "Borrador"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_budgets.xml:0
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__budget_id
+msgid "Budget"
+msgstr "Presupuesto"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_account__budget_item_ids
+msgid "Budget Item"
+msgstr "Item de Presupuesto"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_budget_form
+msgid "Budget Items"
+msgstr "Items de Presupuesto"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_budgets.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_budget_form
+msgid "Budget Name"
+msgstr "Nombre del Presupuesto"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Budget items can only be edited from account lines."
+msgstr ""
+"Los items de presupuesto solo pueden editarse desde las líneas de cuenta."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/redirectAction/redirectAction.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_send_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_report_export_wizard
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Cannot audit tax from another model than account.tax."
+msgstr ""
+"No se puede auditar un impuesto desde otro modelo que no sea account.tax."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Cannot generate carryover values for all fiscal positions at once!"
+msgstr ""
+"¡No se pueden generar valores de arrastre para todas las posiciones fiscales"
+" a la vez!"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Cantidad facturas y recibos"
+msgstr "Cantidad facturas y recibos"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Cantidad notas de crédito"
+msgstr "Cantidad notas de crédito"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Cantidad notas de débito"
+msgstr "Cantidad notas de débito"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/carryover_popover.xml:0
+msgid "Carryover"
+msgstr "Arrastre"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Carryover adjustment for tax unit"
+msgstr "Ajuste de arrastre para unidad fiscal"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Carryover can only be generated for a single column group."
+msgstr "El arrastre solo puede generarse para un solo grupo de columnas."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Carryover from %(date_from)s to %(date_to)s"
+msgstr "Arrastre desde %(date_from)s hasta %(date_to)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Carryover lines for: %s"
+msgstr "Líneas de arrastre para: %s"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_cash0
+msgid "Cash"
+msgstr "Efectivo"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_cash_flow_report_handler_oca
+msgid "Cash Flow Report Custom Handler"
+msgstr "Efectivo Flow Reporte Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash and cash equivalents, beginning of period"
+msgstr "Efectivo y equivalentes de efectivo, inicio del período"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash and cash equivalents, closing balance"
+msgstr "Efectivo y equivalentes de efectivo, saldo de cierre"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash flows from financing activities"
+msgstr "Flujos de efectivo de actividades de financiación"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash flows from investing & extraordinary activities"
+msgstr "Flujos de efectivo de actividades de inversión y extraordinarias"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash flows from operating activities"
+msgstr "Flujos de efectivo de actividades operativas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash flows from unclassified activities"
+msgstr "Flujos de efectivo de actividades no clasificadas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash in"
+msgstr "Entrada de efectivo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash out"
+msgstr "Salida de efectivo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash paid for operating activities"
+msgstr "Efectivo pagado por actividades operativas"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_cash_received0
+msgid "Cash received"
+msgstr "Efectivo recibido"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Cash received from operating activities"
+msgstr "Efectivo recibido de actividades operativas"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_cash_spent0
+msgid "Cash spent"
+msgstr "Efectivo gastado"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_cash_surplus0
+msgid "Cash surplus"
+msgstr "Excedente de efectivo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/account_report_send.py:0
+msgid "Check Partner(s) Email(s)"
+msgstr "Verificar Correo(s) del Socio(s)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/tax_report/warnings.xml:0
+msgid "Check them"
+msgstr "Verificarlos"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/move_line_list/move_line_list.xml:0
+msgid "Choose a line to preview its attachments."
+msgstr "Elija una línea para previsualizar sus adjuntos."
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_file_download_error_wizard_form
+msgid "Close"
+msgstr "Cerrar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Closing Entry"
+msgstr "Asiento de Cierre"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_closing_bank_balance0
+msgid "Closing bank balance"
+msgstr "Cierre banco saldo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: model:account.report.column,name:l10n_ve_reports.journal_report_code
+msgid "Code"
+msgstr "Código"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/filters/filter_code.xml:0
+msgid "Codes:"
+msgstr "Códigos:"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "Columns"
+msgstr "Columnas"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_communication
+msgid "Communication"
+msgstr "Comunicación"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: model:ir.model,name:l10n_ve_reports.model_res_company
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__company_ids
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_tax.py:0
+msgid ""
+"Company %(company)s already belongs to a tax unit in %(country)s. A company "
+"can at most be part of one tax unit per country."
+msgstr ""
+"La empresa %(company)s ya pertenece a una unidad fiscal en %(country)s. Una "
+"empresa como máximo puede formar parte de una unidad tributaria por país."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Company Currency"
+msgstr "Moneda de la compañía"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_tax_unit.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Company Only"
+msgstr "Solo Empresa"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Company Settings"
+msgstr "Configuración de la Empresa"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+msgid "Comparison"
+msgstr "Comparación"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_res_config_settings
+#| msgid "Company Settings"
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Configure your TAX accounts - %s"
+msgstr "Configure sus cuentas de IMPUESTOS - %s"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_res_partner
+#| msgid "Contacts"
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.daily_payments_report_partner
+#| msgid "Contacts"
+msgid "Contacto"
+msgstr "Contacto"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.duplicated_vat_partner_tree_view
+msgid "Contacts"
+msgstr "Contactos"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__mail_body
+msgid "Contents"
+msgstr "Contenido"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_direct_costs0
+msgid "Cost of Revenue"
+msgstr "Costo de Ingresos"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Could not expand term %(term)s while evaluating formula "
+"%(unexpanded_formula)s"
+msgstr ""
+"Could not expand term %(term)s while evaluating fórmula "
+"%(unexpanded_formula)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Could not parse account_code formula from token '%s'"
+msgstr "Could not parse account_code fórmula desde token '%s'"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__country_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_search
+msgid "Country"
+msgstr "País"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.account_financial_report_ec_sales_country
+msgid "Country Code"
+msgstr "Código de País"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_budgets.xml:0
+msgid "Create"
+msgstr "Crear"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.server,name:l10n_ve_reports.action_create_composite_report_list
+msgid "Create Composite Report"
+msgstr "Crear Reporte Compuesto"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.server,name:l10n_ve_reports.action_create_report_menu
+msgid "Create Menu Item"
+msgstr "Crear Elemento de Menú"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__create_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_credit
+#: model:account.report.column,name:l10n_ve_reports.journal_report_credit
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_credit
+#: model:account.report.column,name:l10n_ve_reports.trial_balance_report_credit
+msgid "Credit"
+msgstr "Crédito"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_currency
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_currency
+#: model:account.report.column,name:l10n_ve_reports.bank_reconciliation_report_currency
+#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_amount_currency
+msgid "Currency"
+msgstr "Moneda"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Currency Code"
+msgstr "Código de Moneda"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filters
+msgid "Currency:"
+msgstr "Moneda:"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_current_assets0
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_current_assets_view0
+msgid "Current Assets"
+msgstr "Activos Corrientes"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_current_liabilities0
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_current_liabilities1
+msgid "Current Liabilities"
+msgstr "Pasivos Corrientes"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_retained_earnings_line_1
+msgid "Current Year Retained Earnings"
+msgstr "Utilidades Retenidas del Año Actual"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_current_year_earnings0
+msgid "Current Year Unallocated Earnings"
+msgstr "Utilidades No Asignadas del Año Actual"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_ca_to_l0
+msgid "Current assets to liabilities"
+msgstr "Actual activos hasta pasivos"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_date.xml:0
+msgid "Custom Dates"
+msgstr "Fechas Personalizadas"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__custom_handler_model_id
+msgid "Custom Handler Model"
+msgstr "Modelo de Manejador Personalizado"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__custom_handler_model_name
+msgid "Custom Handler Model Name"
+msgstr "Nombre del Modelo de Manejador Personalizado"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/bank_reconciliation_report.py:0
+msgid ""
+"Custom engine _report_custom_engine_last_statement_balance_amount does not "
+"support groupby"
+msgstr ""
+"El motor personalizado _report_custom_engine_last_statement_balance_amount "
+"no admite groupby"
+
+#. module: l10n_ve_reports
+#: model:mail.template,name:l10n_ve_reports.email_template_customer_statement
+msgid "Customer Statement"
+msgstr "🇻🇪 Estado de Cuenta del Cliente"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_customer_statement_report_handler_oca
+msgid "Customer Statement Custom Handler"
+msgstr "Cliente Extracto Custom Handler"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_daily_payments_report_handler_oca
+#| msgid "Journal Report Custom Handler"
+msgid "Daily Payments by Journal Report Custom Handler"
+msgstr "Pagos diarios por controlador personalizado de informe de diario"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_name/popover/annotations_popover.xml:0
+#: model:account.report.column,name:l10n_ve_reports.bank_reconciliation_report_date
+#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__date
+msgid "Date"
+msgstr "Fecha"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Date cannot be empty"
+msgstr "La fecha no puede estar vacía"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_report_annotation_oca__date
+msgid "Date considered as annotated by the annotation."
+msgstr "Fecha considered as annotated por el annotation."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+#| msgid "Days"
+msgid "Day"
+msgstr "Día"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/filter_aging.xml:0
+msgid "Days"
+msgstr "Días"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.diary_book_report_debit
+msgid "Debe"
+msgstr "Debe"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_debit
+#: model:account.report.column,name:l10n_ve_reports.journal_report_debit
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_debit
+#: model:account.report.column,name:l10n_ve_reports.trial_balance_report_debit
+msgid "Debit"
+msgstr "Débito"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Deductible"
+msgstr "Deducible"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_expression_form
+msgid "Definition"
+msgstr "Definición"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid "Depending moves"
+msgstr "Asientos dependientes"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Descending"
+msgstr "Descendente"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Descuentos (estimado en líneas de factura)"
+msgstr "Descuentos (estimado en líneas de factura)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.ve_report_x_detail
+msgid "Detalle"
+msgstr "Detalle"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_diary_book_report_handler_oca
+msgid "Diary Book Report Custom Handler"
+msgstr "Diary Libro Reporte Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Difference from rounding taxes"
+msgstr "Diferencia por redondeo de impuestos"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_line__display_custom_groupby_warning
+msgid "Display Custom Groupby Warning"
+msgstr "Advertencia de agrupación personalizada"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__display_mail_composer
+msgid "Display Mail Composer"
+msgstr "Mostrar redactor de correo"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__display_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__display_name
+msgid "Display Name"
+msgstr "Nombre para mostrar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "Document"
+msgstr "Documento"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.daily_payments_report_invoice_documents
+#| msgid "Document"
+msgid "Documentos"
+msgstr "Documentos"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+#| msgid "Documents Name"
+msgid "Documentos cancelados"
+msgstr "Documentos cancelados"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Documentos de venta con n° de control"
+msgstr "Documentos de venta con n° de control"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Documentos emitidos (referencia Odoo)"
+msgstr "Documentos emitidos (referencia Odoo)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Documentos sin n° de control (no fiscal)"
+msgstr "Documentos sin n° de control (no fiscal)"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__doc_name
+msgid "Documents Name"
+msgstr "Nombre de los Documentos"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__domain
+msgid "Domain"
+msgstr "Dominio"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_fiscal_position.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Domestic"
+msgstr "Doméstico"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__checkbox_download
+msgid "Download"
+msgstr "Descargar"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_file_download_error_wizard_form
+msgid "Download Anyway"
+msgstr "Descargar de Todas Formas"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+msgid "Draft Entries"
+msgstr "Asientos en Borrador"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_general_ledger.py:0
+msgid "Draft Entry"
+msgstr "Asiento en Borrador"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_followup_report.py:0
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Due"
+msgstr "Vencido"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/filter_aging.xml:0
+#: model:account.report.column,name:l10n_ve_reports.customer_statement_report_date_maturity
+#: model:account.report.column,name:l10n_ve_reports.followup_report_date_maturity
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_date_maturity
+msgid "Due Date"
+msgstr "Fecha de Vencimiento"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_ec_sales_report_handler_oca
+msgid "EC Sales Report Custom Handler"
+msgstr "EC Ventas Reporte Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+msgid "EC tax on non EC countries"
+msgstr "EC impuesto en non EC countries"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+msgid "EC tax on same country"
+msgstr "EC impuesto en same país"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_equity0
+msgid "EQUITY"
+msgstr "EQUIDAD"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Editing a manual report line is not allowed in multivat setup when "
+"displaying data from all fiscal positions."
+msgstr ""
+"No se permite editar una línea de informe manual en la configuración "
+"multivat cuando se muestran datos de todas las posiciones fiscales."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Editing a manual report line is not allowed when multiple companies are "
+"selected."
+msgstr ""
+"No se permite editar una línea de informe manual cuando se seleccionan "
+"varias empresas."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__checkbox_send_mail
+msgid "Email"
+msgstr "Correo electrónico"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__mail_template_id
+msgid "Email template"
+msgstr "Correo electrónico plantilla"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__enable_download
+msgid "Enable Download"
+msgstr "Habilitar Descarga"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Enable Sections"
+msgstr "Habilitar Secciones"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__enable_send_mail
+msgid "Enable Send Mail"
+msgstr "Habilitar Envío de Correo"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_variant.xml:0
+msgid "Enable more ..."
+msgstr "Habilitar más ..."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_trial_balance_report.py:0
+msgid "End Balance"
+msgstr "Saldo Final"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "End of Month"
+msgstr "Fin de Mes"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "End of Quarter"
+msgstr "Fin de Trimestre"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "End of Year"
+msgstr "Fin de Año"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line/popover/debug_popover.xml:0
+msgid "Engine"
+msgstr "Motor"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+msgid "Entries with partners with no VAT"
+msgstr "Entradas con socios sin IVA"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Error message"
+msgstr "Mensaje de error"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_move_line__exclude_bank_lines
+msgid "Exclude Bank Lines"
+msgstr "Excluir Líneas Bancarias"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_journal_report_audit_move_line_search
+msgid "Exclude Bank lines"
+msgstr "Exclude Banco líneas"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_account__exclude_provision_currency_ids
+msgid "Exclude Provision Currency"
+msgstr "Exclude Provision Moneda"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_purchase_book_report.py:0
+msgid "Exempt Internal Purchases"
+msgstr "Compras internas exentas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "Exempt Internal Sales"
+msgstr "Ventas internas exentas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Exento (NC)"
+msgstr "Exento (Carolina del Norte)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Exento / exonerado"
+msgstr "Exento / exonerado"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Exento / exonerado (ND)"
+msgstr "Exento / exonerado (ND)"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_res_company__account_revaluation_expense_provision_account_id
+msgid "Expense Provision Account"
+msgstr "Gasto Provision Cuenta"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_expenses0
+msgid "Expenses"
+msgstr "Gastos"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_report_export_wizard
+msgid "Export"
+msgstr "Exportar"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_reports_export_wizard_format
+msgid "Export format for accounting's reports"
+msgstr "Exportar formato para accounting's reports"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__export_format_ids
+msgid "Export to"
+msgstr "Exportar a"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_reports_export_wizard
+msgid "Export wizard for accounting's reports"
+msgstr "Exportar wizard para accounting's reports"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_expression_form
+msgid "Expression"
+msgstr "Expresión"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Expression labelled '%(label)s' of line '%(line)s' is being overwritten when"
+" computing the current report. Make sure the cross-report aggregations of "
+"this report only reference terms belonging to other reports."
+msgstr ""
+"La expresión denominada '%(label)s' de la línea '%(line)s' se sobrescribe al"
+" calcular el informe actual. Asegúrese de que las agregaciones de informes "
+"cruzados de este informe solo hagan referencia a términos que pertenecen a "
+"otros informes."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "Extended Rate Exports"
+msgstr "Exportaciones alícuota adicional"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_purchase_book_report.py:0
+msgid "Extended Rate Imports"
+msgstr "Importaciones alícuota adicional"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Facturas"
+msgstr "facturas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Facturas relacionadas"
+msgstr "Facturas relacionadas"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.daily_payments_report_date
+#: model:account.report.column,name:l10n_ve_reports.diary_book_report_date
+msgid "Fecha"
+msgstr "Fecha"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Fecha Actual"
+msgstr "Fecha Actual"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_date_retention
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_date_retention
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_date_retention
+msgid "Fecha Retención"
+msgstr "Fecha Retención"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Fecha de validación"
+msgstr "Fecha de validación"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Fecha del Documento"
+msgstr "Fecha del Documento"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_date
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_date
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_date
+msgid "Fecha del documento"
+msgstr "Fecha del documento"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Fecha del pago"
+msgstr "Fecha del pago"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__field_name
+msgid "Field"
+msgstr "Campo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Field %s does not exist on account.move.line, and is not supported by this "
+"report's custom handler."
+msgstr ""
+"Campo %s does not exist en cuenta.mover.línea, y es not supported por este "
+"reporte's custom handler."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Field %s does not exist on account.move.line."
+msgstr "Campo %s does not exist en cuenta.mover.línea."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Field %s of account.move.line cannot be used in a groupby expression."
+msgstr "Campo %s de cuenta.mover.línea cannot be used en a groupby expresión."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Field %s of account.move.line is not searchable and can therefore not be "
+"used in a groupby expression."
+msgstr ""
+"Campo %s de cuenta.mover.línea es not searchable y can therefore not be used"
+" en a groupby expresión."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Field 'Custom Handler Model' can only reference records inheriting from "
+"[%s]."
+msgstr ""
+"Campo 'Custom Handler Modelo' can only referencia registros inheriting desde"
+" [%s]."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__file_content
+msgid "File Content"
+msgstr "Contenido del Archivo"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_file_download_error_wizard_form
+msgid "File Download Errors"
+msgstr "Errores de Descarga de Archivo"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__file_name
+msgid "File Name"
+msgstr "Nombre del Archivo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "Filters"
+msgstr "Filtros"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_aml_ir_filters.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filters
+msgid "Filters:"
+msgstr "Filtros:"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_fiscal_position
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__fiscal_position_id
+msgid "Fiscal Position"
+msgstr "Posición fiscal"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_fiscal_position.xml:0
+msgid "Fiscal Position:"
+msgstr "Posición Fiscal:"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__fpos_synced
+msgid "Fiscal Positions Synchronised"
+msgstr "Posiciones Fiscales Sincronizadas"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_followup_report_handler_oca
+msgid "Follow-Up Report Custom Handler"
+msgstr "Follow-Up Reporte Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line/popover/debug_popover.xml:0
+msgid "Formula"
+msgstr "Fórmula"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"From %(date_from)s\n"
+"to  %(date_to)s"
+msgstr ""
+"Desde %(date_from)s\n"
+"hasta  %(date_to)s"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__fun_param
+msgid "Function Parameter"
+msgstr "Parámetro de función"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__fun_to_call
+msgid "Function to Call"
+msgstr "Function hasta Call"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Generado"
+msgstr "generado"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/models/account_trial_balance_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "General Ledger"
+msgstr "Libro mayor"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_general_ledger_report_handler_oca
+msgid "General Ledger Custom Handler"
+msgstr "Libro mayor Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "General Rate Exports"
+msgstr "Exportaciones alícuota general"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_purchase_book_report.py:0
+msgid "General Rate Imports"
+msgstr "Importaciones alícuota general"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_purchase_book_report.py:0
+msgid "General Rate Internal Purchases"
+msgstr "Compras internas alícuota general"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "General Rate Internal Sales"
+msgstr "Ventas internas alícuota general"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/report_export_wizard.py:0
+msgid "Generated Documents"
+msgstr "Generado Documentos"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_generic_tax_report_handler_oca
+msgid "Generic Tax Report Custom Handler"
+msgstr "Generic Reporte de impuesto Custom Handler"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_generic_tax_report_handler_account_tax_oca
+msgid "Generic Tax Report Custom Handler (Account -> Tax)"
+msgstr "Generic Reporte de impuesto Custom Handler (Cuenta -> Impuesto)"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_generic_tax_report_handler_tax_account_oca
+msgid "Generic Tax Report Custom Handler (Tax -> Account)"
+msgstr "Generic Reporte de impuesto Custom Handler (Impuesto -> Cuenta)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.journal_report_pdf_export_main
+msgid "Global Tax Summary"
+msgstr "Global Resumen de impuesto"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+msgid "Goods"
+msgstr "Bienes"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Grid"
+msgstr "Red"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_gross_profit0
+msgid "Gross Profit"
+msgstr "Gross Ganancia"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_gross_profit0
+msgid "Gross profit"
+msgstr "Gross ganancia"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_gpmargin0
+msgid "Gross profit margin (gross profit / operating income)"
+msgstr "Gross ganancia margen (gross ganancia / operating ingreso)"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_line_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_search
+msgid "Group By"
+msgstr "Agrupar Por"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_horizontal_group_form
+msgid "Group Name"
+msgstr "Grupo Nombre"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+msgid "Grouped Moves"
+msgstr "Movimientos agrupados"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.diary_book_report_credit
+msgid "Haber"
+msgstr "Haber"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/partner_ledger/filter_extra_options.xml:0
+msgid "Hide Account"
+msgstr "Ocultar Cuenta"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/partner_ledger/filter_extra_options.xml:0
+msgid "Hide Debit/Credit"
+msgstr "Ocultar Débito/Crédito"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+msgid "Hide lines at 0"
+msgstr "Ocultar líneas en 0"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+msgid "Hierarchy and Subtotals"
+msgstr "Hierarchy y Subtotals"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__horizontal_group_id
+msgid "Horizontal Group"
+msgstr "Grupo Horizontal"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_horizontal_groups.xml:0
+msgid "Horizontal Group:"
+msgstr "Horizontal Grupo:"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__horizontal_group_ids
+msgid "Horizontal Groups"
+msgstr "Grupos Horizontales"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_horizontal_group_oca
+msgid "Horizontal group for reports"
+msgstr "Horizontal grupo para reports"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_horizontal_group_rule_oca
+msgid "Horizontal group rule for reports"
+msgstr "Horizontal grupo regla para reports"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filters
+msgid "Horizontal:"
+msgstr "Horizontal:"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__id
+msgid "ID"
+msgstr "ID"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_amount_general_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_amount_general_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_amount_general_aliquot
+msgid "IVA 16%"
+msgstr "IVA 16%"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_amount_general_aliquot
+msgid "IVA 16% (terceros)"
+msgstr "IVA 16% (terceros)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_amount_extend_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_amount_extend_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_amount_extend_aliquot
+msgid "IVA 31%"
+msgstr "IVA 31%"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_amount_extend_aliquot
+msgid "IVA 31% (terceros)"
+msgstr "IVA 31% (terceros)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_amount_reduced_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_amount_reduced_aliquot
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_amount_reduced_aliquot
+msgid "IVA 8%"
+msgstr "IVA 8%"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_amount_reduced_aliquot
+msgid "IVA 8% (terceros)"
+msgstr "IVA 8% (terceros)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_iva_retained
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_iva_retained
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_iva_retained
+msgid "IVA retenido"
+msgstr "IVA retenido"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — adicional"
+msgstr "IVA — adicional"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — adicional (NC)"
+msgstr "IVA — adicional (NC)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — adicional (ND)"
+msgstr "IVA — adicional (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — general"
+msgstr "IVA—generales"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — general (NC)"
+msgstr "IVA — general (NC)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — general (ND)"
+msgstr "IVA — general (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — reducida"
+msgstr "IVA — reducido"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — reducida (NC)"
+msgstr "IVA — reducida (NC)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "IVA — reducida (ND)"
+msgstr "IVA — reducida (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Impact On Grid"
+msgstr "Impact En Grid"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Impacted Tax Grids"
+msgstr "Impacted Impuesto Grids"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.daily_payments_report_amount
+#: model:account.report.column,name:l10n_ve_reports.ve_report_x_amount
+msgid "Importe (moneda del informe)"
+msgstr "Importe (moneda del informe)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "In %s"
+msgstr "En %s"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_search
+msgid "Inactive"
+msgstr "Inactivo"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/filter_extra_options.xml:0
+msgid "Include Payments"
+msgstr "Incluir pagos"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filter_extra_options_template
+msgid "Including Analytic Simulations"
+msgstr "Incluyendo Simulaciones Analíticas"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.no_statement_unreconciled_payments
+#: model:account.report.line,name:l10n_ve_reports.unreconciled_last_statement_payments
+msgid "Including Unreconciled Payments"
+msgstr "Incluyendo pagos no conciliados"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.no_statement_unreconciled_receipt
+#: model:account.report.line,name:l10n_ve_reports.unreconciled_last_statement_receipts
+msgid "Including Unreconciled Receipts"
+msgstr "Including Unreconciled Recibos"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_res_company__account_revaluation_income_provision_account_id
+msgid "Income Provision Account"
+msgstr "Ingreso Provision Cuenta"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/bank_reconciliation_report.py:0
+msgid "Inconsistent Statements"
+msgstr "Estados de Cuenta Inconsistentes"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Inconsistent data: more than one external value at the same date for a "
+"'most_recent' external line."
+msgstr ""
+"Datos inconsistentes: más de un valor externo en la misma fecha para una "
+"línea externa 'most_recent'."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Inconsistent report_id in options dictionary. Options says "
+"%(options_report)s; report is %(report)s."
+msgstr ""
+"Inconsistent report_id en options dictionary. Options says "
+"%(options_report)s; reporte es %(report)s."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/models/account_trial_balance_report.py:0
+msgid "Initial Balance"
+msgstr "Saldo Inicial"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+msgid "Integer Rounding"
+msgstr "Redondeo Entero"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/filters.js:0
+msgid "Intervals cannot be smaller than 1"
+msgstr "Los intervalos no pueden ser menores a 1"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "Intra-community taxes are applied on"
+msgstr "Los impuestos intracomunitarios se aplican en"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Invalid domain formula in expression \"%(expression)s\" of line "
+"\"%(line)s\": %(formula)s"
+msgstr ""
+"Fórmula de dominio no válida en la expresión \"%(expression)s\" de la línea "
+"\"%(line)s\": %(formula)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Invalid method “%s”"
+msgstr "Método no válido \"%s\""
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Invalid subformula in expression \"%(expression)s\" of line \"%(line)s\": "
+"%(subformula)s"
+msgstr ""
+"Subfórmula no válida en la expresión \"%(expression)s\" de la línea "
+"\"%(line)s\": %(subformula)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Invalid token '%(token)s' in account_codes formula '%(formula)s'"
+msgstr ""
+"Token no válido '%(token)s' en la fórmula de códigos de cuenta '%(formula)s'"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/filter_aging.xml:0
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_invoice_date
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_invoice_date
+#: model:account.report.column,name:l10n_ve_reports.customer_statement_report_invoicing_date
+#: model:account.report.column,name:l10n_ve_reports.followup_report_invoicing_date
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_invoicing_date
+msgid "Invoice Date"
+msgstr "Fecha de Factura"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_journal_report_audit_move_line_search
+msgid "Invoice lines"
+msgstr "Líneas de factura"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__is_account_coverage_report_available
+msgid "Is Account Coverage Report Available"
+msgstr "¿Está disponible el reporte de cobertura de cuenta?"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid "It seems there is some depending closing move to be posted"
+msgstr "Parece que hay un asiento de cierre dependiente por publicar"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid ""
+"It's not possible to select a budget with the horizontal group feature."
+msgstr ""
+"No es posible seleccionar un presupuesto con la función de grupo horizontal."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid ""
+"It's not possible to select a horizontal group with the budget feature."
+msgstr ""
+"No es posible seleccionar un grupo horizontal con la función de presupuesto."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__item_ids
+msgid "Items"
+msgstr "Elementos"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_journal_code
+#: model:ir.model,name:l10n_ve_reports.model_account_journal
+msgid "Journal"
+msgstr "Diario"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_move
+#| msgid "View Journal Entry"
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_move_line
+#| msgid "Journal Items"
+msgid "Journal Item"
+msgstr "Apunte contable"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/models/account_trial_balance_report.py:0
+#: code:addons/l10n_ve_reports/models/bank_reconciliation_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/general_ledger/line_name.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/partner_ledger/line_name.xml:0
+msgid "Journal Items"
+msgstr "Apuntes contables"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "Journal Items for Tax Audit"
+msgstr "Apuntes contables para auditoría fiscal"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_journal_report_handler_oca
+msgid "Journal Report Custom Handler"
+msgstr "Manejador personalizado de reporte de diario"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Journal items with archived tax tags"
+msgstr "Apuntes con etiquetas fiscales archivadas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Journals"
+msgstr "Diarios"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filters
+msgid "Journals:"
+msgstr "Diarios:"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_liabilities_view0
+msgid "LIABILITIES"
+msgstr "PASIVOS"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_liabilities_and_equity_view0
+msgid "LIABILITIES + EQUITY"
+msgstr "PASIVOS + PATRIMONIO"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line/popover/debug_popover.xml:0
+#: model:account.report.column,name:l10n_ve_reports.bank_reconciliation_report_label
+msgid "Label"
+msgstr "Etiqueta"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__mail_lang
+msgid "Lang"
+msgstr "Idioma"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_reports_journal_dashboard_kanban_view
+msgid "Last Statement balance + Transactions since statement"
+msgstr "Saldo del último estado de cuenta + Transacciones desde el estado"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_item_oca__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_file_download_error_wizard__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__write_date
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.last_statement_balance
+msgid "Last statement balance"
+msgstr "Saldo del último estado de cuenta"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_cost_sales0
+msgid "Less Costs of Revenue"
+msgstr "Menos Costos de Ingresos"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_expense0
+msgid "Less Operating Expenses"
+msgstr "Menos Gastos Operativos"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_depreciation0
+msgid "Less Other Expenses"
+msgstr "Menos Otros Gastos"
+
+#. module: l10n_ve_reports
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_seniat_report_diary_book
+msgid "Libro Diario"
+msgstr "Libro Diario"
+
+#. module: l10n_ve_reports
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_seniat_report_general_ledger
+msgid "Libro Mayor"
+msgstr "Libro Mayor"
+
+#. module: l10n_ve_reports
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_seniat_report_purchases_book
+msgid "Libro de Compras"
+msgstr "Libro de Compras"
+
+#. module: l10n_ve_reports
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_seniat_report_sales_book
+msgid "Libro de Ventas"
+msgstr "Libro de Ventas"
+
+#. module: l10n_ve_reports
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_seniat_report_sales_book_fiscal_machine
+msgid "Libro de venta con maquina fiscal"
+msgstr "Libro de venta con maquina fiscal"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__line_id
+msgid "Line"
+msgstr "Línea"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Line '%(child)s' is configured to appear before its parent '%(parent)s'. "
+"This is not allowed."
+msgstr ""
+"Línea '%(child)s' es configured hasta appear before its padre '%(parent)s'. "
+"Este es not allowed."
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "Lines"
+msgstr "Líneas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Load more..."
+msgstr "Cargar más..."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Línea inválida."
+msgstr "Línea inválida."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Línea pendiente"
+msgstr "Línea pendiente"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__mail_attachments_widget
+msgid "Mail Attachments Widget"
+msgstr "Mail Adjuntos Widget"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__main_company_id
+msgid "Main Company"
+msgstr "Principal Compañía"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_tax_unit__main_company_id
+msgid ""
+"Main company of this unit; the one actually reporting and paying the taxes."
+msgstr ""
+"Principal compañía de este unidad; el uno actually reporting y paying el "
+"impuestos."
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_report_file_download_error_wizard
+msgid "Manage the file generation errors from report exports."
+msgstr "Manage el archivo generation errors desde reporte exports."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Manual value"
+msgstr "Valor manual"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Manual values"
+msgstr "Valores manuales"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.partner_ledger_report_matching_number
+msgid "Matching"
+msgstr "Pareo"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_tax_unit__company_ids
+msgid "Members of this unit"
+msgstr "Members de este unidad"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Method '%(method_name)s' must start with the '%(prefix)s' prefix."
+msgstr "Method '%(method_name)s' must start con el '%(prefix)s' prefix."
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.misc_operations
+msgid "Misc. operations"
+msgstr "Misc. operaciones"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__mode
+msgid "Mode"
+msgstr "Modo"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_rule_oca__res_model_name
+msgid "Model"
+msgstr "Modelo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Moneda del diario"
+msgstr "Moneda del diario"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Month"
+msgstr "Mes"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_budget_form
+msgid "Months"
+msgstr "Meses"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filters
+msgid "Multi-Ledger:"
+msgstr "Multi-Libro mayor:"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Multi-ledger"
+msgstr "Multi-libro mayor"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields.selection,name:l10n_ve_reports.selection__account_report_send__mode__multi
+msgid "Multiple Recipients"
+msgstr "Múltiples destinatarios"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/res_company.py:0
+msgid ""
+"Multiple draft tax closing entries exist for fiscal position %(position)s after %(period_start)s. There should be at most one. \n"
+" %(closing_entries)s"
+msgstr ""
+"Existen varios borradores de asientos de cierre de impuestos para la posición fiscal %(position)s después de %(period_start)s. Debería haber como máximo uno. \n"
+" %(closing_entries)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/res_company.py:0
+msgid ""
+"Multiple draft tax closing entries exist for your domestic region after %(period_start)s. There should be at most one. \n"
+" %(closing_entries)s"
+msgstr ""
+"Existen varios borradores de entradas de cierre de impuestos para su región nacional después del %(period_start)s. Debería haber como máximo uno. \n"
+" %(closing_entries)s"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_general_ledger.py:0
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model:account.report.line,name:l10n_ve_reports.journal_report_line
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__name
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.duplicated_vat_partner_tree_view
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Name"
+msgstr "Nombre"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_reports_export_wizard__doc_name
+msgid "Name to give to the generated documents."
+msgstr "Nombre hasta give hasta el generado documentos."
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_profit0
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_net_profit0
+msgid "Net Profit"
+msgstr "Net Ganancia"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_net_assets0
+msgid "Net assets"
+msgstr "Net activos"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_cash_flow_report.py:0
+msgid "Net increase in cash and cash equivalents"
+msgstr "Net increase en efectivo y efectivo equivalents"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_npmargin0
+msgid "Net profit margin (net profit / revenue)"
+msgstr "Net ganancia margen (net ganancia / ingreso)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/edit_popover.xml:0
+msgid "No"
+msgstr "No"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+msgid "No Comparison"
+msgstr "Sin Comparación"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "No Journal"
+msgstr "Sin diario"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "No VAT number associated with your company. Please define one."
+msgstr "Ningún número de IVA asociado a su empresa. Por favor defina uno."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/move_line_list/move_line_list.xml:0
+msgid "No attachments linked."
+msgstr "No hay archivos adjuntos vinculados."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/account_report.xml:0
+msgid "No data to display !"
+msgstr "¡No hay datos para mostrar!"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "No hay facturas vinculadas a este movimiento."
+msgstr "No hay facturas vinculadas a este movimiento."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "No se encontró un asiento asociado."
+msgstr "No se encontró un asiento asociado."
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_partner_name
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_partner_name
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_partner_name
+msgid "Nombre/Razón Social"
+msgstr "Nombre/Razón Social"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Non Trade Partners"
+msgstr "Socios no comerciales"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Non Trade Payable"
+msgstr "Non Trade Por pagar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Non Trade Receivable"
+msgstr "Non Trade Por cobrar"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Non-Deductible"
+msgstr "No Deducible"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_horizontal_groups.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/filters/filters.js:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "None"
+msgstr "Ninguno"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Notas de crédito / devoluciones"
+msgstr "Notas de crédito / devoluciones"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Notas de débito"
+msgstr "Notas de débito"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Number of periods cannot be smaller than 1"
+msgstr "Número de periods cannot be smaller than 1"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_correlative
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_correlative
+msgid "Nª de Control"
+msgstr "Nª de Control"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_number_invoice_affected
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_number_invoice_affected
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_number_invoice_affected
+msgid "N° Factura Afectada"
+msgstr "N° Factura Afectada"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_number_retention
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_number_retention
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_number_retention
+msgid "N° Retención"
+msgstr "N° Retención"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_document_number
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_document_number
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_document_number
+msgid "N° de documento"
+msgstr "N° de documento"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_index
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_index
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_index
+msgid "N° operacion"
+msgstr "N° operación"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.diary_book_report_move_name
+msgid "Número de Asiento"
+msgstr "Número de Asiento"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_off_sheet
+msgid "OFF BALANCE SHEET ACCOUNTS"
+msgstr "CUENTAS FUERA DE BALANCE"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/filters.js:0
+msgid "Odoo Warning"
+msgstr "Odoo Advertencia"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_period5
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_period5
+msgid "Older"
+msgstr "Más viejo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/report_export_wizard.py:0
+msgid "One of the formats chosen can not be exported in the DMS"
+msgstr "Uno de el formats chosen can not be exported en el DMS"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid "Only Billing Administrators are allowed to change lock dates!"
+msgstr "Only Billing Administrators son allowed hasta change lock dates!"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.server,name:l10n_ve_reports.action_account_reports_customer_statements
+msgid "Open Customer Statements"
+msgstr "Abierto Cliente Statements"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/move_line_list/move_line_list.xml:0
+msgid "Open attachment in pop out"
+msgstr "Abierto adjunto en pop out"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_operating_income0
+msgid "Operating Income (or Loss)"
+msgstr "Operating Ingreso (o Pérdida)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_expression_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "Options"
+msgstr "Opciones"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filter_extra_options_template
+msgid "Options:"
+msgstr "Opciones:"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.outstanding
+msgid "Outstanding Receipts/Payments"
+msgstr "Outstanding Recibos/Payments"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_followup_report.py:0
+msgid "Overdue"
+msgstr "Vencido"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "PDF"
+msgstr "PDF"
+
+#. module: l10n_ve_reports
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_seniat_report_daily_payments
+msgid "Pagos por diario"
+msgstr "Pagos por diario"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Pagos y cobros registrados"
+msgstr "Pagos y cobros registrados"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard__report_id
+msgid "Parent Report Id"
+msgstr "Padre Reporte Id"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_reports_export_wizard_format__export_wizard_id
+msgid "Parent Wizard"
+msgstr "Padre Wizard"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/line_name/line_name.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/partner_ledger/line_name.xml:0
+#: model:account.report.column,name:l10n_ve_reports.general_ledger_report_partner_name
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__partner_ids
+msgid "Partner"
+msgstr "Contacto"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Partner Categories"
+msgstr "Contacto Categorías"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_partner_ledger_report_handler_oca
+msgid "Partner Ledger Custom Handler"
+msgstr "Contacto Libro mayor Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/line_name/line_name.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/partner_ledger/line_name.xml:0
+msgid "Partner is bad"
+msgstr "Contacto es bad"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/line_name/line_name.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/partner_ledger/line_name.xml:0
+msgid "Partner is good"
+msgstr "Contacto es good"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/account_report_send.py:0
+msgid "Partner(s) should have an email address."
+msgstr "Contacto(s) should have an correo electrónico dirección."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_partner.xml:0
+msgid "Partners"
+msgstr "Contactos"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filters
+msgid "Partners Categories:"
+msgstr "Partners Categorías:"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+msgid "Partners with duplicated VAT numbers"
+msgstr "Partners con duplicated IVA numbers"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filters
+msgid "Partners:"
+msgstr "Fogonadura:"
+
+#. module: l10n_ve_reports
+#: model:mail.activity.type,name:l10n_ve_reports.mail_activity_type_tax_report_to_pay
+msgid "Pay Tax"
+msgstr "Pay Impuesto"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid "Pay tax: %s"
+msgstr "Pay impuesto: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_aged_partner_balance.py:0
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Payable"
+msgstr "Por pagar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Payable tax amount"
+msgstr "Por pagar monto del impuesto"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_current_liabilities_payable
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_creditors0
+msgid "Payables"
+msgstr "Cuentas por Pagar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Pendientes (borrador y cuentas puente)"
+msgstr "Pendientes (borrador y cuentas puente)"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_performance0
+msgid "Performance"
+msgstr "Actuación"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Period"
+msgstr "Período"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_period1
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_period1
+msgid "Period 1"
+msgstr "Período 1"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_period2
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_period2
+msgid "Period 2"
+msgstr "Período 2"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_period3
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_period3
+msgid "Period 3"
+msgstr "Período 3"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_period4
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_period4
+msgid "Period 4"
+msgstr "Período 4"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+msgid "Period order"
+msgstr "Período orden"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Periods"
+msgstr "Periodos"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_analytic_groupby.xml:0
+msgid "Plans"
+msgstr "Planes"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/budget.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Please enter a valid budget name."
+msgstr "Introduzca un nombre de presupuesto válido."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/account_report_send.py:0
+msgid "Please select a mail template to send multiple statements."
+msgstr ""
+"Por favor seleccione a mail plantilla hasta enviar multiple statements."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Please select the main company and its branches in the company selector to "
+"proceed."
+msgstr ""
+"Por favor seleccione el principal compañía y its branches en el compañía "
+"selector hasta proceed."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Please specify the accounts necessary for the Tax Closing Entry."
+msgstr ""
+"Por favor especifique las cuentas necesarias para el asiento de cierre "
+"fiscal."
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_fixed_assets_view0
+msgid "Plus Fixed Assets"
+msgstr "Plus Fixed Activos"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_non_current_assets_view0
+msgid "Plus Non-current Assets"
+msgstr "Plus Non-actual Activos"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_non_current_liabilities0
+msgid "Plus Non-current Liabilities"
+msgstr "Plus Non-actual Pasivos"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_other_income0
+msgid "Plus Other Income"
+msgstr "Plus Otro Ingreso"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_name
+msgid "Por cuenta de (Razón Social)"
+msgstr "Por cuenta de (Razón Social)"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_position0
+msgid "Position"
+msgstr "Posición"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/edit_popover.xml:0
+msgid "Post"
+msgstr "Correo"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Posted Entries"
+msgstr "Publicado Entries"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_prepayements0
+msgid "Prepayments"
+msgstr "Prepagos"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+msgid "Previous Period"
+msgstr "Período Anterior"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+msgid "Previous Periods"
+msgstr "Anterior Periods"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+msgid "Previous Year"
+msgstr "Año Anterior"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+msgid "Previous Years"
+msgstr "Anterior Years"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_retained_earnings_line_2
+msgid "Previous Years Retained Earnings"
+msgstr "Anterior Years Retained Earnings"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_previous_year_earnings0
+msgid "Previous Years Unallocated Earnings"
+msgstr "Anterior Years Unallocated Earnings"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_send_form
+msgid "Print & Send"
+msgstr "Imprimir & Enviar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Proceed"
+msgstr "Proceder"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_profitability0
+msgid "Profitability"
+msgstr "Rentabilidad"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_purchase_book_report_handler_oca
+msgid "Purchase Book Report Custom Handler"
+msgstr "Libro de compras Reporte Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Quarter"
+msgstr "Trimestre"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_vat
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_vat
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_vat
+msgid "RIF"
+msgstr "RIF"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "RIF / identificación fiscal"
+msgstr "RIF/identificación fiscal"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_vat
+msgid "RIF Tercero"
+msgstr "RIF Tercero"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_aged_partner_balance.py:0
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Receivable"
+msgstr "Por cobrar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Receivable tax amount"
+msgstr "Por cobrar monto del impuesto"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_debtors0
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_receivable0
+msgid "Receivables"
+msgstr "Cuentas por Cobrar"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__mail_partner_ids
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_send_form
+msgid "Recipients"
+msgstr "Destinatarios"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_purchase_book_report.py:0
+msgid "Reduced Rate Internal Purchases"
+msgstr "Compras internas alícuota reducida"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "Reduced Rate Internal Sales"
+msgstr "Ventas internas alícuota reducida"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__report_id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__account_report_id
+msgid "Report"
+msgstr "Reporte"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_line_form
+msgid "Report Line"
+msgstr "Reporte Línea"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "Report Name"
+msgstr "Nombre del Reporte"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__report_options
+msgid "Report Options"
+msgstr "Reporte Options"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Report lines mentioning the account code"
+msgstr "Reporte líneas mentioning el cuenta código"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_variant.xml:0
+msgid "Report:"
+msgstr "Reporte:"
+
+#. module: l10n_ve_reports
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_seniat_report_ve_report_x
+#| msgid "Report Name"
+msgid "Reporte X"
+msgstr "Reporte X"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Reporte X (resumen consolidado)"
+msgstr "Reporte X (resumen consolidado)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_report_z
+msgid "Reporte Z"
+msgstr "Reporte Z"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__report_ids
+msgid "Reports"
+msgstr "Reportes"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_line_form
+msgid "Reset to Standard"
+msgstr "Restablecer hasta Standard"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_retained_earnings0
+msgid "Retained Earnings"
+msgstr "Ganancias retenidas"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_return_investment0
+msgid "Return on investments (net profit / assets)"
+msgstr "Devolución en investments (net ganancia / activos)"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_income0
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_revenue0
+msgid "Revenue"
+msgstr "Ingreso"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_account_report_search
+msgid "Root Report"
+msgstr "Root Reporte"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_horizontal_group_oca__rule_ids
+msgid "Rules"
+msgstr "Reglas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_purchase_book_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "SUMMARY"
+msgstr "RESUMEN"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_sales_book_fiscal_machine_report_handler_oca
+msgid "Sales Book Fiscal Machine Report Custom Handler"
+msgstr ""
+"Controlador personalizado del informe de la máquina fiscal del libro de "
+"ventas"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_sales_book_report_handler_oca
+msgid "Sales Book Report Custom Handler"
+msgstr "Libro de ventas Reporte Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__filter_salesperson
+msgid "Salesperson"
+msgstr "Vendedor"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+msgid "Same Period Last Year"
+msgstr "Mismo Período del Año Anterior"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/search_bar/search_bar.xml:0
+msgid "Search..."
+msgstr "Buscar..."
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "Sections"
+msgstr "Secciones"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Seleccionar Fecha"
+msgstr "Seleccionar Fecha"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_customer_statement.py:0
+#: code:addons/l10n_ve_reports/models/account_partner_ledger.py:0
+msgid "Send"
+msgstr "Enviar"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_partner_ledger.py:0
+msgid "Send %s Statement"
+msgstr "Enviar %s Extracto"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__send_and_print_values
+msgid "Send And Print Values"
+msgstr "Enviar Y Imprimir Valores"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__send_mail_readonly
+msgid "Send Mail Readonly"
+msgstr "Enviar correo de solo lectura"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_partner_ledger.py:0
+msgid "Send Partner Ledgers"
+msgstr "Enviar Contacto Ledgers"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.server,name:l10n_ve_reports.ir_cron_account_report_send_ir_actions_server
+msgid "Send account reports automatically"
+msgstr "Enviar cuenta reports automatically"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid "Send tax report: %s"
+msgstr "Enviar reporte de impuesto: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/account_report_send.py:0
+msgid "Sending statements"
+msgstr "Envío de extractos"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_budget_oca__sequence
+msgid "Sequence"
+msgstr "Secuencia"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_serial_number
+msgid "Serial de Maquina"
+msgstr "Serie de maquina"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+msgid "Services"
+msgstr "Servicios"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_journal_report_audit_move_line_tree
+msgid "Set as Checked"
+msgstr "Establecer como marcado"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.duplicated_vat_partner_tree_view
+msgid "Set as main"
+msgstr "Set as principal"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_report_executivesummary_st_cash_forecast0
+msgid "Short term cash forecast"
+msgstr "Short term efectivo forecast"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/filter_extra_options.xml:0
+msgid "Show Account"
+msgstr "Mostrar Cuenta"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_budgets.xml:0
+msgid "Show All Accounts"
+msgstr "Mostrar Todos Cuentas"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/filter_extra_options.xml:0
+msgid "Show Currency"
+msgstr "Mostrar Moneda"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields.selection,name:l10n_ve_reports.selection__account_report_send__mode__single
+msgid "Single Recipient"
+msgstr "Destinatario único"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "Some"
+msgstr "Alguno"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/tax_report/warnings.xml:0
+msgid "Some journal items appear to point to obsolete report lines."
+msgstr ""
+"Some diario elementos appear hasta point hasta obsolete reporte líneas."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid ""
+"Some lines in the report involve partners that share the same VAT number.\n"
+"\n"
+"        Please review the"
+msgstr ""
+"Some líneas en el reporte involve partners ese participación el same IVA número.\n"
+"\n"
+"        Por favor review el"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_date.xml:0
+msgid "Specific Date"
+msgstr "Fecha Específica"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+msgid "Split Horizontally"
+msgstr "Dividir horizontalmente"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report__tax_closing_start_date
+msgid "Start Date"
+msgstr "Fecha de inicio"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "Starting Balance"
+msgstr "Saldo Inicial"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/aged_partner_balance/line_name/line_name.xml:0
+msgid "Statement"
+msgstr "Extracto"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/account_report_send.py:0
+msgid "Statements are being sent in the background."
+msgstr "Statements son being enviado en el fondo."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line/popover/debug_popover.xml:0
+msgid "Subformula"
+msgstr "Subfórmula"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__mail_subject
+msgid "Subject"
+msgstr "Asunto"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_send_form
+msgid "Subject..."
+msgstr "Sujeto..."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "T: %s"
+msgstr "T: %s"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_partner.xml:0
+msgid "Tags"
+msgstr "Etiquetas"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_general_ledger.py:0
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Tax Amount"
+msgstr "Monto del impuesto"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_journal_report_taxes_summary
+msgid "Tax Applied"
+msgstr "Impuesto Applied"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_bank_statement_line__tax_closing_alert
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_move__tax_closing_alert
+msgid "Tax Closing Alert"
+msgstr "Impuesto Cierre Alert"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_bank_statement_line__tax_closing_report_id
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_move__tax_closing_report_id
+msgid "Tax Closing Report"
+msgstr "Impuesto Cierre Reporte"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_general_ledger.py:0
+msgid "Tax Declaration"
+msgstr "Impuesto Declaration"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "Tax Grids"
+msgstr "Impuesto Grids"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_tax_unit__vat
+msgid "Tax ID"
+msgstr "NIF"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.company_information
+msgid "Tax ID:"
+msgstr "Identificación fiscal:"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Tax Paid Adjustment"
+msgstr "Impuesto Pagado Ajuste"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/tax_report/filters/filter_date.xml:0
+msgid "Tax Period"
+msgstr "Impuesto Período"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid "Tax Received Adjustment"
+msgstr "Impuesto Recibido Ajuste"
+
+#. module: l10n_ve_reports
+#: model:mail.activity.type,name:l10n_ve_reports.tax_closing_activity_type
+#: model:mail.activity.type,summary:l10n_ve_reports.tax_closing_activity_type
+msgid "Tax Report"
+msgstr "Reporte Fiscal"
+
+#. module: l10n_ve_reports
+#: model:mail.activity.type,name:l10n_ve_reports.mail_activity_type_tax_report_to_be_sent
+msgid "Tax Report Ready"
+msgstr "Reporte de impuesto Listo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+#: code:addons/l10n_ve_reports/models/mail_activity.py:0
+msgid "Tax Return report has been removed from this module."
+msgstr "Declaración de impuesto reporte has been removed desde este módulo."
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_tax_unit
+msgid "Tax Unit"
+msgstr "Unidad Fiscal"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_tax_unit.xml:0
+msgid "Tax Unit:"
+msgstr "Impuesto Unidad:"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.act_window,name:l10n_ve_reports.action_view_tax_units
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_res_company__account_tax_unit_ids
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_view_tax_units
+msgid "Tax Units"
+msgstr "Impuesto Unidades"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_mail_activity__account_tax_closing_params
+msgid "Tax closing additional params"
+msgstr "Impuesto cierre adicional params"
+
+#. module: l10n_ve_reports
+#: model:mail.activity.type,summary:l10n_ve_reports.mail_activity_type_tax_report_to_pay
+msgid "Tax is ready to be paid"
+msgstr "Impuesto es listo hasta be pagado"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields.selection,name:l10n_ve_reports.selection__mail_activity_type__category__tax_report
+msgid "Tax report"
+msgstr "Impuesto reporte"
+
+#. module: l10n_ve_reports
+#: model:mail.activity.type,summary:l10n_ve_reports.mail_activity_type_tax_report_to_be_sent
+msgid "Tax report is ready to be sent to the administration"
+msgstr "Impuesto reporte es listo hasta be enviado hasta el administration"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/res_company.py:0
+msgid "Tax return"
+msgstr "Impuesto devolución"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+msgid "Taxes"
+msgstr "Impuestos"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/journal_report/line/line.xml:0
+msgid "Taxes Applied"
+msgstr "Impuestos Applied"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_tax_unit__fpos_synced
+msgid ""
+"Technical field indicating whether Fiscal Positions exist for all companies "
+"in the unit"
+msgstr ""
+"Campo técnico que indica si existen Posiciones Fiscales para todas las "
+"empresas de la unidad"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_ir_actions_account_report_download_oca
+msgid "Technical model for accounting report downloads"
+msgstr "Technical modelo para reporte contable downloads"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/ellipsis/ellipsis.js:0
+msgid "Text copied"
+msgstr "Texto copied"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "The Accounts Coverage Report is not available for this report."
+msgstr "El Cuentas Coverage Reporte es not disponible para este reporte."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_name/popover_line/annotation_popover_line.js:0
+msgid "The annotation shouldn't have an empty value."
+msgstr "El annotation shouldn't have an vacío valor."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_annotation_oca__text
+msgid "The annotation's content."
+msgstr "El annotation's contenido."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid ""
+"The attachments of the tax report can be found on the %(link_start)sclosing "
+"entry%(link_end)s of the representative company."
+msgstr ""
+"El adjuntos de el reporte de impuesto can be found en el "
+"%(link_start)sclosing entry%(link_end)s de el representative compañía."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_partner_ledger.py:0
+msgid "The column '%s' is not available for this report."
+msgstr "El columna '%s' es not disponible para este reporte."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_tax.py:0
+msgid ""
+"The country detected for this VAT number does not match the one set on this "
+"Tax Unit."
+msgstr ""
+"El país detected para este IVA número does not match el uno set en este "
+"Impuesto Unidad."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_tax_unit__country_id
+msgid ""
+"The country in which this tax unit is used to group your companies' tax "
+"reports declaration."
+msgstr ""
+"El país en el que se utiliza esta unidad impositiva para agrupar la "
+"declaración de impuestos de sus empresas."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "The current balance in the"
+msgstr "El actual saldo en el"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid ""
+"The currently selected dates don't match a tax period. The closing entry "
+"will be created for the closest-matching period according to your "
+"periodicity setup."
+msgstr ""
+"Las fechas seleccionadas actualmente no coinciden con un período impositivo."
+" La entrada de cierre se creará para el período más cercano de acuerdo con "
+"su configuración de periodicidad."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_report_annotation_oca__fiscal_position_id
+msgid "The fiscal position used while annotating."
+msgstr "La posición fiscal utilizada al anotar."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_report_annotation_oca__line_id
+msgid "The id of the annotated line."
+msgstr "El id de el annotated línea."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_report_annotation_oca__report_id
+msgid "The id of the annotated report."
+msgstr "El id de el annotated reporte."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_tax_unit__vat
+msgid "The identifier to be used when submitting a report for this unit."
+msgstr ""
+"El identifier hasta be used when submitting a reporte para este unidad."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_tax.py:0
+msgid "The main company of a tax unit has to be part of it."
+msgstr "El principal compañía de a impuesto unidad has hasta be parte de it."
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_res_company__account_tax_unit_ids
+msgid "The tax units this company belongs to."
+msgstr "El impuesto unidades este compañía belongs hasta."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "The used operator is not supported for this expression."
+msgstr "El used operator es not supported para este expresión."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/warnings.xml:0
+msgid "There are"
+msgstr "There son"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/account_report_send.py:0
+msgid ""
+"There are currently reports waiting to be sent, please try again later."
+msgstr ""
+"There son currently reports en espera hasta be enviado, por favor try again "
+"later."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/account_report.xml:0
+msgid "There is no data to display for the given filters."
+msgstr "No hay datos para mostrar para los filtros dados."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"This account exists in the Chart of Accounts but is not mentioned in any "
+"line of the report"
+msgstr ""
+"Este cuenta exists en el Plan de cuentas but es not mentioned en any línea "
+"de el reporte"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"This account is reported in a line of the report but does not exist in the "
+"Chart of Accounts"
+msgstr ""
+"Este cuenta es reported en a línea de el reporte but does not exist en el "
+"Plan de cuentas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "This account is reported in multiple lines of the report"
+msgstr "Este cuenta es reported en multiple líneas de el reporte"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "This account is reported multiple times on the same line of the report"
+msgstr "Este cuenta es reported multiple times en el same línea de el reporte"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/warnings.xml:0
+msgid ""
+"This company is part of a tax unit. You're currently not viewing the whole "
+"unit."
+msgstr ""
+"Este compañía es parte de a impuesto unidad. You're currently not viewing el"
+" whole unidad."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/widgets/account_report_x2many/account_report_x2many.js:0
+msgid ""
+"This line and all its children will be deleted. Are you sure you want to "
+"proceed?"
+msgstr ""
+"Este línea y todos its hijos will be deleted. Son you sure you want hasta "
+"proceed?"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/widgets/account_report_x2many/account_report_x2many.xml:0
+msgid "This line is out of sequence."
+msgstr "Este línea es out de secuencia."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/widgets/account_report_x2many/account_report_x2many.xml:0
+msgid ""
+"This line is placed before its parent, which is not allowed. You can fix it "
+"by dragging it to the proper position."
+msgstr ""
+"Este línea es placed before its padre, which es not allowed. You can fix it "
+"por dragging it hasta el proper position."
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_line_form
+msgid "This line uses a custom user-defined 'Group By' value."
+msgstr "Este línea uses a custom usuario-defined 'Agrupar por' valor."
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid "This option hides lines with a value of 0"
+msgstr "Este option hides líneas con a valor de 0"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "This report already has a menuitem."
+msgstr "Este reporte already has a menuitem."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/tax_report/warnings.xml:0
+msgid ""
+"This report contains inconsistencies. The affected lines are marked with a "
+"warning."
+msgstr ""
+"Este reporte contains inconsistencies. El affected líneas son marked con a "
+"advertencia."
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_report_form
+msgid ""
+"This report uses report-specific code.\n"
+"                        You can customize it manually, but any change in the parameters used for its computation could lead to errors."
+msgstr ""
+"Este reporte uses reporte-specific código.\n"
+"                        You can customize it manually, but any change en el parameters used para its cálculo could lead hasta errors."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/warnings.xml:0
+msgid ""
+"This report uses the CTA conversion method to consolidate multiple companies using different currencies,\n"
+"        which can lead the report to be unbalanced."
+msgstr ""
+"Este reporte uses el CTA conversion method hasta consolidate multiple companies using different currencies,\n"
+"        which can lead el reporte hasta be unbalanced."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "This subformula references an unknown expression: %s"
+msgstr "Este subformula references an desconocido expresión: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"This tag is reported in a line of the report but is not linked to any "
+"account of the Chart of Accounts"
+msgstr ""
+"Este etiqueta es reported en a línea de el reporte but es not vinculado "
+"hasta any cuenta de el Plan de cuentas"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_move_type
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_move_type
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_move_type
+msgid "Tipo"
+msgstr "Tipo"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_transaction_type
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_transaction_type
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_transaction_type
+msgid "Tipo de Transacción"
+msgstr "Tipo de Transacción"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+#: code:addons/l10n_ve_reports/models/account_diary_book_report.py:0
+#: code:addons/l10n_ve_reports/models/account_general_ledger.py:0
+#: code:addons/l10n_ve_reports/models/account_journal_report.py:0
+#: code:addons/l10n_ve_reports/models/account_partner_ledger.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+#: model:account.report.column,name:l10n_ve_reports.aged_payable_report_total
+#: model:account.report.column,name:l10n_ve_reports.aged_receivable_report_total
+msgid "Total"
+msgstr "Total"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Total %s"
+msgstr "Total %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_daily_payments_report.py:0
+msgid "Total (%(journal)s)"
+msgstr "Total (%(journal)s)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Total IVA (NC)"
+msgstr "Total IVA (NC)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Total IVA (ND)"
+msgstr "Total IVA (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Total IVA (ventas)"
+msgstr "Total IVA (ventas)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_purchase_book_report.py:0
+msgid "Total Purchases and Tax Credits for the Period"
+msgstr "Total de compras y créditos fiscales del período"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "Total Sales and Tax Debits for the Period"
+msgstr "Total ventas y débitos fiscales del período"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Total bases (NC)"
+msgstr "Bases totales (NC)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Total bases (ND)"
+msgstr "Bases totales (ND)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Total bases (ventas)"
+msgstr "Bases totales (ventas)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Total cobros registrados (diarios seleccionados)"
+msgstr "Total cobros registrados (diarios seleccionados)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_total_purchases_iva
+msgid "Total compras con IVA"
+msgstr "Total compras con IVA"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.purchases_book_report_total_purchases_not_iva
+msgid "Total compras exentas"
+msgstr "Total de compras exentas"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_total_sales_iva
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_total_sales_iva
+msgid "Total ventas con IVA"
+msgstr "Ventas totales con IVA"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_total_sales_iva
+msgid "Total ventas con IVA (terceros)"
+msgstr "Total ventas con IVA (terceros)"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_fiscal_machine_report_total_sales_not_iva
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_total_sales_not_iva
+msgid "Total ventas exentas"
+msgstr "Ventas totales exentas"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.sales_book_report_third_party_total_sales_not_iva
+msgid "Total ventas exentas (terceros)"
+msgstr "Total ventas exentas (terceros)"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Trade Partners"
+msgstr "Socios comerciales"
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.transaction_without_statement
+msgid "Transactions without statement"
+msgstr "Transactions sin extracto"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_trial_balance_report_handler_oca
+msgid "Trial Balance Custom Handler"
+msgstr "Saldo de comprobación Custom Handler"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+msgid "Triangular"
+msgstr "Triangular"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Trying to dispatch an action on a report not compatible with the provided "
+"options."
+msgstr ""
+"Trying hasta despacho an acción en a reporte not compatible con el provided "
+"options."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid ""
+"Trying to expand a group for a line which was not generated by a report "
+"line: %s"
+msgstr ""
+"Trying hasta expand a grupo para a línea which was not generado por a "
+"reporte línea: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Trying to expand a line without an expansion function."
+msgstr "Trying hasta expand a línea sin an expansion function."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Trying to expand groupby results on lines without a groupby value."
+msgstr "Trying hasta expand groupby results en líneas sin a groupby valor."
+
+#. module: l10n_ve_reports
+#: model:account.report.line,name:l10n_ve_reports.account_financial_unaffected_earnings0
+msgid "Unallocated Earnings"
+msgstr "Ganancias no asignadas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Undefined"
+msgstr "Indefinido"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+msgid "Unfold All"
+msgstr "Expandir Todo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Unknown"
+msgstr "Desconocido"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_partner_ledger.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+msgid "Unknown Partner"
+msgstr "Desconocido Contacto"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Unknown bound criterium: %s"
+msgstr "Desconocido bound criterium: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Unknown date scope: %s"
+msgstr "Desconocido fecha scope: %s"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_extra_options.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filter_extra_options_template
+msgid "Unreconciled Entries"
+msgstr "Entradas no conciliadas"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Usuario"
+msgstr "Usuario"
+
+#. module: l10n_ve_reports
+#: model:account.report.column,name:l10n_ve_reports.account_financial_report_ec_sales_vat
+msgid "VAT Number"
+msgstr "IVA Número"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line/popover/debug_popover.xml:0
+msgid "Value"
+msgstr "Valor"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid "Vat closing from %(date_from)s to %(date_to)s"
+msgstr "Vat cierre desde %(date_from)s hasta %(date_to)s"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_salesperson.xml:0
+msgid "Vendedor"
+msgstr "Vendedor"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filters
+msgid "Vendedor:"
+msgstr "Vendedor:"
+
+#. module: l10n_ve_reports
+#: model:ir.model,name:l10n_ve_reports.model_account_ve_report_x_handler_oca
+msgid "Venezuela Reporte X (resumen consolidado)"
+msgstr "Venezuela Reporte X (resumen consolidado)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Ventas del período"
+msgstr "Ventas del período"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_report.py:0
+msgid "Ventas por cuenta de terceros"
+msgstr "Ventas por cuenta de terceros"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_journal_report_audit_move_line_tree
+msgid "View"
+msgstr "Vista"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "View Bank Statement"
+msgstr "Ver Estado de Cuenta Bancario"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/carryover_popover.xml:0
+msgid "View Carryover Lines"
+msgstr "Ver Líneas de Traspaso"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_sales_book_fiscal_machine_report.py:0
+msgid "View Grouped Moves"
+msgstr "Ver Movimientos Agrupados"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "View Journal Entry"
+msgstr "Ver Asiento Contable"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/models/account_sales_report.py:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.view_journal_report_audit_move_line_tree
+msgid "View Partner"
+msgstr "Ver Tercero"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/wizard/account_report_send.py:0
+msgid "View Partner(s)"
+msgstr "Ver Tercero(s)"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "View Payment"
+msgstr "Ver Pago"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,field_description:l10n_ve_reports.field_account_report_send__warnings
+msgid "Warnings"
+msgstr "Advertencias"
+
+#. module: l10n_ve_reports
+#: model:ir.model.fields,help:l10n_ve_reports.field_account_account__exclude_provision_currency_ids
+msgid ""
+"Whether or not we have to make provisions for the selected foreign "
+"currencies."
+msgstr ""
+"Si debemos o no hacer provisiones para las monedas extranjeras "
+"seleccionadas."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_filter_extra_options_template
+msgid "With Draft Entries"
+msgstr "Con Asientos en Borrador"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_general_ledger.py:0
+msgid "Wrong ID for general ledger line to expand: %s"
+msgstr "ID incorrecto para expandir línea del libro mayor: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_partner_ledger.py:0
+msgid "Wrong ID for partner ledger line to expand: %s"
+msgstr "ID incorrecto para expandir línea del libro mayor de terceros: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "Wrong format for if_other_expr_above/if_other_expr_below formula: %s"
+msgstr ""
+"Formato incorrecto para fórmula if_other_expr_above/if_other_expr_below: %s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "XLSX"
+msgstr "XLSX"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filters.js:0
+msgid "Year"
+msgstr "Año"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/edit_popover.xml:0
+msgid "Yes"
+msgstr "Sí"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move_line.py:0
+msgid "You cannot add taxes on a tax closing move line."
+msgstr "No puedes agregar impuestos en una línea de asiento de cierre fiscal."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid ""
+"You cannot reset this closing entry to draft, as another closing entry has "
+"been posted at a later date."
+msgstr ""
+"No puedes restablecer este asiento de cierre a borrador, ya que otro asiento"
+" de cierre ha sido publicado en una fecha posterior."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_move.py:0
+msgid ""
+"You cannot reset this closing entry to draft, as it would delete carryover "
+"values impacting the tax report of a locked period. To do this, you first "
+"need to modify you tax return lock date."
+msgstr ""
+"You cannot restablecer este cierre entry hasta borrador, as it would "
+"eliminar carryover valores impacting el reporte de impuesto de a bloqueado "
+"período. Hasta do este, you primero need hasta modify you declaración de "
+"impuesto lock fecha."
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_generic_tax_report.py:0
+msgid ""
+"You're about the generate the closing entries of multiple companies at once."
+" Each of them will be created in accordance with its company tax "
+"periodicity."
+msgstr ""
+"Estás a punto de generar los asientos de cierre de múltiples compañías a la "
+"vez. Cada uno será creado de acuerdo con la periodicidad fiscal de su "
+"compañía."
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.journal_report_pdf_export_main
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_main
+msgid "[Draft]"
+msgstr "[Borrador]"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "addressed to"
+msgstr "dirigido a"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "affected partners"
+msgstr "terceros afectados"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/tax_report/warnings.xml:0
+msgid "and correct their tax tags if necessary."
+msgstr "y corregir sus etiquetas fiscales si es necesario."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "doesn't match the balance of your"
+msgstr "no coincide con el saldo de tu"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "have a starting balance different from the previous ending balance."
+msgstr "tienen un saldo inicial diferente del saldo final anterior."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/carryover_popover.xml:0
+msgid "in the next period."
+msgstr "en el próximo período."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "invoices"
+msgstr "facturas"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "journal items"
+msgstr "apuntes contables"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "last bank statement"
+msgstr "último estado de cuenta bancario"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report.py:0
+msgid "n/a"
+msgstr "n/d"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "partners"
+msgstr "terceros"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/warnings.xml:0
+msgid "prior or included in this period."
+msgstr "anterior o incluido en este período."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "statements"
+msgstr "estados de cuenta"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_tax.py:0
+msgid "tax unit [%s]"
+msgstr "unidad fiscal [%s]"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "that are not established abroad."
+msgstr "que no están establecidos en el extranjero."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_comparison.xml:0
+#: code:addons/l10n_ve_reports/static/src/components/account_report/filters/filter_date.xml:0
+msgid "to"
+msgstr "a"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "to resolve the duplication."
+msgstr "para resolver la duplicación."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/warnings.xml:0
+msgid "unposted Journal Entries"
+msgstr "Asientos contables no publicados"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/carryover_popover.xml:0
+msgid "were carried over to this line from previous period."
+msgstr "fueron traspasados a esta línea del período anterior."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/bank_reconciliation_report/warnings.xml:0
+msgid "which don't originate from a bank statement nor payment."
+msgstr "que no provienen de un estado de cuenta bancario ni de un pago."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "who are not established in any of the EC countries."
+msgstr "que no están establecidos en ninguno de los países de la CE."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/carryover_popover.xml:0
+msgid "will be carried over to"
+msgstr "será traspasado a"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/account_report/line_cell/popover/carryover_popover.xml:0
+msgid "will be carried over to this line in the next period."
+msgstr "será traspasado a esta línea en el próximo período."
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/sales_report/warnings.xml:0
+msgid "without a valid intra-community VAT number."
+msgstr "sin un número de IVA intracomunitario válido."
+
+#. module: l10n_ve_reports
+#: model:mail.template,subject:l10n_ve_reports.email_template_customer_statement
+msgid ""
+"{{ (object.company_id or object._get_followup_responsible().company_id).name"
+" }} Statement - {{ object.commercial_company_name }}"
+msgstr ""
+"{{ (object.company_id o "
+"object._get_followup_responsible().company_id).nombre }} Extracto - {{ "
+"object.commercial_company_name }}"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Última factura / recibo"
+msgstr "Última factura / recibo"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Última nota de crédito"
+msgstr "Última nota de crédito"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Última nota de débito"
+msgstr "Última nota de débito"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.act_window,name:l10n_ve_reports.action_account_report_tree
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_tree
+msgid "🇻🇪 Accounting Reports"
+msgstr "Reportes Contables"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.aged_payable_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_ap
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_aged_payable
+msgid "🇻🇪 Aged Payable"
+msgstr "🇻🇪 Cuentas por Pagar Vencidas"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_reports_journal_dashboard_kanban_view
+msgid "🇻🇪 Aged Payables"
+msgstr "🇻🇪 Cuentas por Pagar Vencidas"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.aged_receivable_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_ar
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_aged_receivable
+msgid "🇻🇪 Aged Receivable"
+msgstr "🇻🇪 Cuentas por Cobrar Vencidas"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_reports_journal_dashboard_kanban_view
+msgid "🇻🇪 Aged Receivables"
+msgstr "🇻🇪 Cuentas por Cobrar Vencidas"
+
+#. module: l10n_ve_reports
+#: model:ir.ui.menu,name:l10n_ve_reports.account_reports_audit_reports_menu
+msgid "🇻🇪 Audit Reports"
+msgstr "🇻🇪 Reportes de Auditoría"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.balance_sheet
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_bs
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_balance_sheet
+msgid "🇻🇪 Balance Sheet"
+msgstr "🇻🇪 Balance General"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_bank_reconciliation
+msgid "🇻🇪 Bank Reconciliation"
+msgstr "🇻🇪 Conciliación Bancaria"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.bank_reconciliation_report
+msgid "🇻🇪 Bank Reconciliation Report"
+msgstr "🇻🇪 Reporte de Conciliación Bancaria"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.cash_flow_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_cs
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_cash_flow
+msgid "🇻🇪 Cash Flow Statement"
+msgstr "🇻🇪 Estado de Flujo de Efectivo"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.customer_statement_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_customer_statement
+msgid "🇻🇪 Customer Statement"
+msgstr "🇻🇪 Estado de Cuenta del Cliente"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_sales
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_sales
+msgid "🇻🇪 EC Sales List"
+msgstr "🇻🇪 Lista de Ventas CE"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.executive_summary
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_exec_summary
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_exec_summary
+msgid "🇻🇪 Executive Summary"
+msgstr "🇻🇪 Resumen Ejecutivo"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.act_window,name:l10n_ve_reports.action_account_report_budget_tree
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_budget_tree
+msgid "🇻🇪 Financial Budgets"
+msgstr "Presupuestos Financieros"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.followup_report
+msgid "🇻🇪 Follow-Up Report"
+msgstr "Reporte de Seguimiento"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.general_ledger_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_general_ledger
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_general_ledger
+msgid "🇻🇪 General Ledger"
+msgstr "🇻🇪 Libro Mayor"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.generic_ec_sales_report
+msgid "🇻🇪 Generic EC Sales List"
+msgstr "🇻🇪 Lista Genérica de Ventas CE"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.act_window,name:l10n_ve_reports.action_account_report_horizontal_groups
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_horizontal_groups
+msgid "🇻🇪 Horizontal Groups"
+msgstr "Grupos Horizontales"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_ja
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_ja
+msgid "🇻🇪 Journal Audit"
+msgstr "🇻🇪 Auditoría de Diario"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.journal_report
+msgid "🇻🇪 Journal Report"
+msgstr "🇻🇪 Reporte de Diario"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.diary_book_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_diary_book
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_diary_book
+msgid "🇻🇪 Libro Diario"
+msgstr "🇻🇪 Libro Diario"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.purchases_book_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_purchases_book
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_purchases_book
+msgid "🇻🇪 Libro de Compras"
+msgstr "🇻🇪 Libro de Compras"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.sales_book_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_sales_book
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_sales_book
+msgid "🇻🇪 Libro de Ventas"
+msgstr "🇻🇪 Libro de Ventas"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.sales_book_fiscal_machine_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_sales_book_fiscal_machine
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_sales_book_fiscal_machine
+msgid "🇻🇪 Libro de Ventas Maquina Fiscal"
+msgstr "🇻🇪 Libro de Ventas Máquina Fiscal"
+
+#. module: l10n_ve_reports
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_daily_payments
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_daily_payments
+#| msgid "🇻🇪 Libro Diario"
+msgid "🇻🇪 Pagos por diario"
+msgstr "🇻🇪 Pagos por diario"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.daily_payments_report
+#| msgid "🇻🇪 Libro Diario"
+msgid "🇻🇪 Pagos por día y diario"
+msgstr "🇻🇪 Pagos por día y diario"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.partner_ledger_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_partner_ledger
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_partner_ledger
+msgid "🇻🇪 Partner Ledger"
+msgstr "🇻🇪 Libro Mayor de Socios"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.profit_and_loss
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_pl
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_profit_and_loss
+msgid "🇻🇪 Profit and Loss"
+msgstr "🇻🇪 Pérdidas y Ganancias"
+
+#. module: l10n_ve_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.account_reports_journal_dashboard_kanban_view
+msgid "🇻🇪 Reconciliation Report"
+msgstr "🇻🇪 Reporte de Conciliación"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.ve_report_x
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_ve_report_x
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_ve_report_x
+#| msgid "🇻🇪 Audit Reports"
+msgid "🇻🇪 Reporte X"
+msgstr "🇻🇪 Reporte X"
+
+#. module: l10n_ve_reports
+#: model:account.report,name:l10n_ve_reports.trial_balance_report
+#: model:ir.actions.client,name:l10n_ve_reports.action_account_report_coa
+#: model:ir.ui.menu,name:l10n_ve_reports.menu_action_account_report_coa
+msgid "🇻🇪 Trial Balance"
+msgstr "🇻🇪 Balance de Comprobación"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "%(n)s operations"
+msgstr "%(n)s operaciones"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "%(method)s - %(journal)s"
+msgstr "%(method)s - %(journal)s"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Incoming payments"
+msgstr "Pagos entrantes"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "No payment method"
+msgstr "Sin método de pago"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Outgoing payments"
+msgstr "Pagos salientes"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Payments by type and payment method"
+msgstr "Pagos por tipo y método de pago"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/account_report_x.py:0
+msgid "Total registered payments"
+msgstr "Total de pagos registrados"
+
+#~ msgid "Today"
+#~ msgstr "Hoy"
