@@ -1,0 +1,639 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_fiscal_serial
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:57+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"$com = \"COM99\"\n"
+"$p = New-Object System.IO.Ports.SerialPort\n"
+"$p.PortName = $com\n"
+"$p.BaudRate = 9600\n"
+"$p.Parity = [System.IO.Ports.Parity]::Even\n"
+"$p.DataBits = 8\n"
+"$p.StopBits = [System.IO.Ports.StopBits]::One\n"
+"$p.ReadTimeout = 3500\n"
+"$p.Open()\n"
+"$p.DtrEnable = $true\n"
+"$p.RtsEnable = $true\n"
+"Start-Sleep -Milliseconds 500\n"
+"$p.Write([byte[]]@(0x05), 0, 1)\n"
+"$deadline = (Get-Date).AddSeconds(4)\n"
+"$acc = [System.Collections.Generic.List[byte]]::new()\n"
+"while ((Get-Date) -lt $deadline -and $acc.Count -lt 32) {\n"
+"  if ($p.BytesToRead -gt 0) {\n"
+"    $buf = New-Object byte[] $p.BytesToRead\n"
+"    $n = $p.Read($buf, 0, $buf.Length)\n"
+"    for ($i = 0; $i -lt $n; $i++) { [void]$acc.Add($buf[$i]) }\n"
+"  }\n"
+"  Start-Sleep -Milliseconds 40\n"
+"}\n"
+"if ($acc.Count -gt 0) {\n"
+"  \"Recibidos $($acc.Count) bytes: \" + [BitConverter]::ToString($acc.ToArray())\n"
+"} else {\n"
+"  'Sin bytes en 4 s. Pruebe Parity None (8N1) antes de Open; baud 19200; cable TX/RX; otro adaptador USB.'\n"
+"}\n"
+"$p.Close()"
+msgstr ""
+"$com = \"COM99\"\n"
+"$p = Nuevo-Objeto System.IO.Ports.SerialPort\n"
+"$p.NombrePuerto = $com\n"
+"$p.BaudRate = 9600\n"
+"$p.Parity = [System.IO.Ports.Parity]::Incluso\n"
+"$p.Bits de datos = 8\n"
+"$p.StopBits = [System.IO.Ports.StopBits]::Uno\n"
+"$p.ReadTimeout = 3500\n"
+"$p.Abrir()\n"
+"$p.DtrEnable = $verdadero\n"
+"$p.RtsEnable = $verdadero\n"
+"Inicio-Sueño-Milisegundos 500\n"
+"$p.Escribir([byte[]]@(0x05), 0, 1)\n"
+"$ fecha límite = (Obtener-Fecha).AddSeconds(4)\n"
+"$acc = [System.Collections.Generic.Lista[byte]]::nuevo()\n"
+"while ((Get-Fecha) -lt $fecha límite -y $acc.Conteo -lt 32) {\n"
+"  si ($p.BytesToRead -gt 0) {\n"
+"    $buf = byte de nuevo objeto[] $p.BytesToRead\n"
+"    $n = $p.Read($buf, 0, $buf.Longitud)\n"
+"    para ($i = 0; $i -lt $n; $i++) { [void]$acc.Agregar($buf[$i]) }\n"
+"  }\n"
+"  Inicio-Sueño-Milisegundos 40\n"
+"}\n"
+"si ($acc.Conteo -gt 0) {\n"
+"  \"Recibidos $($acc.Conteo) bytes: \" + [BitConverter]::ToString($acc.ToArray())\n"
+"} más {\n"
+"  'Sin bytes en 4 s. Pruebe Parity Ninguno (8N1) antes de Abierto; baudios 19200; transmisión por cable/recepción; otro adaptador USB.'\n"
+"}\n"
+"$p.Cerrar()"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "(F12) → pestaña"
+msgstr "(F12) → pestaña"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+", no al texto que escribe en la ventana. PuTTY no envía 0x05 al pulsar "
+"teclas normales; por eso a menudo no verá nada. Use el script de PowerShell "
+"siguiente o un programa con envío hexadecimal (p. ej. Real Term)."
+msgstr ""
+", no al texto que escribe en la ventana. PuTTY no envía 0x05 al pulsar "
+"teclas normales; por eso a menudo no verás nada. Utilice el script de "
+"PowerShell siguiente o un programa con envío hexadecimal (p. ej. Real Term)."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ", sin otra app usando el mismo COM):"
+msgstr ", sin otra app usando el mismo COM):"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "8E1 par (TFHKA / DLL)"
+msgstr "Parámetro 8E1 (TFHKA / DLL)"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "8N1"
+msgstr "8N1"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "8N1 sin paridad"
+msgstr "8N1 sin paridad"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Abra"
+msgstr "abra"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Abrir conexión"
+msgstr "Abrir conexión"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Baudios"
+msgstr "Baudios"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Cerrar conexión"
+msgstr "Cerrar conexión"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Comando (ISO-8859-1 / Latin-1)"
+msgstr "Comando (ISO-8859-1 / Latin-1)"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"Comando nativo TFHKA: byte ENQ (0x05); la impresora responde 5 bytes con "
+"estado y error fiscal."
+msgstr ""
+"Comando nativo TFHKA: byte ENQ (0x05); la impresora responde 5 bytes con "
+"estado y error fiscal."
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model,name:l10n_ve_fiscal_serial.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Compruebe que el sistema ve el adaptador y el nombre del dispositivo:"
+msgstr "Compruebe que el sistema ve el adaptador y el nombre del dispositivo:"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"Conectando… Si no aparece el selector de puerto, mire si el navegador "
+"bloqueó un popup o revise la consola (F12)."
+msgstr ""
+"Conectando… Si no aparece el selector de puerto, mire si el navegador "
+"bloqueó una ventana emergente o revise la consola (F12)."
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model,name:l10n_ve_fiscal_serial.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Configurar maquina fiscal"
+msgstr "Configurar maquina fiscal"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Consola"
+msgstr "Consola"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Cómo depurar y enviar logs"
+msgstr "Cómo depurar y enviar registros"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "Debe confirmar la factura antes de imprimirla fiscalmente."
+msgstr "Debe confirmar la factura antes de imprimirla fiscalmente."
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model.fields,help:l10n_ve_fiscal_serial.field_res_company__l10n_ve_fiscal_serial_flag_21
+#: model:ir.model.fields,help:l10n_ve_fiscal_serial.field_res_config_settings__l10n_ve_fiscal_serial_flag_21
+msgid "Define la FLAG_21 base para comandos fiscales en WebSerial."
+msgstr "Define la FLAG_21 base para comandos fiscales en WebSerial."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "ENQ (0x05)"
+msgstr "ENQ (0x05)"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"El campo está bloqueado hasta que el estado muestre «Puerto abierto» (badge "
+"verde)."
+msgstr ""
+"El campo está bloqueado hasta que el estado muestre «Puerto abierto» (badge "
+"verde)."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "El diario no está configurado como máquina fiscal."
+msgstr "El diario no está configurado como máquina fiscal."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "El documento no tiene número fiscal para reimprimir."
+msgstr "El documento no tiene número fiscal para reimprimir."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "En Windows (CMD o PowerShell)"
+msgstr "En Windows (CMD o PowerShell)"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "En el navegador"
+msgstr "En el navegador"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "En la terminal (Linux, prueba fuera del navegador)"
+msgstr "En la terminal (Linux, prueba fuera del navegador)"
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model.fields,field_description:l10n_ve_fiscal_serial.field_res_company__l10n_ve_fiscal_serial_send_default_code_in_name
+#: model:ir.model.fields,field_description:l10n_ve_fiscal_serial.field_res_config_settings__l10n_ve_fiscal_serial_send_default_code_in_name
+msgid "Enviar codigo en nombre de producto"
+msgstr "Enviar codigo en nombre de producto"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Enviar comando"
+msgstr "enviar comando"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "Esta acción solo aplica para compañías VE."
+msgstr "Esta acción solo aplica para compañías VE."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Estado impresora (ENQ)"
+msgstr "Estado impresora (ENQ)"
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model.fields,field_description:l10n_ve_fiscal_serial.field_res_company__l10n_ve_fiscal_serial_flag_21
+#: model:ir.model.fields,field_description:l10n_ve_fiscal_serial.field_res_config_settings__l10n_ve_fiscal_serial_flag_21
+msgid "FLAG 21 fiscal"
+msgstr "BANDERA 21 fiscal"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "FLAG_21 configurada:"
+msgstr "FLAG_21 configurado:"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Herramientas de desarrollador"
+msgstr "Herramientas de desarrollador"
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model,name:l10n_ve_fiscal_serial.model_account_move
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid ""
+"La factura afectada no tiene número fiscal. No se puede imprimir la nota de "
+"crédito."
+msgstr ""
+"La factura afectada no tiene número fiscal. No se puede imprimir la nota de "
+"crédito."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid ""
+"La factura origen no tiene número fiscal. No se puede imprimir la nota de "
+"débito."
+msgstr ""
+"La factura origen no tiene número fiscal. No se puede imprimir la nota de "
+"débito."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "La factura ya fue impresa en máquina fiscal."
+msgstr "La factura ya fue impresa en máquina fiscal."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "La nota de crédito debe tener factura afectada."
+msgstr "La nota de crédito debe tener factura afectada."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "La nota de crédito ya fue impresa en máquina fiscal."
+msgstr "La nota de crédito ya fue impresa en máquina fiscal."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "La nota de débito ya fue impresa en máquina fiscal."
+msgstr "La nota de débito ya fue impresa en máquina fiscal."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Listar puertos serie (nombres COM):"
+msgstr "Listar puertos serie (nombres COM):"
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.actions.client,name:l10n_ve_fiscal_serial.action_fiscal_machines
+#: model:ir.ui.menu,name:l10n_ve_fiscal_serial.menu_seniat_fiscal_machines
+msgid "Máquinas Fiscales"
+msgstr "Máquinas Fiscales"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Máquinas fiscales"
+msgstr "Máquinas fiscales"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "O en PowerShell:"
+msgstr "O en PowerShell:"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Paridad"
+msgstr "Paridad"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Parámetros del puerto (sustituya COM99 por el suyo; 9600 8E1):"
+msgstr "Parámetros del puerto (sustituya COM99 por el suyo; 9600 8E1):"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Probar comando 7 (ACK)"
+msgstr "Probar comando 7 (ACK)"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Prueba ENQ con PowerShell (cambie COM99; ejecute en consola"
+msgstr "Prueba ENQ con PowerShell (cambie COM99; ejecute en consola"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"Prueba de puerto en bruto (sustituya el dispositivo; 9600 8E1 según TFHKA):"
+msgstr ""
+"Prueba de puerto en bruto (sustituya el dispositivo; 9600 8E1 según TFHKA):"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "PuTTY y la falta de respuesta:"
+msgstr "PuTTY y la falta de respuesta:"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"Puerto abierto: permanece así hasta que pulse «Cerrar conexión» (no se "
+"cierra al enviar comandos ni reportes desde esta pantalla)."
+msgstr ""
+"Puerto abierto: permanece así hasta que pulse «Cerrar conexión» (no se "
+"cierra al enviar comandos ni informes desde esta pantalla)."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"Pulse «Abrir conexión», elija el puerto y copie las líneas que salgan con el"
+" prefijo indicado."
+msgstr ""
+"Pulse «Abrir conexión», elija el puerto y copie las líneas que salgan con el"
+" prefijo indicado."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Recargue la página (F5), opcionalmente filtre por"
+msgstr "Recargue la página (F5), opcionalmente filtre por"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Registro de sesión"
+msgstr "Registro de sesión"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Reporte X"
+msgstr "Reporte X"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Reporte Z"
+msgstr "Reporte Z"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "Respuesta fiscal inválida."
+msgstr "Respuesta fiscal inválida."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Secuencia factura de prueba"
+msgstr "Secuencia factura de prueba"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"Si este script tampoco recibe bytes, el fallo es de hardware, cable o "
+"paridad/baudios, no de Odoo ni del navegador."
+msgstr ""
+"Si este script tampoco recibe bytes, el fallo es de hardware, cable o "
+"paridad/baudios, no de Odoo ni del navegador."
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model.fields,help:l10n_ve_fiscal_serial.field_res_company__l10n_ve_fiscal_serial_send_default_code_in_name
+#: model:ir.model.fields,help:l10n_ve_fiscal_serial.field_res_config_settings__l10n_ve_fiscal_serial_send_default_code_in_name
+msgid ""
+"Si está activo y la línea tiene codigo interno, el nombre enviado a la "
+"máquina fiscal será: [CODIGO] Producto."
+msgstr ""
+"Si está activo y la línea tiene código interno, el nombre enviado a la "
+"máquina fiscal será: [CODIGO] Producto."
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model.fields,help:l10n_ve_fiscal_serial.field_res_company__l10n_ve_fiscal_serial_use_emulator
+#: model:ir.model.fields,help:l10n_ve_fiscal_serial.field_res_config_settings__l10n_ve_fiscal_serial_use_emulator
+msgid ""
+"Si está activo, el flujo de impresión fiscal por WebSerial omite la consulta"
+" previa de estado de la impresora."
+msgstr ""
+"Si está activo, el flujo de impresión fiscal por WebSerial omite la consulta"
+" previa de estado de la impresora."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "Si no responde el ENQ, pruebe"
+msgstr "Si no responde el ENQ, pruebe"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"Solo el cuerpo del comando (sin STX/ETX); una línea = un comando. Ver manual"
+" TFHKA."
+msgstr ""
+"Solo el cuerpo del comando (sin STX/ETX); una línea = un comando. Ver manual"
+" TFHKA."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "Solo puede imprimir facturas de cliente."
+msgstr "Solo puede imprimir facturas de cliente."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "Solo puede imprimir notas de crédito de cliente."
+msgstr "Solo puede imprimir notas de crédito de cliente."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/models/account_move.py:0
+msgid "Solo puede imprimir notas de débito de cliente."
+msgstr "Solo puede imprimir notas de débito de cliente."
+
+#. module: l10n_ve_fiscal_serial
+#: model:ir.model.fields,field_description:l10n_ve_fiscal_serial.field_res_company__l10n_ve_fiscal_serial_use_emulator
+#: model:ir.model.fields,field_description:l10n_ve_fiscal_serial.field_res_config_settings__l10n_ve_fiscal_serial_use_emulator
+msgid "Usando emulador fiscal"
+msgstr "Usando emulador fiscal"
+
+#. module: l10n_ve_fiscal_serial
+#: model_terms:ir.ui.view,arch_db:l10n_ve_fiscal_serial.res_config_settings_l10n_ve_fiscal_serial
+msgid "Venezuela - Fiscal Serial"
+msgstr "Venezuela - Serie Fiscal"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"Web Serial (Chrome/Edge, HTTPS). Los pasos y la consola del navegador "
+"registran el mismo flujo."
+msgstr ""
+"Serie web (Chrome/Edge, HTTPS). Los pasos y la consola del navegador "
+"registran el mismo flujo."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "[System.IO.Ports.SerialPort]::GetPortNames()"
+msgstr "[System.IO.Ports.SerialPort]::GetPortNames()"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "como usuario normal"
+msgstr "como usuario normal"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"el puerto puede «abrirse» bien, pero la impresora fiscal contesta al byte"
+msgstr ""
+"el puerto puede «abrirse» bien, pero la impresora fiscal contesta al byte"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "l10n_ve_fiscal_serial"
+msgstr "l10n_ve_fiscal_serial"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"ls -l /dev/ttyUSB* /dev/ttyACM* 2>/dev/null; echo \"---\"; dmesg | tail -15"
+msgstr ""
+"ls -l /dev/ttyUSB* /dev/ttyACM* 2>/dev/nulo; echo \"---\"; dmesg | tail -15"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "mode"
+msgstr "modo"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid "mode COM99: BAUD=9600 PARITY=E DATA=8 STOP=1"
+msgstr "modo COM99: BAUDIOS=9600 PARIDAD=E DATOS=8 PARADA=1"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"picocom -b 9600 --parity E /dev/ttyUSB0\n"
+"# o: minicom -D /dev/ttyUSB0\n"
+"# Salida picocom: Ctrl+A Ctrl+X"
+msgstr ""
+"picocom -b 9600 --paridad E /dev/ttyUSB0\n"
+"# o: minicom -D /dev/ttyUSB0\n"
+"# Salida picocom: Ctrl+A Ctrl+X"
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-javascript
+#: code:addons/l10n_ve_fiscal_serial/static/src/fiscal_machines/fiscal_machines_action.xml:0
+msgid ""
+"y el baud del manual; el flujo de apertura replica el DLL (DSR/DTR, CTS/RTS,"
+" luego ENQ con 5 bytes)."
+msgstr ""
+"y el baudio del manual; el flujo de apertura replica el DLL (DSR/DTR, "
+"CTS/RTS, luego ENQ con 5 bytes)."
+
+#. module: l10n_ve_fiscal_serial
+#. odoo-python
+#: code:addons/l10n_ve_fiscal_serial/static/src/fdm.py:0
+msgid ""
+"¡Error de impresora fiscal! La impresora fiscal actual no coincide con la "
+"usada en la factura original. Serial de la factura: %s. Serial de la "
+"impresora conectada: %s."
+msgstr ""
+"¡Error de impresora fiscal! La impresora fiscal actual no coincide con la "
+"usada en la factura original. Número de serie de la factura: %s. Serie de la"
+" impresora conectada: %s."
