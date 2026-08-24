@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_retention_iva_form_l10n_ve_edi_tfhka" model="ir.ui.view">
+        <field name="name">account.retention.form.l10n.ve.edi.tfhka.iva</field>
+        <field name="model">account.retention</field>
+        <field
+            name="inherit_id"
+            ref="l10n_ve_edi.view_retention_iva_form_l10n_ve_edi"
+        />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//header/button[@name='action_l10n_ve_edi_send']"
+                position="after"
+            >
+                <field name="l10n_ve_edi_tfhka_show_sent_actions" invisible="1" />
+                <button
+                    name="action_l10n_ve_edi_tfhka_print_retention"
+                    type="object"
+                    string="Imprimir"
+                    icon="fa-print"
+                    invisible="not l10n_ve_edi_tfhka_show_sent_actions"
+                />
+            </xpath>
+            <xpath expr="//page[@name='l10n_ve_edi_tab']/group[1]" position="before">
+                <field name="l10n_ve_edi_tfhka_sent_pdf_url" invisible="1" />
+                <field name="l10n_ve_edi_tfhka_sent_document_url" invisible="1" />
+                <group
+                    string="Documento transmitido (TFHKA)"
+                    name="l10n_ve_edi_tfhka_sent_links"
+                    invisible="not l10n_ve_edi_tfhka_show_sent_actions"
+                >
+                    <button
+                        name="action_l10n_ve_edi_tfhka_print_retention"
+                        type="object"
+                        string="Imprimir comprobante digital"
+                        icon="fa-print"
+                        class="btn-primary"
+                    />
+                    <button
+                        name="action_l10n_ve_edi_tfhka_open_sent_document_url"
+                        type="object"
+                        string="Abrir URL del documento fiscal"
+                        icon="fa-arrow-right"
+                        class="btn-secondary"
+                        invisible="not l10n_ve_edi_tfhka_sent_document_url"
+                    />
+                    <div
+                        colspan="2"
+                        class="alert alert-light mb-0 py-2"
+                        role="status"
+                        invisible="l10n_ve_edi_tfhka_sent_pdf_url or l10n_ve_edi_tfhka_sent_document_url"
+                    >
+                        Si no hay enlaces publicos en la respuesta, use Imprimir para descargar el PDF via TFHKA.
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_retention_islr_form_l10n_ve_edi_tfhka" model="ir.ui.view">
+        <field name="name">account.retention.form.l10n.ve.edi.tfhka.islr</field>
+        <field name="model">account.retention</field>
+        <field
+            name="inherit_id"
+            ref="l10n_ve_edi.view_retention_islr_form_l10n_ve_edi"
+        />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//header/button[@name='action_l10n_ve_edi_send']"
+                position="after"
+            >
+                <field name="l10n_ve_edi_tfhka_show_sent_actions" invisible="1" />
+                <button
+                    name="action_l10n_ve_edi_tfhka_print_retention"
+                    type="object"
+                    string="Imprimir"
+                    icon="fa-print"
+                    invisible="not l10n_ve_edi_tfhka_show_sent_actions"
+                />
+            </xpath>
+            <xpath expr="//page[@name='l10n_ve_edi_tab']/group[1]" position="before">
+                <field name="l10n_ve_edi_tfhka_sent_pdf_url" invisible="1" />
+                <field name="l10n_ve_edi_tfhka_sent_document_url" invisible="1" />
+                <group
+                    string="Documento transmitido (TFHKA)"
+                    name="l10n_ve_edi_tfhka_sent_links"
+                    invisible="not l10n_ve_edi_tfhka_show_sent_actions"
+                >
+                    <button
+                        name="action_l10n_ve_edi_tfhka_print_retention"
+                        type="object"
+                        string="Imprimir comprobante digital"
+                        icon="fa-print"
+                        class="btn-primary"
+                    />
+                    <button
+                        name="action_l10n_ve_edi_tfhka_open_sent_document_url"
+                        type="object"
+                        string="Abrir URL del documento fiscal"
+                        icon="fa-arrow-right"
+                        class="btn-secondary"
+                        invisible="not l10n_ve_edi_tfhka_sent_document_url"
+                    />
+                    <div
+                        colspan="2"
+                        class="alert alert-light mb-0 py-2"
+                        role="status"
+                        invisible="l10n_ve_edi_tfhka_sent_pdf_url or l10n_ve_edi_tfhka_sent_document_url"
+                    >
+                        Si no hay enlaces publicos en la respuesta, use Imprimir para descargar el PDF via TFHKA.
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
