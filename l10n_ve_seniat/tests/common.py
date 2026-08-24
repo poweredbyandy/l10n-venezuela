@@ -54,7 +54,6 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
         cls.change_company_country(cls.env.company, cls.env.ref("base.ve"))
         cls._l10n_ve_normalize_default_taxes()
         cls._setup_l10n_ve_sale_journal_sections()
-        cls._setup_l10n_ve_dispatch_guide_section()
         cls._l10n_ve_set_company_emission_medium_codes("free_form")
         cls.company_data["default_journal_sale"].write(
             {
@@ -168,34 +167,6 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
                 "l10n_ve_credit_note_section_id": sec.id,
             }
         )
-
-    @classmethod
-    def _setup_l10n_ve_dispatch_guide_section(cls):
-        Warehouse = cls.env["stock.warehouse"]
-        if "l10n_ve_dispatch_guide_section_id" not in Warehouse._fields:
-            return
-        company = cls.env.company
-        warehouse = Warehouse.search([("company_id", "=", company.id)], limit=1)
-        if not warehouse or warehouse.l10n_ve_dispatch_guide_section_id:
-            return
-        book_vals = {
-            "name": "Talonario guias tests",
-            "company_id": company.id,
-            "number_from": 1,
-            "number_to": 99_999_999,
-        }
-        if "l10n_ve_series_prefix" in cls.env["account.book"]._fields:
-            book_vals["l10n_ve_series_prefix"] = "01"
-        book = cls.env["account.book"].create(book_vals)
-        section = cls.env["account.book.section"].create(
-            {
-                "book_id": book.id,
-                "name": "Guias despacho",
-                "number_from": 40_000_000,
-                "number_to": 49_999_999,
-            }
-        )
-        warehouse.l10n_ve_dispatch_guide_section_id = section
 
     def _l10n_ve_set_company_taxpayer_for_igtf_notice(self, taxpayer_type="special"):
         company = self.env.company
