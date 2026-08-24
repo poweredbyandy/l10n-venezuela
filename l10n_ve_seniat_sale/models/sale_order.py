@@ -530,30 +530,6 @@ class SaleOrder(models.Model):
                 )
                 % {"journal": journal.display_name}
             )
-        if "warehouse_id" not in self._fields:
-            return
-        if "stock.warehouse" not in self.env:
-            return
-        Warehouse = self.env["stock.warehouse"]
-        if "l10n_ve_dispatch_guide_section_id" not in Warehouse._fields:
-            return
-        warehouse = self.warehouse_id
-        if not warehouse:
-            raise UserError(
-                _(
-                    "No se puede confirmar el pedido: indique el almacén para validar "
-                    "el correlativo de guía de despacho (SENIAT)."
-                )
-            )
-        if not warehouse.l10n_ve_dispatch_guide_section_id:
-            raise UserError(
-                _(
-                    "No se puede confirmar el pedido: con diario en «forma libre» debe "
-                    "configurar en el almacén «%(warehouse)s» el tramo del talonario "
-                    "para guías de despacho (SENIAT)."
-                )
-                % {"warehouse": warehouse.display_name}
-            )
 
     def action_confirm(self):
         precision = self.env["decimal.precision"].precision_get("Product Price")
