@@ -1,0 +1,29 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+{
+    "name": "Venezuela SENIAT - Sale",
+    "website": "https://github.com/OCA/l10n-venezuela",
+    "countries": ["ve"],
+    "author": "Anderson Armeya, andyengit, Odoo Community Association (OCA)",
+    "maintainers": ["andyengit"],
+    "category": "Sales/Localizations",
+    "version": "18.0.1.1.4",
+    "depends": [
+        "base",
+        "web",
+        "sale",
+        "sale_management",
+        "l10n_ve_seniat",
+        "account",
+    ],
+    "data": [
+        "data/report_sale_actions.xml",
+        "data/sale_order_server_actions.xml",
+        "report/report_saleorder_native_inherit.xml",
+        "views/sale_order_views.xml",
+        "views/sale_portal_templates.xml",
+    ],
+    "license": "AGPL-3",
+    "auto_install": ["sale", "l10n_ve_seniat"],
+    "installable": True,
+    "post_init_hook": "post_init_hook",
+}

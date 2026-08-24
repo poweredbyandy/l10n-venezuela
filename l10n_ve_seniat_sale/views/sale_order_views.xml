@@ -1,0 +1,132 @@
+<odoo>
+    <record id="view_move_form" model="ir.ui.view">
+        <field name="name">sale.order</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//field[@name='order_line']//list//field[@name='product_template_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="options"
+                >{'no_create': True, 'no_create_edit': True}</attribute>
+            </xpath>
+            <xpath
+                expr="//group[@name='partner_details']/field[@name='partner_id'][@widget='res_partner_many2one']"
+                position="attributes"
+            >
+                <attribute name="context">{
+                    'res_partner_search_mode': 'customer',
+                    'show_address': 1,
+                    'default_is_company': True,
+                    'show_vat': True,
+                    'l10n_ve_display_name_vat_first': True,
+                }</attribute>
+                <attribute
+                    name="options"
+                >{"no_quick_create": True, "no_create": False, "no_create_edit": False}</attribute>
+                <attribute name="placeholder">Buscar nombre o RIF...</attribute>
+            </xpath>
+            <xpath
+                expr="//group[@name='note_group']//field[@name='note']"
+                position="before"
+            >
+                <separator
+                    string="Términos y condiciones"
+                    invisible="country_code != 'VE'"
+                />
+            </xpath>
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field
+                    name="journal_id"
+                    string="Diario de ventas"
+                    domain="[('type', '=', 'sale'), ('company_id', '=', company_id)]"
+                    options="{'no_create': True}"
+                    required="country_code == 'VE' and state in ('draft', 'sent')"
+                    readonly="invoice_count != 0 and state == 'sale'"
+                />
+            </xpath>
+            <xpath
+                expr="//field[@name='order_line']//list//field[@name='tax_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="readonly"
+                >parent.country_code == 'VE' or qty_invoiced &gt; 0 or is_downpayment</attribute>
+            </xpath>
+            <xpath
+                expr="//field[@name='order_line']//form//field[@name='tax_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="readonly"
+                >parent.country_code == 'VE' or qty_invoiced &gt; 0</attribute>
+            </xpath>
+            <xpath expr="//button[@id='send_proforma_primary']" position="attributes">
+                <attribute
+                    name="invisible"
+                >state != 'draft' or invoice_count &gt;= 1 or country_code == 'VE'</attribute>
+            </xpath>
+            <xpath expr="//button[@id='send_proforma']" position="attributes">
+                <attribute
+                    name="invisible"
+                >state == 'draft' or invoice_count &gt;= 1 or country_code == 'VE'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_preview_sale_order']" position="before">
+                <field name="l10n_ve_hide_order_preview" invisible="1" />
+                <button
+                    name="%(sale.action_report_saleorder)d"
+                    type="action"
+                    string="Imprimir"
+                    class="btn-secondary"
+                    data-hotkey="p"
+                    invisible="country_code != 'VE'"
+                />
+            </xpath>
+            <xpath
+                expr="//button[@name='action_preview_sale_order']"
+                position="attributes"
+            >
+                <attribute name="invisible">l10n_ve_hide_order_preview</attribute>
+            </xpath>
+            <xpath expr="//button[@id='create_invoice']" position="attributes">
+                <attribute
+                    name="invisible"
+                >invoice_status != 'to invoice' or country_code == 'VE'</attribute>
+            </xpath>
+            <xpath
+                expr="//button[@id='create_invoice_percentage']"
+                position="attributes"
+            >
+                <attribute
+                    name="invisible"
+                >invoice_status != 'no' or state != 'sale' or country_code == 'VE'</attribute>
+            </xpath>
+            <xpath expr="//button[@id='create_invoice']" position="after">
+                <button
+                    id="l10n_ve_create_invoice"
+                    name="action_l10n_ve_create_invoice"
+                    string="Crear factura"
+                    type="object"
+                    class="btn-primary"
+                    data-hotkey="q"
+                    invisible="invoice_status != 'to invoice' or country_code != 'VE'"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_tree_inherit_l10n_ve_seniat_sale" model="ir.ui.view">
+        <field name="name">sale.order.list.inherit.l10n.ve.seniat.sale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//list/header/button[@type='action']" position="attributes">
+                <attribute name="name">action_l10n_ve_create_invoice</attribute>
+                <attribute name="type">object</attribute>
+                <attribute name="string">Crear facturas</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
