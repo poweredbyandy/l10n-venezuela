@@ -8,6 +8,7 @@ import requests
 
 from odoo import fields
 from odoo.tests import tagged
+from odoo.tools import mute_logger
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
@@ -106,6 +107,9 @@ class TestResCurrencyRateProviderBCV(AccountTestInvoicingCommon):
         self.assertAlmostEqual(usd_rate.rate, 1.0 / 36.50)
         self.assertEqual(usd_rate.provider_id, self.provider)
 
+    @mute_logger(
+        "odoo.addons.res_currency_rate_provider_BCV.models.res_currency_rate_provider"
+    )
     def test_http_error_returns_empty(self):
         type(self).bcv_status_code = 500
         self.addCleanup(self._reset_bcv_mock)
@@ -113,6 +117,9 @@ class TestResCurrencyRateProviderBCV(AccountTestInvoicingCommon):
         content = self.provider._obtain_rates("VES", ["USD"], today, today)
         self.assertEqual(content, {})
 
+    @mute_logger(
+        "odoo.addons.res_currency_rate_provider_BCV.models.res_currency_rate_provider"
+    )
     def test_network_error_returns_empty(self):
         type(self).bcv_raise = requests.exceptions.Timeout("timeout")
         self.addCleanup(self._reset_bcv_mock)
@@ -120,6 +127,9 @@ class TestResCurrencyRateProviderBCV(AccountTestInvoicingCommon):
         content = self.provider._obtain_rates("VES", ["USD"], today, today)
         self.assertEqual(content, {})
 
+    @mute_logger(
+        "odoo.addons.res_currency_rate_provider_BCV.models.res_currency_rate_provider"
+    )
     def test_unknown_currency_is_skipped(self):
         today = fields.Date.today()
         content = self.provider._obtain_rates("VES", ["GBP"], today, today)
