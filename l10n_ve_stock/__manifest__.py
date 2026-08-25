@@ -3,7 +3,7 @@
     "name": "Venezuela SENIAT - Stock/Inventory",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
-    "author": "andyengit, Anderson Armeya, Odoo Community Association (OCA)",
+    "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "category": "Inventory/Localizations",
     "version": "18.0.1.0.22",

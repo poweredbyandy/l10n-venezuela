@@ -5,6 +5,7 @@
     "countries": ["ve"],
     "version": "18.0.1.10.2",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
+    "maintainers": ["andyengit"],
     "category": "Accounting/Localizations/Account Charts",
     "depends": ["base", "web", "mail", "account", "account_debit_note"],
     "demo": [

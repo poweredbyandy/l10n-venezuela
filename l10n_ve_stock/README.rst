@@ -67,13 +67,11 @@ Credits
 Authors
 -------
 
-* andyengit
 * Anderson Armeya
 
 Contributors
 ------------
 
-* andyengit
 * Anderson Armeya
 
 Maintainers

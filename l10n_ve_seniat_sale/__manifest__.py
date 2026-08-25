@@ -3,7 +3,7 @@
     "name": "Venezuela SENIAT - Sale",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
-    "author": "Anderson Armeya, andyengit, Odoo Community Association (OCA)",
+    "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Sales/Localizations",
     "version": "18.0.1.1.4",

@@ -1,6 +1,5 @@
 # Copyright 2023 Luis Pinzón
 # Copyright 2026 Anderson Armeya
-# Copyright 2026 andyengit
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 import logging
