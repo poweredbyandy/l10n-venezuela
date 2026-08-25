@@ -158,7 +158,6 @@ Authors
 
 * ABF OSIELL
 * Anderson Armeya
-* andyengit
 
 Contributors
 ------------
