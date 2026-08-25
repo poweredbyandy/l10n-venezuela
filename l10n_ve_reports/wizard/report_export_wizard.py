@@ -36,7 +36,8 @@ class ReportExportWizard(models.TransientModel):
         for wizard in wizards:
             wizard.doc_name = wizard.report_id.name
 
-            # We create one export format object per available export type of the report,
+            # We create one export format object per available export type of the
+            # report,
             # with the right generation function associated to it.
             # This is done so to allow selecting them as Many2many tags in the wizard.
             for button_dict in self._context.get(
@@ -70,10 +71,11 @@ class ReportExportWizard(models.TransientModel):
         self.ensure_one()
         to_create_attachments = []
         report_options = self.env.context["account_report_generation_options"]
-        for format in self.export_format_ids:
-            # format.fun_to_call is a button function, so it has to be public
-            fun_name = format.fun_to_call
-            report_function_params = [format.fun_param] if format.fun_param else []
+        for export_format in self.export_format_ids:
+            fun_name = export_format.fun_to_call
+            report_function_params = (
+                [export_format.fun_param] if export_format.fun_param else []
+            )
             if self.report_id.custom_handler_model_id and hasattr(
                 self.env[self.report_id.custom_handler_model_name], fun_name
             ):
@@ -85,7 +87,7 @@ class ReportExportWizard(models.TransientModel):
                 report, report_options, *report_function_params
             )
 
-            to_create_attachments.append(format.apply_export(report_action))
+            to_create_attachments.append(export_format.apply_export(report_action))
 
         return to_create_attachments
 
@@ -94,7 +96,7 @@ class ReportExportWizardOption(models.TransientModel):
     _name = "account_reports.export.wizard.format"
     _description = "Export format for accounting's reports"
 
-    name = fields.Char(string="Name", required=True)
+    name = fields.Char(required=True)
     fun_to_call = fields.Char(string="Function to Call", required=True)
     fun_param = fields.Char(string="Function Parameter")
     export_wizard_id = fields.Many2one(
@@ -110,7 +112,8 @@ class ReportExportWizardOption(models.TransientModel):
         if report_action["type"] == "ir_actions_account_report_download_oca":
             report_options = json.loads(report_action["data"]["options"])
 
-            # file_generator functions are always public for ir_actions_account_report_download_oca
+            # file_generator functions are always public for
+            # ir_actions_account_report_download_oca
             file_generator = report_action["data"]["file_generator"]
             report = self.export_wizard_id.report_id
             if report.custom_handler_model_id and hasattr(
@@ -121,7 +124,8 @@ class ReportExportWizardOption(models.TransientModel):
             generation_function = get_public_method(report, file_generator)
             export_result = generation_function(report, report_options)
 
-            # We use the options from the action, as the action may have added or modified
+            # We use the options from the action, as the action may have added or
+            # modified
             # stuff into them (see l10n_es_reports, with BOE wizard)
             file_content = (
                 base64.encodebytes(export_result["file_content"])
@@ -131,7 +135,7 @@ class ReportExportWizardOption(models.TransientModel):
             # We need to unpack the content in case of a generator
             if isinstance(file_content, types.GeneratorType):
                 file_content = base64.encodebytes(b"".join(file_content))
-            file_name = f"{self.export_wizard_id.doc_name or self.export_wizard_id.report_id.name}.{export_result['file_type']}"
+            file_name = f"{self.export_wizard_id.doc_name or self.export_wizard_id.report_id.name}.{export_result['file_type']}"  # noqa: E501
             mimetype = self.export_wizard_id.report_id.get_export_mime_type(
                 export_result["file_type"]
             )

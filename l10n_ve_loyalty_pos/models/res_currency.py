@@ -20,13 +20,15 @@ class ResCurrency(models.Model):
             .mapped("currency_id")
             .ids
         )
-        # currency_pos (and similar) may already load all active currencies.
+        # Other POS modules may already load all active currencies.
         if domain and domain[0][0] == "active":
             return domain
 
         currency_ids = set(program_currency_ids)
         if "payment_currency_id" in config.payment_method_ids._fields:
-            currency_ids.update(config.payment_method_ids.mapped("payment_currency_id").ids)
+            currency_ids.update(
+                config.payment_method_ids.mapped("payment_currency_id").ids
+            )
         if company.currency_id:
             currency_ids.add(company.currency_id.id)
         if config.currency_id:

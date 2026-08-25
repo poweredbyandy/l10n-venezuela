@@ -3,7 +3,6 @@
     "name": "Venezuela - Loyalty POS",
     "summary": "Aplica programas loyalty del POS como descuentos globales SENIAT",
     "website": "https://github.com/OCA/l10n-venezuela",
-    "icon": "/poweredbyandy_saas/static/description/icon.png",
     "countries": ["ve"],
     "version": "18.0.1.3.9",
     "author": "andyengit, Odoo Community Association (OCA)",
@@ -20,7 +19,8 @@
     ],
     "assets": {
         "point_of_sale._assets_pos": [
-            "l10n_ve_loyalty_pos/static/src/**/*",
+            "l10n_ve_loyalty_pos/static/src/**/*.esm.js",
+            "l10n_ve_loyalty_pos/static/src/**/*.xml",
         ],
     },
     "license": "AGPL-3",

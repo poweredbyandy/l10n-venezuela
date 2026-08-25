@@ -2,7 +2,6 @@
     "name": "Venezuela - Point of Sale",
     "summary": "Localización venezolana para el Punto de Venta.",
     "website": "https://github.com/OCA/l10n-venezuela",
-    "icon": "/poweredbyandy_saas/static/description/icon.png",
     "countries": ["ve"],
     "version": "18.0.1.3.7",
     "author": "andyengit, Odoo Community Association (OCA)",
@@ -20,7 +19,9 @@
     ],
     "assets": {
         "point_of_sale._assets_pos": [
-            "l10n_ve_pos/static/src/**/*",
+            "l10n_ve_pos/static/src/**/*.esm.js",
+            "l10n_ve_pos/static/src/**/*.xml",
+            "l10n_ve_pos/static/src/**/*.scss",
         ],
     },
     "license": "AGPL-3",

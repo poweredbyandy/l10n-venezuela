@@ -14,21 +14,38 @@ class AccountMoveLine(models.Model):
         compute="_compute_subtotal_company_currency",
         currency_field="company_currency_id",
     )
+    price_subtotal_currency = fields.Monetary(
+        string="Subtotal in Company Currency",
+        compute="_compute_price_subtotal_currency",
+        currency_field="company_currency_id",
+        store=True,
+    )
     price_unit_company_currency = fields.Monetary(
         compute="_compute_price_unit_company_currency",
         currency_field="company_currency_id",
     )
 
-    @api.depends("balance")
+    def _l10n_ve_company_currency_subtotal(self):
+        self.ensure_one()
+        invoice_types = (
+            "out_invoice",
+            "in_invoice",
+            "out_refund",
+            "in_refund",
+        )
+        if self.move_id.move_type in invoice_types:
+            return abs(self.balance)
+        return 0.0
+
+    @api.depends("balance", "move_id.move_type")
     def _compute_subtotal_company_currency(self):
         for line in self:
-            if line.move_id.move_type in ["out_invoice", "in_invoice"]:
-                line.subtotal_company_currency = abs(line.balance)
-                continue
-            if line.move_id.move_type in ["out_refund", "in_refund"]:
-                line.subtotal_company_currency = abs(line.balance)
-                continue
-            line.subtotal_company_currency = 0.0
+            line.subtotal_company_currency = line._l10n_ve_company_currency_subtotal()
+
+    @api.depends("balance", "move_id.move_type")
+    def _compute_price_subtotal_currency(self):
+        for line in self:
+            line.price_subtotal_currency = line._l10n_ve_company_currency_subtotal()
 
     @api.depends("subtotal_company_currency", "discount", "quantity")
     def _compute_price_unit_company_currency(self):
@@ -117,13 +134,12 @@ class AccountMoveLine(models.Model):
             raise ValidationError(
                 _(
                     "No se permiten líneas con precio menor o igual a cero. "
-                    'La línea "%(line)s" tiene precio %(price)s. Use el producto de '
-                    "descuento de la compañía (asistente Descuento en pedidos) o corrija "
-                    "el importe."
+                    'La línea "%(line)s" tiene precio %(price)s. Use el '
+                    "producto de descuento de la compañía (asistente "
+                    "Descuento en pedidos) o corrija el importe."
                 )
                 % {"line": self.name or _("Sin nombre"), "price": price}
             )
-
 
     def l10n_ve_report_line_description(self):
         """Descripción de línea para reporte, marcando exentos con sufijo (E).
@@ -200,7 +216,7 @@ class AccountMoveLine(models.Model):
         "move_id.fiscal_position_id",
     )
     def _compute_tax_ids(self):
-        super()._compute_tax_ids()
+        result = super()._compute_tax_ids()
         for line in self:
             if not line.move_id:
                 continue
@@ -215,6 +231,7 @@ class AccountMoveLine(models.Model):
                 tax = line.move_id.fiscal_position_id.map_tax(tax)
             if tax:
                 line.tax_ids = tax
+        return result
 
     def _l10n_ve_get_exempt_tax_for_line(self):
         self.ensure_one()

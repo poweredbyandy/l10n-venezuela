@@ -2,10 +2,10 @@
 {
     "name": "Venezuela SENIAT - Accounting",
     "website": "https://github.com/OCA/l10n-venezuela",
-    "icon": "/poweredbyandy_saas/static/description/icon.png",
     "countries": ["ve"],
     "version": "18.0.1.10.2",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
+    "maintainers": ["andyengit"],
     "category": "Accounting/Localizations/Account Charts",
     "depends": ["base", "web", "mail", "account", "account_debit_note"],
     "demo": [
@@ -57,9 +57,9 @@
             "l10n_ve_seniat/static/src/xml/version_watermark.xml",
             "l10n_ve_seniat/static/src/scss/version_watermark.scss",
             "l10n_ve_seniat/static/src/scss/seniat_kanban.scss",
-            "l10n_ve_seniat/static/src/components/seniat_invoice_dashboard/seniat_invoice_dashboard.js",
+            "l10n_ve_seniat/static/src/components/seniat_invoice_dashboard/seniat_invoice_dashboard.esm.js",
             "l10n_ve_seniat/static/src/components/seniat_invoice_dashboard/seniat_invoice_dashboard.xml",
-            "l10n_ve_seniat/static/src/views/account_dashboard_kanban/seniat_account_dashboard_kanban.js",
+            "l10n_ve_seniat/static/src/views/account_dashboard_kanban/seniat_account_dashboard_kanban.esm.js",
             "l10n_ve_seniat/static/src/views/account_dashboard_kanban/seniat_account_dashboard_kanban.xml",
             "l10n_ve_seniat/static/src/scss/seniat_invoice_dashboard.scss",
         ],

@@ -18,6 +18,8 @@ exclude: |
   /build/|/dist/|
   # Ignore test files in addons
   /tests/samples/.*|
+  # Local i18n helper scripts (not part of the addons)
+  (^|/)(complete_i18n|export_i18n|fix_i18n)\.py$|
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)
 default_language_version:
@@ -95,6 +97,7 @@ repos:
         additional_dependencies:
           - "eslint@9.12.0"
           - "eslint-plugin-jsdoc@50.3.1"
+          - "globals@16.0.0"
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:

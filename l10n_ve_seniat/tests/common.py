@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import Command, fields
+
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
@@ -14,6 +15,33 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
         if purchase_tax:
             create_values["supplier_taxes_id"] = [Command.set(purchase_tax.ids)]
         return super()._create_product(**create_values)
+
+    @classmethod
+    def _create_company(cls, **create_values):
+        cls.env["res.company"]._l10n_ve_ensure_sql_defaults()
+        Company = cls.env["res.company"]
+        for fname, field in Company._fields.items():
+            if (
+                fname in create_values
+                or not field.store
+                or field.compute
+                or not field.required
+            ):
+                continue
+            default = field.default
+            if default is None:
+                continue
+            if callable(default):
+                try:
+                    default = default(Company)
+                except Exception:
+                    continue
+            if default is None:
+                continue
+            if field.type == "many2one":
+                default = getattr(default, "id", default)
+            create_values.setdefault(fname, default)
+        return super()._create_company(**create_values)
 
     @classmethod
     @AccountTestInvoicingCommon.setup_country("ve")
@@ -35,6 +63,14 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
         )
         cls._l10n_ve_normalize_fixture_products()
         cls._l10n_ve_normalize_fixture_partners()
+        cls._l10n_ve_activate_test_currencies()
+
+    @classmethod
+    def _l10n_ve_activate_test_currencies(cls):
+        for xmlid in ("base.VES", "base.USD", "base.EUR"):
+            currency = cls.env.ref(xmlid, raise_if_not_found=False)
+            if currency:
+                currency.active = True
 
     @classmethod
     def _l10n_ve_normalize_fixture_partners(cls):
@@ -82,7 +118,10 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
     def _l10n_ve_normalize_fixture_products(cls):
         sale_tax = cls.company_data.get("default_tax_sale")
         purchase_tax = cls.company_data.get("default_tax_purchase")
-        for product in (getattr(cls, "product_a", None), getattr(cls, "product_b", None)):
+        for product in (
+            getattr(cls, "product_a", None),
+            getattr(cls, "product_b", None),
+        ):
             if not product:
                 continue
             vals = {}
@@ -100,9 +139,7 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
         mediums = cls.env["l10n.ve.emission.medium"].search(
             [("code", "in", list(codes))]
         )
-        cls.env.company.write(
-            {"l10n_ve_emission_medium_ids": [(6, 0, mediums.ids)]}
-        )
+        cls.env.company.write({"l10n_ve_emission_medium_ids": [(6, 0, mediums.ids)]})
 
     @classmethod
     def _setup_l10n_ve_sale_journal_sections(cls):
@@ -130,6 +167,33 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
                 "l10n_ve_credit_note_section_id": sec.id,
             }
         )
+
+    def _l10n_ve_set_company_taxpayer_for_igtf_notice(self, taxpayer_type="special"):
+        company = self.env.company
+        if (
+            taxpayer_type == "special"
+            and "l10n_ve_igtf_account_id" in company._fields
+            and not company.l10n_ve_igtf_account_id
+        ):
+            account = False
+            if hasattr(company, "_l10n_ve_get_default_igtf_account"):
+                account = company._l10n_ve_get_default_igtf_account()
+            if not account:
+                account = (
+                    self.env["account.account"]
+                    .with_company(company)
+                    .create(
+                        {
+                            "name": "IGTF Payable Test",
+                            "code": "2102098",
+                            "account_type": "liability_current",
+                            "company_ids": [Command.set([company.id])],
+                            "reconcile": True,
+                        }
+                    )
+                )
+            company.l10n_ve_igtf_account_id = account
+        company.partner_id.taxpayer_type = taxpayer_type
 
     @classmethod
     def _l10n_ve_configure_journal_fiscal_machine(cls, journal, **extra):

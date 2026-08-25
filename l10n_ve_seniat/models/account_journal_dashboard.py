@@ -1,9 +1,11 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import format_date
+
 from odoo.addons.web.controllers.utils import clean_action
 
 
+# pylint: disable=consider-merging-classes-inherited
 class AccountJournal(models.Model):
     _inherit = "account.journal"
 
@@ -30,44 +32,6 @@ class AccountJournal(models.Model):
         ]
 
     @api.model
-    def _l10n_ve_seniat_dispatch_guide_dashboard_available(self):
-        if "stock.picking" not in self.env:
-            return False
-        picking_model = self.env["stock.picking"]
-        return (
-            "l10n_ve_is_ve_country" in picking_model._fields
-            and callable(
-                getattr(
-                    picking_model,
-                    "_l10n_ve_dispatch_outgoing_moves_fully_invoiced",
-                    None,
-                )
-            )
-        )
-
-    @api.model
-    def _l10n_ve_seniat_unfactured_dispatch_guides(self, companies):
-        if "stock.picking" not in self.env:
-            return self.env["account.move"].browse(), False
-        if not self._l10n_ve_seniat_dispatch_guide_dashboard_available():
-            return self.env["stock.picking"].browse(), False
-
-        candidates = self.env["stock.picking"].search(
-            [
-                ("company_id", "in", companies.ids),
-                ("state", "=", "done"),
-                ("picking_type_code", "=", "outgoing"),
-                ("l10n_ve_control_number", "!=", False),
-                ("l10n_ve_control_number", "!=", ""),
-            ]
-        )
-        unfactured = candidates.filtered(
-            lambda picking: picking.l10n_ve_is_ve_country
-            and not picking._l10n_ve_dispatch_outgoing_moves_fully_invoiced()
-        )
-        return unfactured, True
-
-    @api.model
     def get_l10n_ve_invoice_dashboard(self):
         ve_companies = self._l10n_ve_seniat_ve_companies()
         if not ve_companies:
@@ -90,22 +54,10 @@ class AccountJournal(models.Model):
         overdue_count = Move.search_count(
             self._l10n_ve_seniat_overdue_unpaid_invoices_domain(ve_companies, today)
         )
-        dispatch_guides, dispatch_available = (
-            self._l10n_ve_seniat_unfactured_dispatch_guides(ve_companies)
-        )
-
-        items = []
-        if dispatch_available:
-            items.append(
-                {
-                    "key": "unfactured_dispatch_guides",
-                    "label": _("Guías de despacho no facturadas"),
-                    "count": len(dispatch_guides),
-                    "show_month_label": False,
-                }
-            )
-        items.extend(
-            [
+        return {
+            "visible": True,
+            "month_label": format_date(self.env, month_start, date_format="MMMM y"),
+            "items": [
                 {
                     "key": "posted_invoices_month",
                     "label": _("Facturas confirmadas (mes)"),
@@ -124,12 +76,7 @@ class AccountJournal(models.Model):
                     "count": overdue_count,
                     "show_month_label": False,
                 },
-            ]
-        )
-        return {
-            "visible": True,
-            "month_label": format_date(self.env, month_start, date_format="MMMM y"),
-            "items": items,
+            ],
         }
 
     @api.model
@@ -145,29 +92,6 @@ class AccountJournal(models.Model):
             ("invoice_date", ">=", month_start),
             ("invoice_date", "<=", today),
         ]
-
-        if key == "unfactured_dispatch_guides":
-            dispatch_guides, dispatch_available = (
-                self._l10n_ve_seniat_unfactured_dispatch_guides(ve_companies)
-            )
-            if not dispatch_available:
-                raise UserError(
-                    _("Las guías de despacho requieren el módulo de inventario SENIAT.")
-                )
-            action = self.env["ir.actions.actions"]._for_xml_id(
-                "stock.action_picking_tree_all"
-            )
-            action.update(
-                {
-                    "name": _("Guías de despacho no facturadas"),
-                    "domain": [("id", "in", dispatch_guides.ids)],
-                    "context": {
-                        **self.env.context,
-                        "create": False,
-                    },
-                }
-            )
-            return clean_action(action, self.env)
 
         if key == "posted_invoices_month":
             action = self.env["ir.actions.actions"]._for_xml_id(
