@@ -92,14 +92,12 @@ Authors
 
 * Luis Pinzón
 * Anderson Armeya
-* andyengit
 
 Contributors
 ------------
 
 - Luis Pinzón elpinzon@gmail.com
 - Anderson Armeya
-- andyengit
 
 Maintainers
 -----------
