@@ -59,13 +59,11 @@ Authors
 -------
 
 * Anderson Armeya
-* andyengit
 
 Contributors
 ------------
 
 * Anderson Armeya
-* andyengit
 
 Maintainers
 -----------
