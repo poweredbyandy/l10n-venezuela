@@ -98,7 +98,6 @@ Contributors
 ------------
 
 - Anderson Armeya
-- andyengit
 
 Maintainers
 -----------
