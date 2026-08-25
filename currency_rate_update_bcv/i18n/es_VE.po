@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* res_currency_rate_provider_BCV
+# 	* currency_rate_update_bcv
 #
 msgid ""
 msgstr ""
@@ -16,17 +16,17 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#. module: res_currency_rate_provider_BCV
-#: model:ir.model.fields.selection,name:res_currency_rate_provider_BCV.selection__res_currency_rate_provider__service__bcv
-msgid "BCV scraping"
+#. module: currency_rate_update_bcv
+#: model:ir.model.fields.selection,name:currency_rate_update_bcv.selection__res_currency_rate_provider__service__bcv
+msgid "BCV scrapping"
 msgstr "Scraping BCV"
 
-#. module: res_currency_rate_provider_BCV
-#: model:ir.model,name:res_currency_rate_provider_BCV.model_res_currency_rate_provider
+#. module: currency_rate_update_bcv
+#: model:ir.model,name:currency_rate_update_bcv.model_res_currency_rate_provider
 msgid "Currency Rates Provider"
 msgstr "Proveedor de tasas de cambio"
 
-#. module: res_currency_rate_provider_BCV
-#: model_terms:ir.ui.view,arch_db:res_currency_rate_provider_BCV.res_currency_rate_update_wizard_form
+#. module: currency_rate_update_bcv
+#: model_terms:ir.ui.view,arch_db:currency_rate_update_bcv.res_currency_rate_update_wizard_form
 msgid "The BCV provider only publishes today's official rate."
 msgstr "El proveedor BCV solo publica la tasa oficial de hoy."

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="res_currency_rate_update_wizard_form" model="ir.ui.view">
-        <field name="name">res.currency.rate.update.wizard.form.bcv</field>
+        <field name="name">res.currency.rate.update.wizard.form</field>
         <field name="model">res.currency.rate.update.wizard</field>
         <field
             name="inherit_id"
@@ -9,9 +9,7 @@
         />
         <field name="arch" type="xml">
             <xpath expr="//group[@name='main']" position="after">
-                <div class="alert alert-info" role="status">
-                    The BCV provider only publishes today's official rate.
-                </div>
+                <h2>The BCV provider only publishes today's official rate.</h2>
             </xpath>
         </field>
     </record>

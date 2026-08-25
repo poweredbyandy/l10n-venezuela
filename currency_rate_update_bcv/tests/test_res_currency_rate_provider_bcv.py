@@ -108,7 +108,7 @@ class TestResCurrencyRateProviderBCV(AccountTestInvoicingCommon):
         self.assertEqual(usd_rate.provider_id, self.provider)
 
     @mute_logger(
-        "odoo.addons.res_currency_rate_provider_BCV.models.res_currency_rate_provider"
+        "odoo.addons.currency_rate_update_bcv.models.res_currency_rate_provider"
     )
     def test_http_error_returns_empty(self):
         type(self).bcv_status_code = 500
@@ -118,7 +118,7 @@ class TestResCurrencyRateProviderBCV(AccountTestInvoicingCommon):
         self.assertEqual(content, {})
 
     @mute_logger(
-        "odoo.addons.res_currency_rate_provider_BCV.models.res_currency_rate_provider"
+        "odoo.addons.currency_rate_update_bcv.models.res_currency_rate_provider"
     )
     def test_network_error_returns_empty(self):
         type(self).bcv_raise = requests.exceptions.Timeout("timeout")
@@ -128,7 +128,7 @@ class TestResCurrencyRateProviderBCV(AccountTestInvoicingCommon):
         self.assertEqual(content, {})
 
     @mute_logger(
-        "odoo.addons.res_currency_rate_provider_BCV.models.res_currency_rate_provider"
+        "odoo.addons.currency_rate_update_bcv.models.res_currency_rate_provider"
     )
     def test_unknown_currency_is_skipped(self):
         today = fields.Date.today()
