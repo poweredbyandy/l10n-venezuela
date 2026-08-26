@@ -172,19 +172,23 @@ class ResPartner(models.Model):
 
     def _prepare_create_values(self, vals_list):
         vals_list = super()._prepare_create_values(vals_list)
-        if self.env.context.get("skip_l10n_ve_vat_auto_prefix"):
-            return vals_list
+        skip_prefix = self.env.context.get("skip_l10n_ve_vat_auto_prefix")
         for vals in vals_list:
-            cid = vals.get("country_id")
-            if not cid:
-                continue
-            country = self.env["res.country"].browse(cid)
+            country = self._l10n_ve_country_from_vals(vals)
             if country.code != VE_CODE:
                 vals["taxpayer_type"] = False
-            if vals.get("vat") in (False, None):
+            if skip_prefix:
+                continue
+            if country.code != VE_CODE or vals.get("vat") in (False, None):
                 continue
             vals["vat"] = self._l10n_ve_normalize_vat_leading_prefix(vals["vat"])
         return vals_list
+
+    def _l10n_ve_country_from_vals(self, vals):
+        cid = vals.get("country_id")
+        if cid:
+            return self.env["res.country"].browse(cid)
+        return self.env["res.country"]
 
     def _default_res_country(self):
         return self.env.company.country_id.id or False
@@ -489,6 +493,8 @@ class ResPartner(models.Model):
 
     @api.constrains("country_id", "taxpayer_type")
     def _check_taxpayer_type_country(self):
+        if self.env.context.get("skip_l10n_ve_taxpayer_type_country"):
+            return
         for rec in self:
             if not rec.taxpayer_type:
                 continue
