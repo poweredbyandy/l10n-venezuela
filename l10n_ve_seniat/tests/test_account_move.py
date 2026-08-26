@@ -1447,6 +1447,38 @@ class TestAccountMove(L10nVeSeniatCommon):
 
         self.assertNotIn("Hidden Zero Percent Group", html)
 
+    def test_foreign_currency_tax_totals_show_company_amount(self):
+        company_ccy = self.env.company.currency_id
+        foreign = (
+            self.env.ref("base.USD")
+            if company_ccy != self.env.ref("base.USD")
+            else self.env.ref("base.EUR")
+        )
+        today = fields.Date.today()
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": foreign.id,
+                "company_id": self.env.company.id,
+                "name": today,
+                "inverse_company_rate": 36.5,
+            }
+        )
+        move = self._l10n_ve_create_invoice(
+            move_type="out_invoice",
+            partner=self.partner_ve,
+            invoice_date=today,
+            amounts=[100.0],
+            currency=foreign,
+        )
+        totals = move.tax_totals
+        self.assertTrue(totals.get("display_in_company_currency"))
+        self.assertEqual(totals.get("company_currency_id"), company_ccy.id)
+        self.assertTrue(totals.get("total_amount"))
+        self.assertNotEqual(
+            totals.get("total_amount_currency"),
+            totals.get("total_amount"),
+        )
+
     def test_native_invoice_hides_header_for_all_web_layouts(self):
         journal = self.company_data["default_journal_sale"]
         journal.write(

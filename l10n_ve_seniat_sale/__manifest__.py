@@ -6,7 +6,7 @@
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Sales/Localizations",
-    "version": "18.0.1.1.4",
+    "version": "18.0.1.1.5",
     "depends": [
         "base",
         "web",

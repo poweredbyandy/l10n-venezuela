@@ -79,6 +79,14 @@ const l10nVeGlobalDiscountTaxTotalsPatch = {
         return Boolean(this.l10nVeDiscountTotals.display_in_company_currency);
     },
 
+    formatMonetaryCompany(value) {
+        if (value === undefined || value === null) {
+            return "";
+        }
+        const totals = this.l10nVeDiscountTotals;
+        return formatMonetary(value, {currencyId: totals.company_currency_id});
+    },
+
     formatGlobalDiscountAmount(amount, useCompanyCurrency = false) {
         if (typeof amount !== "number") {
             return "";
@@ -112,6 +120,16 @@ const l10nVeGlobalDiscountTaxTotalsPatch = {
             [[this.props.record.resId]]
         );
         await this.props.record.load();
+    },
+
+    async onRemoveDiscountRowClick() {
+        if (this.discountLines.length === 1) {
+            await this.removeGlobalDiscount(this.discountLines[0].id);
+            return;
+        }
+        if (this.discountLines.length > 1) {
+            await this.removeAllGlobalDiscounts();
+        }
     },
 
     onGlobalDiscountInfoClick(ev) {

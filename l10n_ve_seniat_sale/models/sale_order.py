@@ -253,7 +253,7 @@ class SaleOrder(models.Model):
             and line.product_id == disc
         )
 
-    def _l10n_ve_split_amount_by_weights(self, amount, weights):
+    def _l10n_ve_split_amount_by_weights(self, amount, weights, currency=None):
         self.ensure_one()
         if not weights:
             return []
@@ -262,7 +262,8 @@ class SaleOrder(models.Model):
         total_weight = sum(weights)
         if float_is_zero(total_weight, precision_rounding=1e-9):
             return [0.0] * len(weights)
-        prec = self.currency_id.decimal_places
+        currency = currency or self.currency_id
+        prec = currency.decimal_places
         out = []
         acc = 0.0
         for weight in weights[:-1]:

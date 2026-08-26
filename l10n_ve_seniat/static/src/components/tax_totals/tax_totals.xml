@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-inherit="account.TaxTotalsField" t-inherit-mode="extension">
+        <xpath
+            expr="//t[@t-foreach='totals.subtotals']/tr[1]/td[last()]"
+            position="after"
+        >
+            <td t-if="totals.display_in_company_currency" class="o_list_monetary ps-5">
+                <span
+                    style="white-space: nowrap; font-weight: bold;"
+                    dir="ltr"
+                    t-out="formatMonetaryCompany(subtotal.base_amount)"
+                />
+            </td>
+        </xpath>
+        <xpath expr="//tr[.//span[@name='amount_total']]/td[last()]" position="after">
+            <td t-if="totals.display_in_company_currency" class="o_list_monetary ps-5">
+                <span
+                    name="amount_total_company"
+                    t-att-class="{'oe_subtotal_footer_separator': totals.has_tax_groups}"
+                    dir="ltr"
+                    t-out="formatMonetaryCompany(totals.total_amount)"
+                    style="font-size: 1.3em; font-weight: bold; white-space: nowrap;"
+                />
+            </td>
+        </xpath>
+    </t>
+    <t t-inherit="account.TaxGroupComponent" t-inherit-mode="extension">
+        <xpath expr="//tr/td[last()]" position="after">
+            <td
+                t-if="props.totals.display_in_company_currency"
+                class="o_list_monetary ps-5"
+            >
+                <span
+                    class="o_tax_group_amount_value o_list_monetary"
+                    dir="ltr"
+                    t-out="formatMonetaryCompany(props.taxGroup.tax_amount)"
+                />
+            </td>
+        </xpath>
+    </t>
+</templates>

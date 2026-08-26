@@ -150,3 +150,44 @@ class TestSaleOrderGlobalDiscount(L10nVeSeniatCommon):
             invoice.l10n_ve_global_discount_ids.amount, 10.0, places=2
         )
         self.assertAlmostEqual(invoice.amount_total, order.amount_total, places=2)
+
+    def test_global_discount_fixed_amount_on_total(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente VE desc total",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345682",
+            }
+        )
+        product = self._create_ve_product("Producto desc total", 100.0)
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": partner.id,
+                "journal_id": self.journal.id,
+                "order_line": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": 1,
+                            "price_unit": 100.0,
+                        },
+                    ),
+                ],
+            }
+        )
+        wizard = self.env["sale.order.discount"].create(
+            {
+                "sale_order_id": order.id,
+                "discount_type": "so_discount",
+                "l10n_ve_discount_mode": "amount",
+                "l10n_ve_amount_base": "total",
+                "discount_amount": 16.0,
+            }
+        )
+        wizard.action_apply_discount()
+        self.assertEqual(len(order.l10n_ve_global_discount_ids), 1)
+        self.assertGreater(order.l10n_ve_global_discount_ids.amount, 0.0)
+        order.action_l10n_ve_remove_all_global_discounts()
+        self.assertFalse(order.l10n_ve_global_discount_ids)

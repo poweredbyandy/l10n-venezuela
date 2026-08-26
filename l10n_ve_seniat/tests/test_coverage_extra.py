@@ -352,6 +352,76 @@ class TestCoverageExtraAccountMove(L10nVeSeniatCommon):
         expected_pu = expected_subtotal / (abs(inv_line.quantity) or 1.0)
         self.assertEqual(cred_line.price_unit, expected_pu)
 
+    def test_full_reversal_usd_keeps_origin_tax_company_amount(self):
+        customer = self._ve_customer()
+        usd = self.env.ref("base.USD")
+        date_invoice = fields.Date.to_date("2026-08-18")
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": usd.id,
+                "company_id": self.env.company.id,
+                "name": date_invoice,
+                "rate": 0.0012931382849753496,
+            }
+        )
+        tax = self.company_data["default_tax_sale"]
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": customer.id,
+                "currency_id": usd.id,
+                "invoice_date": date_invoice,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "NIPLE GALVANIZADO",
+                            "quantity": 1.0,
+                            "price_unit": 2.282992,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [(6, 0, [tax.id])] if tax else [],
+                        },
+                    )
+                ],
+            }
+        )
+        invoice.action_post()
+        invoice.l10n_ve_invoice_original_printed = True
+        wiz = (
+            self.env["account.move.reversal"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create({"reason": "NC Bs tax rounding"})
+        )
+        wiz.reverse_moves()
+        credit = wiz.new_move_ids
+        credit.ensure_one()
+        self.assertEqual(credit.currency_id, credit.company_currency_id)
+        company_cur = invoice.company_currency_id
+        self.assertLessEqual(
+            company_cur.round(credit._l10n_ve_to_company_abs_amount()),
+            company_cur.round(invoice._l10n_ve_max_credit_note_company_amount()),
+        )
+        origin_tax = abs(
+            sum(
+                invoice.line_ids.filtered(
+                    lambda line: line.display_type == "tax"
+                ).mapped("balance")
+            )
+        )
+        credit_tax = abs(
+            sum(
+                credit.line_ids.filtered(
+                    lambda line: line.display_type == "tax"
+                ).mapped("balance")
+            )
+        )
+        self.assertEqual(company_cur.round(credit_tax), company_cur.round(origin_tax))
+        credit.action_post()
+        self.assertEqual(credit.state, "posted")
+
     def test_manual_credit_note_keeps_foreign_currency_without_emission_medium(self):
         customer = self._ve_customer()
         usd = self.env.ref("base.USD")

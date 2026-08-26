@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="sale_order_view_form_l10n_ve_loyalty_tax_totals" model="ir.ui.view">
+        <field name="name">sale.order.form.l10n.ve.loyalty.tax.totals</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="priority" eval="99" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tax_totals']" position="attributes">
+                <attribute name="widget">account-tax-totals-field</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

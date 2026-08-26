@@ -7,7 +7,7 @@
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Sales/Localizations",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.4",
     "depends": [
         "l10n_ve_seniat_sale",
         "l10n_ve_loyalty",
@@ -15,6 +15,7 @@
     "data": [
         "security/ir.model.access.csv",
         "wizard/sale_order_discount_views.xml",
+        "views/sale_order_views.xml",
     ],
     "license": "AGPL-3",
     "installable": True,

@@ -101,3 +101,15 @@ class TestSaleOrderInvoiceSplitDiscount(L10nVeSeniatCommon):
         self.assertEqual(discount_line.qty_invoiced, discount_line.product_uom_qty)
         self.assertEqual(discount_line.qty_to_invoice, 0.0)
         self.assertEqual(order.invoice_status, "invoiced")
+
+    def test_split_amount_by_weights_accepts_currency(self):
+        order = self.env["sale.order"].new(
+            {"currency_id": self.env.company.currency_id.id}
+        )
+        parts = order._l10n_ve_split_amount_by_weights(
+            100.0, [800.0, 200.0], currency=order.currency_id
+        )
+        self.assertEqual(
+            [order.currency_id.round(part) for part in parts],
+            [80.0, 20.0],
+        )

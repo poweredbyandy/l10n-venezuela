@@ -81,10 +81,19 @@
                         <button
                             type="button"
                             class="btn btn-link p-0 o_l10n_ve_discount_info_btn"
-                            title="Ver detalle de descuentos"
+                            title="Discount details"
                             t-on-click="onGlobalDiscountInfoClick"
                         >
                             <i class="fa fa-info-circle" />
+                        </button>
+                        <button
+                            t-if="canManageGlobalDiscount"
+                            type="button"
+                            class="btn btn-link text-danger p-0"
+                            title="Remove discount"
+                            t-on-click="onRemoveDiscountRowClick"
+                        >
+                            <i class="fa fa-trash" />
                         </button>
                     </label>
                 </td>

@@ -279,6 +279,7 @@ class AccountMove(models.Model):
         pending = self._l10n_ve_snapshot_global_discount_amounts_for_currency()
         res = super()._l10n_ve_force_refund_to_company_currency()
         self._l10n_ve_apply_global_discount_amounts_after_currency(pending)
+        self._l10n_ve_copy_origin_tax_company_amounts()
         return res
 
     def _l10n_ve_apply_loyalty_global_discount(

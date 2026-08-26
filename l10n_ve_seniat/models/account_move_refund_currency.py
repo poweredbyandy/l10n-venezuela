@@ -1,6 +1,7 @@
 from odoo import _, fields, models
 from odoo.exceptions import ValidationError
 from odoo.fields import Command
+from odoo.tools import float_compare
 
 
 # pylint: disable=consider-merging-classes-inherited
@@ -94,6 +95,7 @@ class AccountMove(models.Model):
             if line_cmds:
                 vals["invoice_line_ids"] = line_cmds
             move.write(vals)
+            move._l10n_ve_copy_origin_tax_company_amounts()
         return super()._l10n_ve_force_refund_to_company_currency()
 
     def _l10n_ve_apply_company_currency_from_line_balances(self):
@@ -120,6 +122,112 @@ class AccountMove(models.Model):
         if line_cmds:
             vals["invoice_line_ids"] = line_cmds
         self.write(vals)
+        self._l10n_ve_copy_origin_tax_company_amounts()
+
+    def _l10n_ve_copy_origin_tax_company_amounts(self):
+        for move in self:
+            move._l10n_ve_copy_origin_tax_company_amounts_on_move()
+
+    def _l10n_ve_copy_origin_tax_company_amounts_on_move(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        if (
+            self.move_type != "out_refund"
+            or not origin
+            or self.currency_id != self.company_currency_id
+            or origin.currency_id == origin.company_currency_id
+            or self.country_code != self.env.ref("base.ve").code
+        ):
+            return
+        company_cur = self.company_currency_id
+        base_types = ("product", "global_discount", "discount")
+        origin_base = abs(
+            sum(
+                origin.line_ids.filtered(
+                    lambda line: line.display_type in base_types
+                ).mapped("balance")
+            )
+        )
+        credit_base = abs(
+            sum(
+                self.line_ids.filtered(
+                    lambda line: line.display_type in base_types
+                ).mapped("balance")
+            )
+        )
+        if float_compare(
+            origin_base, credit_base, precision_rounding=company_cur.rounding
+        ):
+            return
+        origin_by_tax = {}
+        for line in origin.line_ids.filtered(lambda aml: aml.display_type == "tax"):
+            origin_by_tax[line.tax_line_id.id] = company_cur.round(
+                origin_by_tax.get(line.tax_line_id.id, 0.0) + abs(line.balance)
+            )
+        line_cmds = []
+        assigned_taxes = set()
+        for line in self.line_ids.filtered(lambda aml: aml.display_type == "tax"):
+            tax_id = line.tax_line_id.id
+            if tax_id not in origin_by_tax or tax_id in assigned_taxes:
+                continue
+            sign = 1.0 if line.balance >= 0.0 else -1.0
+            amount = company_cur.round(origin_by_tax[tax_id]) * sign
+            if float_compare(
+                line.amount_currency, amount, precision_rounding=company_cur.rounding
+            ):
+                line_cmds.append(
+                    Command.update(
+                        line.id,
+                        {
+                            "amount_currency": amount,
+                            "balance": amount,
+                        },
+                    )
+                )
+            assigned_taxes.add(tax_id)
+        if not line_cmds:
+            return
+        self.with_context(
+            skip_invoice_sync=True,
+            check_move_validity=False,
+        ).write({"line_ids": line_cmds})
+        self._l10n_ve_resync_refund_payment_term_after_tax_align()
+        self.invalidate_recordset(
+            [
+                "amount_total",
+                "amount_tax",
+                "amount_untaxed",
+                "amount_total_signed",
+                "amount_untaxed_signed",
+                "amount_residual",
+                "amount_residual_signed",
+            ]
+        )
+
+    def _l10n_ve_resync_refund_payment_term_after_tax_align(self):
+        self.ensure_one()
+        term_lines = self.line_ids.filtered(
+            lambda line: line.display_type == "payment_term"
+        )
+        if len(term_lines) != 1:
+            return
+        residual = -sum((self.line_ids - term_lines).mapped("balance"))
+        residual = self.company_currency_id.round(residual)
+        if not float_compare(
+            term_lines.balance,
+            residual,
+            precision_rounding=self.company_currency_id.rounding,
+        ):
+            return
+        term_lines.with_context(
+            skip_invoice_sync=True,
+            check_move_validity=False,
+        ).write(
+            {
+                "amount_currency": residual,
+                "balance": residual,
+            }
+        )
 
     def _l10n_ve_to_company_abs_amount(self):
         self.ensure_one()
@@ -168,6 +276,16 @@ class AccountMove(models.Model):
         )
         if to_company_refund:
             to_company_refund._l10n_ve_force_refund_to_company_currency()
+        already_converted = self.filtered(
+            lambda move: move.country_code == ve_code
+            and move.move_type == "out_refund"
+            and move.state == "draft"
+            and move.reversed_entry_id
+            and move.currency_id == move.company_currency_id
+            and move.reversed_entry_id.currency_id
+            != move.reversed_entry_id.company_currency_id
+        )
+        already_converted._l10n_ve_copy_origin_tax_company_amounts()
         for move in self:
             if (
                 move.country_code == ve_code

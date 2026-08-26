@@ -33,8 +33,6 @@ class SaleOrder(models.Model):
     def action_l10n_ve_remove_all_global_discounts(self):
         self.ensure_one()
         if self.l10n_ve_global_discount_ids:
-            if len(self.l10n_ve_global_discount_ids) <= 1:
-                return True
             self.l10n_ve_global_discount_ids.unlink()
             return True
         return super().action_l10n_ve_remove_all_global_discounts()
