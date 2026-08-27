@@ -6,6 +6,13 @@ import {_t} from "@web/core/l10n/translation";
 export class AgedPartnerBalanceFilters extends AccountReportFilters {
     static template = "l10n_ve_reports.AgedPartnerBalanceFilters";
 
+    get receivableAccountDomain() {
+        return [
+            ["account_type", "=", "asset_receivable"],
+            ["deprecated", "=", false],
+        ];
+    }
+
     // ------------------------------------------------------------------------------------------------------------------
     // Aging Interval
     // ------------------------------------------------------------------------------------------------------------------

@@ -690,6 +690,32 @@ class TestAgedReceivableReport(TestAccountReportsCommon):
             options,
         )
 
+    def test_aged_receivable_filter_accounts(self):
+        receivable = self.company_data["default_account_receivable"]
+        options_all = self._generate_options(
+            self.report,
+            fields.Date.from_string("2017-02-01"),
+            fields.Date.from_string("2017-02-01"),
+        )
+        options_filtered = self._generate_options(
+            self.report,
+            fields.Date.from_string("2017-02-01"),
+            fields.Date.from_string("2017-02-01"),
+            default_options={"account_ids": receivable.ids},
+        )
+        self.assertEqual(options_filtered["account_ids"], receivable.ids)
+        self.assertIn(
+            ("account_id", "in", receivable.ids),
+            options_filtered.get("forced_domain") or [],
+        )
+        lines_all = self.report._get_lines(options_all)
+        lines_filtered = self.report._get_lines(options_filtered)
+        self.assertTrue(lines_filtered)
+        self.assertNotEqual(
+            lines_all[0]["columns"][-1].get("no_format"),
+            lines_filtered[0]["columns"][-1].get("no_format"),
+        )
+
     def test_aged_receivable_filter_partners(self):
         """Test the filter on top allowing to filter on res.partner."""
         options = self._generate_options(

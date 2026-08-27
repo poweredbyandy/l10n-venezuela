@@ -251,32 +251,28 @@ class AccountVeReportXHandler(models.AbstractModel):
                 "count": 0,
             },
         }
-        for journal in bank_cash_journals.sorted(lambda j: (j.company_id.name, j.name)):
-            posted = daily._get_posted_moves_by_date(
-                journal, company_ids, date_from, date_to, date_type
+        for journal in bank_cash_journals:
+            payment_items = daily._collect_journal_payment_items(
+                journal,
+                company_ids,
+                date_from,
+                date_to,
+                date_type,
+                options,
             )
-            registered = posted.filtered(
-                lambda m, j=journal: daily._is_move_bank_liquidity_registered(m, j)
-            )
-            for move in registered:
-                display_date = daily._get_move_display_date(move, date_type)
-                amount = daily._get_move_display_report_amount(
-                    move,
-                    journal,
-                    options,
-                    display_date,
+            for item in payment_items:
+                amount = item["amount"]
+                move = item["move"]
+                aml = item["aml"]
+                flow_kind = daily._get_report_amount_flow_kind(
+                    amount, move=move, aml=aml
                 )
-                if daily._is_report_amount_zero(amount, options):
-                    continue
-                payment = daily._get_move_payment(move)
-                payment_type = (
-                    payment.payment_type
-                    if payment
-                    else "inbound"
-                    if amount >= 0.0
-                    else "outbound"
+                payment_type = "outbound" if flow_kind == "expense" else "inbound"
+                payment_method_line = (
+                    daily._get_aml_payment_method_line(aml)
+                    if aml
+                    else daily._get_move_payment_method_line(move)
                 )
-                payment_method_line = daily._get_move_payment_method_line(move)
                 payment_method_name = (
                     payment_method_line.name
                     if payment_method_line
@@ -330,7 +326,7 @@ class AccountVeReportXHandler(models.AbstractModel):
                 )
 
         add_row(
-            _("Total registered payments"),
+            _("Total de pagos"),
             _("%(n)s operations", n=total_ops),
             total_cash,
             level=1,

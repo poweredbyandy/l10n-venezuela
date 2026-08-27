@@ -35,7 +35,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         )
         options["unfold_all"] = options.get("unfold_all", True)
         options["daily_payments_date_type"] = previous_options.get(
-            "daily_payments_date_type", "validation"
+            "daily_payments_date_type", "payment"
         )
 
         if previous_options.get("is_opening_report"):
@@ -80,9 +80,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         )
 
     def _get_daily_payments_date_type(self, options):
-        date_type = options.get("daily_payments_date_type", "validation")
+        date_type = options.get("daily_payments_date_type", "payment")
         if date_type not in ("payment", "validation"):
-            return "validation"
+            return "payment"
         return date_type
 
     def _get_move_display_report_amount(self, move, journal, options, conv_date):
@@ -157,6 +157,20 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         filter_date = self._get_aml_filter_date(aml, date_type)
         return date_from <= filter_date <= date_to
 
+    def _get_currency_rate_date(self, options, conv_date=None):
+        date_type = options.get("currency_rate_date_type", "document")
+        if date_type == "manual":
+            rate_date = options.get("currency_rate_date") or fields.Date.today()
+        elif date_type == "document":
+            rate_date = (
+                conv_date
+                or options.get("date", {}).get("date_to")
+                or fields.Date.today()
+            )
+        else:
+            rate_date = fields.Date.today()
+        return self._to_report_date(rate_date) or fields.Date.today()
+
     def _amount_to_report_currency(self, amount_company, company, options, conv_date):
         display_currency = self.env["res.currency"].browse(
             options["display_currency_id"]
@@ -164,13 +178,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         company_currency = company.currency_id
         if not amount_company or display_currency == company_currency:
             return amount_company
-        if not conv_date:
-            conv_date = options["date"]["date_to"]
+        rate_date = self._get_currency_rate_date(options, conv_date)
         return company_currency._convert(
             amount_company,
             display_currency,
             company,
-            conv_date,
+            rate_date,
         )
 
     def _get_journal_liquidity_accounts(self, journal):
@@ -473,8 +486,14 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
     def _get_selected_bank_cash_journals(self, report, options):
         selected = report._get_options_journals(options)
         journal_ids = [j["id"] for j in selected]
-        journals = self.env["account.journal"].browse(journal_ids)
-        journals = journals.filtered(lambda j: j.type in ("bank", "cash"))
+        if not journal_ids:
+            return self.env["account.journal"]
+        journals = self.env["account.journal"].search(
+            [
+                ("id", "in", journal_ids),
+                ("type", "in", ("bank", "cash")),
+            ]
+        )
 
         companies = journals.company_id
         retention_journal_ids = set(
@@ -561,6 +580,92 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         exclude = set(exclude_move_ids)
         return amls.filtered(lambda line: line.move_id.id not in exclude)
 
+    def _collect_journal_payment_items(
+        self, journal, company_ids, date_from, date_to, date_type, options
+    ):
+        items = []
+        posted_moves = self._get_posted_moves_by_date(
+            journal, company_ids, date_from, date_to, date_type
+        )
+        registered_moves = posted_moves.filtered(
+            lambda move, j=journal: self._is_move_bank_liquidity_registered(move, j)
+        )
+        pending_posted_moves = (posted_moves - registered_moves).filtered(
+            lambda move, j=journal: self._bank_move_has_pending_bridge_residual(
+                move, j
+            )
+        )
+        draft_moves = self._get_draft_moves(
+            journal, company_ids, date_from, date_to, date_type
+        )
+        outstanding_amls = self._get_outstanding_amls(
+            journal,
+            company_ids,
+            date_from,
+            date_to,
+            registered_moves.ids + pending_posted_moves.ids,
+            date_type,
+        )
+
+        def _append_move_item(move, amount, kind):
+            if self._is_report_amount_zero(amount, options):
+                return
+            items.append(
+                {
+                    "move": move,
+                    "aml": self.env["account.move.line"],
+                    "amount": amount,
+                    "kind": kind,
+                }
+            )
+
+        for move in registered_moves:
+            display_date = self._get_move_display_date(move, date_type)
+            _append_move_item(
+                move,
+                self._get_move_display_report_amount(
+                    move, journal, options, display_date
+                ),
+                "registered",
+            )
+        for move in draft_moves:
+            display_date = self._get_move_display_date(move, date_type)
+            _append_move_item(
+                move,
+                self._get_move_display_report_amount(
+                    move, journal, options, display_date
+                ),
+                "pending",
+            )
+        for move in pending_posted_moves:
+            display_date = self._get_move_display_date(move, date_type)
+            _append_move_item(
+                move,
+                self._get_move_pending_report_amount(
+                    move, journal, options, display_date
+                ),
+                "pending",
+            )
+        for aml in outstanding_amls:
+            display_date = self._get_aml_display_date(aml, date_type)
+            amount = self._amount_to_report_currency(
+                aml.amount_residual,
+                journal.company_id,
+                options,
+                display_date,
+            )
+            if self._is_report_amount_zero(amount, options):
+                continue
+            items.append(
+                {
+                    "move": aml.move_id,
+                    "aml": aml,
+                    "amount": amount,
+                    "kind": "pending",
+                }
+            )
+        return items
+
     def _get_move_payment_method_line(self, move):
         payment = self._get_move_payment(move)
         if payment:
@@ -582,18 +687,168 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             return payment_method_line.name
         return _("Sin método de pago")
 
-    def _get_payment_method_group_line_id(self, report, journal, payment_method_line):
+    def _get_payment_method_group_line_id(
+        self,
+        report,
+        journal,
+        payment_method_line,
+        flow_kind=None,
+        parent_line_id=None,
+    ):
+        markup_suffix = f"_{flow_kind}" if flow_kind else ""
         if payment_method_line:
             return report._get_generic_line_id(
                 "account.payment.method.line",
                 payment_method_line.id,
-                markup="daily_pay_payment_method",
+                markup=f"daily_pay_payment_method{markup_suffix}",
+                parent_line_id=parent_line_id,
             )
         return report._get_generic_line_id(
             "account.journal",
             journal.id,
-            markup="daily_pay_payment_method_none",
+            markup=f"daily_pay_payment_method_none{markup_suffix}",
+            parent_line_id=parent_line_id,
         )
+
+    def _set_report_line_parent(self, report, line, parent_line_id):
+        markup, model, res_id = report._parse_line_id(
+            line["id"], markup_as_string=True
+        )[-1]
+        line["id"] = report._get_generic_line_id(
+            model,
+            res_id,
+            markup=markup,
+            parent_line_id=parent_line_id,
+        )
+        line["parent_id"] = parent_line_id
+
+    def _get_report_amount_flow_kind(self, amount, move=None, aml=None):
+        payment = None
+        if aml:
+            payment = aml.payment_id or self._get_move_payment(aml.move_id)
+        elif move:
+            payment = self._get_move_payment(move)
+        if payment:
+            if payment.payment_type == "inbound":
+                return "income"
+            if payment.payment_type == "outbound":
+                return "expense"
+        if amount > 0:
+            return "income"
+        if amount < 0:
+            return "expense"
+        return None
+
+    def _append_named_total_line(
+        self,
+        lines,
+        report,
+        options,
+        line_id,
+        name,
+        amounts,
+        level,
+        css_class="",
+        unfoldable=False,
+        unfolded=False,
+        parent_id=None,
+    ):
+        line = {
+            "id": line_id,
+            "name": name,
+            "columns": self._build_amount_total_columns(report, options, amounts),
+            "level": level,
+            "unfoldable": unfoldable,
+            "unfolded": unfolded,
+        }
+        if css_class:
+            line["class"] = css_class
+        if parent_id:
+            line["parent_id"] = parent_id
+        lines.append((0, line))
+
+    def _append_payment_method_group_lines(
+        self, lines, report, options, journal, method_group, parent_line_id
+    ):
+        payment_method_line = method_group["payment_method_line"]
+        method_line_id = self._get_payment_method_group_line_id(
+            report,
+            journal,
+            payment_method_line,
+            flow_kind=method_group["flow_kind"],
+            parent_line_id=parent_line_id,
+        )
+        lines.append(
+            (
+                0,
+                {
+                    "id": method_line_id,
+                    "name": method_group["name"],
+                    "columns": self._build_amount_total_columns(
+                        report,
+                        options,
+                        method_group["totals"],
+                    ),
+                    "level": 2,
+                    "unfoldable": True,
+                    "unfolded": (
+                        method_line_id in options["unfolded_lines"]
+                        or options["unfold_all"]
+                    ),
+                    "parent_id": parent_line_id,
+                },
+            )
+        )
+        method_markup = payment_method_line.id if payment_method_line else "none"
+        flow_kind = method_group["flow_kind"]
+        if method_group["registered_lines"]:
+            registered_section_id = report._get_generic_line_id(
+                "account.journal",
+                journal.id,
+                parent_line_id=method_line_id,
+                markup=f"daily_pay_section_done_{flow_kind}_{method_markup}",
+            )
+            lines.append(
+                (
+                    0,
+                    {
+                        "id": registered_section_id,
+                        "name": _("Pagos y cobros registrados"),
+                        "columns": self._build_row_columns(report, options, {}),
+                        "level": 3,
+                        "unfoldable": False,
+                        "parent_id": method_line_id,
+                    },
+                )
+            )
+            for _sequence, line in method_group["registered_lines"]:
+                line["level"] = 4
+                self._set_report_line_parent(report, line, registered_section_id)
+            lines.extend(method_group["registered_lines"])
+        if method_group["pending_lines"]:
+            pending_section_id = report._get_generic_line_id(
+                "account.journal",
+                journal.id,
+                parent_line_id=method_line_id,
+                markup=f"daily_pay_section_pending_{flow_kind}_{method_markup}",
+            )
+            lines.append(
+                (
+                    0,
+                    {
+                        "id": pending_section_id,
+                        "name": _("Pendientes (borrador y cuentas puente)"),
+                        "columns": self._build_row_columns(report, options, {}),
+                        "level": 3,
+                        "unfoldable": False,
+                        "parent_id": method_line_id,
+                    },
+                )
+            )
+            for _sequence, line in method_group["pending_lines"]:
+                line["level"] = 4
+                self._set_report_line_parent(report, line, pending_section_id)
+            lines.extend(method_group["pending_lines"])
 
     def _build_amount_total_columns(self, report, options, amounts_by_column_group):
         display_currency = self.env["res.currency"].browse(
@@ -625,12 +880,13 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         company_ids = report.get_report_company_ids(options)
 
         journals = self._get_selected_bank_cash_journals(report, options)
-        journals = journals.sorted(lambda j: (j.company_id.name, j.name))
 
         totals_by_group = defaultdict(float)
 
         for journal in journals:
             journal_group_totals = defaultdict(float)
+            journal_income_totals = defaultdict(float)
+            journal_expense_totals = defaultdict(float)
             method_groups = {}
             journal_currency = journal.currency_id or journal.company_id.currency_id
             journal_title = _("%(journal)s — %(label)s: %(currency)s") % {
@@ -639,14 +895,16 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 "currency": journal_currency.name,
             }
 
-            def _get_method_group(payment_method_line):
-                key = self._get_payment_method_group_key(payment_method_line)
+            def _get_method_group(payment_method_line, flow_kind):
+                method_key = self._get_payment_method_group_key(payment_method_line)
+                key = (flow_kind, method_key)
                 if key not in method_groups:  # noqa: B023
                     method_groups[key] = {  # noqa: B023
                         "payment_method_line": payment_method_line,
                         "name": self._get_payment_method_group_name(
                             payment_method_line
                         ),
+                        "flow_kind": flow_kind,
                         "registered_lines": [],
                         "pending_lines": [],
                         "totals": defaultdict(float),
@@ -654,10 +912,15 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 return method_groups[key]  # noqa: B023
 
             def _add_amount_to_totals(method_group, amount):
+                flow_kind = method_group["flow_kind"]
                 for col_group_key in options["column_groups"]:
                     totals_by_group[col_group_key] += amount
                     journal_group_totals[col_group_key] += amount  # noqa: B023
                     method_group["totals"][col_group_key] += amount
+                    if flow_kind == "income":
+                        journal_income_totals[col_group_key] += amount  # noqa: B023
+                    elif flow_kind == "expense":
+                        journal_expense_totals[col_group_key] += amount  # noqa: B023
 
             posted_moves = self._get_posted_moves_by_date(
                 journal, company_ids, date_from, date_to, date_type
@@ -680,8 +943,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
                     if self._is_report_amount_zero(amt, options):
                         continue
+                    flow_kind = self._get_report_amount_flow_kind(amt, move=move)
+                    if not flow_kind:
+                        continue
                     method_group = _get_method_group(
-                        self._get_move_payment_method_line(move)
+                        self._get_move_payment_method_line(move),
+                        flow_kind,
                     )
                     _add_amount_to_totals(method_group, amt)
                     partner_label = (
@@ -738,8 +1005,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
                 if self._is_report_amount_zero(amt, options):
                     continue
+                flow_kind = self._get_report_amount_flow_kind(amt, move=move)
+                if not flow_kind:
+                    continue
                 method_group = _get_method_group(
-                    self._get_move_payment_method_line(move)
+                    self._get_move_payment_method_line(move),
+                    flow_kind,
                 )
                 _add_amount_to_totals(method_group, amt)
                 partner_label = move.partner_id.display_name if move.partner_id else ""
@@ -784,8 +1055,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
                 if self._is_report_amount_zero(amt, options):
                     continue
+                flow_kind = self._get_report_amount_flow_kind(amt, move=move)
+                if not flow_kind:
+                    continue
                 method_group = _get_method_group(
-                    self._get_move_payment_method_line(move)
+                    self._get_move_payment_method_line(move),
+                    flow_kind,
                 )
                 _add_amount_to_totals(method_group, amt)
                 partner_label = move.partner_id.display_name if move.partner_id else ""
@@ -828,7 +1103,13 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
                 if self._is_report_amount_zero(amt, options):
                     continue
-                method_group = _get_method_group(self._get_aml_payment_method_line(aml))
+                flow_kind = self._get_report_amount_flow_kind(amt, aml=aml)
+                if not flow_kind:
+                    continue
+                method_group = _get_method_group(
+                    self._get_aml_payment_method_line(aml),
+                    flow_kind,
+                )
                 _add_amount_to_totals(method_group, amt)
                 move = aml.move_id
                 partner_label = aml.partner_id.display_name if aml.partner_id else ""
@@ -886,123 +1167,76 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
             )
 
-            sorted_method_groups = sorted(
-                method_groups.values(), key=lambda group: group["name"]
-            )
-            for method_group in sorted_method_groups:
-                payment_method_line = method_group["payment_method_line"]
-                method_line_id = self._get_payment_method_group_line_id(
-                    report, journal, payment_method_line
-                )
-                lines.append(
-                    (
-                        0,
-                        {
-                            "id": method_line_id,
-                            "name": method_group["name"],
-                            "columns": self._build_amount_total_columns(
-                                report,
-                                options,
-                                method_group["totals"],
-                            ),
-                            "level": 1,
-                            "unfoldable": True,
-                            "unfolded": (
-                                method_line_id in options["unfolded_lines"]
-                                or options["unfold_all"]
-                            ),
-                        },
-                    )
-                )
-                method_markup = (
-                    payment_method_line.id if payment_method_line else "none"
-                )
-                if method_group["registered_lines"]:
-                    registered_section_id = report._get_generic_line_id(
-                        "account.journal",
-                        journal.id,
-                        parent_line_id=method_line_id,
-                        markup=f"daily_pay_section_done_{method_markup}",
-                    )
-                    lines.append(
-                        (
-                            0,
-                            {
-                                "id": registered_section_id,
-                                "name": _("Pagos y cobros registrados"),
-                                "columns": self._build_row_columns(report, options, {}),
-                                "level": 2,
-                                "unfoldable": False,
-                                "parent_id": method_line_id,
-                            },
-                        )
-                    )
-                    for _sequence, line in method_group["registered_lines"]:
-                        line["parent_id"] = registered_section_id
-                    lines.extend(method_group["registered_lines"])
-                if method_group["pending_lines"]:
-                    pending_section_id = report._get_generic_line_id(
-                        "account.journal",
-                        journal.id,
-                        parent_line_id=method_line_id,
-                        markup=f"daily_pay_section_pending_{method_markup}",
-                    )
-                    lines.append(
-                        (
-                            0,
-                            {
-                                "id": pending_section_id,
-                                "name": _("Pendientes (borrador y cuentas puente)"),
-                                "columns": self._build_row_columns(report, options, {}),
-                                "level": 2,
-                                "unfoldable": False,
-                                "parent_id": method_line_id,
-                            },
-                        )
-                    )
-                    for _sequence, line in method_group["pending_lines"]:
-                        line["parent_id"] = pending_section_id
-                    lines.extend(method_group["pending_lines"])
-            lines.append(
+            for flow_kind, flow_name, flow_totals, flow_markup in (
                 (
-                    0,
-                    {
-                        "id": report._get_generic_line_id(
-                            "account.journal",
-                            journal.id,
-                            markup="daily_pay_journal_subtotal",
-                        ),
-                        "name": _("Total (%(journal)s)", journal=journal.display_name),
-                        "columns": self._build_amount_total_columns(
-                            report,
-                            options,
-                            journal_group_totals,
-                        ),
-                        "level": 1,
-                        "unfoldable": False,
-                        "class": "total",
-                    },
+                    "income",
+                    _("Ingresos"),
+                    journal_income_totals,
+                    "daily_pay_journal_income",
+                ),
+                (
+                    "expense",
+                    _("Egresos"),
+                    journal_expense_totals,
+                    "daily_pay_journal_expense",
+                ),
+            ):
+                flow_method_groups = [
+                    group
+                    for group in method_groups.values()
+                    if group["flow_kind"] == flow_kind
+                ]
+                if not flow_method_groups:
+                    continue
+                flow_line_id = report._get_generic_line_id(
+                    "account.journal",
+                    journal.id,
+                    markup=flow_markup,
                 )
-            )
-
-        lines.append(
-            (
-                0,
-                {
-                    "id": report._get_generic_line_id(
-                        None, None, markup="daily_pay_total"
-                    ),
-                    "name": _("Total"),
-                    "columns": self._build_amount_total_columns(
+                self._append_named_total_line(
+                    lines,
+                    report,
+                    options,
+                    flow_line_id,
+                    flow_name,
+                    flow_totals,
+                    1,
+                )
+                for method_group in sorted(
+                    flow_method_groups, key=lambda group: group["name"]
+                ):
+                    self._append_payment_method_group_lines(
+                        lines,
                         report,
                         options,
-                        totals_by_group,
-                    ),
-                    "level": 0,
-                    "unfoldable": False,
-                    "class": "total",
-                },
+                        journal,
+                        method_group,
+                        flow_line_id,
+                    )
+            self._append_named_total_line(
+                lines,
+                report,
+                options,
+                report._get_generic_line_id(
+                    "account.journal",
+                    journal.id,
+                    markup="daily_pay_journal_subtotal",
+                ),
+                _("Total (%(journal)s)", journal=journal.display_name),
+                journal_group_totals,
+                1,
+                css_class="total",
             )
+
+        self._append_named_total_line(
+            lines,
+            report,
+            options,
+            report._get_generic_line_id(None, None, markup="daily_pay_total"),
+            _("Total"),
+            totals_by_group,
+            0,
+            css_class="total",
         )
 
         return lines

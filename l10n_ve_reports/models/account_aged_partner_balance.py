@@ -646,6 +646,33 @@ class AgedReceivableCustomHandler(models.AbstractModel):
     _inherit = "account.aged.partner.balance.report.handler.oca"
     _description = "Aged Receivable Custom Handler"
 
+    def _custom_options_initializer(self, report, options, previous_options):
+        result = super()._custom_options_initializer(
+            report, options, previous_options=previous_options
+        )
+        self._init_options_receivable_accounts(options, previous_options or {})
+        return result
+
+    def _init_options_receivable_accounts(self, options, previous_options):
+        previous_account_ids = previous_options.get("account_ids") or []
+        account_ids = [int(account_id) for account_id in previous_account_ids]
+        accounts = (
+            self.env["account.account"].search(
+                [
+                    ("id", "in", account_ids),
+                    ("account_type", "=", "asset_receivable"),
+                ]
+            )
+            if account_ids
+            else self.env["account.account"]
+        )
+        options["account_ids"] = accounts.ids
+        options["selected_account_ids"] = accounts.mapped("display_name")
+        if accounts:
+            options["forced_domain"] = list(options.get("forced_domain") or []) + [
+                ("account_id", "in", accounts.ids)
+            ]
+
     def open_journal_items(self, options, params):
         receivable_account_type = {
             "id": "trade_receivable",

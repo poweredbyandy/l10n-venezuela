@@ -66,6 +66,10 @@
             .o_line_cell_value_number {
                 white-space: nowrap;
             }
+
+            tr.total > td {
+                border-top: 1px solid #495057;
+            }
         }
     }
 }

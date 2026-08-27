@@ -174,7 +174,7 @@ export class AccountReportFilters extends Component {
     }
 
     get selectedCurrencyRateDateTypeName() {
-        const dateType = this.controller.options.currency_rate_date_type || "current";
+        const dateType = this.controller.options.currency_rate_date_type || "document";
         return this.currencyRateDateTypeLabel(dateType);
     }
 
@@ -754,7 +754,7 @@ export class AccountReportFilters extends Component {
 
     get dailyPaymentsDateTypeLabel() {
         return this.dailyPaymentsDateTypeOptionLabel(
-            this.controller.options.daily_payments_date_type || "validation"
+            this.controller.options.daily_payments_date_type || "payment"
         );
     }
 

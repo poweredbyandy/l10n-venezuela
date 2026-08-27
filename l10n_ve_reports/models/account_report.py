@@ -2089,12 +2089,11 @@ class AccountReport(models.Model):
             ["id", "name", "symbol"]
         )
 
-        # Currency rate date type: 'current' (default), 'document', or 'manual'
         currency_rate_date_type = previous_options.get(
-            "currency_rate_date_type", "current"
+            "currency_rate_date_type", "document"
         )
         if currency_rate_date_type not in ("current", "document", "manual"):
-            currency_rate_date_type = "current"
+            currency_rate_date_type = "document"
         options["currency_rate_date_type"] = currency_rate_date_type
 
         # Manual date for currency rate (only used when currency_rate_date_type is
@@ -3747,7 +3746,7 @@ class AccountReport(models.Model):
         Returns a dict mapping line_dict id to its document date.
         """
         document_dates = {}
-        currency_rate_date_type = options.get("currency_rate_date_type", "current")
+        currency_rate_date_type = options.get("currency_rate_date_type", "document")
         if currency_rate_date_type != "document":
             return document_dates
 
@@ -3758,7 +3757,8 @@ class AccountReport(models.Model):
             for col in line_dict.get("columns", []):
                 if (
                     col
-                    and col.get("expression_label") in ("invoice_date", "date")
+                    and col.get("expression_label")
+                    in ("invoice_date", "date", "line_date")
                     and col.get("no_format")
                 ):
                     doc_date = col["no_format"]
@@ -3778,6 +3778,22 @@ class AccountReport(models.Model):
                 date = aml.move_id.invoice_date or aml.date
                 document_dates[reverse_map[aml.id]] = date
 
+        missing_line_ids = [
+            line_dict.get("id")
+            for line_dict in line_dict_list
+            if line_dict.get("id") and line_dict.get("id") not in document_dates
+        ]
+        move_ids_map = {}
+        for line_id in missing_line_ids:
+            move_id = self._get_res_id_from_line_id(line_id, "account.move")
+            if move_id:
+                move_ids_map[line_id] = move_id
+        if move_ids_map:
+            moves = self.env["account.move"].browse(list(set(move_ids_map.values())))
+            dates_by_id = {move.id: move.invoice_date or move.date for move in moves}
+            for line_id, move_id in move_ids_map.items():
+                document_dates[line_id] = dates_by_id.get(move_id)
+
         return document_dates
 
     def _precompute_grouped_line_converted_values(  # noqa: C901
@@ -3789,7 +3805,7 @@ class AccountReport(models.Model):
         This ensures that the folded line shows the same total as the sum of expanded
         individually-converted child lines.
         """
-        currency_rate_date_type = options.get("currency_rate_date_type", "current")
+        currency_rate_date_type = options.get("currency_rate_date_type", "document")
         display_currency_id = options.get("display_currency_id")
         if currency_rate_date_type != "document" or not display_currency_id:
             return
@@ -8481,7 +8497,7 @@ class AccountReport(models.Model):
                 # Convert value from source currency to display currency
                 # Determine which date to use for the conversion rate
                 currency_rate_date_type = options.get(
-                    "currency_rate_date_type", "current"
+                    "currency_rate_date_type", "document"
                 )
                 if currency_rate_date_type == "manual":
                     # Use manually selected date

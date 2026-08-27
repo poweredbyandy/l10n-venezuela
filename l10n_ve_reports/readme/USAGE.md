@@ -11,6 +11,7 @@ Each book only includes posted movements on the default liquidity account of the
 To review payments:
 
 #. Go to **Accounting > SENIAT > Reports**.
-#. Open **Reporte X** to review incoming and outgoing payments consolidated by payment method.
+#. Open **Reporte X** to review incoming and outgoing payments consolidated by payment method. The totals include registered bank movements and pending payments still on outstanding or bridge accounts.
 #. Open **Pagos por diario** to review totals by journal and payment method.
 #. Expand a payment method to display its registered and pending transactions, or collapse it to display only its consolidated total.
+#. Review **Ingresos** and **Egresos** as fixed sections. Each section lists its payment methods (for example **Pago móvil** under income and **Transferencia** under expense). Only payment methods can be expanded or collapsed. The **Total** line remains the net of both.
