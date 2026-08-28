@@ -18,11 +18,18 @@ def migrate(cr, version):
         """
     )
     row = cr.fetchone()
-    if not row or row[0] != "installed":
+    state = row[0] if row else None
+    if state == "to install":
+        _logger.info(
+            "l10n_ve_loyalty is marked 'to install' and will be loaded after "
+            "the current upgrade pass."
+        )
+        return
+    if state != "installed":
         _logger.error(
             "l10n_ve_loyalty is not installed after upgrade (state=%s). "
             "Install it manually or check addons_path.",
-            row[0] if row else None,
+            state,
         )
         return
 

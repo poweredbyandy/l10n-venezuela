@@ -189,6 +189,40 @@ class TestResPartner(L10nVeSeniatCommon):
         partner.write({"taxpayer_type": "ordinary"})
         self.assertEqual(partner.taxpayer_type, "ordinary")
 
+    def test_create_clears_taxpayer_type_without_country(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Public-like partner",
+                "country_id": False,
+                "taxpayer_type": "ordinary",
+            }
+        )
+        self.assertFalse(partner.taxpayer_type)
+
+    def test_copy_public_user_for_new_company(self):
+        company = self.env["res.company"].create({"name": "Website company"})
+        public_user = self.env.ref("base.public_user").sudo()
+        user = public_user.copy(
+            {
+                "name": f"Public user for {company.name}",
+                "login": f"public-user@company-{company.id}.com",
+                "company_id": company.id,
+                "company_ids": [(6, 0, [company.id])],
+            }
+        )
+        self.assertTrue(user.partner_id)
+        self.assertFalse(user.partner_id.taxpayer_type)
+
+    def test_create_website_for_new_company(self):
+        if "website" not in self.env:
+            self.skipTest("website is not installed")
+        company = self.env["res.company"].create({"name": "Sitio web VE"})
+        company.account_fiscal_country_id = self.env.ref("base.ve")
+        website = self.env["website"].create(
+            {"name": "Nuevo sitio", "company_id": company.id}
+        )
+        self.assertTrue(website.id)
+
     def test_partner_name_vat_locked_after_posted_move(self):
         partner = self.env["res.partner"].create(
             {

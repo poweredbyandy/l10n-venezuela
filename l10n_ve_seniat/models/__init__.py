@@ -4,6 +4,7 @@ from . import product_template
 from . import res_currency
 from . import res_currency_rate
 from . import res_partner
+from . import res_users
 from . import res_country_parish
 from . import res_country_municipality
 from . import account_tax_group

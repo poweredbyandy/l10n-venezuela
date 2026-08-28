@@ -39,11 +39,12 @@
                         />
                         <field
                             name="l10n_ve_debit_note_section_id"
+                            placeholder="Dejar vacío para usar el de la factura"
                             options="{'no_create': False, 'no_quick_create': True}"
                         />
                         <field
                             name="l10n_ve_credit_note_section_id"
-                            required="type == 'sale' and l10n_ve_emission_medium == 'free'"
+                            placeholder="Dejar vacío para usar el de la factura"
                             options="{'no_create': False, 'no_quick_create': True}"
                         />
                     </group>

@@ -1088,6 +1088,36 @@ class TestAccountMove(L10nVeSeniatCommon):
         )
         self.assertEqual(doc_cn.number, 501)
 
+    def test_credit_note_uses_invoice_section_when_cn_section_empty(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.action_post()
+        invoice_section = journal.l10n_ve_invoice_section_id
+        self.assertTrue(invoice_section)
+        invoice.l10n_ve_invoice_original_printed = True
+        credit_note = invoice._reverse_moves()
+        self.assertEqual(
+            credit_note._l10n_ve_journal_fiscal_book_section(),
+            invoice_section,
+        )
+        credit_note.action_post()
+        self.assertTrue((credit_note.l10n_ve_control_number or "").strip())
+        doc_cn = self.env["account.book.document"].search(
+            [
+                ("res_model", "=", "account.move"),
+                ("res_id", "=", credit_note.id),
+            ]
+        )
+        self.assertEqual(doc_cn.section_id, invoice_section)
+
     def test_in_refund_post_without_reversed_entry_raises(self):
         supplier = self.env["res.partner"].create(
             {
@@ -1446,6 +1476,38 @@ class TestAccountMove(L10nVeSeniatCommon):
         html = report.decode() if isinstance(report, bytes) else report
 
         self.assertNotIn("Hidden Zero Percent Group", html)
+
+    def test_foreign_currency_tax_totals_show_company_amount(self):
+        company_ccy = self.env.company.currency_id
+        foreign = (
+            self.env.ref("base.USD")
+            if company_ccy != self.env.ref("base.USD")
+            else self.env.ref("base.EUR")
+        )
+        today = fields.Date.today()
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": foreign.id,
+                "company_id": self.env.company.id,
+                "name": today,
+                "inverse_company_rate": 36.5,
+            }
+        )
+        move = self._l10n_ve_create_invoice(
+            move_type="out_invoice",
+            partner=self.partner_ve,
+            invoice_date=today,
+            amounts=[100.0],
+            currency=foreign,
+        )
+        totals = move.tax_totals
+        self.assertTrue(totals.get("display_in_company_currency"))
+        self.assertEqual(totals.get("company_currency_id"), company_ccy.id)
+        self.assertTrue(totals.get("total_amount"))
+        self.assertNotEqual(
+            totals.get("total_amount_currency"),
+            totals.get("total_amount"),
+        )
 
     def test_native_invoice_hides_header_for_all_web_layouts(self):
         journal = self.company_data["default_journal_sale"]

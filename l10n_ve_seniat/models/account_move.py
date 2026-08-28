@@ -1643,11 +1643,17 @@ Please create a credit note instead.
         if not journal or journal.type != "sale":
             return self.env["account.book.section"]
         if self.move_type == "out_invoice":
-            if self.debit_origin_id and journal.l10n_ve_debit_note_section_id:
-                return journal.l10n_ve_debit_note_section_id
+            if self.debit_origin_id:
+                return (
+                    journal.l10n_ve_debit_note_section_id
+                    or journal.l10n_ve_invoice_section_id
+                )
             return journal.l10n_ve_invoice_section_id
         if self.move_type == "out_refund":
-            return journal.l10n_ve_credit_note_section_id
+            return (
+                journal.l10n_ve_credit_note_section_id
+                or journal.l10n_ve_invoice_section_id
+            )
         return self.env["account.book.section"]
 
     def _l10n_ve_fiscal_book(self):
@@ -1807,9 +1813,10 @@ Please create a credit note instead.
 
         raise ValidationError(
             _(
-                "Configure en el diario de ventas los tramos del talonario "
-                "(facturas, notas de débito y notas de crédito) para poder asignar "
-                "el correlativo y el número de control SENIAT."
+                "Configure en el diario de ventas el tramo del talonario de "
+                "facturas para poder asignar el correlativo y el número de "
+                "control SENIAT. Si no configura tramo de nota de crédito o "
+                "débito, se usa el de facturas."
             )
         )
 
@@ -2541,8 +2548,17 @@ Please create a credit note instead.
         for move in self:
             if move.country_code != "VE" or not move.tax_totals:
                 continue
-            move.tax_totals["same_tax_base"] = False
-            for subtotal in move.tax_totals.get("subtotals", []):
+            totals = dict(move.tax_totals)
+            totals["same_tax_base"] = False
+            company_currency = move.company_currency_id
+            totals["display_in_company_currency"] = bool(
+                move.currency_id
+                and company_currency
+                and move.currency_id != company_currency
+            )
+            if company_currency and not totals.get("company_currency_id"):
+                totals["company_currency_id"] = company_currency.id
+            for subtotal in totals.get("subtotals", []):
                 for tax_group in subtotal.get("tax_groups", []):
                     if tax_group.get("display_base_amount_currency") is False:
                         tax_group["display_base_amount_currency"] = tax_group.get(
@@ -2552,6 +2568,7 @@ Please create a credit note instead.
                         tax_group["display_base_amount"] = tax_group.get(
                             "base_amount", 0.0
                         )
+            move.tax_totals = totals
         return res
 
     def action_send_and_print(self):
@@ -2849,15 +2866,43 @@ Please create a credit note instead.
 
     def _l10n_ve_credit_note_line_match_key(self, line):
         prec = self.env["decimal.precision"].precision_get("Product Price")
-        sale_lines = ()
-        if "sale_line_ids" in line._fields:
-            sale_lines = tuple(sorted(line.sale_line_ids.ids))
         return (
             line.product_id.id or 0,
             float_round(abs(line.price_unit or 0.0), precision_digits=prec),
             tuple(sorted(line.tax_ids.ids)),
-            sale_lines,
         )
+
+    def _l10n_ve_credit_note_line_company_match_key(self, line):
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+        company_pu = abs(self._l10n_ve_company_price_unit_from_origin_line(line) or 0.0)
+        return (
+            line.product_id.id or 0,
+            float_round(company_pu, precision_digits=prec),
+            tuple(sorted(line.tax_ids.ids)),
+        )
+
+    def _l10n_ve_origin_product_lines_by_company_key(self):
+        self.ensure_one()
+        origin_by_company_key = defaultdict(list)
+        for origin_line in self.invoice_line_ids:
+            if origin_line.display_type != "product":
+                continue
+            if self._l10n_ve_is_product_discount_invoice_line(origin_line):
+                continue
+            origin_by_company_key[
+                self._l10n_ve_credit_note_line_company_match_key(origin_line)
+            ].append(origin_line)
+        return origin_by_company_key
+
+    def _l10n_ve_remaining_qty_key_from_credit_line(
+        self, credit_line, origin_by_company_key, used_origin_ids
+    ):
+        company_key = self._l10n_ve_credit_note_line_company_match_key(credit_line)
+        for origin_line in origin_by_company_key.get(company_key, []):
+            if origin_line.id not in used_origin_ids:
+                used_origin_ids.add(origin_line.id)
+                return self._l10n_ve_credit_note_line_match_key(origin_line)
+        return self._l10n_ve_credit_note_line_match_key(credit_line)
 
     def _l10n_ve_posted_credit_notes_for_remaining(self):
         self.ensure_one()
@@ -2880,16 +2925,19 @@ Please create a credit note instead.
         self.ensure_one()
         credited_qty = defaultdict(float)
         credited_discount = 0.0
+        origin_by_company_key = self._l10n_ve_origin_product_lines_by_company_key()
         for credit in self._l10n_ve_posted_credit_notes_for_remaining():
+            used_origin_ids = set()
             for line in credit.invoice_line_ids:
                 if line.display_type != "product":
                     continue
                 if credit._l10n_ve_is_product_discount_invoice_line(line):
                     credited_discount += abs(line.price_subtotal or 0.0)
                     continue
-                credited_qty[credit._l10n_ve_credit_note_line_match_key(line)] += abs(
-                    line.quantity or 0.0
+                match_key = self._l10n_ve_remaining_qty_key_from_credit_line(
+                    line, origin_by_company_key, used_origin_ids
                 )
+                credited_qty[match_key] += abs(line.quantity or 0.0)
         return credited_qty, credited_discount
 
     def _l10n_ve_apply_remaining_credit_note_lines(self):
