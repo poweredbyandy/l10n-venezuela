@@ -122,6 +122,52 @@ class TestL10nVeStockDispatchGuide(L10nVeStockCommon):
         picking = self._create_ve_sale_and_validate_delivery()
         self.assertFalse((picking.l10n_ve_control_number or "").strip())
 
+    def _prepare_free_journal_sale_order(self, warehouse=None):
+        journal = self.company_data["default_journal_sale"]
+        self._l10n_ve_configure_journal_free(journal)
+        self._setup_l10n_ve_sale_journal_sections()
+        product = self._create_product(
+            name="Prod confirmación guía",
+            is_storable=True,
+            taxes_id=[Command.set(self.tax_sale_a.ids)],
+        )
+        vals = {
+            "partner_id": self.partner_a.id,
+            "journal_id": journal.id,
+            "order_line": [
+                Command.create(
+                    {
+                        "product_id": product.id,
+                        "product_uom_qty": 1,
+                    }
+                )
+            ],
+        }
+        if warehouse:
+            vals["warehouse_id"] = warehouse.id
+        return self.env["sale.order"].create(vals)
+
+    def test_confirm_sale_without_dispatch_section_when_guides_disabled(self):
+        warehouse = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.env.company.id)], limit=1
+        )
+        warehouse.l10n_ve_dispatch_guide_section_id = False
+        self.env.company.l10n_ve_dispatch_guide_enabled = False
+        order = self._prepare_free_journal_sale_order(warehouse)
+        order.action_confirm()
+        self.assertEqual(order.state, "sale")
+
+    def test_confirm_sale_requires_dispatch_section_when_guides_enabled(self):
+        warehouse = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.env.company.id)], limit=1
+        )
+        warehouse.l10n_ve_dispatch_guide_section_id = False
+        self.env.company.l10n_ve_dispatch_guide_enabled = True
+        order = self._prepare_free_journal_sale_order(warehouse)
+        with self.assertRaises(UserError) as error:
+            order.action_confirm()
+        self.assertIn("talonario", str(error.exception).lower())
+
     def test_section_other_company_raises(self):
         company_b = self.env["res.company"].create({"name": "Empresa B VE guía"})
         book_b = self.env["account.book"].create(

@@ -1643,11 +1643,17 @@ Please create a credit note instead.
         if not journal or journal.type != "sale":
             return self.env["account.book.section"]
         if self.move_type == "out_invoice":
-            if self.debit_origin_id and journal.l10n_ve_debit_note_section_id:
-                return journal.l10n_ve_debit_note_section_id
+            if self.debit_origin_id:
+                return (
+                    journal.l10n_ve_debit_note_section_id
+                    or journal.l10n_ve_invoice_section_id
+                )
             return journal.l10n_ve_invoice_section_id
         if self.move_type == "out_refund":
-            return journal.l10n_ve_credit_note_section_id
+            return (
+                journal.l10n_ve_credit_note_section_id
+                or journal.l10n_ve_invoice_section_id
+            )
         return self.env["account.book.section"]
 
     def _l10n_ve_fiscal_book(self):
@@ -1807,9 +1813,10 @@ Please create a credit note instead.
 
         raise ValidationError(
             _(
-                "Configure en el diario de ventas los tramos del talonario "
-                "(facturas, notas de débito y notas de crédito) para poder asignar "
-                "el correlativo y el número de control SENIAT."
+                "Configure en el diario de ventas el tramo del talonario de "
+                "facturas para poder asignar el correlativo y el número de "
+                "control SENIAT. Si no configura tramo de nota de crédito o "
+                "débito, se usa el de facturas."
             )
         )
 

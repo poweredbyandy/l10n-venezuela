@@ -13,6 +13,8 @@ class SaleOrder(models.Model):
         journal = self.journal_id
         if not journal or journal.l10n_ve_emission_medium != "free":
             return
+        if not self.company_id.l10n_ve_dispatch_guide_enabled:
+            return
         warehouse = self.warehouse_id
         if not warehouse:
             raise UserError(

@@ -1088,6 +1088,36 @@ class TestAccountMove(L10nVeSeniatCommon):
         )
         self.assertEqual(doc_cn.number, 501)
 
+    def test_credit_note_uses_invoice_section_when_cn_section_empty(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write(
+            {
+                "l10n_ve_credit_note_section_id": False,
+                "l10n_ve_debit_note_section_id": False,
+            }
+        )
+        invoice = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        invoice.action_post()
+        invoice_section = journal.l10n_ve_invoice_section_id
+        self.assertTrue(invoice_section)
+        invoice.l10n_ve_invoice_original_printed = True
+        credit_note = invoice._reverse_moves()
+        self.assertEqual(
+            credit_note._l10n_ve_journal_fiscal_book_section(),
+            invoice_section,
+        )
+        credit_note.action_post()
+        self.assertTrue((credit_note.l10n_ve_control_number or "").strip())
+        doc_cn = self.env["account.book.document"].search(
+            [
+                ("res_model", "=", "account.move"),
+                ("res_id", "=", credit_note.id),
+            ]
+        )
+        self.assertEqual(doc_cn.section_id, invoice_section)
+
     def test_in_refund_post_without_reversed_entry_raises(self):
         supplier = self.env["res.partner"].create(
             {

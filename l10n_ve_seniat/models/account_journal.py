@@ -75,7 +75,8 @@ class AccountJournal(models.Model):
         copy=False,
         check_company=True,
         domain="[('company_id', '=', company_id)]",
-        help="Tramo del talonario para notas de crédito de cliente (out_refund).",
+        help="Tramo opcional para notas de crédito de cliente. Si está vacío, se usa "
+        "el tramo de facturas.",
     )
 
     l10n_ve_fiscal_payment_code = fields.Char(
