@@ -2874,7 +2874,25 @@ Please create a credit note instead.
 
     def _l10n_ve_credit_note_line_company_match_key(self, line):
         prec = self.env["decimal.precision"].precision_get("Product Price")
-        company_pu = abs(self._l10n_ve_company_price_unit_from_origin_line(line) or 0.0)
+        source = line
+        move = line.move_id
+        if move.move_type in ("out_refund", "in_refund") and move.reversed_entry_id:
+            origin_candidates = move.reversed_entry_id.invoice_line_ids.filtered(
+                lambda origin_line: origin_line.display_type == "product"
+                and (origin_line.product_id.id or 0) == (line.product_id.id or 0)
+                and tuple(sorted(origin_line.tax_ids.ids))
+                == tuple(sorted(line.tax_ids.ids))
+            )
+            if len(origin_candidates) == 1:
+                source = origin_candidates
+            elif len(origin_candidates) > 1:
+                same_seq = origin_candidates.filtered(
+                    lambda origin_line: origin_line.sequence == line.sequence
+                )
+                source = same_seq[:1] or origin_candidates[:1]
+        company_pu = abs(
+            self._l10n_ve_company_price_unit_from_origin_line(source) or 0.0
+        )
         return (
             line.product_id.id or 0,
             float_round(company_pu, precision_digits=prec),

@@ -275,6 +275,18 @@ class AccountMove(models.Model):
         self.ensure_one()
         return bool(self.move_type == "out_refund" and self.l10n_ve_discount_reason_id)
 
+    def _l10n_ve_refund_should_use_unrounded_tax_base(self):
+        self.ensure_one()
+        if not super()._l10n_ve_refund_should_use_unrounded_tax_base():
+            return False
+        if self._l10n_ve_is_post_discount_credit_note():
+            return False
+        if self.l10n_ve_global_discount_ids or (
+            self.reversed_entry_id and self.reversed_entry_id.l10n_ve_global_discount_ids
+        ):
+            return False
+        return True
+
     def _l10n_ve_force_refund_to_company_currency(self):
         pending = self._l10n_ve_snapshot_global_discount_amounts_for_currency()
         res = super()._l10n_ve_force_refund_to_company_currency()

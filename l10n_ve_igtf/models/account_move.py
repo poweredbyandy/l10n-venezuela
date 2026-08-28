@@ -112,6 +112,14 @@ class AccountMove(models.Model):
         copy=False,
     )
 
+    def _l10n_ve_refund_should_use_unrounded_tax_base(self):
+        self.ensure_one()
+        if not super()._l10n_ve_refund_should_use_unrounded_tax_base():
+            return False
+        if self.l10n_ve_igtf_surplus_credit_note:
+            return False
+        return True
+
     @api.depends(
         "state",
         "amount_residual",
@@ -581,6 +589,14 @@ class AccountMove(models.Model):
             if move._l10n_ve_igtf_should_add_move_lines():
                 move._l10n_ve_igtf_recompute_invoice_lines()
         return credit_notes
+
+    def _l10n_ve_refund_should_use_unrounded_tax_base(self):
+        self.ensure_one()
+        if not super()._l10n_ve_refund_should_use_unrounded_tax_base():
+            return False
+        if self.l10n_ve_igtf_surplus_credit_note:
+            return False
+        return True
 
     def _l10n_ve_force_refund_to_company_currency(self):
         res = super()._l10n_ve_force_refund_to_company_currency()
