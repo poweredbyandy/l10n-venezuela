@@ -22,9 +22,7 @@ class TestAccountJournal(L10nVeSeniatCommon):
         self.assertFalse(journal.l10n_ve_debit_note_section_id)
 
     def test_journal_credit_debit_section_placeholders(self):
-        arch = self.env.ref(
-            "l10n_ve_seniat.view_account_journal_form_inherit"
-        ).arch_db
+        arch = self.env.ref("l10n_ve_seniat.view_account_journal_form_inherit").arch_db
         self.assertIn("Dejar vacío para usar el de la factura", arch)
         self.assertIn('name="l10n_ve_credit_note_section_id"', arch)
         self.assertIn('name="l10n_ve_debit_note_section_id"', arch)
