@@ -6,10 +6,7 @@
                 menuClass="'account_report_filter display_currency'"
                 onStateChanged="(isOpen) => !isOpen ? this.applyFilters('display_currency') : null"
             >
-                <button
-                    class="btn btn-secondary"
-                    t-att-disabled="currencyDateLoadingState.isLoading"
-                >
+                <button class="btn btn-secondary">
                     <i class="fa fa-money me-1" />
                     <t t-out="selectedDisplayCurrencyName" />
                 </button>
@@ -35,26 +32,23 @@
                 menuClass="'account_report_filter currency_rate_date_type'"
                 onStateChanged="(isOpen) => !isOpen ? this.applyFilters('currency_rate_date_type') : null"
             >
-                <button
-                    class="btn btn-secondary"
-                    t-att-disabled="currencyDateLoadingState.isLoading"
-                >
+                <button class="btn btn-secondary">
                     <i class="fa fa-calendar me-1" />
                     <t t-out="selectedCurrencyRateDateTypeName" />
                 </button>
 
                 <t t-set-slot="content">
                     <DropdownItem
-                        class="{ 'selected': (controller.options.currency_rate_date_type == 'current') }"
-                        onSelected="() => this.filterCurrencyRateDateType('current')"
-                    >
-                        <t t-out="currencyRateDateTypeLabel('current')" />
-                    </DropdownItem>
-                    <DropdownItem
                         class="{ 'selected': (controller.options.currency_rate_date_type == 'document') }"
                         onSelected="() => this.filterCurrencyRateDateType('document')"
                     >
                         <t t-out="currencyRateDateTypeLabel('document')" />
+                    </DropdownItem>
+                    <DropdownItem
+                        class="{ 'selected': (controller.options.currency_rate_date_type == 'current') }"
+                        onSelected="() => this.filterCurrencyRateDateType('current')"
+                    >
+                        <t t-out="currencyRateDateTypeLabel('current')" />
                     </DropdownItem>
                     <DropdownItem
                         class="{ 'selected': (controller.options.currency_rate_date_type == 'manual') }"
@@ -71,15 +65,6 @@
                     type="'date'"
                     value="currencyRateDateValue"
                     onChange="(date) => this.onCurrencyRateDateChanged(date)"
-                    disabled="currencyDateLoadingState.isLoading"
-                />
-            </t>
-
-            <!-- Loading indicator (visible for any currency-related reload) -->
-            <t t-if="currencyDateLoadingState.isLoading">
-                <i
-                    class="fa fa-spinner fa-spin text-primary"
-                    title="Actualizando reporte..."
                 />
             </t>
         </div>

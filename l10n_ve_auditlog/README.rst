@@ -175,7 +175,7 @@ Contributors
 - Bogdan Valentin Gabor valentin.gabor@bt-group.com
 - Dennis Sluijk d.sluijk@onestein.nl
 - Adam Heinz adam.heinz@metricwise.com
-- andyengit
+- Anderson Armeya
 
 Other credits
 -------------

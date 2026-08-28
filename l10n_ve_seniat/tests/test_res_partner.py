@@ -204,8 +204,8 @@ class TestResPartner(L10nVeSeniatCommon):
         public_user = self.env.ref("base.public_user").sudo()
         user = public_user.copy(
             {
-                "name": "Public user for %s" % company.name,
-                "login": "public-user@company-%s.com" % company.id,
+                "name": f"Public user for {company.name}",
+                "login": f"public-user@company-{company.id}.com",
                 "company_id": company.id,
                 "company_ids": [(6, 0, [company.id])],
             }

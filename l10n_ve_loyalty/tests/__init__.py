@@ -3,3 +3,4 @@
 from . import common
 from . import test_account_move_tax_totals_discount
 from . import test_account_move_post_discount
+from . import test_account_move_post_discount_refund_currency

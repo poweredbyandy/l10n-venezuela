@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-name="l10n_ve_igtf.IgtfPaymentSummary" owl="1">
+        <div class="o_l10n_ve_igtf_payment_summary">
+            <div class="o_l10n_ve_igtf_payment_summary_amounts">
+                <t t-if="showPaymentCurrency">
+                    <span
+                        t-esc="formatAmount(igtfPayment, paymentCurrencyId)"
+                    />
+                    <span class="text-muted mx-1">/</span>
+                </t>
+                <span
+                    class="fw-bold"
+                    t-esc="formatAmount(igtfCompany, companyCurrencyId)"
+                />
+            </div>
+            <div class="o_l10n_ve_igtf_payment_summary_meta text-muted">
+                <span t-esc="baseLabel" />
+                <span class="ms-1" t-esc="formatAmount(baseCompany, companyCurrencyId)" />
+                <t t-if="formattedRate">
+                    <span class="mx-1">-</span>
+                    <span t-esc="formattedRate" />
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

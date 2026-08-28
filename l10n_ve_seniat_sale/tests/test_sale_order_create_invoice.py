@@ -88,3 +88,27 @@ class TestSaleOrderCreateInvoice(L10nVeSeniatCommon):
         action = wizard.create_invoices()
         self.assertEqual(action.get("res_model"), "account.move")
         self.assertEqual(len(order.invoice_ids), 1)
+
+    def test_credit_note_match_key_includes_sale_line(self):
+        order = self._create_confirmed_ve_order()
+        order.action_l10n_ve_create_invoice()
+        invoice = order.invoice_ids
+        invoice.ensure_one()
+        line = invoice.invoice_line_ids.filtered(
+            lambda move_line: move_line.display_type == "product"
+        )
+        line.ensure_one()
+        self.assertTrue(line.sale_line_ids)
+        sale_lines = tuple(sorted(line.sale_line_ids.ids))
+        self.assertEqual(
+            invoice._l10n_ve_credit_note_line_match_key(line)[-1],
+            sale_lines,
+        )
+        self.assertEqual(
+            invoice._l10n_ve_credit_note_line_company_match_key(line)[-1],
+            sale_lines,
+        )
+        self.assertEqual(
+            invoice._l10n_ve_refund_line_product_pair_key(line)[-1],
+            sale_lines,
+        )

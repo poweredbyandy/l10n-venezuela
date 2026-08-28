@@ -3758,7 +3758,7 @@ class AccountReport(models.Model):
                 if (
                     col
                     and col.get("expression_label")
-                    in ("invoice_date", "date", "line_date")
+                    in ("invoice_date", "date", "line_date", "due_date")
                     and col.get("no_format")
                 ):
                     doc_date = col["no_format"]
@@ -3796,6 +3796,106 @@ class AccountReport(models.Model):
 
         return document_dates
 
+    def _get_loaded_leaf_child_lines(self, line_id, children_by_parent):
+        leaves = []
+        for child in children_by_parent.get(line_id, []):
+            child_id = child.get("id")
+            if child_id and children_by_parent.get(child_id):
+                leaves.extend(
+                    self._get_loaded_leaf_child_lines(child_id, children_by_parent)
+                )
+            else:
+                leaves.append(child)
+        return leaves
+
+    def _convert_column_value_to_display_currency(
+        self, options, value, format_params, document_date, display_currency
+    ):
+        company_currency = self.env.company.currency_id
+        source_currency_id = (format_params or {}).get("currency_id")
+        source_currency = (
+            self.env["res.currency"].browse(source_currency_id)
+            if source_currency_id
+            else company_currency
+        )
+        if source_currency.id == display_currency.id:
+            return value
+        if isinstance(document_date, str):
+            document_date = fields.Date.from_string(document_date)
+        if not document_date:
+            document_date = (
+                options.get("date", {}).get("date_to") or fields.Date.today()
+            )
+            if isinstance(document_date, str):
+                document_date = fields.Date.from_string(document_date)
+        try:
+            return source_currency._convert(
+                value,
+                display_currency,
+                self.env.company,
+                document_date,
+            )
+        except Exception:
+            return value
+
+    def _write_converted_totals_from_child_lines(
+        self, options, line_dict, child_lines, document_dates, display_currency
+    ):
+        total_col_idx = None
+        converted_period_sum = 0.0
+        any_column_converted = False
+        for col_idx, parent_col in enumerate(line_dict.get("columns", [])):
+            if not parent_col or parent_col.get("figure_type") != "monetary":
+                continue
+            if parent_col.get("no_format") is None:
+                continue
+            expr_label = parent_col.get("expression_label", "")
+            if expr_label == "total":
+                total_col_idx = col_idx
+                continue
+            converted_total = 0.0
+            has_child_values = False
+            for child in child_lines:
+                child_cols = child.get("columns", [])
+                if col_idx >= len(child_cols):
+                    continue
+                child_col = child_cols[col_idx]
+                if not child_col:
+                    continue
+                child_value = child_col.get("no_format")
+                if child_value is None:
+                    continue
+                has_child_values = True
+                if child_value == 0:
+                    continue
+                converted_total += self._convert_column_value_to_display_currency(
+                    options,
+                    child_value,
+                    child_col.get("format_params"),
+                    document_dates.get(child.get("id", "")),
+                    display_currency,
+                )
+            if has_child_values:
+                parent_col["no_format"] = converted_total
+                format_params = parent_col.get("format_params") or {}
+                format_params["currency_id"] = display_currency.id
+                parent_col["format_params"] = format_params
+                parent_col["is_zero"] = self._is_value_zero(
+                    converted_total, "monetary", format_params
+                )
+                converted_period_sum += converted_total
+                any_column_converted = True
+        if any_column_converted and total_col_idx is not None:
+            total_col = line_dict["columns"][total_col_idx]
+            if total_col:
+                total_col["no_format"] = converted_period_sum
+                format_params = total_col.get("format_params") or {}
+                format_params["currency_id"] = display_currency.id
+                total_col["format_params"] = format_params
+                total_col["is_zero"] = self._is_value_zero(
+                    converted_period_sum, "monetary", format_params
+                )
+
     def _precompute_grouped_line_converted_values(  # noqa: C901
         self, options, line_dict_list, document_dates
     ):
@@ -3815,9 +3915,26 @@ class AccountReport(models.Model):
             return
 
         display_currency = self.env["res.currency"].browse(display_currency_id)
+        children_by_parent = defaultdict(list)
+        for line in line_dict_list:
+            parent_id = line.get("parent_id")
+            if parent_id:
+                children_by_parent[parent_id].append(line)
 
         for line_dict in line_dict_list:
             line_id = line_dict.get("id", "")
+            leaf_children = self._get_loaded_leaf_child_lines(
+                line_id, children_by_parent
+            )
+            if leaf_children:
+                self._write_converted_totals_from_child_lines(
+                    options,
+                    line_dict,
+                    leaf_children,
+                    document_dates,
+                    display_currency,
+                )
+                continue
 
             if line_id in document_dates:
                 continue
@@ -3857,97 +3974,13 @@ class AccountReport(models.Model):
             self._precompute_grouped_line_converted_values(
                 options, child_lines, child_doc_dates
             )
-
-            total_col_idx = None
-            converted_period_sum = 0.0
-            any_column_converted = False
-
-            for col_idx, parent_col in enumerate(line_dict.get("columns", [])):
-                if not parent_col or parent_col.get("figure_type") != "monetary":
-                    continue
-
-                if parent_col.get("no_format") is None:
-                    continue
-
-                expr_label = parent_col.get("expression_label", "")
-                if expr_label == "total":
-                    total_col_idx = col_idx
-                    continue
-
-                converted_total = 0.0
-                has_child_values = False
-
-                for child in child_lines:
-                    child_cols = child.get("columns", [])
-                    if col_idx >= len(child_cols):
-                        continue
-                    child_col = child_cols[col_idx]
-                    if not child_col:
-                        continue
-
-                    child_value = child_col.get("no_format")
-                    if child_value is None:
-                        continue
-
-                    has_child_values = True
-                    if child_value == 0:
-                        continue
-
-                    child_id = child.get("id", "")
-                    doc_date = child_doc_dates.get(child_id)
-
-                    if not doc_date:
-                        doc_date = (
-                            options.get("date", {}).get("date_to")
-                            or fields.Date.today()
-                        )
-
-                    if isinstance(doc_date, str):
-                        doc_date = fields.Date.from_string(doc_date)
-
-                    child_format_params = child_col.get("format_params", {})
-                    source_currency_id = child_format_params.get("currency_id")
-                    source_currency = (
-                        self.env["res.currency"].browse(source_currency_id)
-                        if source_currency_id
-                        else company_currency
-                    )
-
-                    if source_currency.id == display_currency_id:
-                        converted_total += child_value
-                    else:
-                        try:
-                            converted = source_currency._convert(
-                                child_value,
-                                display_currency,
-                                self.env.company,
-                                doc_date,
-                            )
-                            converted_total += converted
-                        except Exception:
-                            converted_total += child_value
-
-                if has_child_values:
-                    parent_col["no_format"] = converted_total
-                    format_params = parent_col.get("format_params") or {}
-                    format_params["currency_id"] = display_currency_id
-                    parent_col["format_params"] = format_params
-                    parent_col["is_zero"] = self._is_value_zero(
-                        converted_total, "monetary", format_params
-                    )
-                    converted_period_sum += converted_total
-                    any_column_converted = True
-
-            if any_column_converted and total_col_idx is not None:
-                total_col = line_dict["columns"][total_col_idx]
-                if total_col:
-                    total_col["no_format"] = converted_period_sum
-                    format_params = total_col.get("format_params") or {}
-                    format_params["currency_id"] = display_currency_id
-                    total_col["format_params"] = format_params
-                    total_col["is_zero"] = self._is_value_zero(
-                        converted_period_sum, "monetary", format_params
-                    )
+            self._write_converted_totals_from_child_lines(
+                options,
+                line_dict,
+                child_lines,
+                child_doc_dates,
+                display_currency,
+            )
 
     def _format_column_values(self, options, line_dict_list, force_format=False):
         document_dates = self._get_document_dates_for_lines(options, line_dict_list)

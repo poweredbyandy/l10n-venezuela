@@ -38,7 +38,6 @@ export class AccountReportFilters extends Component {
             value: "",
             invalid: false,
         });
-        this.currencyDateLoadingState = useState({isLoading: false});
         this.timeout = null;
     }
 
@@ -741,15 +740,7 @@ export class AccountReportFilters extends Component {
 
     async filterDisplayCurrency(currencyId) {
         await this.controller.updateOption("display_currency_id", currencyId, false);
-        this.currencyDateLoadingState.isLoading = true;
-        try {
-            await this.controller.reload(
-                "display_currency_id",
-                this.controller.options
-            );
-        } finally {
-            this.currencyDateLoadingState.isLoading = false;
-        }
+        await this.controller.reload("display_currency_id", this.controller.options);
     }
 
     get dailyPaymentsDateTypeLabel() {
@@ -786,15 +777,10 @@ export class AccountReportFilters extends Component {
                 false
             );
         }
-        this.currencyDateLoadingState.isLoading = true;
-        try {
-            await this.controller.reload(
-                "currency_rate_date_type",
-                this.controller.options
-            );
-        } finally {
-            this.currencyDateLoadingState.isLoading = false;
-        }
+        await this.controller.reload(
+            "currency_rate_date_type",
+            this.controller.options
+        );
     }
 
     async onCurrencyRateDateChanged(date) {
@@ -819,13 +805,8 @@ export class AccountReportFilters extends Component {
 
         if (!dateStr) return;
 
-        this.currencyDateLoadingState.isLoading = true;
-        try {
-            await this.controller.updateOption("currency_rate_date", dateStr, false);
-            await this.controller.reload("currency_rate_date", this.controller.options);
-        } finally {
-            this.currencyDateLoadingState.isLoading = false;
-        }
+        await this.controller.updateOption("currency_rate_date", dateStr, false);
+        await this.controller.reload("currency_rate_date", this.controller.options);
     }
 
     async filterRoundingUnit(rounding) {

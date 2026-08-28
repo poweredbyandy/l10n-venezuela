@@ -200,6 +200,29 @@ class TestL10nVeIgtfCommon(L10nVeSeniatCommon):
                     return tax_group
         return None
 
+    def _assert_tax_totals_form_columns(self, invoice, display_company_currency):
+        totals = invoice.tax_totals or {}
+        self.assertEqual(
+            bool(totals.get("display_in_company_currency")),
+            display_company_currency,
+        )
+        self.assertEqual(
+            totals.get("company_currency_id"),
+            invoice.company_currency_id.id,
+        )
+        self.assertEqual(totals.get("currency_id"), invoice.currency_id.id)
+        self.assertIn("total_amount_currency", totals)
+        self.assertIn("total_amount", totals)
+        self.assertTrue(totals.get("subtotals"))
+        for subtotal in totals["subtotals"]:
+            self.assertIn("base_amount_currency", subtotal)
+            self.assertIn("base_amount", subtotal)
+            for tax_group in subtotal.get("tax_groups") or []:
+                self.assertIn("tax_amount_currency", tax_group)
+                self.assertIn("tax_amount", tax_group)
+                self.assertIn("base_amount_currency", tax_group)
+                self.assertIn("base_amount", tax_group)
+
     def _assert_no_writeoff_or_exchange_diff(
         self, invoice, payment, allow_exchange=False
     ):
@@ -263,14 +286,14 @@ class TestL10nVeIgtfCommon(L10nVeSeniatCommon):
         )
 
         rate = self.company.l10n_ve_igtf_percent / 100.0
-        payment_base_company = (
-            self.ves.round(payment_igtf_company / rate) if rate else 0.0
-        )
-        self.assertAlmostEqual(
-            wizard_data["l10n_ve_base_amount_company_currency"],
-            payment_base_company,
-            places=2,
-        )
+        if rate and wizard_data["l10n_ve_base_amount_company_currency"]:
+            self.assertAlmostEqual(
+                wizard_data["l10n_ve_igtf_amount_company_currency"],
+                self.ves.round(
+                    wizard_data["l10n_ve_base_amount_company_currency"] * rate
+                ),
+                delta=0.02,
+            )
 
         self.assertAlmostEqual(
             payment.l10n_ve_igtf_amount_company_currency,

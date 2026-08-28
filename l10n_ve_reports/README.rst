@@ -35,8 +35,9 @@ as sales and purchase books, diary and general ledger, daily payments,
 and auxiliary liquidity books for bank and cash accounts.
 
 Reporte X consolidates incoming and outgoing operations by payment
-method. The daily payments report supports consolidated payment-method
-totals and expandable transaction details.
+method, including registered and pending payments. The daily payments
+report groups payment methods under income and expense sections, with
+expandable transaction details.
 
 **Table of contents**
 
@@ -60,10 +61,16 @@ account of the selected journals.
 To review payments:
 
 #. Go to **Accounting > SENIAT > Reports**. #. Open **Reporte X** to
-review incoming and outgoing payments consolidated by payment method. #.
-Open **Pagos por diario** to review totals by journal and payment
-method. #. Expand a payment method to display its registered and pending
-transactions, or collapse it to display only its consolidated total.
+review incoming and outgoing payments consolidated by payment method.
+The totals include registered bank movements and pending payments still
+on outstanding or bridge accounts. #. Open **Pagos por diario** to
+review totals by journal and payment method. #. Expand a payment method
+to display its registered and pending transactions, or collapse it to
+display only its consolidated total. #. Review **Ingresos** and
+**Egresos** as fixed sections. Each section lists its payment methods
+(for example **Pago móvil** under income and **Transferencia** under
+expense). Only payment methods can be expanded or collapsed. The
+**Total** line remains the net of both.
 
 Bug Tracker
 ===========

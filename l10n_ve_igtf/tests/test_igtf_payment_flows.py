@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import Command
 from odoo.exceptions import UserError
 from odoo.tests import tagged
@@ -605,6 +607,89 @@ class TestIgtfPaymentFlows(TestL10nVeIgtfCommon):
             places=2,
         )
 
+    def test_igtf_base_uses_invoice_company_residual_not_later_rate(self):
+        invoice = self._create_customer_invoice(amount=17.40, currency=self.usd)
+        invoice_bs = abs(invoice.amount_total_signed)
+        later = self.test_date + timedelta(days=1)
+        self.env["res.currency.rate"].create(
+            {
+                "name": later,
+                "currency_id": self.usd.id,
+                "company_id": self.company.id,
+                "inverse_company_rate": self.usd_inverse_rate * 1.005,
+            }
+        )
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=invoice.amount_residual,
+            currency=self.usd,
+            apply_igtf=True,
+            extra_vals={"payment_date": later},
+        )
+        later_bs = self.ves.round(
+            self.usd._convert(invoice.amount_residual, self.ves, self.company, later)
+        )
+        self.assertNotAlmostEqual(later_bs, invoice_bs, places=2)
+        self.assertAlmostEqual(
+            wizard.l10n_ve_base_amount_company_currency,
+            invoice_bs,
+            places=2,
+        )
+        self.assertAlmostEqual(
+            wizard.l10n_ve_igtf_amount_company_currency,
+            self.ves.round(invoice_bs * 0.03),
+            places=2,
+        )
+
+    def test_igtf_partial_usd_base_uses_payment_date_rate(self):
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
+        invoice_bs = abs(invoice.amount_total_signed)
+        later = self.test_date + timedelta(days=1)
+        payment_inverse_rate = 791.324800
+        self.env["res.currency.rate"].create(
+            {
+                "name": later,
+                "currency_id": self.usd.id,
+                "company_id": self.company.id,
+                "inverse_company_rate": payment_inverse_rate,
+            }
+        )
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=10.0,
+            currency=self.usd,
+            apply_igtf=True,
+            extra_vals={
+                "payment_date": later,
+                "custom_user_amount": 10.0,
+                "custom_user_currency_id": self.usd.id,
+            },
+        )
+        self.assertAlmostEqual(wizard.amount, 10.0, places=2)
+        expected_base = self.ves.round(10.0 * payment_inverse_rate)
+        prorated_invoice_bs = self.ves.round(invoice_bs * (10.0 / 100.0))
+        self.assertAlmostEqual(expected_base, 7913.25, places=2)
+        self.assertAlmostEqual(
+            wizard.l10n_ve_igtf_exchange_rate_inverse,
+            payment_inverse_rate,
+            places=6,
+        )
+        self.assertNotAlmostEqual(
+            wizard.l10n_ve_base_amount_company_currency,
+            prorated_invoice_bs,
+            places=2,
+        )
+        self.assertAlmostEqual(
+            wizard.l10n_ve_base_amount_company_currency,
+            expected_base,
+            places=2,
+        )
+        self.assertAlmostEqual(
+            wizard.l10n_ve_igtf_amount_company_currency,
+            self.ves.round(expected_base * 0.03),
+            places=2,
+        )
+
     def test_invoice_ves_include_igtf_in_amount_computes_correct_addition(self):
         invoice = self._create_customer_invoice(amount=100.0, currency=self.ves)
         payment_amount_usd = self._usd_amount_for_ves(103.0)
@@ -1170,9 +1255,156 @@ class TestIgtfPaymentFlows(TestL10nVeIgtfCommon):
     def test_tax_totals_display_in_company_currency_flag(self):
         usd_invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
         ves_invoice = self._create_customer_invoice(amount=100.0, currency=self.ves)
-        self.assertTrue(usd_invoice.tax_totals.get("display_in_company_currency"))
-        self.assertEqual(
-            usd_invoice.tax_totals.get("company_currency_id"),
-            usd_invoice.company_currency_id.id,
+        self._assert_tax_totals_form_columns(usd_invoice, True)
+        self._assert_tax_totals_form_columns(ves_invoice, False)
+        usd_company_total = self.ves.round(100.0 * self.usd_inverse_rate)
+        usd_subtotal = usd_invoice.tax_totals["subtotals"][0]
+        self.assertAlmostEqual(usd_subtotal["base_amount_currency"], 100.0, places=2)
+        self.assertAlmostEqual(usd_subtotal["base_amount"], usd_company_total, places=2)
+        self.assertAlmostEqual(
+            usd_invoice.tax_totals["total_amount_currency"], 100.0, places=2
         )
-        self.assertFalse(ves_invoice.tax_totals.get("display_in_company_currency"))
+        self.assertAlmostEqual(
+            usd_invoice.tax_totals["total_amount"], usd_company_total, places=2
+        )
+        ves_subtotal = ves_invoice.tax_totals["subtotals"][0]
+        self.assertAlmostEqual(ves_subtotal["base_amount_currency"], 100.0, places=2)
+        self.assertAlmostEqual(ves_subtotal["base_amount"], 100.0, places=2)
+
+    def test_tax_totals_igtf_rows_keep_company_currency_amounts(self):
+        invoice = self._create_customer_invoice(amount=100.0, currency=self.usd)
+        self._register_invoice_payment(
+            invoice=invoice,
+            amount=100.0,
+            currency=self.usd,
+            apply_igtf=True,
+            igtf_included=False,
+        )
+        invoice.invalidate_recordset(["tax_totals"])
+        self._assert_tax_totals_form_columns(invoice, True)
+        totals = invoice.tax_totals
+        self.assertIn("l10n_ve_igtf_total_without_igtf_currency", totals)
+        self.assertIn("l10n_ve_igtf_total_without_igtf", totals)
+        self.assertAlmostEqual(
+            totals["l10n_ve_igtf_total_without_igtf_currency"], 100.0, places=2
+        )
+        expected_company_base = self.ves.round(100.0 * self.usd_inverse_rate)
+        self.assertAlmostEqual(
+            totals["l10n_ve_igtf_total_without_igtf"],
+            expected_company_base,
+            places=2,
+        )
+        igtf_group = self._get_igtf_group_from_tax_totals(invoice)
+        self.assertTrue(igtf_group)
+        self.assertAlmostEqual(
+            abs(igtf_group.get("tax_amount_currency", 0.0)),
+            abs(invoice.l10n_ve_igtf_collected_amount_currency),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            abs(igtf_group.get("tax_amount", 0.0)),
+            abs(invoice.l10n_ve_igtf_collected_amount_company_currency),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            totals["total_amount_currency"],
+            totals["l10n_ve_igtf_total_without_igtf_currency"]
+            + igtf_group["tax_amount_currency"],
+            places=2,
+        )
+        self.assertAlmostEqual(
+            totals["total_amount"],
+            totals["l10n_ve_igtf_total_without_igtf"] + igtf_group["tax_amount"],
+            places=2,
+        )
+
+    def _create_vendor_bill(self, amount, currency):
+        invoice = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "in_invoice",
+                    "company_id": self.company.id,
+                    "journal_id": self.company_data_ve["default_journal_purchase"].id,
+                    "partner_id": self.partner.id,
+                    "currency_id": currency.id,
+                    "invoice_date": self.test_date,
+                    "date": self.test_date,
+                    "invoice_line_ids": [
+                        Command.create(
+                            {
+                                "name": "IGTF Vendor Line",
+                                "quantity": 1.0,
+                                "price_unit": amount,
+                                "account_id": self.company_data_ve[
+                                    "default_account_expense"
+                                ].id,
+                                "tax_ids": [Command.clear()],
+                            }
+                        )
+                    ],
+                }
+            )
+        )
+        invoice.action_post()
+        return invoice
+
+    def test_partial_foreign_payment_defaults_to_keep_open(self):
+        self.company.l10n_ve_igtf_percent = 0.0
+        invoice = self._create_vendor_bill(amount=1000.0, currency=self.ves)
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=self._usd_amount_for_ves(600.0),
+            currency=self.usd,
+            apply_igtf=False,
+        )
+        self.assertEqual(wizard.payment_difference_handling, "open")
+        wizard._compute_payment_difference_handling()
+        self.assertEqual(wizard.payment_difference_handling, "open")
+
+        payment = wizard._create_payments()[:1]
+        self._assert_widget_payment_igtf_consistency(invoice, payment)
+        invoice.invalidate_recordset()
+        self.assertEqual(invoice.payment_state, "partial")
+        self.assertGreater(invoice.amount_residual, 0.0)
+
+    def test_partial_foreign_payment_mark_fully_paid_closes_bill(self):
+        self.company.l10n_ve_igtf_percent = 0.0
+        invoice = self._create_vendor_bill(amount=1000.0, currency=self.ves)
+        writeoff_account = self.company_data_ve["default_account_expense"]
+        paid_ves = 600.0
+        wizard = self._create_payment_register_wizard(
+            invoice=invoice,
+            amount=self._usd_amount_for_ves(paid_ves),
+            currency=self.usd,
+            apply_igtf=False,
+        )
+        self.assertEqual(wizard.payment_difference_handling, "open")
+        wizard.payment_difference_handling = "reconcile"
+        wizard.writeoff_account_id = writeoff_account
+        self.assertEqual(wizard.payment_difference_handling, "reconcile")
+
+        payment = wizard._create_payments()[:1]
+        invoice.invalidate_recordset()
+        self.assertIn(invoice.payment_state, ("paid", "in_payment"))
+        self.assertTrue(self.ves.is_zero(invoice.amount_residual))
+
+        writeoff_lines = payment.move_id.line_ids.filtered(
+            lambda line: line.name == (wizard.writeoff_label or "Write-Off")
+        )
+        self.assertTrue(writeoff_lines)
+        self.assertGreater(abs(sum(writeoff_lines.mapped("balance"))), 0.0)
+        liquidity_lines = payment.move_id.line_ids.filtered(
+            lambda line: line.account_id
+            == (
+                payment.outstanding_account_id
+                or payment.journal_id.default_account_id
+            )
+        )
+        self.assertTrue(liquidity_lines)
+        self.assertAlmostEqual(
+            abs(sum(liquidity_lines.mapped("balance"))),
+            paid_ves,
+            delta=2.0,
+        )

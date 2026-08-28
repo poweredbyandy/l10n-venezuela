@@ -279,7 +279,7 @@ class AccountMove(models.Model):
         pending = self._l10n_ve_snapshot_global_discount_amounts_for_currency()
         res = super()._l10n_ve_force_refund_to_company_currency()
         self._l10n_ve_apply_global_discount_amounts_after_currency(pending)
-        self._l10n_ve_copy_origin_tax_company_amounts()
+        self._l10n_ve_align_refund_company_amounts_to_origin()
         return res
 
     def _l10n_ve_apply_loyalty_global_discount(
@@ -1319,7 +1319,10 @@ class AccountMove(models.Model):
     ):
         self.ensure_one()
         needed = {}
-        rate = self.invoice_currency_rate or 1.0
+        if self.currency_id == self.company_currency_id:
+            rate = 1.0
+        else:
+            rate = self.invoice_currency_rate or 1.0
         sign = self.direction_sign
         for taxes, account_amounts in allocations.items():
             total_for_taxes = sum(account_amounts.values())

@@ -1151,6 +1151,24 @@ class AccountMove(models.Model):
             )
         return igtf_invoice_currency, igtf_company_currency
 
+    def _l10n_ve_igtf_amount_currency_to_company(self, amount_currency):
+        self.ensure_one()
+        if not amount_currency:
+            return 0.0
+        if not self.currency_id or self.currency_id == self.company_currency_id:
+            return self.company_currency_id.round(abs(amount_currency))
+        rate = self.invoice_currency_rate
+        if rate:
+            return self.company_currency_id.round(abs(amount_currency) / rate)
+        return self.company_currency_id.round(
+            self.currency_id._convert(
+                abs(amount_currency),
+                self.company_currency_id,
+                self.company_id,
+                self.date,
+            )
+        )
+
     def _l10n_ve_igtf_get_residual_company_amount(self):
         self.ensure_one()
         if not self._l10n_ve_igtf_move_applies() or not self.is_sale_document(
@@ -1161,14 +1179,7 @@ class AccountMove(models.Model):
         if percent <= 0.0:
             return 0.0
         doc_base = self._l10n_ve_igtf_get_document_base_total_in_currency()
-        invoice_total_company = self.company_currency_id.round(
-            self.currency_id._convert(
-                doc_base,
-                self.company_currency_id,
-                self.company_id,
-                self.date,
-            )
-        )
+        invoice_total_company = self._l10n_ve_igtf_amount_currency_to_company(doc_base)
         max_igtf = self.company_currency_id.round(
             invoice_total_company * (percent / 100.0)
         )
