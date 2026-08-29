@@ -16,6 +16,42 @@ class AccountMove(models.Model):
             return False
         return bool(self.journal_id.l10n_ve_emission_medium)
 
+    def _l10n_ve_document_base_amount(self, line):
+        qty = abs(line.quantity or 0.0)
+        discount_factor = 1.0 - (line.discount or 0.0) / 100.0
+        return qty * (line.price_unit or 0.0) * discount_factor
+
+    def _l10n_ve_company_subtotal_unrounded_from_origin_line(self, line):
+        raw_base = self._l10n_ve_document_base_amount(line)
+        if line.currency_id == line.company_currency_id:
+            return raw_base
+        date = (
+            line.move_id.invoice_date
+            or line.move_id.date
+            or fields.Date.context_today(self)
+        )
+        return line.currency_id._convert(
+            raw_base,
+            line.company_currency_id,
+            line.company_id,
+            date,
+            round=False,
+        )
+
+    def _l10n_ve_tax_price_unit_from_origin_line(self, line):
+        if line.currency_id == line.company_currency_id:
+            return line.price_unit
+        qty = abs(line.quantity or 0.0)
+        if not qty:
+            return line.price_unit_company_currency
+        discount_factor = 1.0 - (line.discount or 0.0) / 100.0
+        if discount_factor <= 0.0:
+            return 0.0
+        subtotal = self._l10n_ve_company_subtotal_unrounded_from_origin_line(line)
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+        prec = max(prec, 4)
+        return float_round(subtotal / discount_factor / qty, precision_digits=prec)
+
     def _l10n_ve_company_price_unit_from_origin_line(self, line):
         if line.currency_id == line.company_currency_id:
             return line.price_unit
@@ -33,6 +69,103 @@ class AccountMove(models.Model):
         if line.currency_id == line.company_currency_id:
             return abs(line.price_subtotal)
         return line.price_subtotal_currency
+
+    def _l10n_ve_refund_should_use_unrounded_tax_base(self):
+        self.ensure_one()
+        if self.country_code != self.env.ref("base.ve").code:
+            return False
+        if self.move_type != "out_refund":
+            return False
+        if self.currency_id != self.company_currency_id:
+            return False
+        origin = self.reversed_entry_id
+        if not origin or origin.currency_id == origin.company_currency_id:
+            return False
+        if not self._l10n_ve_requires_refund_company_currency():
+            return False
+        return True
+
+    def _l10n_ve_origin_line_for_tax_base(self, product_line):
+        origin = self.reversed_entry_id
+        if not origin:
+            return self.env["account.move.line"]
+        origin_products = origin.invoice_line_ids.filtered(
+            lambda line: line.display_type == product_line.display_type
+        ).sorted(lambda line: (line.sequence, line.id))
+        credit_products = self.invoice_line_ids.filtered(
+            lambda line: line.display_type == product_line.display_type
+        ).sorted(lambda line: (line.sequence, line.id))
+        if len(origin_products) == len(credit_products) and all(
+            (origin_line.product_id.id or 0) == (credit_line.product_id.id or 0)
+            and tuple(sorted(origin_line.tax_ids.ids))
+            == tuple(sorted(credit_line.tax_ids.ids))
+            for origin_line, credit_line in zip(
+                origin_products, credit_products, strict=False
+            )
+        ):
+            for origin_line, credit_line in zip(
+                origin_products, credit_products, strict=False
+            ):
+                if credit_line == product_line:
+                    return origin_line
+        candidates = origin_products.filtered(
+            lambda line: (line.product_id.id or 0) == (product_line.product_id.id or 0)
+            and tuple(sorted(line.tax_ids.ids))
+            == tuple(sorted(product_line.tax_ids.ids))
+        )
+        if len(candidates) == 1:
+            return candidates
+        if not candidates:
+            return self.env["account.move.line"]
+        same_seq = candidates.filtered(
+            lambda line: line.sequence == product_line.sequence
+        )
+        if len(same_seq) == 1:
+            return same_seq
+        unused = candidates
+        for credit_line in credit_products:
+            if credit_line == product_line:
+                break
+            matched = unused.filtered(
+                lambda line, credit_line=credit_line: (line.product_id.id or 0)
+                == (credit_line.product_id.id or 0)
+                and tuple(sorted(line.tax_ids.ids))
+                == tuple(sorted(credit_line.tax_ids.ids))
+            )[:1]
+            unused -= matched
+        return unused[:1]
+
+    def _get_rounded_base_and_tax_lines(self, round_from_tax_lines=True):
+        if self._l10n_ve_refund_should_use_unrounded_tax_base():
+            self = self.with_context(l10n_ve_unrounded_tax_base=True)
+        return super()._get_rounded_base_and_tax_lines(
+            round_from_tax_lines=round_from_tax_lines
+        )
+
+    def _prepare_product_base_line_for_taxes_computation(self, product_line):
+        base_line = super()._prepare_product_base_line_for_taxes_computation(
+            product_line
+        )
+        if not self.env.context.get("l10n_ve_unrounded_tax_base"):
+            return base_line
+        if not self._l10n_ve_refund_should_use_unrounded_tax_base():
+            return base_line
+        if product_line.display_type not in ("product", "cogs"):
+            return base_line
+        origin_line = self._l10n_ve_origin_line_for_tax_base(product_line)
+        if not origin_line:
+            return base_line
+        origin_tax_pu = self._l10n_ve_tax_price_unit_from_origin_line(origin_line)
+        origin_pub_pu = self._l10n_ve_company_price_unit_from_origin_line(origin_line)
+        credit_pu = product_line.price_unit
+        price_prec = self.env["decimal.precision"].precision_get("Product Price")
+        if origin_pub_pu and float_compare(
+            credit_pu, origin_pub_pu, precision_digits=price_prec
+        ):
+            base_line["price_unit"] = origin_tax_pu * (credit_pu / origin_pub_pu)
+        else:
+            base_line["price_unit"] = origin_tax_pu
+        return base_line
 
     def _l10n_ve_refund_line_uses_origin_company_amounts(
         self, origin_line, credit_line
