@@ -206,7 +206,7 @@ class AccountRetentionLine(models.Model):
         )
         for record in lines_from_islr_retention:
             # Payment concept of the line
-            payment_concept = record.payment_concept_id.line_payment_concept_ids
+            payment_concept = record.sudo().payment_concept_id.line_payment_concept_ids
             for line in payment_concept:
                 if not record.move_id:
                     continue

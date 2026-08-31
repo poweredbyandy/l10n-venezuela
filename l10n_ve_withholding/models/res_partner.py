@@ -34,6 +34,7 @@ class ResPartner(models.Model):
     def _l10n_ve_get_islr_applicable_type_person_ids(self):
         return (
             self.env["payment.concept.line"]
+            .sudo()
             .search([("payment_concept_id.status", "=", True)])
             .mapped("type_person_id")
             .filtered("state")

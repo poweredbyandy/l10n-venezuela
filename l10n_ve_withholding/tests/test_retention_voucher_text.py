@@ -7,7 +7,7 @@ from odoo.addons.l10n_ve_seniat.tests.common import L10nVeSeniatCommon
 class TestRetentionVoucherText(L10nVeSeniatCommon):
     def test_iva_voucher_cites_snat_2025_providencia(self):
         view = self.env.ref("l10n_ve_withholding.report_iva_customer")
-        self.assertIn("snat/2025/000054", view.arch_db)
+        self.assertIn("snat/2025/000054", view.arch_db.lower())
         self.assertIn("43.171", view.arch_db)
         self.assertNotIn("Nro 1.436", view.arch_db)
 

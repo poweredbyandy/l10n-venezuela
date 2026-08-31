@@ -79,7 +79,9 @@ class AccountPaymentRegister(models.TransientModel):
         move = line.move_id
         if "origin_payment_id" in move._fields and move.origin_payment_id:
             return move.origin_payment_id
-        return move.payment_id
+        if "payment_id" in move._fields and move.payment_id:
+            return move.payment_id
+        return self.env["account.payment"]
 
     @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
     def _compute_l10n_ve_has_advance_source_payment(self):
@@ -164,7 +166,13 @@ class AccountPaymentRegister(models.TransientModel):
                     res["payment_method_line_id"] = source.payment_method_line_id.id
         return res
 
-    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    @api.depends(
+        "payment_type",
+        "company_id",
+        "can_edit_wizard",
+        "l10n_ve_apply_advance",
+        "l10n_ve_advance_line_id",
+    )
     def _compute_available_journal_ids(self):
         res = super()._compute_available_journal_ids()
         for wizard in self.filtered("l10n_ve_apply_advance"):
@@ -173,7 +181,11 @@ class AccountPaymentRegister(models.TransientModel):
                 wizard.available_journal_ids |= source.journal_id
         return res
 
-    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    @api.depends(
+        "available_journal_ids",
+        "l10n_ve_apply_advance",
+        "l10n_ve_advance_line_id",
+    )
     def _compute_journal_id(self):
         res = super()._compute_journal_id()
         for wizard in self.filtered("l10n_ve_apply_advance"):
@@ -182,7 +194,13 @@ class AccountPaymentRegister(models.TransientModel):
                 wizard.journal_id = source.journal_id
         return res
 
-    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    @api.depends(
+        "payment_type",
+        "journal_id",
+        "currency_id",
+        "l10n_ve_apply_advance",
+        "l10n_ve_advance_line_id",
+    )
     def _compute_payment_method_line_fields(self):
         res = super()._compute_payment_method_line_fields()
         for wizard in self.filtered("l10n_ve_apply_advance"):
@@ -193,7 +211,12 @@ class AccountPaymentRegister(models.TransientModel):
                 )
         return res
 
-    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    @api.depends(
+        "payment_type",
+        "journal_id",
+        "l10n_ve_apply_advance",
+        "l10n_ve_advance_line_id",
+    )
     def _compute_payment_method_line_id(self):
         res = super()._compute_payment_method_line_id()
         for wizard in self.filtered("l10n_ve_apply_advance"):
@@ -406,6 +429,7 @@ class AccountPaymentRegister(models.TransientModel):
                     "o en los ajustes de la compañía."
                 )
             )
+        source = self._l10n_ve_get_advance_source_payment()
         payment_vals.update(
             {
                 "l10n_ve_is_advance_application": True,
@@ -416,6 +440,10 @@ class AccountPaymentRegister(models.TransientModel):
                 "payment_has_invoice_lines": True,
             }
         )
+        if source.journal_id:
+            payment_vals["journal_id"] = source.journal_id.id
+        if source.payment_method_line_id:
+            payment_vals["payment_method_line_id"] = source.payment_method_line_id.id
         if self.payment_difference_handling == "open":
             payment_vals["write_off_line_vals"] = []
         return payment_vals

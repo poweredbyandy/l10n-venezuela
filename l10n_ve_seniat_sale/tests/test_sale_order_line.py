@@ -267,6 +267,7 @@ class TestSaleOrderLineVe(L10nVeSeniatCommon):
             login="ve_sale_invoice_tax_readonly",
             groups="account.group_account_invoice,sales_team.group_sale_salesman",
         )
+        order.user_id = invoice_user
         order_user = order.with_user(invoice_user)
         with self.assertRaises(AssertionError):
             with Form(order_user) as order_form:

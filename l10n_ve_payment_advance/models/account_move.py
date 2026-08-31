@@ -217,7 +217,7 @@ class AccountMove(models.Model):
                 empty_message = _(
                     "Configure una cuenta de anticipos en el contacto o en la compañía."
                 )
-                _logger.warning(
+                _logger.info(
                     "l10n_ve_payment_advance: factura %s partner %s "
                     "sin cuenta anticipos",
                     move.name,

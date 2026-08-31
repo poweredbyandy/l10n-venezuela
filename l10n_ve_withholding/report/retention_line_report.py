@@ -25,9 +25,9 @@ class RetentionLineReport(models.Model):
     raw_retention_percentage = fields.Char()
     retention_percentage = fields.Char(compute="_compute_percentages")
     retention_amount = fields.Float()
-    state = fields.Char()
+    state = fields.Char(string="State Code")
     state_show = fields.Char(string="State")
-    type = fields.Char()
+    type = fields.Char(string="Type Code")
     type_show = fields.Char(string="Type")
 
     @property

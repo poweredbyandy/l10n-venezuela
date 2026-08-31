@@ -289,20 +289,20 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
         return payment
 
     def _create_payment_wizard(self, invoice, amount, currency=None, **values):
+        vals = {
+            "company_id": self.company.id,
+            "payment_date": self.test_date,
+            "amount": amount,
+            "currency_id": (currency or invoice.currency_id).id,
+            "group_payment": True,
+            **values,
+        }
+        if "journal_id" not in vals and not vals.get("l10n_ve_apply_advance"):
+            vals["journal_id"] = self.bank_journal.id
         return (
             self.env["account.payment.register"]
             .with_context(active_model="account.move", active_ids=invoice.ids)
-            .create(
-                {
-                    "company_id": self.company.id,
-                    "journal_id": self.bank_journal.id,
-                    "payment_date": self.test_date,
-                    "amount": amount,
-                    "currency_id": (currency or invoice.currency_id).id,
-                    "group_payment": True,
-                    **values,
-                }
-            )
+            .create(vals)
         )
 
     def _create_iva_retention(self, invoice, retention_type, number):
