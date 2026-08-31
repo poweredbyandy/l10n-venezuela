@@ -19,11 +19,15 @@ class TestRetentionMunicipal(L10nVeSeniatCommon):
                 "supplier_rank": 1,
             }
         )
-        cls.branch = cls.env["economic.branch"].sudo().create(
-            {
-                "name": "RAMA MUNICIPAL TEST",
-                "status": "active",
-            }
+        cls.branch = (
+            cls.env["economic.branch"]
+            .sudo()
+            .create(
+                {
+                    "name": "RAMA MUNICIPAL TEST",
+                    "status": "active",
+                }
+            )
         )
         municipality = cls.env["res.country.municipality"].search(
             [("country_id", "=", cls.env.ref("base.ve").id)],
@@ -34,24 +38,32 @@ class TestRetentionMunicipal(L10nVeSeniatCommon):
                 [("country_id", "=", cls.env.ref("base.ve").id)],
                 limit=1,
             )
-            municipality = cls.env["res.country.municipality"].sudo().create(
+            municipality = (
+                cls.env["res.country.municipality"]
+                .sudo()
+                .create(
+                    {
+                        "name": "MUNICIPIO TEST",
+                        "code": "MUN-TEST-WH",
+                        "country_id": cls.env.ref("base.ve").id,
+                        "state_id": [Command.set(state.ids)],
+                    }
+                )
+            )
+        cls.economic_activity = (
+            cls.env["economic.activity"]
+            .sudo()
+            .create(
                 {
-                    "name": "MUNICIPIO TEST",
-                    "code": "MUN-TEST-WH",
-                    "country_id": cls.env.ref("base.ve").id,
-                    "state_id": [Command.set(state.ids)],
+                    "name": "ACT-MUN-TEST",
+                    "municipality_id": municipality.id,
+                    "branch_id": cls.branch.id,
+                    "aliquot": 5.0,
+                    "description": "Actividad municipal de prueba",
+                    "minimum_monthly": 0.0,
+                    "minimum_annual": 0.0,
                 }
             )
-        cls.economic_activity = cls.env["economic.activity"].sudo().create(
-            {
-                "name": "ACT-MUN-TEST",
-                "municipality_id": municipality.id,
-                "branch_id": cls.branch.id,
-                "aliquot": 5.0,
-                "description": "Actividad municipal de prueba",
-                "minimum_monthly": 0.0,
-                "minimum_annual": 0.0,
-            }
         )
         cls.supplier.economic_activity_id = cls.economic_activity
         journal = cls.env.company.municipal_supplier_retention_journal_id

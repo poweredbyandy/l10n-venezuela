@@ -9,9 +9,7 @@ class TestArcvReport(L10nVeSeniatCommon):
     def test_print_arcv_uses_loaded_report_action(self):
         report = self.env.ref("l10n_ve_withholding.action_report_arcv")
         self.assertEqual(report.model, "arcv.report")
-        self.assertEqual(
-            report.report_name, "l10n_ve_withholding.report_template_arcv"
-        )
+        self.assertEqual(report.report_name, "l10n_ve_withholding.report_template_arcv")
         wizard = (
             self.env["arcv.report"]
             .with_context(discard_logo_check=True)
