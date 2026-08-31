@@ -2,7 +2,8 @@
 
 from odoo import Command, fields
 from odoo.exceptions import ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
+from odoo.tests.common import new_test_user
 
 from .common import L10nVeSeniatCommon
 
@@ -222,6 +223,108 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         line = move.line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertGreater(line.subtotal_company_currency, 0)
 
+    def test_out_refund_line_allows_changing_price_unit(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "P NC precio",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345678",
+            }
+        )
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.today(),
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Line",
+                            "quantity": 1.0,
+                            "price_unit": 50.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                Command.set([self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    )
+                ],
+            }
+        )
+        invoice.action_post()
+        invoice.l10n_ve_invoice_original_printed = True
+        refund = invoice._reverse_moves()
+        line = refund.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
+        line.ensure_one()
+        with Form(refund) as refund_form:
+            with refund_form.invoice_line_ids.edit(0) as line_form:
+                line_form.price_unit = 40.0
+        self.assertEqual(line.price_unit, 40.0)
+
+    def test_out_debit_note_line_allows_changing_price_unit(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "P ND precio",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345678",
+            }
+        )
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.today(),
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Line",
+                            "quantity": 1.0,
+                            "price_unit": 50.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                Command.set([self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    )
+                ],
+            }
+        )
+        invoice.action_post()
+        invoice.l10n_ve_invoice_original_printed = True
+        debit = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.today(),
+                "debit_origin_id": invoice.id,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Line",
+                            "quantity": 1.0,
+                            "price_unit": 50.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                Command.set([self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    )
+                ],
+            }
+        )
+        line = debit.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
+        line.ensure_one()
+        with Form(debit) as debit_form:
+            with debit_form.invoice_line_ids.edit(0) as line_form:
+                line_form.price_unit = 75.0
+        self.assertEqual(line.price_unit, 75.0)
+
     def test_subtotal_company_currency_entry_is_zero(self):
         move = self.env["account.move"].create(
             {
@@ -390,3 +493,128 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
         line.ensure_one()
         self.assertEqual(line.l10n_ve_report_line_description(), "Producto exento (E)")
+
+    def test_out_invoice_line_allows_changing_single_tax(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Partner tax edit",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345678",
+            }
+        )
+        sale_tax = self.company_data["default_tax_sale"]
+        alt_tax = self.env["account.tax"].create(
+            {
+                "name": "IVA 8%",
+                "amount": 8.0,
+                "amount_type": "percent",
+                "type_tax_use": "sale",
+                "company_id": self.env.company.id,
+                "country_id": self.env.ref("base.ve").id,
+            }
+        )
+        product = self.env["product.product"].create(
+            {
+                "name": "Producto impuesto editable",
+                "list_price": 100.0,
+                "taxes_id": [Command.set([sale_tax.id])],
+                "supplier_taxes_id": [
+                    Command.set([self.company_data["default_tax_purchase"].id])
+                ],
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.today(),
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "name": "Producto impuesto editable",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [Command.set([sale_tax.id])],
+                        }
+                    )
+                ],
+            }
+        )
+        line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
+        line.ensure_one()
+        self.assertEqual(line.tax_ids, sale_tax)
+        with Form(move) as move_form:
+            with move_form.invoice_line_ids.edit(0) as line_form:
+                line_form.tax_ids.clear()
+                line_form.tax_ids.add(alt_tax)
+        self.assertEqual(line.tax_ids, alt_tax)
+        move.action_post()
+        self.assertEqual(line.tax_ids, alt_tax)
+
+    def test_out_invoice_line_tax_readonly_for_invoice_user(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Partner tax readonly",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345679",
+            }
+        )
+        sale_tax = self.company_data["default_tax_sale"]
+        alt_tax = self.env["account.tax"].create(
+            {
+                "name": "IVA 8% readonly",
+                "amount": 8.0,
+                "amount_type": "percent",
+                "type_tax_use": "sale",
+                "company_id": self.env.company.id,
+                "country_id": self.env.ref("base.ve").id,
+            }
+        )
+        product = self.env["product.product"].create(
+            {
+                "name": "Producto impuesto no editable",
+                "list_price": 100.0,
+                "taxes_id": [Command.set([sale_tax.id])],
+                "supplier_taxes_id": [
+                    Command.set([self.company_data["default_tax_purchase"].id])
+                ],
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.today(),
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "name": "Producto impuesto no editable",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [Command.set([sale_tax.id])],
+                        }
+                    )
+                ],
+            }
+        )
+        invoice_user = new_test_user(
+            self.env,
+            login="ve_invoice_tax_readonly",
+            groups="account.group_account_invoice",
+        )
+        move_user = move.with_user(invoice_user)
+        with self.assertRaises(AssertionError):
+            with Form(move_user) as move_form:
+                with move_form.invoice_line_ids.edit(0) as line_form:
+                    line_form.tax_ids.clear()
+                    line_form.tax_ids.add(alt_tax)
+        line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
+        self.assertEqual(line.tax_ids, sale_tax)

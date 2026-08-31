@@ -7,7 +7,8 @@ from lxml import html as lxml_html
 
 from odoo import Command, fields
 from odoo.exceptions import UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
+from odoo.tests.common import new_test_user
 from odoo.tools import frozendict
 
 from .common import L10nVeSeniatCommon
@@ -1911,6 +1912,8 @@ class TestAccountMove(L10nVeSeniatCommon):
             "state == 'draft' and l10n_ve_journal_emission_medium != 'contingency'",
             arch,
         )
+        self.assertIn("account.group_account_manager", arch)
+        self.assertIn("!account.group_account_manager", arch)
         list_arch = self.env.ref("l10n_ve_seniat.view_invoice_tree").get_combined_arch()
         self.assertIn('name="l10n_ve_invoice_date"', list_arch)
         self.assertNotIn('string="Invoice Date"', list_arch)
@@ -1918,6 +1921,25 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertIn('name="l10n_ve_invoice_number"', list_arch)
         self.assertIn('name="l10n_ve_report_z"', list_arch)
         self.assertIn('name="l10n_ve_serial_number"', list_arch)
+
+    def test_posted_invoice_date_editable_for_billing_administrator(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        new_dt = fields.Datetime.to_datetime("2024-06-15 10:00:00")
+        with Form(move) as move_form:
+            move_form.l10n_ve_invoice_date = new_dt
+        self.assertEqual(move.l10n_ve_invoice_date, new_dt)
+        invoice_user = new_test_user(
+            self.env,
+            login="ve_invoice_date_readonly",
+            groups="account.group_account_invoice",
+        )
+        move_user = move.with_user(invoice_user)
+        with self.assertRaises(AssertionError):
+            with Form(move_user) as move_form:
+                move_form.l10n_ve_invoice_date = fields.Datetime.now()
 
     def test_free_posted_sets_l10n_ve_invoice_date(self):
         journal = self.company_data["default_journal_sale"]

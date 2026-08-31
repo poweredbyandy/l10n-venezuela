@@ -138,26 +138,14 @@ class TestRetentionIvaDebitNote(L10nVeSeniatCommon):
 
         self.assertEqual(retention.affected_invoice_ids, bill)
         self.assertEqual(line.supplier_invoice_reference, bill.ref)
-        self.assertEqual(
-            line.affected_invoice_display_name,
-            f"{bill.ref} ({bill.name})",
-        )
-        self.assertEqual(
-            retention.affected_invoice_display_names,
-            f"{bill.ref} ({bill.name})",
-        )
+        self.assertEqual(line.affected_invoice_display_name, bill.ref)
+        self.assertEqual(retention.affected_invoice_display_names, bill.ref)
 
         bill.l10n_ve_invoice_number = "FM-RET-003"
-        self.assertEqual(
-            line.affected_invoice_display_name,
-            f"{bill.ref} ({bill.name})",
-        )
+        self.assertEqual(line.affected_invoice_display_name, bill.ref)
 
         bill.l10n_ve_control_number = "99-00000003"
-        self.assertEqual(
-            line.affected_invoice_display_name,
-            f"99-00000003 ({bill.name})",
-        )
+        self.assertEqual(line.affected_invoice_display_name, "99-00000003")
 
         open_action = line.action_open_invoice()
         self.assertEqual(open_action["res_model"], "account.move")

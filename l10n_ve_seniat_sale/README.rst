@@ -36,7 +36,9 @@ Usage
 
 1. Install this module after ``sale`` and ``l10n_ve_seniat``.
 2. Confirm Venezuelan sale orders with a sales journal and valid prices,
-   quantities and a single tax per line.
+   quantities and a single tax per line. Only Billing / Administrator
+   can change the line tax in draft; confirmation still requires
+   exactly one tax per line.
 3. Create customer invoices from the sale order. Free-form journals split
    invoices when the SENIAT book line limit is reached.
 4. Printed quotations and the customer portal show the SENIAT note and the

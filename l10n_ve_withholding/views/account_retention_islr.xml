@@ -47,12 +47,14 @@
                                 invisible="1"
                             />
                             <field name="type" force_save="1" select="2" />
+                            <field name="islr_supplier_partner_domain" invisible="1" />
                             <field
                                 name="partner_id"
                                 on_change="onchange_partner_id(type,partner_id)"
                                 select="1"
                                 invisible="not type"
                                 readonly="state in ['emitted', 'cancel']"
+                                domain="islr_supplier_partner_domain"
                             />
                             <field
                                 name="number"
@@ -97,7 +99,12 @@
                                 readonly="state in ['emitted', 'cancel']"
                             >
                                 <list editable="bottom">
-                                    <field name="name" readonly="1" force_save="1" />
+                                    <field
+                                        name="name"
+                                        readonly="1"
+                                        force_save="1"
+                                        column_invisible="True"
+                                    />
                                     <field
                                         name="move_id"
                                         domain="['&amp;',('id', 'in', parent.allowed_lines_move_ids), ('islr_voucher_number', '=',False)]"
@@ -113,7 +120,7 @@
                                         title="Open affected invoice"
                                         invisible="not move_id"
                                     />
-                                    <field name="code" />
+                                    <field name="code" optional="hide" />
                                     <field
                                         name="company_id"
                                         optional="hide"

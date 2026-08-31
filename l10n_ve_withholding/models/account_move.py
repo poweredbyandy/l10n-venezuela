@@ -72,6 +72,31 @@ class AccountMoveRetention(models.Model):
             return self.l10n_ve_third_party_partner_id
         return self.partner_id
 
+    def _l10n_ve_invoice_lines_with_positive_tax(self):
+        self.ensure_one()
+        return self.invoice_line_ids.filtered(
+            lambda line: any(tax.amount > 0 for tax in line.tax_ids)
+        )
+
+    def _l10n_ve_sum_lines_company_base(self, lines):
+        self.ensure_one()
+        return abs(sum(lines.mapped("balance")))
+
+    def _l10n_ve_get_positive_tax_base_amount(self):
+        self.ensure_one()
+        return self._l10n_ve_sum_lines_company_base(
+            self._l10n_ve_invoice_lines_with_positive_tax()
+        )
+
+    def _l10n_ve_get_positive_tax_base_for_taxes(self, taxes):
+        self.ensure_one()
+        positive_taxes = taxes.filtered(lambda tax: tax.amount > 0)
+        return self._l10n_ve_sum_lines_company_base(
+            self.invoice_line_ids.filtered(
+                lambda line: bool(line.tax_ids & positive_taxes)
+            )
+        )
+
     retention_islr_line_ids = fields.One2many(
         "account.retention.line",
         "move_id",
@@ -111,12 +136,22 @@ class AccountMoveRetention(models.Model):
         compute="_compute_supplier_retention_links",
         string="ISLR retention document",
     )
+    municipal_retention_id = fields.Many2one(
+        "account.retention",
+        compute="_compute_supplier_retention_links",
+        string="Municipal retention document",
+    )
+    not_edit_municipal_retention_lines = fields.Boolean(
+        compute="_compute_state_retentions_lines",
+    )
 
     @api.depends(
         "retention_iva_line_ids.retention_id",
         "retention_iva_line_ids.state",
         "retention_islr_line_ids.retention_id",
         "retention_islr_line_ids.state",
+        "retention_municipal_line_ids.retention_id",
+        "retention_municipal_line_ids.state",
     )
     def _compute_supplier_retention_links(self):
         for move in self:
@@ -131,6 +166,21 @@ class AccountMoveRetention(models.Model):
             )
             ret_islr = islr_lines.mapped("retention_id")[:1]
             move.islr_retention_id = ret_islr
+
+            municipal_lines = move.retention_municipal_line_ids.filtered(
+                lambda line: line.state != "cancel"
+            )
+            ret_municipal = municipal_lines.mapped("retention_id")[:1]
+            move.municipal_retention_id = ret_municipal
+
+    @api.depends("retention_municipal_line_ids.state")
+    def _compute_state_retentions_lines(self):
+        for record in self:
+            record.not_edit_municipal_retention_lines = bool(
+                record.retention_municipal_line_ids.filtered(
+                    lambda line: line.state == "emitted"
+                )
+            )
 
     def action_open_iva_retention(self):
         self.ensure_one()
@@ -186,6 +236,50 @@ class AccountMoveRetention(models.Model):
             raise UserError(_("No ISLR retention document linked to this vendor bill."))
         return self.islr_retention_id.action_print_retention_voucher()
 
+    def action_open_municipal_retention(self):
+        self.ensure_one()
+        if not self.municipal_retention_id:
+            raise UserError(
+                _("No municipal retention document linked to this vendor bill.")
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.municipal_retention_id.display_name,
+            "res_model": "account.retention",
+            "res_id": self.municipal_retention_id.id,
+            "view_mode": "form",
+            "views": [
+                (
+                    self.env.ref(
+                        "l10n_ve_withholding.view_retention_municipal_form_l10n_ve_withholding"
+                    ).id,
+                    "form",
+                )
+            ],
+            "target": "current",
+        }
+
+    def action_print_municipal_retention(self):
+        self.ensure_one()
+        if not self.municipal_retention_id:
+            raise UserError(
+                _("No municipal retention document linked to this vendor bill.")
+            )
+        return self.municipal_retention_id.action_print_retention_voucher()
+
+    def write(self, vals):
+        res = super().write(vals)
+        if "invoice_line_ids" in vals:
+            for move in self:
+                if (
+                    move.move_type in ("in_invoice", "in_refund")
+                    and move.state == "draft"
+                    and move.retention_municipal_line_ids
+                ):
+                    for line in move.retention_municipal_line_ids:
+                        line.onchange_economic_activity_id()
+        return res
+
     def action_post(self):
         """Create supplier retentions only after the move is actually posted."""
         res = super().action_post()
@@ -203,10 +297,17 @@ class AccountMoveRetention(models.Model):
                 retention.with_context(skip_is_manually_modified=True).action_post()
                 move.islr_voucher_number = retention.number
 
-            if move.retention_municipal_line_ids:
+            if (
+                move.retention_municipal_line_ids
+                and not move.municipal_voucher_number
+                and move.retention_municipal_line_ids.filtered(
+                    lambda line: line.state != "emitted"
+                )
+            ):
                 move._validate_municipal_retention()
                 retention = move._create_supplier_retention("municipal")
                 retention.with_context(skip_is_manually_modified=True).action_post()
+                move.municipal_voucher_number = retention.number
 
             if move.generate_iva_retention and not move.retention_iva_line_ids.filtered(
                 lambda line: line.state != "cancel"
@@ -256,7 +357,7 @@ class AccountMoveRetention(models.Model):
                 "invoice_amount"
             )
         )
-        if sum_invoice_amount > self.tax_totals["base_amount"]:
+        if sum_invoice_amount > self._l10n_ve_get_positive_tax_base_amount():
             raise UserError(
                 _(
                     "The amount of the retention is greater than the total amount of the invoice."  # noqa: E501

@@ -109,6 +109,58 @@
                         </div>
                     </div>
                 </setting>
+                <setting
+                    name="retention_municipal_journals_settings"
+                    string="Retenciones Municipales"
+                    help="Configuraciones necesarias para registrar las retenciones municipales"
+                >
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <label
+                                string="Supplier Journal"
+                                for="municipal_supplier_retention_journal_id"
+                                class="col-lg-6 o_light_label"
+                            />
+                            <field
+                                name="municipal_supplier_retention_journal_id"
+                                class="col-lg-6"
+                            />
+                        </div>
+                        <div class="row mt16">
+                            <label
+                                string="Customer Journal"
+                                for="municipal_customer_retention_journal_id"
+                                class="col-lg-6 o_light_label"
+                            />
+                            <field
+                                name="municipal_customer_retention_journal_id"
+                                class="col-lg-6"
+                            />
+                        </div>
+                        <div class="row mt16">
+                            <label
+                                string="Ocultar columnas extra de patente"
+                                for="hide_patent_columns_extra"
+                                class="col-lg-6 o_light_label"
+                            />
+                            <field
+                                name="hide_patent_columns_extra"
+                                class="col-lg-6"
+                            />
+                        </div>
+                        <div class="row mt16">
+                            <label
+                                string="Ocultar fecha de emisión del comprobante"
+                                for="hide_issue_date_of_municipal_withholding_receipt"
+                                class="col-lg-6 o_light_label"
+                            />
+                            <field
+                                name="hide_issue_date_of_municipal_withholding_receipt"
+                                class="col-lg-6"
+                            />
+                        </div>
+                    </div>
+                </setting>
             </xpath>
         </field>
     </record>

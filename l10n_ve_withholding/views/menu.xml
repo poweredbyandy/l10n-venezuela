@@ -185,11 +185,19 @@
     />
 
     <menuitem
+        id="menu_seniat_municipal_supplier_report"
+        name="Municipal Supplier Retention Report"
+        parent="l10n_ve_seniat.menu_seniat_reports"
+        action="municipal_supplier_retention_report_action"
+        sequence="40"
+    />
+
+    <menuitem
         id="menu_seniat_municipal_patent"
         name="Municipal Patent Report"
         parent="l10n_ve_seniat.menu_seniat_reports"
         action="wizard_report_municipal_retention_report_patent_action"
-        sequence="40"
+        sequence="50"
     />
     <!-- Sequences sub-menu (debug only) -->
     <menuitem
@@ -392,6 +400,14 @@
         action="action_arcv_report"
         parent="l10n_ve_withholding.seniat_reports"
         groups="account.group_account_manager"
+    />
+
+    <menuitem
+        id="municipal_supplier_retention_report_menu"
+        name="Municipal supplier retention report"
+        action="municipal_supplier_retention_report_action"
+        parent="l10n_ve_withholding.seniat_reports"
+        sequence="1"
     />
 
     <menuitem

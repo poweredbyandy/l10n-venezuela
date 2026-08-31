@@ -84,7 +84,7 @@ class AccountMove(models.Model):
             return line.credit > line.debit or line.balance < 0
         return line.balance < 0
 
-    def _line_belongs_to_invoice_partner(self, line, partner):
+    def _l10n_ve_line_belongs_to_invoice_partner(self, line, partner):
         line_partner = line.partner_id or line.move_id.partner_id
         if not line_partner:
             return False
@@ -152,7 +152,7 @@ class AccountMove(models.Model):
                     reasons.append("sin_saldo_ni_residual")
                 else:
                     reasons.append("no_es_anticipo_abierto")
-            if not self._line_belongs_to_invoice_partner(line, partner):
+            if not self._l10n_ve_line_belongs_to_invoice_partner(line, partner):
                 reasons.append("partner_no_coincide")
             if reasons:
                 _logger.info(

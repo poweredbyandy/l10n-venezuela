@@ -20,6 +20,15 @@ Notas de crédito y débito
 
 Las notas reutilizan el mismo diario y contacto de la factura origen.
 
+Impuesto en líneas de factura
+-----------------------------
+
+Solo **Facturación / Administración** puede cambiar el impuesto de cada
+línea y la **Fecha del documento**. Con el permiso de **Facturación**
+esos campos quedan en solo lectura. SENIAT exige una sola alícuota por
+línea: no se puede confirmar un documento con más de un impuesto en la
+misma línea.
+
 Fecha de recepción y vencimientos
 ---------------------------------
 

@@ -83,6 +83,9 @@ class AccountRetention(models.Model):
         help="Social reason",
         tracking=True,
     )
+    islr_supplier_partner_domain = fields.Binary(
+        compute="_compute_islr_supplier_partner_domain",
+    )
     number = fields.Char("Voucher Number")
     correlative = fields.Char(readonly=True)
     date = fields.Date(
@@ -197,6 +200,15 @@ class AccountRetention(models.Model):
             ),
         }
 
+    @api.depends("type", "type_retention")
+    def _compute_islr_supplier_partner_domain(self):
+        domain = self.env["res.partner"]._l10n_ve_islr_supplier_partner_domain()
+        for retention in self:
+            if retention.type_retention == "islr" and retention.type == "in_invoice":
+                retention.islr_supplier_partner_domain = domain
+            else:
+                retention.islr_supplier_partner_domain = []
+
     @api.depends("type", "partner_id")
     def _compute_allowed_lines_move_ids(self):
         for retention in self:
@@ -233,7 +245,6 @@ class AccountRetention(models.Model):
         "retention_line_ids.move_id.l10n_ve_control_number",
         "retention_line_ids.move_id.ref",
         "retention_line_ids.move_id.l10n_ve_invoice_number",
-        "retention_line_ids.move_id.name",
     )
     def _compute_affected_invoice_display_names(self):
         for retention in self:
@@ -903,7 +914,7 @@ class AccountRetention(models.Model):
             sequence = self.env["ir.sequence"].create(
                 {
                     "name": "Numero de control retenciones Municipal",
-                    "code": "retention.iva.control.number",
+                    "code": "retention.municipal.control.number",
                     "padding": 5,
                 }
             )
@@ -914,11 +925,17 @@ class AccountRetention(models.Model):
             if line.move_id.islr_voucher_number:
                 line.move_id.islr_voucher_number = False
 
+    def clear_municipal_retention_number(self):
+        for line in self.retention_line_ids:
+            if line.move_id.municipal_voucher_number:
+                line.move_id.municipal_voucher_number = False
+
     def action_cancel(self):
         self.payment_ids.mapped("move_id.line_ids").remove_move_reconcile()
         self.payment_ids.with_context(skip_is_manually_modified=True).action_cancel()
         self.write({"state": "cancel"})
         self.clear_islr_retention_number()
+        self.clear_municipal_retention_number()
 
     def create_payment_from_retention_form(self):
         """
@@ -1114,9 +1131,8 @@ class AccountRetention(models.Model):
         list[dict]
             The retention lines data.
         """
-        tax_ids = invoice_id.invoice_line_ids.filtered(
-            lambda line: line.tax_ids and line.tax_ids[0].amount > 0
-        ).mapped("tax_ids")
+        taxable_lines = invoice_id._l10n_ve_invoice_lines_with_positive_tax()
+        tax_ids = taxable_lines.mapped("tax_ids").filtered(lambda tax: tax.amount > 0)
         if not any(tax_ids):
             raise UserError(_("The invoice %s has no tax."), invoice_id.number)
 
@@ -1139,6 +1155,9 @@ class AccountRetention(models.Model):
             if not taxes:
                 continue
             tax = taxes[0]
+            invoice_amount = invoice_id._l10n_ve_get_positive_tax_base_for_taxes(taxes)
+            if not invoice_amount:
+                continue
             retention_amount = tax_group["tax_amount"] * (withholding_amount / 100)
             line_data = {
                 "name": _("Iva Retention"),
@@ -1147,9 +1166,9 @@ class AccountRetention(models.Model):
                 "payment_id": payment.id if payment else None,
                 "aliquot": tax.amount,
                 "iva_amount": tax_group["tax_amount"],
-                "invoice_total": invoice_id.tax_totals["total_amount"],
+                "invoice_total": abs(invoice_id.amount_total_signed),
                 "related_percentage_tax_base": withholding_amount,
-                "invoice_amount": tax_group["base_amount"],
+                "invoice_amount": invoice_amount,
             }
             if invoice_id.move_type == "out_invoice":
                 line_data["retention_amount"] = 0.0

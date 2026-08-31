@@ -125,18 +125,13 @@ class AccountRetentionLine(models.Model):
         "move_id.l10n_ve_control_number",
         "move_id.ref",
         "move_id.l10n_ve_invoice_number",
-        "move_id.name",
     )
     def _compute_affected_invoice_display_name(self):
         for line in self:
             move = line.move_id
-            identifier = (
+            line.affected_invoice_display_name = (
                 move.l10n_ve_control_number or move.ref or move.l10n_ve_invoice_number
             )
-            if identifier and move.name and identifier != move.name:
-                line.affected_invoice_display_name = f"{identifier} ({move.name})"
-            else:
-                line.affected_invoice_display_name = identifier or move.name
 
     @api.depends("retention_id.type_retention", "move_id")
     def _compute_name(self):
@@ -223,7 +218,7 @@ class AccountRetentionLine(models.Model):
                     # compare the type_person_id of the partner with the
                     # type_person_id of the payment concept and set the related
                     # fields.
-                    record.invoice_total = record.move_id.tax_totals["total_amount"]
+                    record.invoice_total = abs(record.move_id.amount_total_signed)
                     record.related_pay_from = line.pay_from
                     record.related_percentage_tax_base = line.percentage_tax_base
                     record.related_percentage_fees = line.tariff_id.percentage
@@ -236,7 +231,9 @@ class AccountRetentionLine(models.Model):
                         # We don't want this fields to be computed when the
                         # retention is created from a customer invoice since
                         # they are filled by the user.
-                        record.invoice_amount = record.move_id.tax_totals["base_amount"]
+                        record.invoice_amount = (
+                            record.move_id._l10n_ve_get_positive_tax_base_amount()
+                        )
 
     @api.onchange(
         "invoice_amount",
@@ -320,12 +317,16 @@ class AccountRetentionLine(models.Model):
         )
 
         for record in municipal_retention_lines_with_economic_activity_and_invoice:
+            move = record.move_id
+            product_lines = move.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product"
+            )
             if not record.retention_id or record.retention_id.type == "in_invoice":
-                # We don't want this fields to be computed when the retention is
-                # created from a customer invoice since they are filled by the user.
-                record.invoice_amount = record.move_id.tax_totals["base_amount"]
+                record.invoice_amount = move._l10n_ve_sum_lines_company_base(
+                    product_lines
+                )
 
-            record.invoice_total = record.move_id.tax_totals["total_amount"]
+            record.invoice_total = abs(move.amount_total_signed)
 
             record.aliquot = record.economic_activity_id.aliquot
             record.retention_amount = record.invoice_amount * record.aliquot / 100

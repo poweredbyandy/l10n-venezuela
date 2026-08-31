@@ -17,7 +17,7 @@ class AccountJournal(models.Model):
             if self.env.company.chart_template != "ve_seniat":
                 continue
 
-            if journal.code in ("RIP", "RIC", "ISLRP", "ISLRC"):
+            if journal.code in ("RIP", "RIC", "ISLRP", "ISLRC", "RMP", "RMC"):
                 pay_method = self.env.ref("account.account_payment_method_manual_in")
                 pay_method_line_ids_commands += [
                     Command.create(
@@ -44,7 +44,7 @@ class AccountJournal(models.Model):
             if self.env.company.chart_template != "ve_seniat":
                 continue
 
-            if journal.code in ("RIP", "RIC", "ISLRP", "ISLRC"):
+            if journal.code in ("RIP", "RIC", "ISLRP", "ISLRC", "RMP", "RMC"):
                 pay_method = self.env.ref("account.account_payment_method_manual_out")
                 pay_method_line_ids_commands += [
                     Command.create(

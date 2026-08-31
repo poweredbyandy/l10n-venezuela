@@ -36,6 +36,18 @@ class ResConfigSettings(models.TransientModel):
     hide_patent_columns_extra = fields.Boolean(
         related="company_id.hide_patent_columns_extra", readonly=False
     )
+    hide_issue_date_of_municipal_withholding_receipt = fields.Boolean(
+        related="company_id.hide_issue_date_of_municipal_withholding_receipt",
+        readonly=False,
+    )
+    text_header_1_municipal_retention = fields.Text(
+        related="company_id.text_header_1_municipal_retention",
+        readonly=False,
+    )
+    text_header_2_municipal_retention = fields.Text(
+        related="company_id.text_header_2_municipal_retention",
+        readonly=False,
+    )
 
     def action_open_tax_units(self):
         return self.env["ir.actions.act_window"]._for_xml_id(

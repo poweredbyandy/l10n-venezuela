@@ -265,8 +265,10 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
         payment_type="inbound",
         partner_type="customer",
         currency=None,
+        journal=None,
+        payment_method_line=None,
     ):
-        method = (
+        method = payment_method_line or (
             self.inbound_payment_method
             if payment_type == "inbound"
             else self.outbound_payment_method
@@ -278,7 +280,7 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
                 "payment_type": payment_type,
                 "partner_type": partner_type,
                 "partner_id": self.partner.id,
-                "journal_id": self.bank_journal.id,
+                "journal_id": (journal or self.bank_journal).id,
                 "payment_method_line_id": method.id,
                 "currency_id": (currency or self.ves).id,
             }
@@ -398,6 +400,50 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
             self._get_account_lines(payment, self.partner_customer_advance_account)
         )
 
+    def test_underpayment_hides_keep_as_advance_option(self):
+        self._configure_company_advance_accounts()
+        invoice = self._create_invoice()
+        wizard = self._create_payment_wizard(
+            invoice, invoice.amount_residual - 10.0
+        )
+        self.assertFalse(wizard.show_advance_difference_handling)
+        self.assertFalse(wizard.payment_difference_handling_overpay)
+        self.assertIn(
+            "reconcile",
+            dict(wizard._fields["payment_difference_handling"].selection),
+        )
+        wizard.payment_difference_handling = "advance"
+        wizard._compute_payment_difference_handling()
+        self.assertEqual(wizard.payment_difference_handling, "open")
+
+    def test_overpayment_shows_keep_as_advance_option(self):
+        self._configure_company_advance_accounts()
+        invoice = self._create_invoice()
+        wizard = self._create_payment_wizard(
+            invoice, invoice.amount_residual + 20.0
+        )
+        self.assertTrue(wizard.show_advance_difference_handling)
+        self.assertIn(
+            "advance",
+            dict(wizard._fields["payment_difference_handling_overpay"].selection),
+        )
+        self.assertIn(
+            "reconcile",
+            dict(wizard._fields["payment_difference_handling"].selection),
+        )
+
+    def test_reducing_amount_hides_keep_as_advance_option(self):
+        self._configure_company_advance_accounts()
+        invoice = self._create_invoice()
+        wizard = self._create_payment_wizard(
+            invoice, invoice.amount_residual + 20.0
+        )
+        wizard.payment_difference_handling = "advance"
+        self.assertTrue(wizard.show_advance_difference_handling)
+        wizard.amount = invoice.amount_residual - 10.0
+        self.assertFalse(wizard.show_advance_difference_handling)
+        self.assertEqual(wizard.payment_difference_handling, "open")
+
     def test_customer_overpayment_keeps_difference_as_advance(self):
         self._configure_company_advance_accounts()
         invoice = self._create_invoice()
@@ -416,6 +462,33 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
         self.assertTrue(payment.payment_has_invoice_lines)
         self.assertTrue(advance_lines)
         self.assertAlmostEqual(abs(sum(advance_lines.mapped("balance"))), 20.0)
+        if "has_excess_to_refund" in invoice._fields:
+            invoice.invalidate_recordset(["has_excess_to_refund"])
+            invoice.has_excess_to_refund
+
+    def test_customer_overpayment_can_keep_difference_open(self):
+        self._configure_company_advance_accounts()
+        invoice = self._create_invoice()
+        overpayment_amount = invoice.amount_residual + 20.0
+        wizard = self._create_payment_wizard(invoice, overpayment_amount)
+
+        self.assertTrue(wizard.show_advance_difference_handling)
+        self.assertIn(
+            "open",
+            dict(wizard._fields["payment_difference_handling_overpay"].selection),
+        )
+        wizard.payment_difference_handling_overpay = "open"
+        self.assertEqual(wizard.payment_difference_handling, "open")
+
+        payment = wizard._create_payments()
+        invoice.invalidate_recordset()
+        advance_lines = self._get_account_lines(
+            payment,
+            self.customer_advance_account,
+        )
+
+        self.assertFalse(advance_lines)
+        self.assertEqual(invoice.payment_state, "paid")
 
     def test_customer_advance_can_be_applied_to_invoice(self):
         self._configure_company_advance_accounts()
@@ -433,16 +506,58 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
             l10n_ve_advance_line_id=advance_line.id,
         )
 
+        self.assertTrue(wizard.l10n_ve_has_advance_source_payment)
+        self.assertEqual(wizard.journal_id, source_payment.journal_id)
+        self.assertEqual(
+            wizard.payment_method_line_id,
+            source_payment.payment_method_line_id,
+        )
+
         application_payment = wizard._create_payments()
         invoice.invalidate_recordset()
         advance_line.invalidate_recordset()
 
         self.assertTrue(application_payment.l10n_ve_is_advance_application)
+        self.assertEqual(application_payment.journal_id, source_payment.journal_id)
+        self.assertEqual(
+            application_payment.payment_method_line_id,
+            source_payment.payment_method_line_id,
+        )
         self.assertEqual(invoice.payment_state, "paid")
         self.assertAlmostEqual(
             abs(advance_line.amount_residual),
             source_payment.amount - application_amount,
         )
+
+    def test_advance_application_takes_journal_and_method_from_source_payment(self):
+        self._configure_company_advance_accounts()
+        cash_journal = self.company_data["default_journal_cash"]
+        cash_method = cash_journal.inbound_payment_method_line_ids[:1]
+        source_payment = self._create_standalone_payment(
+            120.0,
+            journal=cash_journal,
+            payment_method_line=cash_method,
+        )
+        advance_line = self._get_account_lines(
+            source_payment,
+            self.customer_advance_account,
+        )
+        invoice = self._create_invoice()
+        wizard = self._create_payment_wizard(
+            invoice,
+            invoice.amount_residual,
+            l10n_ve_apply_advance=True,
+            l10n_ve_advance_line_id=advance_line.id,
+        )
+
+        self.assertTrue(wizard.l10n_ve_has_advance_source_payment)
+        self.assertEqual(wizard.journal_id, cash_journal)
+        self.assertEqual(wizard.payment_method_line_id, cash_method)
+
+        application_payment = wizard._create_payments()
+
+        self.assertEqual(application_payment.journal_id, cash_journal)
+        self.assertEqual(application_payment.payment_method_line_id, cash_method)
 
     def test_empty_igtf_currency_configuration_does_not_tax_advance(self):
         self._configure_company_advance_accounts()
@@ -639,3 +754,22 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
 
         with self.assertRaises(UserError):
             wizard._create_payments()
+
+    def test_overpayment_reconcile_clears_advance_writeoff_account(self):
+        self._configure_company_advance_accounts()
+        invoice = self._create_invoice()
+        wizard = self._create_payment_wizard(
+            invoice, invoice.amount_residual + 20.0
+        )
+        wizard.payment_difference_handling = "advance"
+        wizard.writeoff_account_id = self.customer_advance_account
+        wizard.writeoff_label = wizard._get_advance_writeoff_label()
+        wizard.payment_difference_handling = "reconcile"
+        wizard._onchange_payment_difference_advance_account()
+        self.assertFalse(wizard.writeoff_account_id)
+        self.assertEqual(wizard.writeoff_label, "Write-Off")
+        wizard.writeoff_account_id = self.customer_advance_account
+        wizard.writeoff_label = wizard._get_advance_writeoff_label()
+        wizard.payment_difference_handling_overpay = "reconcile"
+        self.assertFalse(wizard.writeoff_account_id)
+        self.assertEqual(wizard.writeoff_label, "Write-Off")

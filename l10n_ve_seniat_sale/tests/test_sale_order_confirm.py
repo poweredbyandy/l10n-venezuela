@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from odoo import Command
 from odoo.exceptions import UserError
 from odoo.tests import tagged
 
@@ -78,3 +79,22 @@ class TestSaleOrderConfirm(L10nVeSeniatCommon):
         self.assertEqual(order.order_line.product_uom_qty, 0.0)
         order.order_line.product_uom_qty = -2.0
         self.assertEqual(order.order_line.product_uom_qty, -2.0)
+
+    def test_confirm_rejects_multiple_taxes_per_line(self):
+        order = self._create_ve_order(qty=1.0)
+        tax_b = self.env["account.tax"].create(
+            {
+                "name": "IVA 8%",
+                "amount": 8.0,
+                "amount_type": "percent",
+                "type_tax_use": "sale",
+                "company_id": self.env.company.id,
+                "country_id": self.env.ref("base.ve").id,
+            }
+        )
+        order.order_line.tax_id = [
+            Command.set([self.company_data["default_tax_sale"].id, tax_b.id])
+        ]
+        with self.assertRaises(UserError) as cm:
+            order.action_confirm()
+        self.assertIn("más de un impuesto", str(cm.exception))

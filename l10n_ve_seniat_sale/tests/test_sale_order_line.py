@@ -1,8 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields
+from odoo import Command, fields
 from odoo.exceptions import ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
+from odoo.tests.common import new_test_user
 
 from odoo.addons.l10n_ve_seniat.tests.common import L10nVeSeniatCommon
 
@@ -181,3 +182,96 @@ class TestSaleOrderLineVe(L10nVeSeniatCommon):
         line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertEqual(len(line), 1)
         self.assertLess(line.price_unit, 0)
+
+    def test_ve_sale_line_allows_changing_single_tax(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente VE impuesto",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345678",
+            }
+        )
+        product = self._create_ve_product()
+        sale_tax = self.company_data["default_tax_sale"]
+        alt_tax = self.env["account.tax"].create(
+            {
+                "name": "IVA 8%",
+                "amount": 8.0,
+                "amount_type": "percent",
+                "type_tax_use": "sale",
+                "company_id": self.env.company.id,
+                "country_id": self.env.ref("base.ve").id,
+            }
+        )
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": partner.id,
+                "order_line": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": 1,
+                            "price_unit": 100.0,
+                            "tax_id": [Command.set([sale_tax.id])],
+                        }
+                    )
+                ],
+            }
+        )
+        line = order.order_line.filtered(lambda sol: not sol.display_type)
+        line.ensure_one()
+        self.assertEqual(line.tax_id, sale_tax)
+        with Form(order) as order_form:
+            with order_form.order_line.edit(0) as line_form:
+                line_form.tax_id.clear()
+                line_form.tax_id.add(alt_tax)
+        self.assertEqual(line.tax_id, alt_tax)
+
+    def test_ve_sale_line_tax_readonly_for_invoice_user(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente VE impuesto readonly",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J12345679",
+            }
+        )
+        product = self._create_ve_product()
+        sale_tax = self.company_data["default_tax_sale"]
+        alt_tax = self.env["account.tax"].create(
+            {
+                "name": "IVA 8% so readonly",
+                "amount": 8.0,
+                "amount_type": "percent",
+                "type_tax_use": "sale",
+                "company_id": self.env.company.id,
+                "country_id": self.env.ref("base.ve").id,
+            }
+        )
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": partner.id,
+                "order_line": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "product_uom_qty": 1,
+                            "price_unit": 100.0,
+                            "tax_id": [Command.set([sale_tax.id])],
+                        }
+                    )
+                ],
+            }
+        )
+        invoice_user = new_test_user(
+            self.env,
+            login="ve_sale_invoice_tax_readonly",
+            groups="account.group_account_invoice,sales_team.group_sale_salesman",
+        )
+        order_user = order.with_user(invoice_user)
+        with self.assertRaises(AssertionError):
+            with Form(order_user) as order_form:
+                with order_form.order_line.edit(0) as line_form:
+                    line_form.tax_id.clear()
+                    line_form.tax_id.add(alt_tax)
+        line = order.order_line.filtered(lambda sol: not sol.display_type)
+        self.assertEqual(line.tax_id, sale_tax)

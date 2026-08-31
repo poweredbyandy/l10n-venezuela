@@ -93,7 +93,7 @@
                                     name="company_currency_id"
                                     column_invisible="True"
                                 />
-                                <field name="name" />
+                                <field name="name" column_invisible="True" />
                                 <field
                                     name="move_id"
                                     domain="['&amp;',('id', 'in', parent.allowed_lines_move_ids), ('municipal_voucher_number', '=',False)]"

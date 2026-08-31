@@ -1,6 +1,6 @@
 {
     "name": "Venezuela - Anticipos de clientes y proveedores en pagos",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.5.7",
     "category": "Accounting/Localizations",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
@@ -16,6 +16,7 @@
     "assets": {
         "web.assets_backend": [
             "l10n_ve_payment_advance/static/src/components/account_advance_payment_field/**/*",
+            "l10n_ve_payment_advance/static/src/components/payment_difference_handling/**/*",
         ],
     },
     "installable": True,

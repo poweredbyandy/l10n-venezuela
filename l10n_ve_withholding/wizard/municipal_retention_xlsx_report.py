@@ -102,7 +102,7 @@ class MunicipalRetentionXlsxReport(models.TransientModel):
         worksheet2.set_row(13, 23, merge_format)
         columnas = list(table.columns.values)
         columns2 = [{"header": r} for r in columnas]
-        currency_symbol = self.env.ref("base.VEF").symbol
+        currency_symbol = self.env.company.currency_id.symbol or ""
         money_format = workbook.add_format(
             {"num_format": '#,##0.00 "' + currency_symbol + '"'}
         )
@@ -198,9 +198,9 @@ class MunicipalRetentionXlsxReport(models.TransientModel):
 
                 invoice_type = ""
 
-                if retention_line.move_id.move_type == ["in_invoice", "out_invoice"]:
+                if retention_line.move_id.move_type in ("in_invoice", "out_invoice"):
                     invoice_type = "F"
-                elif retention_line.move_id.move_type == ["in_refund", "out_refund"]:
+                elif retention_line.move_id.move_type in ("in_refund", "out_refund"):
                     invoice_type = "NC"
 
                 rows = OrderedDict()

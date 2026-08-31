@@ -26,6 +26,12 @@ class AccountChartTemplate(models.AbstractModel):
             company.islr_customer_retention_journal_id = self.ref(
                 "islrc", raise_if_not_found=False
             )
+            company.municipal_supplier_retention_journal_id = self.ref(
+                "rmp", raise_if_not_found=False
+            )
+            company.municipal_customer_retention_journal_id = self.ref(
+                "rmc", raise_if_not_found=False
+            )
 
         return res
 
@@ -60,6 +66,20 @@ class AccountChartTemplate(models.AbstractModel):
             "show_on_dashboard": False,
             "sequence": 9,
         }
+        vals["rmp"] = {
+            "name": _("Retenciones Municipales Proveedores"),
+            "type": "bank",
+            "code": _("RMP"),
+            "show_on_dashboard": False,
+            "sequence": 9,
+        }
+        vals["rmc"] = {
+            "name": _("Retenciones Municipales Clientes"),
+            "type": "bank",
+            "code": _("RMC"),
+            "show_on_dashboard": False,
+            "sequence": 9,
+        }
 
         if template_code == "ve_seniat":
             vals["rip"]["default_account_id"] = "account_account_2103001"
@@ -70,5 +90,7 @@ class AccountChartTemplate(models.AbstractModel):
             vals["islrp"]["suspense_account_id"] = "account_account_1999001"
             vals["islrc"]["default_account_id"] = "account_account_1107004"
             vals["islrc"]["suspense_account_id"] = "account_account_1999001"
+            vals["rmp"]["suspense_account_id"] = "account_account_1999001"
+            vals["rmc"]["suspense_account_id"] = "account_account_1999001"
 
         return vals

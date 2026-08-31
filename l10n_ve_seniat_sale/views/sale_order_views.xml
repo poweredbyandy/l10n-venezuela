@@ -51,17 +51,42 @@
                 expr="//field[@name='order_line']//list//field[@name='tax_id']"
                 position="attributes"
             >
-                <attribute
-                    name="readonly"
-                >parent.country_code == 'VE' or qty_invoiced &gt; 0 or is_downpayment</attribute>
+                <attribute name="groups">account.group_account_manager</attribute>
+            </xpath>
+            <xpath
+                expr="//field[@name='order_line']//list//field[@name='tax_id']"
+                position="after"
+            >
+                <field
+                    name="tax_id"
+                    widget="many2many_tags"
+                    options="{'no_create': True}"
+                    domain="[('type_tax_use', '=', 'sale'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id)]"
+                    context="{'active_test': True}"
+                    readonly="parent.country_code == 'VE' or qty_invoiced &gt; 0 or is_downpayment"
+                    groups="!account.group_account_manager"
+                    optional="show"
+                />
             </xpath>
             <xpath
                 expr="//field[@name='order_line']//form//field[@name='tax_id']"
                 position="attributes"
             >
-                <attribute
-                    name="readonly"
-                >parent.country_code == 'VE' or qty_invoiced &gt; 0</attribute>
+                <attribute name="groups">account.group_account_manager</attribute>
+            </xpath>
+            <xpath
+                expr="//field[@name='order_line']//form//field[@name='tax_id']"
+                position="after"
+            >
+                <field
+                    name="tax_id"
+                    widget="many2many_tags"
+                    options="{'no_create': True}"
+                    context="{'search_view_ref': 'account.account_tax_view_search'}"
+                    domain="[('type_tax_use', '=', 'sale'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id)]"
+                    readonly="parent.country_code == 'VE' or qty_invoiced &gt; 0"
+                    groups="!account.group_account_manager"
+                />
             </xpath>
             <xpath expr="//button[@id='send_proforma_primary']" position="attributes">
                 <attribute

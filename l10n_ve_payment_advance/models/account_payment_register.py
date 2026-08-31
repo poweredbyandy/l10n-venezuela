@@ -32,11 +32,15 @@ class AccountPaymentRegister(models.TransientModel):
         currency_field="currency_id",
         compute="_compute_l10n_ve_advance_amount_available",
     )
+    l10n_ve_has_advance_source_payment = fields.Boolean(
+        compute="_compute_l10n_ve_has_advance_source_payment",
+    )
 
     payment_difference_handling_overpay = fields.Selection(
         selection=[
+            ("open", "Mantener abierto"),
             ("advance", "Mantener como anticipo"),
-            ("reconcile", "Marcar como totalmente pagado"),
+            ("reconcile", "Marcar como pagado en su totalidad"),
         ],
         string="Gestión de la diferencia de pago",
         compute="_compute_payment_difference_handling_overpay",
@@ -61,6 +65,29 @@ class AccountPaymentRegister(models.TransientModel):
         if self.partner_type == "supplier":
             return self._get_supplier_advance_account()
         return self._get_customer_advance_account()
+
+    def _l10n_ve_get_advance_source_payment(self, advance_line=None):
+        line = advance_line
+        if line is None:
+            self.ensure_one()
+            line = self.l10n_ve_advance_line_id
+        if not line:
+            return self.env["account.payment"]
+        payment = line.payment_id
+        if payment:
+            return payment
+        move = line.move_id
+        if "origin_payment_id" in move._fields and move.origin_payment_id:
+            return move.origin_payment_id
+        return move.payment_id
+
+    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    def _compute_l10n_ve_has_advance_source_payment(self):
+        for wizard in self:
+            wizard.l10n_ve_has_advance_source_payment = bool(
+                wizard.l10n_ve_apply_advance
+                and wizard._l10n_ve_get_advance_source_payment()
+            )
 
     def _get_advance_line_residual_in_wizard_currency(self, advance_line):
         self.ensure_one()
@@ -125,7 +152,51 @@ class AccountPaymentRegister(models.TransientModel):
             advance_line_id = self.env.context.get("default_l10n_ve_advance_line_id")
             if advance_line_id and "l10n_ve_advance_line_id" in fields_list:
                 res["l10n_ve_advance_line_id"] = advance_line_id
+            if advance_line_id:
+                advance_line = self.env["account.move.line"].browse(advance_line_id)
+                source = self._l10n_ve_get_advance_source_payment(advance_line)
+                if source.journal_id and "journal_id" in fields_list:
+                    res["journal_id"] = source.journal_id.id
+                if (
+                    source.payment_method_line_id
+                    and "payment_method_line_id" in fields_list
+                ):
+                    res["payment_method_line_id"] = source.payment_method_line_id.id
         return res
+
+    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    def _compute_available_journal_ids(self):
+        super()._compute_available_journal_ids()
+        for wizard in self.filtered("l10n_ve_apply_advance"):
+            source = wizard._l10n_ve_get_advance_source_payment()
+            if source.journal_id:
+                wizard.available_journal_ids |= source.journal_id
+
+    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    def _compute_journal_id(self):
+        super()._compute_journal_id()
+        for wizard in self.filtered("l10n_ve_apply_advance"):
+            source = wizard._l10n_ve_get_advance_source_payment()
+            if source.journal_id:
+                wizard.journal_id = source.journal_id
+
+    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    def _compute_payment_method_line_fields(self):
+        super()._compute_payment_method_line_fields()
+        for wizard in self.filtered("l10n_ve_apply_advance"):
+            source = wizard._l10n_ve_get_advance_source_payment()
+            if source.payment_method_line_id:
+                wizard.available_payment_method_line_ids |= (
+                    source.payment_method_line_id
+                )
+
+    @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
+    def _compute_payment_method_line_id(self):
+        super()._compute_payment_method_line_id()
+        for wizard in self.filtered("l10n_ve_apply_advance"):
+            source = wizard._l10n_ve_get_advance_source_payment()
+            if source.payment_method_line_id:
+                wizard.payment_method_line_id = source.payment_method_line_id
 
     @api.depends("line_ids", "l10n_ve_apply_advance")
     def _compute_from_lines(self):
@@ -210,23 +281,31 @@ class AccountPaymentRegister(models.TransientModel):
         "payment_difference",
         "partner_id",
         "company_id",
+        "l10n_ve_apply_advance",
     )
     def _compute_show_advance_difference_handling(self):
         for wizard in self:
             wizard.show_advance_difference_handling = bool(
-                wizard._is_advance_overpayment_difference()
+                not wizard.l10n_ve_apply_advance
+                and wizard._is_advance_overpayment_difference()
                 and wizard._get_advance_account()
             )
 
     @api.depends("payment_difference_handling", "show_advance_difference_handling")
     def _compute_payment_difference_handling_overpay(self):
         for wizard in self:
-            if wizard.payment_difference_handling == "reconcile":
-                wizard.payment_difference_handling_overpay = "reconcile"
-            elif wizard.show_advance_difference_handling:
-                wizard.payment_difference_handling_overpay = "advance"
-            else:
+            if not wizard.show_advance_difference_handling:
                 wizard.payment_difference_handling_overpay = False
+            elif wizard.payment_difference_handling in (
+                "open",
+                "advance",
+                "reconcile",
+            ):
+                wizard.payment_difference_handling_overpay = (
+                    wizard.payment_difference_handling
+                )
+            else:
+                wizard.payment_difference_handling_overpay = "open"
 
     def _inverse_payment_difference_handling_overpay(self):
         for wizard in self:
@@ -234,6 +313,8 @@ class AccountPaymentRegister(models.TransientModel):
                 wizard.payment_difference_handling = (
                     wizard.payment_difference_handling_overpay
                 )
+                if wizard.payment_difference_handling != "advance":
+                    wizard._clear_advance_writeoff_defaults()
 
     @api.depends(
         "early_payment_discount_mode",
@@ -243,23 +324,23 @@ class AccountPaymentRegister(models.TransientModel):
         "l10n_ve_apply_advance",
     )
     def _compute_payment_difference_handling(self):
+        previous = {
+            wizard: wizard.payment_difference_handling for wizard in self
+        }
+        super()._compute_payment_difference_handling()
         for wizard in self:
-            if wizard.l10n_ve_apply_advance:
-                wizard.payment_difference_handling = "reconcile"
-                continue
-            if not wizard.can_edit_wizard:
-                wizard.payment_difference_handling = False
-            elif wizard.early_payment_discount_mode:
-                wizard.payment_difference_handling = "reconcile"
-            elif wizard.show_advance_difference_handling:
-                if wizard.payment_difference_handling not in (
-                    "advance",
-                    "reconcile",
-                ):
-                    wizard.payment_difference_handling = "advance"
-            elif wizard.payment_difference_handling == "advance":
-                wizard.payment_difference_handling = "open"
-            elif wizard.payment_difference_handling not in ("open", "reconcile"):
+            selected = previous.get(wizard)
+            if wizard.show_advance_difference_handling:
+                if selected in ("open", "advance", "reconcile"):
+                    wizard.payment_difference_handling = selected
+                else:
+                    wizard.payment_difference_handling = "open"
+            elif selected in ("open", "reconcile"):
+                wizard.payment_difference_handling = selected
+            elif (
+                selected == "advance"
+                or wizard.payment_difference_handling == "advance"
+            ):
                 wizard.payment_difference_handling = "open"
 
     def _uses_advance_payment_difference_handling(self):
@@ -274,7 +355,13 @@ class AccountPaymentRegister(models.TransientModel):
             return False
         if not self._is_advance_overpayment_difference():
             return False
-        return self.payment_difference_handling in ("advance", "reconcile")
+        return self.payment_difference_handling == "advance"
+
+    def _get_advance_writeoff_label(self):
+        self.ensure_one()
+        if self.partner_type == "supplier":
+            return _("Anticipo de proveedor")
+        return _("Anticipo de cliente")
 
     def _prepare_advance_writeoff_defaults(self):
         self.ensure_one()
@@ -289,10 +376,15 @@ class AccountPaymentRegister(models.TransientModel):
         if not self.writeoff_account_id:
             self.writeoff_account_id = advance_account
         if self.writeoff_label in (False, "Write-Off"):
-            if self.partner_type == "supplier":
-                self.writeoff_label = _("Anticipo de proveedor")
-            else:
-                self.writeoff_label = _("Anticipo de cliente")
+            self.writeoff_label = self._get_advance_writeoff_label()
+
+    def _clear_advance_writeoff_defaults(self):
+        self.ensure_one()
+        advance_account = self._get_advance_account()
+        if self.writeoff_account_id and self.writeoff_account_id == advance_account:
+            self.writeoff_account_id = False
+        if self.writeoff_label == self._get_advance_writeoff_label():
+            self.writeoff_label = "Write-Off"
 
     def _apply_advance_account_to_writeoff_lines(self, payment_vals):
         if not self._should_use_advance_for_payment_difference():
@@ -320,15 +412,13 @@ class AccountPaymentRegister(models.TransientModel):
                 ],
                 "outstanding_account_id": advance_account.id,
                 "payment_has_invoice_lines": True,
-                "write_off_line_vals": [],
             }
         )
+        if self.payment_difference_handling == "open":
+            payment_vals["write_off_line_vals"] = []
         return payment_vals
 
     def _create_payment_vals_from_wizard(self, batch_result):
-        if self.l10n_ve_apply_advance:
-            payment_vals = super()._create_payment_vals_from_wizard(batch_result)
-            return self._prepare_l10n_ve_advance_application_payment_vals(payment_vals)
         advance_mode = self._uses_advance_payment_difference_handling()
         previous_handling = self.payment_difference_handling
         if advance_mode:
@@ -337,6 +427,10 @@ class AccountPaymentRegister(models.TransientModel):
         payment_vals = super()._create_payment_vals_from_wizard(batch_result)
         if advance_mode:
             self.payment_difference_handling = previous_handling
+        if self.l10n_ve_apply_advance:
+            payment_vals = self._prepare_l10n_ve_advance_application_payment_vals(
+                payment_vals
+            )
         if batch_result.get("lines"):
             payment_vals["payment_has_invoice_lines"] = True
         return self._apply_advance_account_to_writeoff_lines(payment_vals)
@@ -360,7 +454,8 @@ class AccountPaymentRegister(models.TransientModel):
     )
     def _onchange_payment_difference_advance_account(self):
         if self._should_use_advance_for_payment_difference():
-            self._prepare_advance_writeoff_defaults()
+            return
+        self._clear_advance_writeoff_defaults()
 
     @api.onchange("l10n_ve_apply_advance", "l10n_ve_advance_line_id", "line_ids")
     def _onchange_l10n_ve_apply_advance_amount(self):

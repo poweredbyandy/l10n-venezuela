@@ -11,10 +11,11 @@ from odoo import models, tools
 
 class MunicipalRetentionXlsx(models.AbstractModel):
     _name = "municipal.retention.xlsx"
+    _description = "Municipal Retention XLSX"
 
     def xlsx_file(self, tabla, nombre, retention_id):
         company = self.env.company
-        currency_symbol = self.env.ref("base.VEF").symbol
+        currency_symbol = company.currency_id.symbol or ""
         retention = self.env["account.retention"].browse(retention_id)
         data2 = BytesIO()
         workbook = xlsxwriter.Workbook(data2, {"in_memory": True})
@@ -51,17 +52,17 @@ class MunicipalRetentionXlsx(models.AbstractModel):
                 "A2", "image.png", {"image_data": tax_authorities_logo}
             )
         tax_authorities_name = tax_authorities_record.tax_authorities_name or ""
+        header_1 = (
+            tax_authorities_record.text_header_1_municipal_retention
+            or "A fin de cumplir con el art. 136 de la Ordenanza de Impuestos a las Actividades Economicas, Comercios, Servicios"  # noqa: E501
+        )
+        header_2 = (
+            tax_authorities_record.text_header_2_municipal_retention
+            or "o de indole similar y el Decreto A-05-01-2016   Art. 8 Reglamento de Retenciones sobre Retenciones Actividades Econòmicas"  # noqa: E501
+        )
 
-        worksheet2.write(
-            "C2",
-            "A fin de cumplir con el art. 136 de la Ordenanza de Impuestos a las Actividades Economicas, Comercios, Servicios",  # noqa: E501
-            bold,
-        )
-        worksheet2.write(
-            "C3",
-            "o de indole similar y el Decreto A-05-01-2016   Art. 8 Reglamento de Retenciones sobre Retenciones Actividades Econòmicas",  # noqa: E501
-            bold,
-        )
+        worksheet2.write("C2", header_1, bold)
+        worksheet2.write("C3", header_2, bold)
         worksheet2.write(
             "C5",
             f"COMPROBANTE DE RETENCION IMPUESTO ACTIVIDADES ECONOMICAS {tax_authorities_name.upper()}",  # noqa: E501
@@ -84,13 +85,24 @@ class MunicipalRetentionXlsx(models.AbstractModel):
             str(tax_authorities_record.economic_activity_number),
         )
         worksheet2.write_rich_string("A13", bold, "DIRECCIÓN FISCAL: ", company.street)
-        worksheet2.write("G14", "FECHA DE EMISIÓN O TRANSACCION", boldWithBorderJustify)
-        worksheet2.write(
-            "G15", retention.date_accounting.strftime("%d-%m-%Y"), boldWithBorderJustify
+        accounting_date = (
+            retention.date_accounting.strftime("%d-%m-%Y")
+            if retention.date_accounting
+            else ""
         )
-        worksheet2.write("H14", "FECHA DE ENTREGA", boldWithBorderJustify)
-        today = date.today()
-        worksheet2.write("H15", today.strftime("%d-%m-%Y"), boldWithBorderJustify)
+        if not retention.company_id.hide_issue_date_of_municipal_withholding_receipt:
+            worksheet2.write(
+                "G14", "FECHA DE EMISIÓN O TRANSACCION", boldWithBorderJustify
+            )
+            worksheet2.write("G15", accounting_date, boldWithBorderJustify)
+            worksheet2.write("H14", "FECHA DE ENTREGA", boldWithBorderJustify)
+            today = date.today()
+            worksheet2.write("H15", today.strftime("%d-%m-%Y"), boldWithBorderJustify)
+        else:
+            worksheet2.merge_range(
+                "G14:H14", "FECHA DE EMISIÓN O TRANSACCION", boldWithBorderJustify
+            )
+            worksheet2.merge_range("G15:H15", accounting_date, boldWithBorderJustify)
         worksheet2.write("D15", "CONTRIBUYENTE", bold)
         worksheet2.write_rich_string(
             "A16", bold, "RAZÓN SOCIAL: ", str(retention.partner_id.name)

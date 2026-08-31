@@ -48,7 +48,7 @@ class MunicipalRetentionPatentReport(models.TransientModel):
         worksheet2.set_row(0, 23, merge_format)
         columnas = list(table.columns.values)
         columns2 = [{"header": r} for r in columnas]
-        currency_symbol = self.env.ref("base.VEF").symbol
+        currency_symbol = self.env.company.currency_id.symbol or ""
         money_format = workbook.add_format(
             {"num_format": '#,##0.00 "' + currency_symbol + '"'}
         )
@@ -168,13 +168,7 @@ class MunicipalRetentionPatentReport(models.TransientModel):
         return result.getvalue()
 
     def _get_xlsx_file_domain(self):
-        return [
-            ("move_id.invoice_date", ">=", self.date_start),
-            ("move_id.invoice_date", "<=", self.date_end),
-            ("move_id.move_type", "in", ["out_invoice", "out_refund"]),
-            ("move_id.financial_document", "=", True),
-            ("move_id.state", "=", "posted"),
-        ]
+        return [("id", "=", False)]
 
     def _get_xlsx_municipality_retention_report(self):
         domain = self._get_xlsx_municipality_retention_report_domain()
@@ -264,6 +258,5 @@ class MunicipalRetentionPatentReport(models.TransientModel):
             ("move_id.invoice_date", ">=", self.date_start),
             ("move_id.invoice_date", "<=", self.date_end),
             ("move_id.move_type", "in", ["out_invoice", "out_refund"]),
-            ("move_id.financial_document", "=", False),
             ("move_id.state", "=", "posted"),
         ]

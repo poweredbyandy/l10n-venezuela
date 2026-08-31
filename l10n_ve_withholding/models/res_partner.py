@@ -31,6 +31,25 @@ class ResPartner(models.Model):
         return self.withholding_type_id
 
     @api.model
+    def _l10n_ve_get_islr_applicable_type_person_ids(self):
+        return (
+            self.env["payment.concept.line"]
+            .search([("payment_concept_id.status", "=", True)])
+            .mapped("type_person_id")
+            .filtered("state")
+            .ids
+        )
+
+    @api.model
+    def _l10n_ve_islr_supplier_partner_domain(self):
+        type_person_ids = self._l10n_ve_get_islr_applicable_type_person_ids()
+        return [
+            ("parent_id", "=", False),
+            ("supplier_rank", ">", 0),
+            ("type_person_id", "in", type_person_ids or [0]),
+        ]
+
+    @api.model
     def _prepare_create_values(self, vals_list):
         vals_list = super()._prepare_create_values(vals_list)
         default_type_person_id = self.env["type.person"]._get_default_type_person_id()

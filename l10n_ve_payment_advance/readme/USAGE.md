@@ -12,6 +12,13 @@ To apply an advance:
 3. Enter an amount no greater than the advance balance or document residual.
 4. Confirm the application.
 
-When registering a payment greater than the document residual, select
-**Keep as advance** to post the difference to the corresponding advance
-account.
+The journal and payment method are taken from the original payment and are
+not asked again.
+
+When registering a payment greater than the document residual, choose how
+to handle the difference:
+
+* **Keep open** leaves the surplus on the partner receivable or payable.
+* **Keep as advance** posts the difference to the corresponding advance
+  account.
+* **Mark as fully paid** writes the difference off to the selected account.
