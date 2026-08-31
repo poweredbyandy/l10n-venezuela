@@ -4,9 +4,7 @@
         <div class="o_l10n_ve_igtf_payment_summary">
             <div class="o_l10n_ve_igtf_payment_summary_amounts">
                 <t t-if="showPaymentCurrency">
-                    <span
-                        t-esc="formatAmount(igtfPayment, paymentCurrencyId)"
-                    />
+                    <span t-esc="formatAmount(igtfPayment, paymentCurrencyId)" />
                     <span class="text-muted mx-1">/</span>
                 </t>
                 <span
@@ -16,7 +14,10 @@
             </div>
             <div class="o_l10n_ve_igtf_payment_summary_meta text-muted">
                 <span t-esc="baseLabel" />
-                <span class="ms-1" t-esc="formatAmount(baseCompany, companyCurrencyId)" />
+                <span
+                    class="ms-1"
+                    t-esc="formatAmount(baseCompany, companyCurrencyId)"
+                />
                 <t t-if="formattedRate">
                     <span class="mx-1">-</span>
                     <span t-esc="formattedRate" />

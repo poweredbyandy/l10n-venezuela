@@ -282,7 +282,8 @@ class AccountMove(models.Model):
         if self._l10n_ve_is_post_discount_credit_note():
             return False
         if self.l10n_ve_global_discount_ids or (
-            self.reversed_entry_id and self.reversed_entry_id.l10n_ve_global_discount_ids
+            self.reversed_entry_id
+            and self.reversed_entry_id.l10n_ve_global_discount_ids
         ):
             return False
         return True

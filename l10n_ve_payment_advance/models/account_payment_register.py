@@ -166,37 +166,41 @@ class AccountPaymentRegister(models.TransientModel):
 
     @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
     def _compute_available_journal_ids(self):
-        super()._compute_available_journal_ids()
+        res = super()._compute_available_journal_ids()
         for wizard in self.filtered("l10n_ve_apply_advance"):
             source = wizard._l10n_ve_get_advance_source_payment()
             if source.journal_id:
                 wizard.available_journal_ids |= source.journal_id
+        return res
 
     @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
     def _compute_journal_id(self):
-        super()._compute_journal_id()
+        res = super()._compute_journal_id()
         for wizard in self.filtered("l10n_ve_apply_advance"):
             source = wizard._l10n_ve_get_advance_source_payment()
             if source.journal_id:
                 wizard.journal_id = source.journal_id
+        return res
 
     @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
     def _compute_payment_method_line_fields(self):
-        super()._compute_payment_method_line_fields()
+        res = super()._compute_payment_method_line_fields()
         for wizard in self.filtered("l10n_ve_apply_advance"):
             source = wizard._l10n_ve_get_advance_source_payment()
             if source.payment_method_line_id:
                 wizard.available_payment_method_line_ids |= (
                     source.payment_method_line_id
                 )
+        return res
 
     @api.depends("l10n_ve_apply_advance", "l10n_ve_advance_line_id")
     def _compute_payment_method_line_id(self):
-        super()._compute_payment_method_line_id()
+        res = super()._compute_payment_method_line_id()
         for wizard in self.filtered("l10n_ve_apply_advance"):
             source = wizard._l10n_ve_get_advance_source_payment()
             if source.payment_method_line_id:
                 wizard.payment_method_line_id = source.payment_method_line_id
+        return res
 
     @api.depends("line_ids", "l10n_ve_apply_advance")
     def _compute_from_lines(self):
@@ -324,10 +328,8 @@ class AccountPaymentRegister(models.TransientModel):
         "l10n_ve_apply_advance",
     )
     def _compute_payment_difference_handling(self):
-        previous = {
-            wizard: wizard.payment_difference_handling for wizard in self
-        }
-        super()._compute_payment_difference_handling()
+        previous = {wizard: wizard.payment_difference_handling for wizard in self}
+        res = super()._compute_payment_difference_handling()
         for wizard in self:
             selected = previous.get(wizard)
             if wizard.show_advance_difference_handling:
@@ -338,10 +340,10 @@ class AccountPaymentRegister(models.TransientModel):
             elif selected in ("open", "reconcile"):
                 wizard.payment_difference_handling = selected
             elif (
-                selected == "advance"
-                or wizard.payment_difference_handling == "advance"
+                selected == "advance" or wizard.payment_difference_handling == "advance"
             ):
                 wizard.payment_difference_handling = "open"
+        return res
 
     def _uses_advance_payment_difference_handling(self):
         self.ensure_one()

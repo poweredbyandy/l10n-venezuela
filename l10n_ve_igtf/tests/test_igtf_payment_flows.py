@@ -1397,10 +1397,7 @@ class TestIgtfPaymentFlows(TestL10nVeIgtfCommon):
         self.assertGreater(abs(sum(writeoff_lines.mapped("balance"))), 0.0)
         liquidity_lines = payment.move_id.line_ids.filtered(
             lambda line: line.account_id
-            == (
-                payment.outstanding_account_id
-                or payment.journal_id.default_account_id
-            )
+            == (payment.outstanding_account_id or payment.journal_id.default_account_id)
         )
         self.assertTrue(liquidity_lines)
         self.assertAlmostEqual(

@@ -591,9 +591,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             lambda move, j=journal: self._is_move_bank_liquidity_registered(move, j)
         )
         pending_posted_moves = (posted_moves - registered_moves).filtered(
-            lambda move, j=journal: self._bank_move_has_pending_bridge_residual(
-                move, j
-            )
+            lambda move, j=journal: self._bank_move_has_pending_bridge_residual(move, j)
         )
         draft_moves = self._get_draft_moves(
             journal, company_ids, date_from, date_to, date_type

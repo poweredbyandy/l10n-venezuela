@@ -1,5 +1,8 @@
 /* eslint-disable complexity */
-import {isTfhkaEnqSts1Operativa, isTfhkaEnqSts2SinErrorFiscal} from "./tfhka_protocol.esm";
+import {
+    isTfhkaEnqSts1Operativa,
+    isTfhkaEnqSts2SinErrorFiscal,
+} from "./tfhka_protocol.esm";
 import {
     mfReportzFromDailyClosureString,
     parseTfhkaS1StatusResponse,

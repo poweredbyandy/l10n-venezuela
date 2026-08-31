@@ -256,7 +256,9 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         invoice.action_post()
         invoice.l10n_ve_invoice_original_printed = True
         refund = invoice._reverse_moves()
-        line = refund.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
+        line = refund.invoice_line_ids.filtered(
+            lambda aml: aml.display_type == "product"
+        )
         line.ensure_one()
         with Form(refund) as refund_form:
             with refund_form.invoice_line_ids.edit(0) as line_form:
@@ -318,7 +320,9 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                 ],
             }
         )
-        line = debit.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
+        line = debit.invoice_line_ids.filtered(
+            lambda aml: aml.display_type == "product"
+        )
         line.ensure_one()
         with Form(debit) as debit_form:
             with debit_form.invoice_line_ids.edit(0) as line_form:

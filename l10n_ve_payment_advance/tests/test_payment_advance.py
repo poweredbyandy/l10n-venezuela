@@ -403,9 +403,7 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
     def test_underpayment_hides_keep_as_advance_option(self):
         self._configure_company_advance_accounts()
         invoice = self._create_invoice()
-        wizard = self._create_payment_wizard(
-            invoice, invoice.amount_residual - 10.0
-        )
+        wizard = self._create_payment_wizard(invoice, invoice.amount_residual - 10.0)
         self.assertFalse(wizard.show_advance_difference_handling)
         self.assertFalse(wizard.payment_difference_handling_overpay)
         self.assertIn(
@@ -419,9 +417,7 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
     def test_overpayment_shows_keep_as_advance_option(self):
         self._configure_company_advance_accounts()
         invoice = self._create_invoice()
-        wizard = self._create_payment_wizard(
-            invoice, invoice.amount_residual + 20.0
-        )
+        wizard = self._create_payment_wizard(invoice, invoice.amount_residual + 20.0)
         self.assertTrue(wizard.show_advance_difference_handling)
         self.assertIn(
             "advance",
@@ -435,9 +431,7 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
     def test_reducing_amount_hides_keep_as_advance_option(self):
         self._configure_company_advance_accounts()
         invoice = self._create_invoice()
-        wizard = self._create_payment_wizard(
-            invoice, invoice.amount_residual + 20.0
-        )
+        wizard = self._create_payment_wizard(invoice, invoice.amount_residual + 20.0)
         wizard.payment_difference_handling = "advance"
         self.assertTrue(wizard.show_advance_difference_handling)
         wizard.amount = invoice.amount_residual - 10.0
@@ -464,7 +458,7 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
         self.assertAlmostEqual(abs(sum(advance_lines.mapped("balance"))), 20.0)
         if "has_excess_to_refund" in invoice._fields:
             invoice.invalidate_recordset(["has_excess_to_refund"])
-            invoice.has_excess_to_refund
+            self.assertFalse(invoice.has_excess_to_refund)
 
     def test_customer_overpayment_can_keep_difference_open(self):
         self._configure_company_advance_accounts()
@@ -758,9 +752,7 @@ class TestPaymentAdvanceFullLocalization(AccountTestInvoicingCommon):
     def test_overpayment_reconcile_clears_advance_writeoff_account(self):
         self._configure_company_advance_accounts()
         invoice = self._create_invoice()
-        wizard = self._create_payment_wizard(
-            invoice, invoice.amount_residual + 20.0
-        )
+        wizard = self._create_payment_wizard(invoice, invoice.amount_residual + 20.0)
         wizard.payment_difference_handling = "advance"
         wizard.writeoff_account_id = self.customer_advance_account
         wizard.writeoff_label = wizard._get_advance_writeoff_label()

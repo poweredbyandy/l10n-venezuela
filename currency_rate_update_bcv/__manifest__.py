@@ -9,8 +9,7 @@
     "development_status": "Beta",
     "category": "Financial Management/Configuration",
     "countries": ["ve"],
-    "author": "Luis Pinzón, Anderson Armeya, "
-    "Odoo Community Association (OCA)",
+    "author": "Luis Pinzón, Anderson Armeya, " "Odoo Community Association (OCA)",
     "maintainers": ["lapinzon", "andyengit"],
     "website": "https://github.com/OCA/l10n-venezuela",
     "license": "AGPL-3",

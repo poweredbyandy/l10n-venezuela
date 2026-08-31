@@ -59,9 +59,7 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
     def test_payment_method_children_use_hierarchical_ids(self):
         lines, _options = self._get_report_lines()
         method_lines = [
-            line
-            for line in lines
-            if line.get("unfoldable") and line.get("level") == 2
+            line for line in lines if line.get("unfoldable") and line.get("level") == 2
         ]
         self.assertTrue(
             method_lines,
@@ -91,8 +89,7 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         detail_lines = [
             line
             for line in lines
-            if line.get("caret_options") == "account.move"
-            and line.get("level") == 4
+            if line.get("caret_options") == "account.move" and line.get("level") == 4
         ]
         self.assertTrue(detail_lines)
         move = handler._daily_payments_get_move_from_line_id(detail_lines[0]["id"])
@@ -134,20 +131,14 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         self.assertAlmostEqual(self._get_line_amount(journal_expense[0]), -150.0)
         self.assertAlmostEqual(self._get_line_amount(grand_total[0]), 350.0)
         income_methods = [
-            line
-            for line in lines
-            if line.get("parent_id") == journal_income[0]["id"]
+            line for line in lines if line.get("parent_id") == journal_income[0]["id"]
         ]
         expense_methods = [
-            line
-            for line in lines
-            if line.get("parent_id") == journal_expense[0]["id"]
+            line for line in lines if line.get("parent_id") == journal_expense[0]["id"]
         ]
         self.assertTrue(
             any(line.get("name") == "Sin método de pago" for line in income_methods)
         )
         self.assertTrue(
-            any(
-                line.get("name") == outbound_method.name for line in expense_methods
-            )
+            any(line.get("name") == outbound_method.name for line in expense_methods)
         )
