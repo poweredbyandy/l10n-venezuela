@@ -12,6 +12,7 @@ class StockPicking(models.Model):
     invoice_ids = fields.Many2many(
         comodel_name="account.move",
         compute="_compute_invoice_ids",
+        search="_search_invoice_ids",
         string="Invoices",
         copy=False,
     )
@@ -171,6 +172,9 @@ class StockPicking(models.Model):
         for picking in self:
             amls = picking.move_ids.invoice_line_ids
             picking.invoice_ids = amls.move_id
+
+    def _search_invoice_ids(self, operator, value):
+        return [("move_ids.invoice_line_ids.move_id", operator, value)]
 
     @api.depends("company_id.account_fiscal_country_id")
     def _compute_l10n_ve_is_ve_country(self):
