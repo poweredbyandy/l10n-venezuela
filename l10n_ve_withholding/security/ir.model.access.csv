@@ -24,6 +24,8 @@ access_economic_activity_account_invoice,economic.activity invoice,model_economi
 access_economic_branch_account_invoice,economic.branch invoice,model_economic_branch,account.group_account_invoice,1,0,0,0
 access_economic_activity_account_user,economic.activity user,model_economic_activity,account.group_account_user,1,0,0,0
 access_economic_branch_account_user,economic.branch user,model_economic_branch,account.group_account_user,1,0,0,0
+access_economic_activity_base_user,economic.activity internal user,model_economic_activity,base.group_user,1,0,0,0
+access_economic_branch_base_user,economic.branch internal user,model_economic_branch,base.group_user,1,0,0,0
 access_arcv_report,arcv_report,model_arcv_report,account.group_account_invoice,1,1,1,0
 
 access_payment_concept_fiscal_user_support,access_payment_concept_fiscal_user_support,model_payment_concept,l10n_ve_seniat.group_fiscal_config_support,1,1,1,0
