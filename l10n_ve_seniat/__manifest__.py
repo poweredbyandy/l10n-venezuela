@@ -3,7 +3,7 @@
     "name": "Venezuela SENIAT - Accounting",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
-    "version": "18.0.1.11.0",
+    "version": "18.0.1.11.1",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Accounting/Localizations/Account Charts",

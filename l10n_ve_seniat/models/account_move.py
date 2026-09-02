@@ -1,6 +1,7 @@
 import logging
 import re
 from collections import defaultdict
+from datetime import timezone
 
 from dateutil.relativedelta import relativedelta
 
@@ -160,12 +161,17 @@ class AccountMove(models.Model):
             "l10n_ve_skip_reception_term_sync"
         ):
             self._l10n_ve_sync_payment_term_line_dates()
+        if "l10n_ve_invoice_date" in vals and not self.env.context.get(
+            "l10n_ve_skip_invoice_date_sync"
+        ):
+            self._l10n_ve_sync_invoice_date_from_document_datetime()
         return res
 
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
         records._l10n_ve_sync_journal_with_origin_from_create()
+        records._l10n_ve_sync_invoice_date_from_document_datetime()
         return records
 
     l10n_ve_invoice_original_printed = fields.Boolean(
@@ -315,9 +321,10 @@ class AccountMove(models.Model):
         copy=False,
         tracking=True,
         help=(
-            "Forma libre: se asigna al confirmar. Contingencia: indíquela antes de "
-            "confirmar. Facturación digital: fecha de sincronización con la imprenta. "
-            "Máquina fiscal: fecha en que se imprimió el documento."
+            "Forma libre: si está vacía se asigna al confirmar; si ya tiene fecha se "
+            "mantiene. Contingencia: indíquela antes de confirmar. Facturación "
+            "digital: fecha de sincronización con la imprenta. Máquina fiscal: fecha "
+            "en que se imprimió el documento."
         ),
     )
     l10n_ve_control_number = fields.Char(
@@ -1595,6 +1602,57 @@ Please create a credit note instead.
         """)
         )
 
+    def _l10n_ve_date_from_document_datetime(self, invoice_dt=None):
+        self.ensure_one()
+        invoice_dt = invoice_dt or self.l10n_ve_invoice_date
+        if not invoice_dt:
+            return False
+        return fields.Datetime.context_timestamp(self, invoice_dt).date()
+
+    def _l10n_ve_datetime_from_invoice_date(self, invoice_date=None):
+        self.ensure_one()
+        invoice_date = invoice_date or self.invoice_date
+        now = fields.Datetime.now()
+        if not invoice_date:
+            return now
+        tz_now = fields.Datetime.context_timestamp(self, now)
+        local_dt = tz_now.replace(
+            year=invoice_date.year,
+            month=invoice_date.month,
+            day=invoice_date.day,
+        )
+        return local_dt.astimezone(timezone.utc).replace(tzinfo=None)
+
+    def _l10n_ve_sync_invoice_date_from_document_datetime(self):
+        for move in self:
+            if move.state != "draft" or not move.l10n_ve_invoice_date:
+                continue
+            if move.move_type not in ("out_invoice", "out_refund"):
+                continue
+            invoice_date = move._l10n_ve_date_from_document_datetime()
+            if invoice_date and move.invoice_date != invoice_date:
+                move.with_context(l10n_ve_skip_invoice_date_sync=True).write(
+                    {"invoice_date": invoice_date}
+                )
+
+    def _l10n_ve_assign_document_datetime_if_empty(self):
+        ve_code = self.env.ref("base.ve").code
+        today = fields.Date.context_today(self)
+        for rec in self:
+            if rec.state != "posted":
+                continue
+            if rec.country_code != ve_code:
+                continue
+            if rec.move_type not in ("out_invoice", "out_refund"):
+                continue
+            if rec.l10n_ve_invoice_date:
+                continue
+            if rec.invoice_date and rec.invoice_date != today:
+                document_dt = rec._l10n_ve_datetime_from_invoice_date()
+                rec.write({"l10n_ve_invoice_date": document_dt})
+            else:
+                rec.write({"l10n_ve_invoice_date": fields.Datetime.now()})
+
     def _post(self, soft=True):
         self._l10n_ve_check_credit_debit_journal_matches_origin()
         self._l10n_ve_check_credit_note_products_and_labels()
@@ -1602,19 +1660,15 @@ Please create a credit note instead.
             for move in self:
                 move._l10n_ve_validate_customer_invoice_emission_for_post()
                 move._l10n_ve_validate_credit_note_amount_limit()
+            self._l10n_ve_sync_invoice_date_from_document_datetime()
         res = super()._post(soft=soft)
         if self.env.context.get("install_mode"):
             return res
         ve_code = self.env.ref("base.ve").code
+        self._l10n_ve_assign_document_datetime_if_empty()
         for rec in self:
             if rec.state != "posted":
                 continue
-            if (
-                rec.country_code == ve_code
-                and rec.move_type in ("out_invoice", "out_refund")
-                and not rec.l10n_ve_invoice_date
-            ):
-                rec.write({"l10n_ve_invoice_date": fields.Datetime.now()})
             if (
                 rec.country_code == ve_code
                 and rec.move_type in ("out_invoice", "out_refund")

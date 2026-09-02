@@ -3796,9 +3796,14 @@ class AccountReport(models.Model):
 
         return document_dates
 
+    def _is_synthetic_report_child_line(self, line_dict):
+        return self._get_markup(line_dict.get("id")) in ("total", "load_more")
+
     def _get_loaded_leaf_child_lines(self, line_id, children_by_parent):
         leaves = []
         for child in children_by_parent.get(line_id, []):
+            if self._is_synthetic_report_child_line(child):
+                continue
             child_id = child.get("id")
             if child_id and children_by_parent.get(child_id):
                 leaves.extend(
@@ -3838,20 +3843,38 @@ class AccountReport(models.Model):
         except Exception:
             return value
 
+    def _apply_converted_column_value(self, column, value, display_currency):
+        column["no_format"] = value
+        format_params = column.get("format_params") or {}
+        format_params["currency_id"] = display_currency.id
+        column["format_params"] = format_params
+        column["is_zero"] = self._is_value_zero(value, "monetary", format_params)
+
     def _write_converted_totals_from_child_lines(
         self, options, line_dict, child_lines, document_dates, display_currency
     ):
         total_col_idx = None
+        balance_col_idx = None
+        amount_col_idx = None
         converted_period_sum = 0.0
         any_column_converted = False
+        has_amount_column = any(
+            col and col.get("expression_label") == "amount"
+            for col in line_dict.get("columns", [])
+        )
         for col_idx, parent_col in enumerate(line_dict.get("columns", [])):
             if not parent_col or parent_col.get("figure_type") != "monetary":
                 continue
             if parent_col.get("no_format") is None:
                 continue
             expr_label = parent_col.get("expression_label", "")
+            if expr_label == "amount":
+                amount_col_idx = col_idx
             if expr_label == "total":
                 total_col_idx = col_idx
+                continue
+            if expr_label == "balance" and has_amount_column:
+                balance_col_idx = col_idx
                 continue
             converted_total = 0.0
             has_child_values = False
@@ -3876,24 +3899,27 @@ class AccountReport(models.Model):
                     display_currency,
                 )
             if has_child_values:
-                parent_col["no_format"] = converted_total
-                format_params = parent_col.get("format_params") or {}
-                format_params["currency_id"] = display_currency.id
-                parent_col["format_params"] = format_params
-                parent_col["is_zero"] = self._is_value_zero(
-                    converted_total, "monetary", format_params
+                self._apply_converted_column_value(
+                    parent_col, converted_total, display_currency
                 )
                 converted_period_sum += converted_total
                 any_column_converted = True
         if any_column_converted and total_col_idx is not None:
             total_col = line_dict["columns"][total_col_idx]
             if total_col:
-                total_col["no_format"] = converted_period_sum
-                format_params = total_col.get("format_params") or {}
-                format_params["currency_id"] = display_currency.id
-                total_col["format_params"] = format_params
-                total_col["is_zero"] = self._is_value_zero(
-                    converted_period_sum, "monetary", format_params
+                self._apply_converted_column_value(
+                    total_col, converted_period_sum, display_currency
+                )
+        if any_column_converted and balance_col_idx is not None:
+            amount_col = (
+                line_dict["columns"][amount_col_idx]
+                if amount_col_idx is not None
+                else None
+            )
+            balance_col = line_dict["columns"][balance_col_idx]
+            if amount_col and balance_col and amount_col.get("no_format") is not None:
+                self._apply_converted_column_value(
+                    balance_col, amount_col["no_format"], display_currency
                 )
 
     def _precompute_grouped_line_converted_values(  # noqa: C901
@@ -3979,6 +4005,37 @@ class AccountReport(models.Model):
                 line_dict,
                 child_lines,
                 child_doc_dates,
+                display_currency,
+            )
+
+        self._write_converted_grand_total_from_section_lines(
+            options, line_dict_list, document_dates, display_currency
+        )
+
+    def _write_converted_grand_total_from_section_lines(
+        self, options, line_dict_list, document_dates, display_currency
+    ):
+        grand_totals = [
+            line
+            for line in line_dict_list
+            if self._get_markup(line.get("id")) == "total" and not line.get("parent_id")
+        ]
+        if not grand_totals:
+            return
+        top_level_sources = [
+            line
+            for line in line_dict_list
+            if not line.get("parent_id")
+            and self._get_markup(line.get("id")) != "total"
+        ]
+        if not top_level_sources:
+            return
+        for grand_total in grand_totals:
+            self._write_converted_totals_from_child_lines(
+                options,
+                grand_total,
+                top_level_sources,
+                document_dates,
                 display_currency,
             )
 

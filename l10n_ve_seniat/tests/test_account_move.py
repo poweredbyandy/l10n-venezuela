@@ -1951,6 +1951,48 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertTrue(move.l10n_ve_invoice_date)
 
+    def test_post_keeps_existing_l10n_ve_invoice_date(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write({"l10n_ve_emission_medium": "free"})
+        custom_dt = fields.Datetime.to_datetime("2024-06-15 10:30:00")
+        vals = self._create_invoice_vals(self.partner_ve)
+        vals["invoice_date"] = fields.Date.today()
+        vals["l10n_ve_invoice_date"] = custom_dt
+        move = self.env["account.move"].create(vals)
+        self.assertEqual(move.invoice_date, fields.Date.to_date("2024-06-15"))
+        move.action_post()
+        self.assertEqual(move.l10n_ve_invoice_date, custom_dt)
+        self.assertEqual(move.invoice_date, fields.Date.to_date("2024-06-15"))
+
+    def test_post_uses_invoice_date_when_document_datetime_empty(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write({"l10n_ve_emission_medium": "free"})
+        invoice_date = fields.Date.to_date("2024-06-10")
+        vals = self._create_invoice_vals(self.partner_ve)
+        vals["invoice_date"] = invoice_date
+        move = self.env["account.move"].create(vals)
+        self.assertFalse(move.l10n_ve_invoice_date)
+        move.action_post()
+        self.assertEqual(move.invoice_date, invoice_date)
+        self.assertTrue(move.l10n_ve_invoice_date)
+        local_date = fields.Datetime.context_timestamp(
+            move, move.l10n_ve_invoice_date
+        ).date()
+        self.assertEqual(local_date, invoice_date)
+
+    def test_draft_write_document_datetime_updates_invoice_date(self):
+        journal = self.company_data["default_journal_sale"]
+        journal.write({"l10n_ve_emission_medium": "free"})
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        custom_dt = fields.Datetime.to_datetime("2024-05-20 14:15:00")
+        move.write({"l10n_ve_invoice_date": custom_dt})
+        self.assertEqual(move.invoice_date, fields.Date.to_date("2024-05-20"))
+        move.action_post()
+        self.assertEqual(move.l10n_ve_invoice_date, custom_dt)
+        self.assertEqual(move.invoice_date, fields.Date.to_date("2024-05-20"))
+
     def test_digital_posted_sets_l10n_ve_invoice_date(self):
         journal = self.company_data["default_journal_sale"]
         self._l10n_ve_configure_journal_digital(journal)

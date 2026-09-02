@@ -1,12 +1,24 @@
 .account_report.customer_statement {
     .o_control_panel_breadcrumbs {
-        height: auto !important;
+        flex-basis: auto;
+        min-width: 0 !important;
+    }
 
-        @include media-breakpoint-up(md) {
-            min-width: auto !important;
+    .o_breadcrumb {
+        min-width: 0;
+        max-width: 16rem;
+
+        .o_last_breadcrumb_item,
+        .breadcrumb-item,
+        .text-truncate {
+            max-width: 100%;
         }
     }
-    .o_breadcrumb {
-        flex-direction: column !important;
+
+    td.line_name .name {
+        max-width: 22rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
