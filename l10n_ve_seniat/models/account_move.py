@@ -130,6 +130,33 @@ class AccountMove(models.Model):
             else:
                 move.seniat_invoice_tag = False
 
+    @api.model
+    def _l10n_ve_drop_invalid_invoice_currency_rate_from_vals(self, vals):
+        if vals.get("invoice_currency_rate", 1) > 0:
+            return vals
+        if "invoice_currency_rate" not in vals:
+            return vals
+        if not self or all(move.state == "draft" for move in self):
+            vals = dict(vals)
+            vals.pop("invoice_currency_rate", None)
+        return vals
+
+    def _l10n_ve_ensure_draft_invoice_currency_rate(self):
+        moves = self.filtered(
+            lambda move: move.state == "draft"
+            and move.is_invoice(include_receipts=True)
+            and move.currency_id
+            and move.company_id
+            and move.currency_id != move.company_currency_id
+            and move.invoice_currency_rate <= 0
+        )
+        for move in moves:
+            rate = move._get_expected_currency_rate_at(
+                move._get_invoice_currency_rate_date()
+            )
+            if rate > 0:
+                move.invoice_currency_rate = rate
+
     def write(self, vals):
         """Impide cambiar diario o contacto en NC/ND venezolanas confirmadas.
 
@@ -138,6 +165,7 @@ class AccountMove(models.Model):
         Art. 22-24 PA SNAT/2011/0071: coherencia del documento origen en NC/ND.
         """
 
+        vals = self._l10n_ve_drop_invalid_invoice_currency_rate_from_vals(vals)
         if not self.env.context.get("l10n_ve_skip_credit_debit_journal_lock") and (
             "journal_id" in vals or "partner_id" in vals
         ):
@@ -165,13 +193,19 @@ class AccountMove(models.Model):
             "l10n_ve_skip_invoice_date_sync"
         ):
             self._l10n_ve_sync_invoice_date_from_document_datetime()
+        self._l10n_ve_ensure_draft_invoice_currency_rate()
         return res
 
     @api.model_create_multi
     def create(self, vals_list):
+        vals_list = [
+            self._l10n_ve_drop_invalid_invoice_currency_rate_from_vals(dict(vals))
+            for vals in vals_list
+        ]
         records = super().create(vals_list)
         records._l10n_ve_sync_journal_with_origin_from_create()
         records._l10n_ve_sync_invoice_date_from_document_datetime()
+        records._l10n_ve_ensure_draft_invoice_currency_rate()
         return records
 
     l10n_ve_invoice_original_printed = fields.Boolean(
@@ -2553,6 +2587,29 @@ Please create a credit note instead.
                     precision_digits=6,
                 )
             )
+
+    @api.depends("currency_id", "company_currency_id", "company_id", "invoice_date")
+    def _compute_invoice_currency_rate(self):
+        super()._compute_invoice_currency_rate()
+        for move in self:
+            if (
+                not move.is_invoice(include_receipts=True)
+                or not move.currency_id
+                or move.currency_id == move.company_currency_id
+                or move.invoice_currency_rate > 0
+            ):
+                continue
+            rate = move._get_expected_currency_rate_at(
+                move._get_invoice_currency_rate_date()
+            )
+            if rate > 0:
+                move.invoice_currency_rate = rate
+
+    @api.constrains("invoice_currency_rate")
+    def _check_invoice_currency_rate(self):
+        moves = self.filtered(lambda move: move.state != "draft")
+        if moves:
+            super(AccountMove, moves)._check_invoice_currency_rate()
 
     @api.depends("currency_id", "date", "company_id")
     def _compute_l10n_ve_inverse_rate(self):

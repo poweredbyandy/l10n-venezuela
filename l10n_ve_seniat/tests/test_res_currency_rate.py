@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import fields
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
 from .common import L10nVeSeniatCommon
@@ -104,3 +104,20 @@ class TestResCurrencyRate(L10nVeSeniatCommon):
         invoice.refresh_invoice_currency_rate()
         invoice.invalidate_recordset(["l10n_ve_currency_rate_outdated"])
         self.assertFalse(invoice.l10n_ve_currency_rate_outdated)
+
+    def test_draft_invoice_web_save_ignores_zero_currency_rate(self):
+        self._create_usd_rate()
+        invoice = self._create_usd_invoice(post=False)
+        spec = {
+            "invoice_currency_rate": {},
+            "expected_currency_rate": {},
+            "invoice_date": {},
+        }
+        invoice.web_save({"invoice_currency_rate": 0}, spec)
+        self.assertGreater(invoice.invoice_currency_rate, 0)
+
+    def test_posted_invoice_still_requires_positive_currency_rate(self):
+        self._create_usd_rate()
+        invoice = self._create_usd_invoice(post=True)
+        with self.assertRaises(ValidationError):
+            invoice.write({"invoice_currency_rate": 0})
