@@ -2590,7 +2590,7 @@ Please create a credit note instead.
 
     @api.depends("currency_id", "company_currency_id", "company_id", "invoice_date")
     def _compute_invoice_currency_rate(self):
-        super()._compute_invoice_currency_rate()
+        res = super()._compute_invoice_currency_rate()
         for move in self:
             if (
                 not move.is_invoice(include_receipts=True)
@@ -2604,12 +2604,13 @@ Please create a credit note instead.
             )
             if rate > 0:
                 move.invoice_currency_rate = rate
+        return res
 
     @api.constrains("invoice_currency_rate")
     def _check_invoice_currency_rate(self):
         moves = self.filtered(lambda move: move.state != "draft")
         if moves:
-            super(AccountMove, moves)._check_invoice_currency_rate()
+            return super(AccountMove, moves)._check_invoice_currency_rate()
 
     @api.depends("currency_id", "date", "company_id")
     def _compute_l10n_ve_inverse_rate(self):
