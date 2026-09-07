@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import Command, fields
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
 from odoo.addons.l10n_ve_loyalty.models import l10n_ve_global_discount as discount_logic
@@ -152,8 +152,8 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
                 ],
             }
         )
-        action = move.action_l10n_ve_open_post_discount_wizard()
-        self.assertEqual(action["res_model"], "l10n.ve.account.move.discount.wizard")
+        with self.assertRaises(UserError):
+            move.action_l10n_ve_open_post_discount_wizard()
 
     def test_post_discount_split_amount_by_weights(self):
         invoice = self._create_posted_invoice()
@@ -172,6 +172,18 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         invoice = self._create_posted_invoice()
         self.assertTrue(invoice.l10n_ve_show_credit_note_action)
         self.assertTrue(invoice.l10n_ve_show_post_discount_action)
+
+    def test_post_discount_wizard_shows_amount_base(self):
+        invoice = self._create_posted_invoice()
+        action = invoice.action_l10n_ve_open_post_discount_wizard()
+        self.assertEqual(
+            action["res_model"], "l10n.ve.account.move.post.discount.wizard"
+        )
+        view = self.env.ref(
+            "l10n_ve_loyalty.l10n_ve_account_move_post_discount_wizard_view_form"
+        )
+        self.assertEqual(action["view_id"], view.id)
+        self.assertIn("amount_base", view.arch_db)
 
     def test_post_discount_usd_invoice_does_not_require_matching_lines(self):
         company_ccy = self.env.company.currency_id

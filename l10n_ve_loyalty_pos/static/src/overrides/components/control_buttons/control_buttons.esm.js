@@ -155,12 +155,12 @@ patch(ControlButtons.prototype, {
                     {
                         id: "untaxed",
                         item: "untaxed",
-                        label: _t("Subtotal"),
+                        label: _t("Without tax"),
                     },
                     {
                         id: "total",
                         item: "total",
-                        label: _t("Total"),
+                        label: _t("With tax"),
                     },
                 ],
             });

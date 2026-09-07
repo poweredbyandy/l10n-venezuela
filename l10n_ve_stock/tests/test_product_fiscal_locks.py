@@ -19,12 +19,6 @@ class TestL10nVeStockProductFiscalLocks(L10nVeSeniatCommon):
             groups="base.group_user,stock.group_stock_manager,"
             "sales_team.group_sale_salesman,account.group_account_invoice",
         )
-        cls.unlocked_user = new_test_user(
-            cls.env,
-            login="ve_stock_fiscal_unlock",
-            groups="base.group_user,stock.group_stock_manager,"
-            "l10n_ve_seniat.group_l10n_ve_override_locked_master_data",
-        )
 
     def test_product_requires_exactly_one_sale_tax_ve(self):
         ProductTemplate = self.env["product.template"].with_user(self.locked_user)
@@ -54,7 +48,7 @@ class TestL10nVeStockProductFiscalLocks(L10nVeSeniatCommon):
                 {"taxes_id": [Command.clear()]}
             )
 
-    def test_product_default_code_and_taxes_locked_after_done_move(self):
+    def test_product_taxes_locked_after_done_move(self):
         product = self._create_product(
             name="Prod bloqueo",
             is_storable=True,
@@ -97,10 +91,7 @@ class TestL10nVeStockProductFiscalLocks(L10nVeSeniatCommon):
         picking_in._action_done()
 
         tmpl_locked = tmpl.with_user(self.locked_user)
-        with self.assertRaises(UserError):
-            tmpl_locked.write({"default_code": "REF-002"})
+        tmpl_locked.write({"default_code": "REF-002"})
+        self.assertEqual(tmpl.default_code, "REF-002")
         with self.assertRaises(UserError):
             tmpl_locked.write({"taxes_id": [Command.set(self.tax_sale_b.ids)]})
-
-        tmpl.with_user(self.unlocked_user).write({"default_code": "REF-002"})
-        self.assertEqual(tmpl.default_code, "REF-002")

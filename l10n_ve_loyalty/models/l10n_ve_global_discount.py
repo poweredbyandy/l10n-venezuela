@@ -21,14 +21,14 @@ class L10nVeGlobalDiscountMixin(models.AbstractModel):
     discount_percentage = fields.Float(string="Discount percentage", digits="Discount")
     amount_base = fields.Selection(
         selection=[
-            ("untaxed", "Subtotal"),
-            ("total", "Total"),
+            ("untaxed", "Sin impuesto"),
+            ("total", "Con impuesto"),
         ],
-        string="Base del monto",
+        string="El monto es",
         default="untaxed",
         required=True,
-        help="Para monto fijo: si el importe ingresado aplica sobre el subtotal "
-        "o sobre el total con impuestos.",
+        help="Sin impuesto: el importe aplica sobre el subtotal. "
+        "Con impuesto: el importe aplica sobre el total de la factura.",
     )
 
 

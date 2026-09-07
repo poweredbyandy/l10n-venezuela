@@ -17,19 +17,19 @@
                         widget="radio"
                         options="{'horizontal': true}"
                     />
-                    <field name="reason_id" options="{'no_create': True}" />
-                    <field
-                        name="discount_percentage"
-                        widget="percentage"
-                        invisible="discount_mode != 'percentage'"
-                        required="discount_mode == 'percentage'"
-                    />
                     <field
                         name="amount_base"
                         widget="radio"
                         options="{'horizontal': true}"
                         invisible="discount_mode != 'amount'"
                         required="discount_mode == 'amount'"
+                    />
+                    <field name="reason_id" options="{'no_create': True}" />
+                    <field
+                        name="discount_percentage"
+                        widget="percentage"
+                        invisible="discount_mode != 'percentage'"
+                        required="discount_mode == 'percentage'"
                     />
                     <field
                         name="discount_currency_id"

@@ -70,15 +70,4 @@ class ProductTemplate(models.Model):
                             )
                             % (tmpl.display_name,)
                         )
-            if "default_code" in vals:
-                for tmpl in self:
-                    if tmpl._l10n_ve_has_done_stock_moves():
-                        raise UserError(
-                            _(
-                                "Cannot change the internal reference of product “%s” "
-                                "after it has completed stock moves. Ask a settings "
-                                "administrator."
-                            )
-                            % (tmpl.display_name,)
-                        )
         return super().write(vals)

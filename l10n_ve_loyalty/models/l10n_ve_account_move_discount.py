@@ -516,20 +516,21 @@ class AccountMove(models.Model):
             "l10n.ve.account.move.discount"
         ]._l10n_ve_sync_global_discount_accounting_for_moves(moves)
 
-    def action_l10n_ve_open_discount_wizard(self):
+    def _l10n_ve_discount_wizard_action(self, model, view_xmlid):
         self.ensure_one()
-        if self.state == "posted":
-            self._l10n_ve_check_post_discount_allowed()
-        else:
-            self._l10n_ve_check_global_discount_allowed()
+        view = self.env.ref(view_xmlid)
         return {
             "name": _("Descuento"),
             "type": "ir.actions.act_window",
-            "res_model": "l10n.ve.account.move.discount.wizard",
+            "res_model": model,
             "view_mode": "form",
+            "views": [(view.id, "form")],
+            "view_id": view.id,
             "target": "new",
             "context": {
                 "default_move_id": self.id,
+                "default_discount_mode": "amount",
+                "default_amount_base": "untaxed",
                 "default_discount_currency_id": self.currency_id.id,
                 **(
                     {"default_reason_id": default_reason.id}
@@ -542,6 +543,16 @@ class AccountMove(models.Model):
                 ),
             },
         }
+
+    def action_l10n_ve_open_discount_wizard(self):
+        self.ensure_one()
+        if self.state == "posted":
+            return self.action_l10n_ve_open_post_discount_wizard()
+        self._l10n_ve_check_global_discount_allowed()
+        return self._l10n_ve_discount_wizard_action(
+            "l10n.ve.account.move.discount.wizard",
+            "l10n_ve_loyalty.l10n_ve_account_move_discount_wizard_view_form",
+        )
 
     def action_l10n_ve_open_global_discount_wizard(self):
         return self.action_l10n_ve_open_discount_wizard()
@@ -949,7 +960,12 @@ class AccountMove(models.Model):
         return credit_note
 
     def action_l10n_ve_open_post_discount_wizard(self):
-        return self.action_l10n_ve_open_discount_wizard()
+        self.ensure_one()
+        self._l10n_ve_check_post_discount_allowed()
+        return self._l10n_ve_discount_wizard_action(
+            "l10n.ve.account.move.post.discount.wizard",
+            "l10n_ve_loyalty.l10n_ve_account_move_post_discount_wizard_view_form",
+        )
 
     def _l10n_ve_global_discount_applies(self):
         self.ensure_one()

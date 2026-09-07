@@ -41,12 +41,13 @@ class L10nVeAccountMoveDiscountWizard(models.TransientModel):
     )
     amount_base = fields.Selection(
         selection=[
-            ("untaxed", "Subtotal"),
-            ("total", "Total"),
+            ("untaxed", "Sin impuesto"),
+            ("total", "Con impuesto"),
         ],
-        string="Base del monto",
+        string="El monto es",
         default="untaxed",
-        help="Indica si el monto fijo se toma del subtotal o del total con impuestos.",
+        help="Sin impuesto: el monto reduce la base imponible (subtotal). "
+        "Con impuesto: el monto reduce el total de la factura.",
     )
     reason_id = fields.Many2one(
         comodel_name="l10n.ve.discount.reason",
