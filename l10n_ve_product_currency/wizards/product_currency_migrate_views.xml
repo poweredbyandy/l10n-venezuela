@@ -1,0 +1,61 @@
+<odoo>
+    <record id="l10n_ve_product_currency_migrate_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n.ve.product.currency.migrate.wizard.form</field>
+        <field name="model">l10n.ve.product.currency.migrate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Migrate Product Currencies">
+                <div class="oe_title">
+                    <p>
+                        Convert products that currently use a currency to a destination
+                        currency. Amounts are converted with the company rate of today.
+                    </p>
+                    <p>
+                        Leave cost migration disabled to keep the current cost currency
+                        (PBA costs keep using that currency).
+                    </p>
+                </div>
+                <group>
+                    <group string="Sales Price">
+                        <field name="migrate_sale"/>
+                        <field
+                            name="sale_from_currency_id"
+                            invisible="not migrate_sale"
+                            required="migrate_sale"
+                            options="{'no_create': True}"
+                        />
+                        <field
+                            name="sale_to_currency_id"
+                            invisible="not migrate_sale"
+                            required="migrate_sale"
+                            options="{'no_create': True}"
+                        />
+                    </group>
+                    <group string="Cost">
+                        <field name="migrate_cost"/>
+                        <field
+                            name="cost_from_currency_id"
+                            invisible="not migrate_cost"
+                            required="migrate_cost"
+                            options="{'no_create': True}"
+                        />
+                        <field
+                            name="cost_to_currency_id"
+                            invisible="not migrate_cost"
+                            required="migrate_cost"
+                            options="{'no_create': True}"
+                        />
+                    </group>
+                </group>
+                <footer>
+                    <button
+                        name="action_migrate"
+                        type="object"
+                        string="Migrate"
+                        class="btn-primary"
+                    />
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

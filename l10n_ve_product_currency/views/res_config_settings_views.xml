@@ -9,13 +9,37 @@
             <xpath expr="//setting[@id='manage_volume_uom_setting']" position="after">
                 <setting
                     id="l10n_ve_product_currency_default_force_currency_setting"
-                    string="Default product currency"
-                    help="This currency is applied automatically when creating products. Leave it empty to use the company currency."
+                    string="Default sales price currency"
+                    help="This currency is applied automatically to the sales price when creating products. Leave it empty to use the company currency."
                     groups="base.group_multi_currency"
                 >
                     <field
                         name="l10n_ve_product_currency_default_force_currency_id"
                         options="{'no_create': True}"
+                    />
+                </setting>
+                <setting
+                    id="l10n_ve_product_currency_default_force_cost_currency_setting"
+                    string="Default cost currency"
+                    help="This currency is applied automatically to the cost when creating products. Leave it empty to use the company currency. PBA costs keep using this cost currency."
+                    groups="base.group_multi_currency"
+                >
+                    <field
+                        name="l10n_ve_product_currency_default_force_cost_currency_id"
+                        options="{'no_create': True}"
+                    />
+                </setting>
+                <setting
+                    id="l10n_ve_product_currency_migrate_setting"
+                    string="Migrate product currencies"
+                    help="Convert existing products from their current sales or cost currency to a destination currency. Cost migration is optional so PBA costs can keep their currency."
+                    groups="base.group_system"
+                >
+                    <button
+                        name="action_open_l10n_ve_product_currency_migrate"
+                        type="object"
+                        string="Migrate products"
+                        class="oe_link"
                     />
                 </setting>
             </xpath>

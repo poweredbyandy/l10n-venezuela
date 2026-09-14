@@ -28,9 +28,11 @@ Product Currency
 
 |badge1| |badge2| |badge3| |badge4| |badge5|
 
-Allows selecting a currency on product templates for sales and cost
-amounts. When no product currency is selected, Odoo uses the product
-company currency.
+Allows selecting independent currencies on product templates for the
+sales price and for the cost.
+
+When no sales or cost currency is selected, Odoo uses the product company
+currency. PBA costs keep using the product cost currency.
 
 **Table of contents**
 
@@ -40,26 +42,47 @@ company currency.
 Use Cases / Context
 ===================
 
-In Venezuelan deployments, product prices are commonly managed in a
-currency different from the company currency. This module lets users
-define that currency per product while keeping the company currency as
-the fallback.
+In Venezuelan deployments, sales prices and costs are commonly managed in
+currencies different from the company currency, and those two currencies
+are not always the same.
+
+This module lets users force a sales price currency and a cost currency
+per product, with company currency as the fallback. Existing products can
+be migrated from their current currency to a destination currency without
+changing the cost currency unless requested.
+
+Configuration
+=============
+
+To configure the default product currencies:
+
+1. Go to Settings > Product.
+2. In Default sales price currency, select the currency for new product
+   sales prices.
+3. In Default cost currency, select the currency for new product costs.
+4. Leave either field empty to use the company currency.
+
+To migrate existing products:
+
+1. Go to Settings > Product.
+2. Click Migrate products.
+3. Choose the current and destination currencies for the sales price
+   and/or the cost.
+4. Leave Migrate Cost Currency disabled to keep the current cost currency.
 
 Usage
 =====
 
-To configure the default product currency:
-
-1. Go to Settings > Product.
-2. In Default product currency, select the currency to use on new
-   products.
-3. Leave the field empty to use the company currency.
-
-To set a currency on a product:
+To set currencies on a product:
 
 1. Go to Products and open a product.
-2. In Product Currency, select the currency to use for that product.
-3. Leave Product Currency empty to use the product company currency.
+2. In Sales Price Currency, select the currency for the sales price.
+3. In Forced Cost Currency, select the currency for the cost.
+4. Leave either field empty to use the product company currency.
+
+Changing a forced currency converts the corresponding amount (sales price
+or cost) from the previous currency to the new one using the company rate
+of today.
 
 Bug Tracker
 ===========

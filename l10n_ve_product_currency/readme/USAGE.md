@@ -1,11 +1,9 @@
-To configure the default product currency:
-
-1. Go to Settings > Product.
-2. In Default product currency, select the currency to use on new products.
-3. Leave the field empty to use the company currency.
-
-To set a currency on a product:
+To set currencies on a product:
 
 1. Go to Products and open a product.
-2. In Product Currency, select the currency to use for that product.
-3. Leave Product Currency empty to use the product company currency.
+2. In Sales Price Currency, select the currency for the sales price.
+3. In Forced Cost Currency, select the currency for the cost.
+4. Leave either field empty to use the product company currency.
+
+Changing a forced currency converts the corresponding amount (sales price or
+cost) from the previous currency to the new one using the company rate of today.

@@ -374,8 +374,8 @@ ul.auto-toc {
 globales SENIAT.</p>
 <p>Incluye descuentos globales en borrador y descuentos post-factura
 mediante notas de crédito en borrador, con motivos predefinidos (pronto
-pago, pago en divisas, etc.), porcentaje o monto sobre el subtotal sin
-IVA e impuestos proporcionales.</p>
+pago, pago en divisas, etc.), porcentaje o monto fijo (sin impuesto o
+con impuesto) e impuestos proporcionales.</p>
 <p>Adapta recompensas de tipo descuento del módulo <tt class="docutils literal">loyalty</tt> para que no
 se registren como productos en documentos fiscales venezolanos, sino
 como descuentos globales.</p>
@@ -434,15 +434,14 @@ y reasigna los XML-IDs. Basta con <tt class="docutils literal"><span class="pre"
 <p>En facturas en borrador (VE), use el botón <strong>Descuento</strong> junto a los
 totales para aplicar un descuento global con motivo, porcentaje o monto
 fijo.</p>
-<p>En <strong>monto fijo</strong> elija la base:</p>
+<p>En <strong>monto fijo</strong> elija si el importe es:</p>
 <ul class="simple">
-<li><strong>Subtotal</strong>: el monto reduce la base imponible (sin IVA).</li>
-<li><strong>Total</strong>: el monto reduce el total con impuestos. Ejemplo:
-<tt class="docutils literal">100 + 16%</tt> y descuento <tt class="docutils literal">10</tt> sobre total deja el documento en
-<tt class="docutils literal">106</tt>.</li>
+<li><strong>Sin impuesto</strong>: el monto reduce la base imponible (subtotal).</li>
+<li><strong>Con impuesto</strong>: el monto reduce el total. Ejemplo: <tt class="docutils literal">100 + 16%</tt> y
+descuento <tt class="docutils literal">10</tt> con impuesto deja el documento en <tt class="docutils literal">106</tt>.</li>
 </ul>
 <p>La máquina fiscal (TFHKA) aplica el descuento global (<tt class="docutils literal">q-</tt>) sobre el
-subtotal. Por eso, si eligió base <strong>Total</strong>, Odoo convierte el monto a
+subtotal. Por eso, si eligió <strong>con impuesto</strong>, Odoo convierte el monto a
 base imponible antes de enviarlo a la impresora (p. ej. <tt class="docutils literal">10</tt> con IVA
 16% → <tt class="docutils literal">~8,62</tt>), para que el ticket fiscal coincida con los totales del
 documento.</p>
@@ -454,7 +453,9 @@ header para generar una nota de crédito de descuento:</p>
 <ol class="arabic simple">
 <li>Seleccione el motivo (Pronto pago, Pago en divisas, Descuento
 comercial, etc.).</li>
-<li>Indique porcentaje o monto sobre el subtotal sin IVA disponible.</li>
+<li>Indique porcentaje o monto fijo.</li>
+<li>En <strong>monto fijo</strong> elija si el importe es <strong>sin impuesto</strong> (subtotal)
+o <strong>con impuesto</strong> (total), igual que en el descuento de borrador.</li>
 <li>Confirme; se crea la nota de crédito en borrador.</li>
 </ol>
 </div>

@@ -1,66 +1,43 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import Command, _, api, fields, models
+from odoo import Command, _, api, models
 from odoo.exceptions import ValidationError
 
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    l10n_ve_sale_tax_id = fields.Many2one(
-        "account.tax",
-        string="Sales Tax",
-        compute="_compute_l10n_ve_tax_ids",
-        inverse="_inverse_l10n_ve_sale_tax_id",
-        domain=[("type_tax_use", "=", "sale")],
-        help="Updates the original sales taxes field with a single tax.",
-    )
-    l10n_ve_purchase_tax_id = fields.Many2one(
-        "account.tax",
-        string="Purchase Tax",
-        compute="_compute_l10n_ve_tax_ids",
-        inverse="_inverse_l10n_ve_purchase_tax_id",
-        domain=[("type_tax_use", "=", "purchase")],
-        help="Updates the original purchase taxes field with a single tax.",
-    )
-
-    @api.depends("taxes_id", "supplier_taxes_id")
-    def _compute_l10n_ve_tax_ids(self):
-        for tmpl in self:
-            tmpl.l10n_ve_sale_tax_id = tmpl.taxes_id[:1]
-            tmpl.l10n_ve_purchase_tax_id = tmpl.supplier_taxes_id[:1]
-
-    def _inverse_l10n_ve_sale_tax_id(self):
-        for tmpl in self:
-            tmpl.taxes_id = [Command.set(tmpl.l10n_ve_sale_tax_id.ids)]
-
-    def _inverse_l10n_ve_purchase_tax_id(self):
-        for tmpl in self:
-            tmpl.supplier_taxes_id = [Command.set(tmpl.l10n_ve_purchase_tax_id.ids)]
-
-    @api.model
-    def _l10n_ve_sync_tax_utility_vals(self, vals):
-        vals = dict(vals)
-        if "l10n_ve_sale_tax_id" in vals:
-            tax_id = vals.pop("l10n_ve_sale_tax_id")
-            vals["taxes_id"] = [Command.set([tax_id])] if tax_id else [Command.clear()]
-        if "l10n_ve_purchase_tax_id" in vals:
-            tax_id = vals.pop("l10n_ve_purchase_tax_id")
-            vals["supplier_taxes_id"] = (
-                [Command.set([tax_id])] if tax_id else [Command.clear()]
-            )
-        return vals
-
-    def write(self, vals):
-        vals = self._l10n_ve_sync_tax_utility_vals(vals)
-        return super().write(vals)
-
     @api.model_create_multi
     def create(self, vals_list):
-        vals_list = [self._l10n_ve_sync_tax_utility_vals(vals) for vals in vals_list]
         for vals in vals_list:
             self._l10n_ve_inject_default_exent_taxes_in_vals(vals)
-        return super().create(vals_list)
+        products = super(
+            ProductTemplate,
+            self.with_context(l10n_ve_skip_product_tax_constraint=True),
+        ).create(vals_list)
+        products = products.with_env(self.env)
+        products._l10n_ve_ensure_one_tax_per_company()
+        products._l10n_ve_check_exactly_one_tax_per_use()
+        return products
+
+    def write(self, vals):
+        if self.env.context.get("l10n_ve_skip_auto_exent_taxes"):
+            return super().write(vals)
+        if "taxes_id" not in vals and "supplier_taxes_id" not in vals:
+            return super().write(vals)
+        if len(self) > 1:
+            for rec in self:
+                rec.write(vals)
+            return True
+        vals = dict(vals)
+        self._l10n_ve_merge_hidden_company_taxes_into_vals(vals)
+        res = super(
+            ProductTemplate,
+            self.with_context(l10n_ve_skip_product_tax_constraint=True),
+        ).write(vals)
+        self._l10n_ve_ensure_one_tax_per_company()
+        self._l10n_ve_check_exactly_one_tax_per_use()
+        return res
 
     def _force_default_sale_tax(self, companies):
         return super(
@@ -109,32 +86,92 @@ class ProductTemplate(models.Model):
         return False
 
     @api.model
+    def _l10n_ve_m2m_ids_from_commands(self, commands):
+        ids = []
+        for cmd in commands or []:
+            op = cmd[0]
+            if op == 6:
+                ids = list(cmd[2] or [])
+            elif op == 5:
+                ids = []
+            elif op == 4:
+                ids.append(cmd[1])
+            elif op in (2, 3) and cmd[1] in ids:
+                ids.remove(cmd[1])
+        return ids
+
+    def _l10n_ve_merge_hidden_company_taxes_into_vals(self, vals):
+        self.ensure_one()
+        allowed = set(self.env.companies.ids)
+        for field_name in ("taxes_id", "supplier_taxes_id"):
+            if field_name not in vals:
+                continue
+            cmds = vals[field_name]
+            if not any(cmd[0] in (5, 6) for cmd in (cmds or [])):
+                continue
+            hidden = self.sudo()[field_name].filtered(
+                lambda tax: tax.company_id.id not in allowed
+            )
+            if not hidden:
+                continue
+            new_ids = self._l10n_ve_m2m_ids_from_commands(cmds)
+            vals[field_name] = [
+                Command.set(list(dict.fromkeys(new_ids + hidden.ids)))
+            ]
+
+    @api.model
     def _l10n_ve_get_exent_sale_tax(self, company):
-        tax = self.env["account.tax.group"]._l10n_ve_get_exempt_tax(company, "sale")
+        tax = self.env["account.tax.group"].sudo()._l10n_ve_get_exempt_tax(
+            company, "sale"
+        )
         if tax:
             return tax
-        return self.env["account.tax"].search(
-            [
-                ("company_id", "parent_of", company.id),
-                ("type_tax_use", "=", "sale"),
-                ("amount", "=", 0.0),
-            ],
-            limit=1,
+        return (
+            self.env["account.tax"]
+            .sudo()
+            .search(
+                [
+                    ("company_id", "parent_of", company.id),
+                    ("type_tax_use", "=", "sale"),
+                    ("amount", "=", 0.0),
+                ],
+                limit=1,
+            )
         )
 
     @api.model
     def _l10n_ve_get_exent_purchase_tax(self, company):
-        tax = self.env["account.tax.group"]._l10n_ve_get_exempt_tax(company, "purchase")
+        tax = self.env["account.tax.group"].sudo()._l10n_ve_get_exempt_tax(
+            company, "purchase"
+        )
         if tax:
             return tax
-        return self.env["account.tax"].search(
-            [
-                ("company_id", "parent_of", company.id),
-                ("type_tax_use", "=", "purchase"),
-                ("amount", "=", 0.0),
-            ],
-            limit=1,
+        return (
+            self.env["account.tax"]
+            .sudo()
+            .search(
+                [
+                    ("company_id", "parent_of", company.id),
+                    ("type_tax_use", "=", "purchase"),
+                    ("amount", "=", 0.0),
+                ],
+                limit=1,
+            )
         )
+
+    @api.model
+    def _l10n_ve_get_company_sale_tax(self, company):
+        tax = company.sudo().account_sale_tax_id
+        if tax:
+            return tax
+        return self._l10n_ve_get_exent_sale_tax(company)
+
+    @api.model
+    def _l10n_ve_get_company_purchase_tax(self, company):
+        tax = company.sudo().account_purchase_tax_id
+        if tax:
+            return tax
+        return self._l10n_ve_get_exent_purchase_tax(company)
 
     @api.model
     def _l10n_ve_inject_default_exent_taxes_in_vals(self, vals):
@@ -157,25 +194,78 @@ class ProductTemplate(models.Model):
             if purchase_tax:
                 vals["supplier_taxes_id"] = [(6, 0, [purchase_tax.id])]
 
-    def _l10n_ve_companies_for_tax_count(self):
-        """Companies whose tax counts must be validated for this product."""
-        self.ensure_one()
+    def _l10n_ve_ve_companies(self, companies):
         ve_country = self.env.ref("base.ve", raise_if_not_found=False)
         if not ve_country:
             return self.env["res.company"]
-        if self.company_id:
-            if self.company_id.account_fiscal_country_id == ve_country:
-                return self.company_id
-            return self.env["res.company"]
-        companies = (self.taxes_id | self.supplier_taxes_id).company_id
-        if self.env.company.account_fiscal_country_id == ve_country:
-            companies |= self.env.company
         return companies.filtered(
             lambda company: company.account_fiscal_country_id == ve_country
         )
 
+    def _l10n_ve_skip_product_tax_rules(self):
+        self.ensure_one()
+        if (
+            hasattr(self, "_l10n_ve_is_sale_discount_template")
+            and self._l10n_ve_is_sale_discount_template()
+        ):
+            return True
+        if (
+            hasattr(self, "_l10n_ve_is_loyalty_reward_discount_template")
+            and self._l10n_ve_is_loyalty_reward_discount_template()
+        ):
+            return True
+        return False
+
+    def _l10n_ve_companies_for_tax_count(self):
+        """Companies whose tax counts must be validated for this product."""
+        self.ensure_one()
+        if self.company_id:
+            companies = self._l10n_ve_ve_companies(self.company_id)
+        else:
+            companies = self._l10n_ve_ve_companies(self.env.companies)
+        TaxGroup = self.env["account.tax.group"].sudo()
+        return companies.filtered(
+            lambda company: TaxGroup._l10n_ve_get_report_tax_groups(company)
+        )
+
     def _l10n_ve_taxes_for_company(self, taxes, company):
-        return taxes.filtered(lambda tax: tax.company_id == company)
+        return taxes._filter_taxes_by_company(company)
+
+    def _l10n_ve_missing_company_taxes(self):
+        self.ensure_one()
+        sale_to_add = self.env["account.tax"]
+        purchase_to_add = self.env["account.tax"]
+        if self._l10n_ve_skip_product_tax_rules():
+            return sale_to_add, purchase_to_add
+        for company in self._l10n_ve_companies_for_tax_count():
+            if not self._l10n_ve_taxes_for_company(self.taxes_id, company):
+                tax = self._l10n_ve_get_company_sale_tax(company)
+                if tax:
+                    sale_to_add |= tax
+            if not self._l10n_ve_taxes_for_company(self.supplier_taxes_id, company):
+                tax = self._l10n_ve_get_company_purchase_tax(company)
+                if tax:
+                    purchase_to_add |= tax
+        return sale_to_add, purchase_to_add
+
+    def _l10n_ve_ensure_one_tax_per_company(self):
+        if self.env.context.get("l10n_ve_skip_auto_exent_taxes"):
+            return
+        for tmpl in self:
+            sale_to_add, purchase_to_add = tmpl._l10n_ve_missing_company_taxes()
+            if not sale_to_add and not purchase_to_add:
+                continue
+            vals = {}
+            if sale_to_add:
+                vals["taxes_id"] = [Command.link(tax_id) for tax_id in sale_to_add.ids]
+            if purchase_to_add:
+                vals["supplier_taxes_id"] = [
+                    Command.link(tax_id) for tax_id in purchase_to_add.ids
+                ]
+            tmpl.with_context(
+                l10n_ve_skip_product_tax_constraint=True,
+                l10n_ve_skip_auto_exent_taxes=True,
+            ).write(vals)
 
     @api.constrains("taxes_id", "supplier_taxes_id")
     def _l10n_ve_check_exactly_one_tax_per_use(self):
@@ -193,15 +283,7 @@ class ProductTemplate(models.Model):
         ):
             return
         for tmpl in self:
-            if (
-                hasattr(tmpl, "_l10n_ve_is_sale_discount_template")
-                and tmpl._l10n_ve_is_sale_discount_template()
-            ):
-                continue
-            if (
-                hasattr(tmpl, "_l10n_ve_is_loyalty_reward_discount_template")
-                and tmpl._l10n_ve_is_loyalty_reward_discount_template()
-            ):
+            if tmpl._l10n_ve_skip_product_tax_rules():
                 continue
             for company in tmpl._l10n_ve_companies_for_tax_count():
                 n_sale = len(tmpl._l10n_ve_taxes_for_company(tmpl.taxes_id, company))
@@ -234,55 +316,3 @@ class ProductTemplate(models.Model):
                             "n": n_purchase,
                         }
                     )
-
-    @api.onchange("l10n_ve_sale_tax_id")
-    def _onchange_l10n_ve_sale_tax_id(self):
-        for tmpl in self:
-            tmpl.taxes_id = [Command.set(tmpl.l10n_ve_sale_tax_id.ids)]
-
-    @api.onchange("l10n_ve_purchase_tax_id")
-    def _onchange_l10n_ve_purchase_tax_id(self):
-        for tmpl in self:
-            tmpl.supplier_taxes_id = [Command.set(tmpl.l10n_ve_purchase_tax_id.ids)]
-
-    @api.onchange("taxes_id", "supplier_taxes_id")
-    def _onchange_l10n_ve_check_exactly_one_tax_per_use(self):
-        for tmpl in self:
-            tmpl.l10n_ve_sale_tax_id = tmpl.taxes_id[:1]
-            tmpl.l10n_ve_purchase_tax_id = tmpl.supplier_taxes_id[:1]
-        self._l10n_ve_check_exactly_one_tax_per_use()
-
-
-class ProductProduct(models.Model):
-    _inherit = "product.product"
-
-    @api.onchange("l10n_ve_sale_tax_id")
-    def _onchange_l10n_ve_sale_tax_id(self):
-        for product in self:
-            product.taxes_id = [Command.set(product.l10n_ve_sale_tax_id.ids)]
-
-    @api.onchange("l10n_ve_purchase_tax_id")
-    def _onchange_l10n_ve_purchase_tax_id(self):
-        for product in self:
-            product.supplier_taxes_id = [
-                Command.set(product.l10n_ve_purchase_tax_id.ids)
-            ]
-
-    @api.onchange("taxes_id", "supplier_taxes_id")
-    def _onchange_l10n_ve_check_exactly_one_tax_per_use(self):
-        for product in self:
-            product.l10n_ve_sale_tax_id = product.taxes_id[:1]
-            product.l10n_ve_purchase_tax_id = product.supplier_taxes_id[:1]
-        self.mapped("product_tmpl_id")._l10n_ve_check_exactly_one_tax_per_use()
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        Template = self.env["product.template"]
-        vals_list = [
-            Template._l10n_ve_sync_tax_utility_vals(vals) for vals in vals_list
-        ]
-        return super().create(vals_list)
-
-    def write(self, vals):
-        vals = self.env["product.template"]._l10n_ve_sync_tax_utility_vals(vals)
-        return super().write(vals)

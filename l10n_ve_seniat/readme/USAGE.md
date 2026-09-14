@@ -20,6 +20,16 @@ Notas de crédito y débito
 
 Las notas reutilizan el mismo diario y contacto de la factura origen.
 
+Impuestos del producto
+---------------------
+
+En la ficha del producto se usan los campos nativos de Odoo **Sales Taxes**
+(`taxes_id`) y **Purchase Taxes** (`supplier_taxes_id`). Al guardar, cada
+compañía venezolana activa debe quedar con exactamente un impuesto de venta
+y uno de compra. Si falta alguno, se completa con el impuesto por defecto de
+esa compañía o con el exento. En productos compartidos no se sustituyen los
+impuestos de las compañías que no están activas.
+
 Impuesto en líneas de factura
 -----------------------------
 
