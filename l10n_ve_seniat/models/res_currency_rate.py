@@ -57,6 +57,11 @@ class ResCurrencyRate(models.Model):
     def _l10n_ve_allow_historical_rate_write(self):
         return bool(self.env.context.get("l10n_ve_allow_historical_rate_write"))
 
+    def _l10n_ve_override_locked_rate(self):
+        return self.env.user.has_group(
+            "l10n_ve_seniat.group_l10n_ve_override_locked_master_data"
+        )
+
     def _l10n_ve_company_uses_rate_rules(self):
         self.ensure_one()
         return self.company_id.account_fiscal_country_id.code == "VE"
@@ -76,6 +81,8 @@ class ResCurrencyRate(models.Model):
         )
 
     def _l10n_ve_check_posted_moves_before_rate_change(self):
+        if self._l10n_ve_override_locked_rate():
+            return
         for rec in self:
             if not rec._l10n_ve_company_uses_rate_rules():
                 continue

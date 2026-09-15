@@ -3,6 +3,7 @@
 from odoo import fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import L10nVeSeniatCommon
 
@@ -56,16 +57,43 @@ class TestResCurrencyRate(L10nVeSeniatCommon):
             post=post,
         )
 
+    def _rate_user_without_override(self):
+        return new_test_user(
+            self.env,
+            login="l10n_ve_rate_lock_user",
+            groups="account.group_account_manager",
+        )
+
     def test_rate_write_blocked_by_posted_invoice(self):
         rate = self._create_usd_rate()
         invoice = self._create_usd_invoice(post=True)
         self.assertEqual(invoice.state, "posted")
+        user = self._rate_user_without_override()
+        self.assertFalse(
+            user.has_group("l10n_ve_seniat.group_l10n_ve_override_locked_master_data")
+        )
 
         with self.assertRaises(UserError) as error:
-            rate.write({"inverse_company_rate": 45.0})
+            rate.with_user(user).write({"inverse_company_rate": 45.0})
 
         self.assertIn("facturas confirmadas", str(error.exception).lower())
         self.assertIn(invoice.name, str(error.exception))
+
+    def test_rate_write_allowed_with_sensitive_data_permission(self):
+        rate = self._create_usd_rate()
+        invoice = self._create_usd_invoice(post=True)
+        self.assertEqual(invoice.state, "posted")
+        user = new_test_user(
+            self.env,
+            login="l10n_ve_rate_override_user",
+            groups=(
+                "account.group_account_manager,"
+                "l10n_ve_seniat.group_l10n_ve_override_locked_master_data"
+            ),
+        )
+
+        rate.with_user(user).write({"inverse_company_rate": 45.0})
+        self.assertEqual(rate.inverse_company_rate, 45.0)
 
     def test_rate_write_allowed_when_invoice_is_draft(self):
         rate = self._create_usd_rate()
