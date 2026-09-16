@@ -27,6 +27,12 @@
             flex: 1;
         }
 
+        .o_escp_dsg_shift {
+            input {
+                width: 3rem;
+            }
+        }
+
         .o_escp_dsg_band_add {
             width: auto;
 
@@ -203,6 +209,10 @@
 
         &.o_escp_dsg_wide .o_escp_dsg_text {
             transform: scaleX(2);
+        }
+
+        &.o_escp_dsg_small .o_escp_dsg_text {
+            font-size: calc(var(--cell-w) / 0.7);
         }
 
         &.o_escp_dsg_underline .o_escp_dsg_text {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="l10n_ve_escp_layout_shift_view_form" model="ir.ui.view">
+        <field name="name">l10n.ve.escp.layout.shift.form</field>
+        <field name="model">l10n.ve.escp.layout.shift</field>
+        <field name="arch" type="xml">
+            <form string="Mover diseño verticalmente">
+                <group>
+                    <field name="report_id" readonly="1" />
+                    <field name="lines" />
+                    <field name="direction" widget="radio" />
+                    <field name="include_margin" />
+                </group>
+                <p class="text-muted">
+                    Mueve todos los objetos del reporte la cantidad de líneas
+                    indicada. «Subir» reduce la fila de cada objeto.
+                </p>
+                <footer>
+                    <button
+                        name="action_apply"
+                        type="object"
+                        string="Aplicar"
+                        class="btn-primary"
+                    />
+                    <button string="Cancelar" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import re
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -38,6 +39,20 @@ BAND_TYPES = [
     ("page_footer", "Pie de página"),
 ]
 BAND_ORDER = {key: index for index, (key, _label) in enumerate(BAND_TYPES)}
+LAYOUT_VERSION = 1
+LAYOUT_REPORT_FIELDS = (
+    "name",
+    "model",
+    "cpi",
+    "lpi",
+    "paper_width_in",
+    "paper_height_in",
+    "margin_top_lines",
+    "print_quality",
+    "print_head_pins",
+    "show_in_print_menu",
+    "note",
+)
 STYLE_SELECTION = [
     ("normal", "Normal"),
     ("bold", "Negrita"),
@@ -45,6 +60,10 @@ STYLE_SELECTION = [
     ("bold_wide", "Negrita y ancho doble"),
     ("underline", "Subrayado"),
     ("bold_underline", "Negrita y subrayado"),
+    ("small", "Pequeña"),
+    ("small_bold", "Pequeña negrita"),
+    ("small_underline", "Pequeña subrayada"),
+    ("small_bold_underline", "Pequeña negrita subrayada"),
 ]
 
 
@@ -515,7 +534,7 @@ class L10nVeEscpReport(models.Model):
             total_rows = fixed + per_page * detail_height
             if page_index:
                 total_rows -= self._band_height("title")
-            grid = Grid(total_rows, self.line_width or 145)
+            grid = Grid(total_rows, self.line_width or 145, escp_base_cpi=self.cpi)
             row = margin_top_lines
             if page_index == 0:
                 row = self._place_band(grid, self._band("title"), row, base_ctx, record)
@@ -625,6 +644,162 @@ class L10nVeEscpReport(models.Model):
             "tag": "l10n_ve_escp_designer",
             "name": _("Diseñador: %s", self.name),
             "params": {"report_id": self.id},
+        }
+
+    @staticmethod
+    def _layout_filename(name):
+        slug = re.sub(r"[^\w\-]+", "_", name or "reporte", flags=re.UNICODE).strip("_")
+        return "%s.escp.json" % (slug or "reporte")
+
+    def export_layout_data(self):
+        self.ensure_one()
+        bands = []
+        for band in self.band_ids.sorted(lambda b: (b.sequence, b.id)):
+            objects = band.object_ids.with_context(active_test=False).sorted(
+                lambda o: (o.row, o.col, o.id)
+            )
+            bands.append(
+                {
+                    **{name: band[name] for name in self.BAND_DESIGNER_FIELDS},
+                    "objects": [
+                        {
+                            name: obj[name]
+                            for name in self.OBJECT_DESIGNER_FIELDS
+                            if name != "sequence"
+                        }
+                        for obj in objects
+                    ],
+                }
+            )
+        return {
+            "format_version": LAYOUT_VERSION,
+            "module": "l10n_ve_escp",
+            "exported_at": fields.Datetime.to_string(fields.Datetime.now()),
+            "report": {name: self[name] for name in LAYOUT_REPORT_FIELDS},
+            "bands": bands,
+        }
+
+    def download_layout_export(self):
+        self.ensure_one()
+        payload = json.dumps(self.export_layout_data(), ensure_ascii=False, indent=2)
+        return {
+            "filename": self._layout_filename(self.name),
+            "content": payload,
+        }
+
+    def action_export_layout(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Exportar diseño ESC/P"),
+            "res_model": "l10n.ve.escp.layout.export",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {"default_report_id": self.id},
+        }
+
+    @api.model
+    def import_layout_data(self, data, target_report=None, name=None):
+        if not isinstance(data, dict):
+            raise UserError(_("El archivo de diseño no es válido."))
+        if data.get("format_version") != LAYOUT_VERSION:
+            raise UserError(
+                _("Versión de diseño no compatible (esperada %(expected)s, recibida %(got)s).")
+                % {
+                    "expected": LAYOUT_VERSION,
+                    "got": data.get("format_version"),
+                }
+            )
+        report_data = data.get("report") or {}
+        model_name = report_data.get("model")
+        if not model_name:
+            raise UserError(_("El diseño no indica el modelo Odoo."))
+        model = self.env["ir.model"].sudo().search([("model", "=", model_name)], limit=1)
+        if not model:
+            raise UserError(_("Modelo %(model)s no encontrado en esta base de datos.") % {"model": model_name})
+
+        Report = self.env["l10n.ve.escp.report"]
+        Band = self.env["l10n.ve.escp.report.band"]
+        Obj = self.env["l10n.ve.escp.report.object"].with_context(active_test=False)
+
+        if target_report:
+            report = target_report
+            if report.model != model_name:
+                raise UserError(
+                    _(
+                        "El diseño es para %(src)s pero el reporte destino usa %(dst)s."
+                    )
+                    % {"src": model_name, "dst": report.model}
+                )
+            report.band_ids.unlink()
+        else:
+            vals = {
+                name: report_data[name]
+                for name in LAYOUT_REPORT_FIELDS
+                if name in report_data and name not in ("name", "model")
+            }
+            vals.update(
+                {
+                    "name": name or report_data.get("name") or _("Reporte importado"),
+                    "model_id": model.id,
+                }
+            )
+            report = Report.create(vals)
+
+        for band_data in data.get("bands") or []:
+            band_vals = {
+                name: band_data.get(name)
+                for name in self.BAND_DESIGNER_FIELDS
+                if name in band_data
+            }
+            band = Band.create({"report_id": report.id, **band_vals})
+            for index, obj_data in enumerate(band_data.get("objects") or []):
+                obj_vals = {
+                    name: obj_data.get(name)
+                    for name in self.OBJECT_DESIGNER_FIELDS
+                    if name in obj_data and name != "foxpro_expr"
+                }
+                obj_vals["sequence"] = index * 10
+                obj_vals["band_id"] = band.id
+                Obj.create(obj_vals)
+        return report
+
+    def shift_layout_rows(self, delta, include_margin=False):
+        self.ensure_one()
+        if not delta:
+            return
+        Obj = self.env["l10n.ve.escp.report.object"].with_context(active_test=False)
+        for obj in Obj.search([("report_id", "=", self.id)]):
+            obj.row = max(0, obj.row + delta)
+        if include_margin:
+            self.margin_top_lines = max(0, self.margin_top_lines + delta)
+
+    def action_open_layout_import(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Importar diseño ESC/P"),
+            "res_model": "l10n.ve.escp.layout.import",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {
+                "default_report_id": self.id,
+                "default_mode": "replace",
+            },
+        }
+
+    def action_open_layout_shift(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Mover diseño verticalmente"),
+            "res_model": "l10n.ve.escp.layout.shift",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {"default_report_id": self.id},
         }
 
     OBJECT_DESIGNER_FIELDS = (
@@ -954,7 +1129,7 @@ class L10nVeEscpReportObject(models.Model):
         row = base_row + self.row
         width = self.width or (grid.width - self.col)
         if self.wrap:
-            lines = wrap(text, width)
+            lines = wrap(text, grid.capacity(width, style))
         else:
             lines = [line.strip() for line in str(text).split("\n")]
         grid.put_lines(row, self.col, lines, width, self.align, style, self.height)

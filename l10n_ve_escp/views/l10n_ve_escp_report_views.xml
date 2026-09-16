@@ -113,6 +113,30 @@
                         class="btn-secondary"
                         invisible="not sample_ref"
                     />
+                    <button
+                        name="action_export_layout"
+                        type="object"
+                        string="Exportar diseño"
+                        class="btn-secondary"
+                        invisible="not id"
+                        groups="base.group_system"
+                    />
+                    <button
+                        name="action_open_layout_import"
+                        type="object"
+                        string="Importar diseño"
+                        class="btn-secondary"
+                        invisible="not id"
+                        groups="base.group_system"
+                    />
+                    <button
+                        name="action_open_layout_shift"
+                        type="object"
+                        string="Mover verticalmente"
+                        class="btn-secondary"
+                        invisible="not id"
+                        groups="base.group_system"
+                    />
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">

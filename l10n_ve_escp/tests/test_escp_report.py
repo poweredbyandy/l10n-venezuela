@@ -4,7 +4,13 @@ import json
 from odoo import Command
 from odoo.tests import TransactionCase, tagged
 
-from odoo.addons.l10n_ve_escp.report.escp_engine import escapy_available
+from odoo.addons.l10n_ve_escp.report.escp_engine import (
+    CPI_ESC_P,
+    Grid,
+    STYLE_BOLD,
+    STYLE_SMALL,
+    escapy_available,
+)
 from odoo.addons.l10n_ve_escp.report.frx_parser import frx_layout
 
 
@@ -123,6 +129,25 @@ class TestL10nVeEscpReport(TransactionCase):
             }
         )
 
+    def test_encode_line_small_switches_cpi(self):
+        grid = Grid(1, 80, escp_base_cpi="17")
+        self.assertEqual(grid.capacity(60, STYLE_SMALL), 70)
+        grid.put(0, 0, "x" * 70, width=60, style=STYLE_SMALL)
+        grid.put(0, 60, "Total:")
+        encoded = grid.encode_line(0)
+        self.assertIn(CPI_ESC_P["20"] + b"x" * 70 + CPI_ESC_P["17"], encoded)
+        self.assertIn(b"\x1b$" + bytes([210, 0]) + b"Total:", encoded)
+        self.assertIn("Total:", grid.text_lines()[0][60:])
+
+    def test_encode_line_trims_trailing_spaces(self):
+        grid = Grid(2, 145)
+        grid.put(0, 6, "Razon Social :", style=STYLE_BOLD)
+        grid.put(0, 26, "Cliente Demo")
+        encoded = grid.encode_line(0)
+        self.assertLess(len(encoded), 80)
+        self.assertIn(b"Razon Social", encoded)
+        self.assertEqual(grid.encode_line(1), b"")
+
     def test_pl_reads_record_fields(self):
         detail = self.report.band_ids.filtered(lambda b: b.band_type == "detail")
         detail.object_ids.filtered(lambda o: o.expr == "line.name").write({"expr": "pl.name"})
@@ -195,6 +220,41 @@ class TestL10nVeEscpReport(TransactionCase):
                 self.report.id, "res.partner", self.partner.ids
             )
         )
+
+    def test_download_layout_export(self):
+        payload = self.report.download_layout_export()
+        self.assertTrue(payload["filename"].endswith(".escp.json"))
+        data = json.loads(payload["content"])
+        self.assertEqual(data["format_version"], 1)
+
+    def test_export_import_layout(self):
+        data = self.report.export_layout_data()
+        self.assertEqual(data["format_version"], 1)
+        self.assertEqual(data["report"]["model"], "res.partner")
+        imported = self.env["l10n.ve.escp.report"].import_layout_data(
+            data, name="Copia importada"
+        )
+        self.assertNotEqual(imported.id, self.report.id)
+        self.assertEqual(len(imported.band_ids), len(self.report.band_ids))
+        self.assertEqual(
+            imported.band_ids.filtered(lambda b: b.band_type == "page_header").object_ids.mapped(
+                "text"
+            ),
+            self.report.band_ids.filtered(lambda b: b.band_type == "page_header").object_ids.mapped(
+                "text"
+            ),
+        )
+
+    def test_shift_layout_rows(self):
+        objs = self.report.band_ids.object_ids
+        before = {obj.id: obj.row for obj in objs}
+        self.report.write({"margin_top_lines": 4})
+        self.report.shift_layout_rows(-2, include_margin=True)
+        for obj in objs:
+            self.assertEqual(obj.row, max(0, before[obj.id] - 2))
+        self.assertEqual(self.report.margin_top_lines, 2)
+        self.report.shift_layout_rows(2, include_margin=True)
+        self.assertEqual(self.report.margin_top_lines, 4)
 
     def test_designer_load_and_save(self):
         self.report.sample_ref = self.partner

@@ -34,11 +34,11 @@ CONDENSED_OFF = b"\x12"
 FORM_FEED = b"\x0c"
 
 CPI_ESC_P = {
-    "10": ESC + b"P",
-    "12": ESC + b"M",
-    "15": ESC + b"g",
-    "17": ESC + b"P\x0f",
-    "20": ESC + b"M\x0f",
+    "10": CONDENSED_OFF + ESC + b"P",
+    "12": CONDENSED_OFF + ESC + b"M",
+    "15": CONDENSED_OFF + ESC + b"g",
+    "17": CONDENSED_OFF + ESC + b"P\x0f",
+    "20": CONDENSED_OFF + ESC + b"M\x0f",
 }
 CPI_CHARS_PER_INCH = {"10": 10.0, "12": 12.0, "15": 15.0, "17": 17.14, "20": 20.0}
 LPI_ESC_P = {"6": ESC + b"2", "8": ESC + b"0"}
@@ -51,7 +51,15 @@ PRINT_QUALITY_ESC_P = {
 STYLE_BOLD = 1
 STYLE_WIDE = 2
 STYLE_UNDERLINE = 8
+STYLE_SMALL = 16
 STYLE_CONT = 4
+SMALL_CPI_FOR = {
+    "10": "17",
+    "12": "20",
+    "15": "20",
+    "17": "20",
+    "20": "20",
+}
 STYLE_FLAGS = {
     "normal": 0,
     "bold": STYLE_BOLD,
@@ -59,7 +67,24 @@ STYLE_FLAGS = {
     "bold_wide": STYLE_BOLD | STYLE_WIDE,
     "underline": STYLE_UNDERLINE,
     "bold_underline": STYLE_BOLD | STYLE_UNDERLINE,
+    "small": STYLE_SMALL,
+    "small_bold": STYLE_BOLD | STYLE_SMALL,
+    "small_underline": STYLE_UNDERLINE | STYLE_SMALL,
+    "small_bold_underline": STYLE_BOLD | STYLE_UNDERLINE | STYLE_SMALL,
 }
+
+
+def cpi_command(cpi):
+    return CPI_ESC_P.get(str(cpi), CPI_ESC_P["17"])
+
+
+def chars_per_inch(cpi):
+    return CPI_CHARS_PER_INCH.get(str(cpi), CPI_CHARS_PER_INCH["17"])
+
+
+def absolute_position(inches):
+    units = max(0, min(32767, int(round(inches * 60.0))))
+    return ESC + b"$" + bytes([units & 0xFF, units >> 8])
 
 ESCAPY_SIDE_MARGIN_PT = 3.0 / 25.4 * 72.0
 
@@ -103,17 +128,37 @@ def wrap(text, line_width):
 
 
 class Grid:
-    def __init__(self, rows, width):
+    def __init__(self, rows, width, escp_base_cpi="17"):
         self.rows = rows
         self.width = width
+        self.escp_base_cpi = str(escp_base_cpi)
         self.chars = [[" "] * width for _ in range(rows)]
         self.styles = [[0] * width for _ in range(rows)]
+        self.small_runs = [{} for _ in range(rows)]
+
+    @property
+    def small_cpi(self):
+        return SMALL_CPI_FOR.get(self.escp_base_cpi, "20")
+
+    @property
+    def small_ratio(self):
+        return chars_per_inch(self.small_cpi) / chars_per_inch(self.escp_base_cpi)
+
+    def capacity(self, width, style=0):
+        if style & STYLE_WIDE:
+            return width // 2
+        if style & STYLE_SMALL:
+            return int(width * self.small_ratio)
+        return width
 
     def put(self, row, col, text, width=None, align="left", style=0):
         if row < 0 or row >= self.rows:
             return
         max_w = width if width else (self.width - col)
         if max_w <= 0:
+            return
+        if style & STYLE_SMALL:
+            self._put_small(row, col, text, max_w, align, style)
             return
         cells_per_char = 2 if style & STYLE_WIDE else 1
         text = clip("" if text is None else str(text), max_w // cells_per_char)
@@ -138,6 +183,31 @@ class Grid:
                 line[pos + 1] = ""
                 style_line[pos + 1] = style | STYLE_CONT
 
+    def _put_small(self, row, col, text, max_w, align, style):
+        text = clip("" if text is None else str(text), self.capacity(max_w, style))
+        if not text:
+            return
+        start = max(0, col)
+        end = min(len(self.chars[row]), col + max_w)
+        if start >= end:
+            return
+        line = self.chars[row]
+        style_line = self.styles[row]
+        for pos in range(start, end):
+            line[pos] = ""
+            style_line[pos] = style | STYLE_CONT
+        line[start] = text[0]
+        style_line[start] = style
+        for index, char in enumerate(text[1 : end - start], start=1):
+            line[start + index] = char
+        self.small_runs[row][start] = {
+            "col": start,
+            "width": end - start,
+            "text": text,
+            "align": align,
+            "style": style,
+        }
+
     def put_lines(self, row, col, lines, width=None, align="left", style=0, max_lines=1):
         for index, line in enumerate(lines[: max(1, max_lines)]):
             self.put(row + index, col, line, width, align, style)
@@ -145,13 +215,58 @@ class Grid:
     def text_lines(self):
         return ["".join(char or " " for char in row) for row in self.chars]
 
+    def _encode_end(self, row_index):
+        last = -1
+        chars = self.chars[row_index]
+        styles = self.styles[row_index]
+        for index, char in enumerate(chars):
+            if styles[index] & STYLE_CONT:
+                continue
+            if styles[index] & STYLE_SMALL:
+                run = self.small_runs[row_index].get(index)
+                if run:
+                    last = max(last, run["col"] + run["width"] - 1)
+                continue
+            if char and char != " ":
+                last = index
+        return last + 1
+
+    def _small_run_offset_in(self, run):
+        base_cpi = chars_per_inch(self.escp_base_cpi)
+        small_cpi = chars_per_inch(self.small_cpi)
+        text_in = len(run["text"]) / small_cpi
+        left_in = run["col"] / base_cpi
+        width_in = run["width"] / base_cpi
+        if run["align"] == "right":
+            return left_in + width_in - text_in
+        if run["align"] == "center":
+            return left_in + (width_in - text_in) / 2.0
+        return left_in
+
+    def _encode_small_run(self, run):
+        base_cpi = chars_per_inch(self.escp_base_cpi)
+        buf = bytearray()
+        buf += absolute_position(self._small_run_offset_in(run))
+        buf += cpi_command(self.small_cpi)
+        buf += encode_text(run["text"])
+        buf += cpi_command(self.escp_base_cpi)
+        buf += absolute_position((run["col"] + run["width"]) / base_cpi)
+        return bytes(buf)
+
     def encode_line(self, row_index):
+        end = self._encode_end(row_index)
+        if end <= 0:
+            return b""
         buf = bytearray()
         state = 0
-        for char, style in zip(self.chars[row_index], self.styles[row_index]):
+        chars = self.chars[row_index]
+        styles = self.styles[row_index]
+        for index in range(end):
+            char = chars[index]
+            style = styles[index]
             if style & STYLE_CONT:
                 continue
-            style &= ~STYLE_CONT
+            style &= ~(STYLE_CONT | STYLE_SMALL)
             if style != state:
                 for flag, on, off in (
                     (STYLE_BOLD, ESC_BOLD_ON, ESC_BOLD_OFF),
@@ -161,6 +276,10 @@ class Grid:
                     if (style & flag) != (state & flag):
                         buf += on if style & flag else off
                 state = style
+            run = self.small_runs[row_index].get(index)
+            if run:
+                buf += self._encode_small_run(run)
+                continue
             buf += encode_text(char)
         if state & STYLE_BOLD:
             buf += ESC_BOLD_OFF
@@ -174,8 +293,17 @@ class Grid:
         parts = []
         run_style = None
         run_chars = []
-        for char, style in zip(self.chars[row_index], self.styles[row_index]):
+        for index, (char, style) in enumerate(
+            zip(self.chars[row_index], self.styles[row_index])
+        ):
             if style & STYLE_CONT:
+                continue
+            run = self.small_runs[row_index].get(index)
+            if run:
+                parts.append(_html_run("".join(run_chars), run_style or 0))
+                run_style = None
+                run_chars = []
+                parts.append(_html_small_run(run, self.small_ratio))
                 continue
             if style != run_style:
                 parts.append(_html_run("".join(run_chars), run_style or 0))
@@ -184,6 +312,19 @@ class Grid:
             run_chars.append(char or " ")
         parts.append(_html_run("".join(run_chars), run_style or 0))
         return Markup("").join(parts)
+
+
+def _html_small_run(run, ratio):
+    body = _html_run(run["text"], run["style"] & ~STYLE_SMALL)
+    return Markup(
+        '<span class="o_escp_s" style="width:%(width)sch;text-align:%(align)s">'
+        '<span style="font-size:%(scale).3fem">%(body)s</span></span>'
+    ) % {
+        "width": run["width"],
+        "align": run["align"] if run["align"] in ("left", "right", "center") else "left",
+        "scale": 1.0 / ratio,
+        "body": body,
+    }
 
 
 def _html_run(text, style):
@@ -241,12 +382,14 @@ def pages_to_escp(pages, spec, final_form_feed=True):
     buf += ESC_INIT
     buf += ESC_BOLD_OFF + ESC_WIDE_OFF + ESC_UNDERLINE_OFF + ESC_DOUBLE_STRIKE_OFF
     buf += PRINT_QUALITY_ESC_P.get(spec.get("quality"), PRINT_QUALITY_ESC_P["draft_double"])
-    buf += CPI_ESC_P.get(str(spec.get("cpi")), CPI_ESC_P["17"])
+    base_cpi = str(spec.get("cpi") or "17")
+    buf += cpi_command(base_cpi)
     buf += LPI_ESC_P.get(str(spec.get("lpi")), LPI_ESC_P["6"])
     buf += ESC_CHAR_TABLE_GRAPHIC
     rows = max((grid.rows for grid in pages), default=1)
     buf += ESC + b"C" + bytes([page_length_lines(spec, rows)])
     for index, grid in enumerate(pages):
+        grid.escp_base_cpi = base_cpi
         for row_index in range(grid.rows):
             buf += grid.encode_line(row_index) + b"\n"
         if final_form_feed or index < len(pages) - 1:
@@ -259,6 +402,21 @@ def pages_to_escp(pages, spec, final_form_feed=True):
 
 def escapy_available():
     return ESCParser is not None
+
+
+@lru_cache(maxsize=1)
+def _preview_parser_class():
+    class PreviewParser(ESCParser):
+        def compute_horizontal_scale_coef(self):
+            coef = super().compute_horizontal_scale_coef()
+            if not self.current_pdf or self.proportional_spacing:
+                return coef
+            advance = self.current_pdf.stringWidth("0")
+            if advance <= 0:
+                return coef
+            return 72.0 * self.character_pitch / advance
+
+    return PreviewParser
 
 
 @lru_cache(maxsize=1)
@@ -297,7 +455,7 @@ def escp_to_pdf(raw, spec):
         output = Path(tmpdir) / "preview.pdf"
         params["userdef_db_filepath"] = str(Path(tmpdir) / "user_defined_mapping.json")
         try:
-            ESCParser(
+            _preview_parser_class()(
                 raw,
                 profile,
                 available_fonts=fonts,

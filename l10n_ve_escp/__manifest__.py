@@ -1,6 +1,6 @@
 {
     "name": "Venezuela — Motor de reportes ESC/P (impresoras matriz)",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Technical",
     "summary": "Reportes ESC/P por bandas para Epson matriz: diseño, vista previa PDF e impresión WebUSB",
     "author": "andyengit, Odoo Community Association (OCA)",
@@ -14,6 +14,9 @@
         "views/l10n_ve_escp_report_views.xml",
         "wizards/l10n_ve_escp_preview.xml",
         "wizards/l10n_ve_escp_frx_import.xml",
+        "wizards/l10n_ve_escp_layout_export.xml",
+        "wizards/l10n_ve_escp_layout_import.xml",
+        "wizards/l10n_ve_escp_layout_shift.xml",
     ],
     "assets": {
         "web.assets_backend": [

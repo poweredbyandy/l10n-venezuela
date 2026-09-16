@@ -55,6 +55,17 @@ class TestL10nVeInvoiceEscp(L10nVeSeniatCommon):
             move.action_post()
         return move
 
+    def _configure_continuous_journal(self, detail_rows=35, margin_lines=0):
+        journal = self.company_data["default_journal_sale"]
+        self._l10n_ve_configure_journal_free(journal, print_medium="continuous")
+        journal.l10n_ve_invoice_section_id.book_id.write(
+            {
+                "l10n_ve_escp_invoice_margin_lines": margin_lines,
+                "l10n_ve_max_invoice_lines": detail_rows,
+            }
+        )
+        return journal
+
     def _text(self, move, report=None):
         report = report or self.report
         pages = report._render_pages(move)
@@ -93,8 +104,7 @@ class TestL10nVeInvoiceEscp(L10nVeSeniatCommon):
         self.assertIn(str(line.price_subtotal_currency).split(".")[0], texts[0])
 
     def test_default_report_layout(self):
-        journal = self.company_data["default_journal_sale"]
-        self._l10n_ve_configure_journal_free(journal, print_medium="continuous")
+        self._configure_continuous_journal()
         move = self._invoice("Cliente ESCP", "J12345670")
         pages, texts = self._text(move)
         self.assertEqual(len(pages), 1)
@@ -141,8 +151,7 @@ class TestL10nVeInvoiceEscp(L10nVeSeniatCommon):
         self.assertIn("Linea 4", texts[1])
 
     def test_multipage_detail(self):
-        journal = self.company_data["default_journal_sale"]
-        self._l10n_ve_configure_journal_free(journal, print_medium="continuous")
+        self._configure_continuous_journal()
         move = self._invoice("Cliente paginas", "J12345671", lines=40)
         pages, texts = self._text(move)
         self.assertEqual(len(pages), 2)

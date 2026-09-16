@@ -7,3 +7,6 @@ access_l10n_ve_escp_report_object_user,l10n.ve.escp.report.object user,model_l10
 access_l10n_ve_escp_report_object_system,l10n.ve.escp.report.object system,model_l10n_ve_escp_report_object,base.group_system,1,1,1,1
 access_l10n_ve_escp_preview_user,l10n.ve.escp.preview user,model_l10n_ve_escp_preview,base.group_user,1,1,1,1
 access_l10n_ve_escp_frx_import_system,l10n.ve.escp.frx.import system,model_l10n_ve_escp_frx_import,base.group_system,1,1,1,1
+access_l10n_ve_escp_layout_export_system,l10n.ve.escp.layout.export system,model_l10n_ve_escp_layout_export,base.group_system,1,1,1,1
+access_l10n_ve_escp_layout_import_system,l10n.ve.escp.layout.import system,model_l10n_ve_escp_layout_import,base.group_system,1,1,1,1
+access_l10n_ve_escp_layout_shift_system,l10n.ve.escp.layout.shift system,model_l10n_ve_escp_layout_shift,base.group_system,1,1,1,1

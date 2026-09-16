@@ -49,6 +49,8 @@ export class L10nVeEscpDesigner extends Component {
             showSample: true,
             newBandType: "page_header",
             canUndo: false,
+            shiftLines: 2,
+            shiftMargin: false,
         });
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
@@ -79,9 +81,18 @@ export class L10nVeEscpDesigner extends Component {
     }
 
     applyData(data) {
-        this.state.report = data.report;
-        this.state.bands = data.bands;
-        this.state.options = data.options;
+        this.state.report = data.report || {};
+        this.state.bands = (data.bands || []).map((band) => ({
+            ...band,
+            objects: band.objects || [],
+        }));
+        this.state.options = data.options || {
+            band_types: [],
+            styles: [],
+            kinds: [],
+            formats: [],
+            aligns: [],
+        };
         this.state.sampleValues = data.sample_values || {};
         this.state.deletedObjectIds = [];
         this.state.deletedBandIds = [];
@@ -101,7 +112,10 @@ export class L10nVeEscpDesigner extends Component {
                 height: band.height,
                 detail_expr: band.detail_expr || false,
                 detail_rows: band.detail_rows || 0,
-                objects: band.objects.map((obj) => ({...obj, id: obj.id > 0 ? obj.id : 0})),
+                objects: (band.objects || []).map((obj) => ({
+                    ...obj,
+                    id: obj.id > 0 ? obj.id : 0,
+                })),
             })),
             deleted_object_ids: this.state.deletedObjectIds,
             deleted_band_ids: this.state.deletedBandIds,
@@ -161,6 +175,47 @@ export class L10nVeEscpDesigner extends Component {
             await this.action.doAction(action);
         } catch (error) {
             this.notification.add(error?.data?.message || String(error), {type: "danger"});
+        }
+    }
+
+    async exportLayout() {
+        if (this.state.dirty) {
+            await this.save();
+        }
+        try {
+            const result = await this.orm.call(
+                "l10n.ve.escp.report",
+                "download_layout_export",
+                [[this.reportId]]
+            );
+            const blob = new Blob([result.content], {type: "application/json;charset=utf-8"});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = result.filename || "reporte.escp.json";
+            link.click();
+            URL.revokeObjectURL(url);
+            this.notification.add(_t("Diseño exportado."), {type: "success"});
+        } catch (error) {
+            this.notification.add(error?.data?.message || String(error), {type: "danger"});
+        }
+    }
+
+    shiftAll(direction) {
+        const lines = Math.max(1, parseInt(this.state.shiftLines, 10) || 2);
+        const delta = direction === "up" ? -lines : lines;
+        this.snapshot();
+        for (const band of this.state.bands) {
+            for (const obj of band.objects || []) {
+                obj.row = Math.max(0, obj.row + delta);
+                this.enforceBounds(obj, band);
+            }
+        }
+        if (this.state.shiftMargin) {
+            this.state.report.margin_top_lines = Math.max(
+                0,
+                (this.state.report.margin_top_lines || 0) + delta
+            );
         }
     }
 
@@ -287,6 +342,9 @@ export class L10nVeEscpDesigner extends Component {
         if ((obj.style || "").includes("underline")) {
             classes.push("o_escp_dsg_underline");
         }
+        if ((obj.style || "").includes("small")) {
+            classes.push("o_escp_dsg_small");
+        }
         classes.push(`o_escp_dsg_align_${obj.align || "left"}`);
         return classes.join(" ");
     }
@@ -401,7 +459,7 @@ export class L10nVeEscpDesigner extends Component {
             return;
         }
         this.snapshot();
-        const order = this.state.options.band_types.map(([key]) => key);
+        const order = (this.state.options.band_types || []).map(([key]) => key);
         const band = {
             id: this.tempId--,
             band_type: bandType,

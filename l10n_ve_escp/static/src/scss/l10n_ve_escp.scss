@@ -146,4 +146,11 @@
         transform: scaleX(2);
         transform-origin: left center;
     }
+
+    .o_escp_s {
+        display: inline-block;
+        overflow: hidden;
+        white-space: pre;
+        vertical-align: bottom;
+    }
 }

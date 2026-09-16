@@ -597,7 +597,7 @@
         <field name="width">72</field>
         <field name="height">4</field>
         <field name="align">left</field>
-        <field name="style">normal</field>
+        <field name="style">small</field>
         <field name="text">El precio pactado de esta venta es en dolares americanos y se expresa en Bolivares a la tasa de cambio referencial publicada por el BCV a la fecha de esta facturacion; según disposición de los Artículos 25 de Ley I.V.A y 38 de su reglamento.</field>
         <field name="wrap" eval="True" />
     </record>
@@ -763,7 +763,7 @@
         <field name="width">72</field>
         <field name="height">3</field>
         <field name="align">left</field>
-        <field name="style">normal</field>
+        <field name="style">small</field>
         <field name="text">Si el pago se efectúa en Bs. debe aplicarse la tasa de cambio oficial vigente al día de pago, el cual queda sujeto a los ajustes previstos en el Articulo 51 del reglamento del I.V.A.</field>
         <field name="wrap" eval="True" />
     </record>
@@ -1031,7 +1031,7 @@
         <field name="width">72</field>
         <field name="height">3</field>
         <field name="align">left</field>
-        <field name="style">normal</field>
+        <field name="style">small</field>
         <field name="expr">'Esta factura está sujeta a percepción del %s de IGTF según forma de pago, en base a lo dispuesto en la Providencia Administrativa (SNAT/2022/000013).' % igtf_percent</field>
         <field name="format">text</field>
         <field name="wrap" eval="True" />
