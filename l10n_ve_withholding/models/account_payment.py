@@ -62,3 +62,20 @@ class AccountPayment(models.Model):
         """
         for payment in self:
             payment.amount = sum(payment.retention_line_ids.mapped("retention_amount"))
+
+    def _l10n_ve_get_retention_outstanding_account(self):
+        self.ensure_one()
+        return (
+            self.payment_method_line_id.payment_account_id
+            or self.journal_id.default_account_id
+            or self.journal_id.suspense_account_id
+        )
+
+    def _l10n_ve_ensure_retention_outstanding_account(self):
+        for payment in self:
+            if payment.outstanding_account_id:
+                continue
+            outstanding = payment._l10n_ve_get_retention_outstanding_account()
+            if outstanding:
+                payment.outstanding_account_id = outstanding
+        return self

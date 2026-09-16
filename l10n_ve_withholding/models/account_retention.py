@@ -530,12 +530,14 @@ class AccountRetention(models.Model):
         for retention in self:
             if any(retention.payment_ids) or retention.type_retention != "iva":
                 continue
+            company = retention.company_id
             payment_vals = {
                 "retention_id": retention.id,
                 "partner_id": retention.partner_id.id,
+                "company_id": company.id,
                 "payment_type_retention": "iva",
                 "is_retention": True,
-                "currency_id": self.env.user.company_id.currency_id.id,
+                "currency_id": company.currency_id.id,
                 "is_sent": True,
             }
 
@@ -557,7 +559,7 @@ class AccountRetention(models.Model):
         Payment = self.env["account.payment"]
         payment_vals["partner_type"] = "supplier"
         payment_vals["journal_id"] = (
-            self.env.company.iva_supplier_retention_journal_id.id
+            self.company_id.iva_supplier_retention_journal_id.id
         )
         in_refund_lines = self.retention_line_ids.filtered(
             lambda line: line.move_id.move_type == "in_refund"
@@ -593,6 +595,7 @@ class AccountRetention(models.Model):
             payment = Payment.create(vals)
             lines.write({"payment_id": payment.id})
             payment.compute_retention_amount_from_retention_lines()
+            payment._l10n_ve_ensure_retention_outstanding_account()
         for lines in in_invoices_dict.values():
             partner = lines[0].move_id._l10n_ve_withholding_partner()
             vals = {
@@ -612,6 +615,7 @@ class AccountRetention(models.Model):
             payment = Payment.create(vals)
             lines.write({"payment_id": payment.id})
             payment.compute_retention_amount_from_retention_lines()
+            payment._l10n_ve_ensure_retention_outstanding_account()
 
     def _create_payments_for_iva_customer(
         self, payment_vals, account_retention_line_empty_recordset
@@ -619,7 +623,7 @@ class AccountRetention(models.Model):
         Payment = self.env["account.payment"]
         payment_vals["partner_type"] = "customer"
         payment_vals["journal_id"] = (
-            self.env.company.iva_customer_retention_journal_id.id
+            self.company_id.iva_customer_retention_journal_id.id
         )
         out_refund_lines = self.retention_line_ids.filtered(
             lambda line: line.move_id.move_type == "out_refund"
@@ -650,6 +654,7 @@ class AccountRetention(models.Model):
             payment = Payment.create(payment_vals)
             lines.write({"payment_id": payment.id})
             payment.compute_retention_amount_from_retention_lines()
+            payment._l10n_ve_ensure_retention_outstanding_account()
         for lines in out_invoices_dict.values():
             payment_vals["payment_type"] = "inbound"
             payment_vals["payment_method_line_id"] = (
@@ -664,6 +669,7 @@ class AccountRetention(models.Model):
             payment = Payment.create(payment_vals)
             lines.write({"payment_id": payment.id})
             payment.compute_retention_amount_from_retention_lines()
+            payment._l10n_ve_ensure_retention_outstanding_account()
 
     def action_draft(self):
         self.write({"state": "draft"})
@@ -953,23 +959,32 @@ class AccountRetention(models.Model):
         """
         self.ensure_one()
         Payment = self.env["account.payment"]
+        company = self.company_id
         journals = {
             (
+                "iva",
+                "in_invoice",
+            ): company.iva_supplier_retention_journal_id,
+            (
+                "iva",
+                "out_invoice",
+            ): company.iva_customer_retention_journal_id,
+            (
                 "islr",
                 "in_invoice",
-            ): self.env.company.islr_supplier_retention_journal_id,
+            ): company.islr_supplier_retention_journal_id,
             (
                 "islr",
                 "out_invoice",
-            ): self.env.company.islr_customer_retention_journal_id,
+            ): company.islr_customer_retention_journal_id,
             (
                 "municipal",
                 "in_invoice",
-            ): self.env.company.municipal_supplier_retention_journal_id,
+            ): company.municipal_supplier_retention_journal_id,
             (
                 "municipal",
                 "out_invoice",
-            ): self.env.company.municipal_customer_retention_journal_id,
+            ): company.municipal_customer_retention_journal_id,
         }
         journal_id = journals[(self.type_retention, self.type)].id
 
@@ -1003,15 +1018,16 @@ class AccountRetention(models.Model):
                     "payment_method_id": self.env.ref(payment_method_ref).id,
                     "is_retention": True,
                     "retention_line_ids": line,
-                    "currency_id": self.env.user.company_id.currency_id.id,
+                    "company_id": company.id,
+                    "currency_id": company.currency_id.id,
                 }
             )
 
-        # payments = Payment.create(payment_vals)
         payments = self.env["account.payment"]
         for vals in payment_vals:
             payments += Payment.create(vals)
         payments.compute_retention_amount_from_retention_lines()
+        payments._l10n_ve_ensure_retention_outstanding_account()
 
         return payments
 
@@ -1037,6 +1053,7 @@ class AccountRetention(models.Model):
         corresponding to the payment.
         """
         for payment in self.mapped("payment_ids"):
+            payment._l10n_ve_ensure_retention_outstanding_account()
             payment.with_context(skip_is_manually_modified=True).action_post()
             if not payment.move_id or not payment.move_id.line_ids:
                 raise UserError(
