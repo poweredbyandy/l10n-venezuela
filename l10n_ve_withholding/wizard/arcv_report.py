@@ -84,8 +84,8 @@ class ArcvReport(models.TransientModel):
                 "start": "01/01/2020", "end": "31/01/2020",
             }, "partner": {
                 "name": "Partner Name", "street": "Partner Street", "street2":
-                "Partner Street 2", "phone": "Partner Phone", "vat": "Partner
-                VAT",
+                "Partner Street 2", "address": "Partner Address", "phone":
+                "Partner Phone", "vat": "Partner VAT",
             }, "retentions": [
                 {
                     "period": "01/2020", "percentage_fees": 0.75,
@@ -137,6 +137,7 @@ class ArcvReport(models.TransientModel):
                 "name": self.partner_id.name,
                 "street": self.partner_id.street,
                 "street2": self.partner_id.street2,
+                "address": self.partner_id._l10n_ve_fiscal_address(),
                 "phone": self.partner_id.phone,
                 "vat": f"{self.partner_id.prefix_vat}-{self.partner_id.vat}",
             },

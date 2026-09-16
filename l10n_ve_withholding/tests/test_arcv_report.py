@@ -26,3 +26,10 @@ class TestArcvReport(L10nVeSeniatCommon):
         self.assertEqual(action["report_name"], report.report_name)
         self.assertIn("retentions", action["data"])
         self.assertEqual(action["data"]["partner"]["name"], self.partner_a.name)
+        self.assertIn("address", action["data"]["partner"])
+
+    def test_arcv_template_does_not_ellipsis_company_address(self):
+        view = self.env.ref("l10n_ve_withholding.report_template_arcv")
+        self.assertIn("o_arcv_address", view.arch_db)
+        self.assertIn("_l10n_ve_fiscal_address", view.arch_db)
+        self.assertNotIn("th,td{ white-space: nowrap", view.arch_db)

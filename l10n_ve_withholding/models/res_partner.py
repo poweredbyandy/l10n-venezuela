@@ -30,6 +30,17 @@ class ResPartner(models.Model):
         self.ensure_one()
         return self.withholding_type_id
 
+    def _l10n_ve_fiscal_address(self):
+        self.ensure_one()
+        parts = [
+            self.street,
+            self.street2,
+            self.city,
+            self.state_id.name,
+            self.zip,
+        ]
+        return ", ".join(part.strip() for part in parts if part and str(part).strip())
+
     @api.model
     def _l10n_ve_get_islr_applicable_type_person_ids(self):
         return (

@@ -44,36 +44,36 @@
                 </div>
             </div>
             <div class="row" style="margin-top:10px">
-                <div class="col-4">
-                    <div class="col-12">
+                <div
+                    class="col-8"
+                    style="min-width:0;overflow:visible;white-space:normal;word-wrap:break-word;overflow-wrap:break-word;"
+                >
+                    <div>
                         <span>Nombre o Razón Social del Agente de Retención</span>
-                        <div style="width:100%">
+                        <div>
                             <span t-esc="res_company.name" />
                         </div>
                     </div>
-                    <div class="col-12">
+                    <div>
                         <span>Direccion Fiscal del Agente de Retención</span>
-                        <div class="col-12">
-                            <span t-esc="res_company.street" />
-                            <span t-esc="res_company.street2" />
-                            <span t-esc="res_company.state_id.name" />
+                        <div>
+                            <span
+                                t-esc="res_company.partner_id._l10n_ve_fiscal_address()"
+                            />
                         </div>
                     </div>
                 </div>
                 <div class="col-4">
-                    <div class="col-12">
+                    <div>
                         <span
                         >Registro de Informacion Fiscal del Agente de Retención:</span>
                     </div>
                     <div>
                         <span t-esc="res_company.vat" />
                     </div>
-                </div>
-
-                <div class="col-4">
-                    <div class="col-12">
+                    <div style="margin-top:10px">
                         <span>Periodo Fiscal:</span>
-                        <div style="width:100%">Año : <span
+                        <div>Año : <span
                             t-esc="retention.date_accounting.strftime('%Y')"
                         /> / Mes: <span
                             t-esc="retention.date_accounting.strftime('%m')"
@@ -603,18 +603,23 @@
             style="font-size:12px !important;margin-top:10px!important"
         >
             <div class="row">
-                <div class="col-8">
-                    <div class="col-12">
+                <div
+                    class="col-8"
+                    style="min-width:0;overflow:visible;white-space:normal;word-wrap:break-word;overflow-wrap:break-word;"
+                >
+                    <div>
                         <span>Agente de Retención:</span>
                     </div>
-                    <div class="col-12" style="text-transform:uppercase">
+                    <div style="text-transform:uppercase">
                         <span t-esc="res_company.name" />
                     </div>
-                    <div class="col-12">
+                    <div>
                         <span>Dirección:</span>
                     </div>
-                    <div class="col-12" style="text-transform:uppercase">
-                        <span t-esc="res_company.street" />
+                    <div style="text-transform:uppercase">
+                        <span
+                            t-esc="res_company.partner_id._l10n_ve_fiscal_address()"
+                        />
                     </div>
                 </div>
                 <div class="col-4">

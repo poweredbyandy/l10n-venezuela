@@ -1,5 +1,6 @@
 from . import test_account_move_iva_alert
 from . import test_arcv_report
+from . import test_islr_concept_code
 from . import test_islr_supplier_partner_domain
 from . import test_retention_iva_debit_note
 from . import test_retention_municipal

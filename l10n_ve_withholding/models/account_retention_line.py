@@ -74,7 +74,7 @@ class AccountRetentionLine(models.Model):
     payment_concept_id = fields.Many2one(
         "payment.concept", "Payment concept", ondelete="cascade", index=True
     )
-    code = fields.Char(related="payment_concept_id.line_payment_concept_ids.code")
+    code = fields.Char(compute="_compute_code", store=True)
     economic_activity_id = fields.Many2one(
         "economic.activity",
         ondelete="cascade",
@@ -192,6 +192,35 @@ class AccountRetentionLine(models.Model):
             "views": [(self.env.ref("account.view_move_form").id, "form")],
             "target": "current",
         }
+
+    def _l10n_ve_get_type_person_partner(self):
+        self.ensure_one()
+        if self.move_id:
+            return self.move_id._l10n_ve_withholding_partner()
+        return self.retention_id.partner_id
+
+    def _l10n_ve_get_payment_concept_line(self):
+        self.ensure_one()
+        type_person = self._l10n_ve_get_type_person_partner().type_person_id
+        if not self.payment_concept_id or not type_person:
+            return self.env["payment.concept.line"]
+        return self.payment_concept_id.line_payment_concept_ids.filtered(
+            lambda line: line.type_person_id == type_person
+        )[:1]
+
+    @api.depends(
+        "payment_concept_id",
+        "payment_concept_id.line_payment_concept_ids",
+        "payment_concept_id.line_payment_concept_ids.code",
+        "payment_concept_id.line_payment_concept_ids.type_person_id",
+        "move_id",
+        "move_id.partner_id.type_person_id",
+        "move_id.l10n_ve_third_party_partner_id.type_person_id",
+        "retention_id.partner_id.type_person_id",
+    )
+    def _compute_code(self):
+        for record in self:
+            record.code = record._l10n_ve_get_payment_concept_line().code or False
 
     @api.onchange("payment_concept_id")
     @api.depends("payment_concept_id", "move_id")

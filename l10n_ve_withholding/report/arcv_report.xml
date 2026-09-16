@@ -15,7 +15,7 @@
                 <t t-call="web.basic_layout">
                     <div style="margin-top: 0px" class="page">
                         <style>
-                                th,td{ white-space: nowrap;overflow: hidden;text-overflow:
+                                .o_arcv_data th,.o_arcv_data td{ white-space: nowrap;overflow: hidden;text-overflow:
                                 ellipsis;text-align: center;}
                                 thead { display: table-header-group }
                                 tfoot { display: table-row-group }
@@ -33,6 +33,13 @@
                                 }
                                 .tal{
                                 text-align: left;
+                                }
+                                .o_arcv_address{
+                                white-space: normal !important;
+                                overflow: visible !important;
+                                text-overflow: clip !important;
+                                word-wrap: break-word;
+                                overflow-wrap: break-word;
                                 }
                                 .borderlessr {
                                 border-right: 1px solid white !important;
@@ -106,6 +113,7 @@
                             </tr>
                             <tr>
                                 <td
+                                    class="o_arcv_address"
                                     style="text-align: left;border: 1px solid black;padding-left: 10px;"
                                     colspan="6"
                                 >
@@ -117,9 +125,8 @@
                                     <br />
                                     <span
                                         class="fw tal"
-                                        t-out="res_company.partner_id.street"
+                                        t-out="res_company.partner_id._l10n_ve_fiscal_address()"
                                     />
-                                    <span t-esc="res_company.partner_id.street2" />
                                     <br />
                                     <span class="tal">Teléfono: </span>
                                     <span
@@ -131,6 +138,7 @@
                                     <span t-out="res_company.partner_id.vat" />
                                 </td>
                                 <td
+                                    class="o_arcv_address"
                                     style="text-align: left;border: 1px solid black;padding-left: 10px;"
                                     colspan="6"
                                 >
@@ -145,9 +153,8 @@
                                     <br />
                                     <span
                                         class="fw tal"
-                                        t-out="data['partner']['street']"
+                                        t-out="data['partner']['address']"
                                     />
-                                    <span t-esc="data['partner']['street2']" />
                                     <br />
                                     <span class="tal">Teléfono: </span>
                                     <span
@@ -173,7 +180,7 @@
                                             enterado</h1>
                                 </td>
                             </tr>
-                            <table style="width:100%;">
+                            <table class="o_arcv_data" style="width:100%;">
                                 <tr style="border: 1px solid black">
                                     <th
                                         class="text-center"
