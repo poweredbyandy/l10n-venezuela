@@ -1,0 +1,31 @@
+{
+    "name": "Venezuela — Motor de reportes ESC/P (impresoras matriz)",
+    "version": "18.0.1.0.0",
+    "category": "Technical",
+    "summary": "Reportes ESC/P por bandas para Epson matriz: diseño, vista previa PDF e impresión WebUSB",
+    "author": "andyengit, Odoo Community Association (OCA)",
+    "maintainer": "andyengit",
+    "website": "https://github.com/OCA/l10n-venezuela",
+    "license": "AGPL-3",
+    "depends": ["web"],
+    "external_dependencies": {"python": ["pyscape"]},
+    "data": [
+        "security/ir.model.access.csv",
+        "views/l10n_ve_escp_report_views.xml",
+        "wizards/l10n_ve_escp_preview.xml",
+        "wizards/l10n_ve_escp_frx_import.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "l10n_ve_escp/static/src/js/l10n_ve_escp_print_action.esm.js",
+            "l10n_ve_escp/static/src/js/l10n_ve_escp_report_handler.esm.js",
+            "l10n_ve_escp/static/src/js/l10n_ve_escp_preview_field.esm.js",
+            "l10n_ve_escp/static/src/js/l10n_ve_escp_designer.esm.js",
+            "l10n_ve_escp/static/src/xml/l10n_ve_escp_preview_field.xml",
+            "l10n_ve_escp/static/src/xml/l10n_ve_escp_designer.xml",
+            "l10n_ve_escp/static/src/scss/l10n_ve_escp.scss",
+            "l10n_ve_escp/static/src/scss/l10n_ve_escp_designer.scss",
+        ],
+    },
+    "installable": True,
+}

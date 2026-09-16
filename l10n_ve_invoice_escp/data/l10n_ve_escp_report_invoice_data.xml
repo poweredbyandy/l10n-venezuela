@@ -1,0 +1,1065 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="l10n_ve_escp_report_invoice" model="l10n.ve.escp.report">
+        <field name="name">Factura forma libre carta (FoxPro factur01, 17 CPI)</field>
+        <field name="model_id" ref="account.model_account_move" />
+        <field name="cpi">17</field>
+        <field name="lpi">6</field>
+        <field name="paper_width_in">8.5</field>
+        <field name="paper_height_in">11.0</field>
+        <field name="print_head_pins">9</field>
+        <field name="print_quality">draft_double</field>
+        <field name="margin_top_lines">0</field>
+        <field name="show_in_print_menu" eval="True" />
+        <field name="note">Portado del reporte Visual FoxPro factur01.frx: encabezado 14 filas, títulos 1, detalle 35 renglones, pie 16 = 66 líneas en carta a 17 CPI × 6 LPI.</field>
+    </record>
+    <record id="band_page_header" model="l10n.ve.escp.report.band">
+        <field name="report_id" ref="l10n_ve_escp_report_invoice" />
+        <field name="band_type">page_header</field>
+        <field name="height">14</field>
+    </record>
+    <record id="obj_page_header_lbl_partner_name" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">0</field>
+        <field name="kind">label</field>
+        <field name="row">6</field>
+        <field name="col">6</field>
+        <field name="width">19</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Razon Social :</field>
+    </record>
+    <record id="obj_page_header_partner_name" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">10</field>
+        <field name="kind">field</field>
+        <field name="row">6</field>
+        <field name="col">26</field>
+        <field name="width">65</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">partner_name</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_doc_title" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">20</field>
+        <field name="kind">field</field>
+        <field name="row">7</field>
+        <field name="col">94</field>
+        <field name="width">22</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold_wide</field>
+        <field name="expr">doc_title</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_invoice_number" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">30</field>
+        <field name="kind">field</field>
+        <field name="row">7</field>
+        <field name="col">117</field>
+        <field name="width">21</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold_wide</field>
+        <field name="expr">invoice_number</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_partner_vat" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">40</field>
+        <field name="kind">label</field>
+        <field name="row">9</field>
+        <field name="col">6</field>
+        <field name="width">19</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">R.I.F. :</field>
+    </record>
+    <record id="obj_page_header_partner_vat" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">50</field>
+        <field name="kind">field</field>
+        <field name="row">9</field>
+        <field name="col">26</field>
+        <field name="width">55</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">partner_vat</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_emission" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">60</field>
+        <field name="kind">label</field>
+        <field name="row">9</field>
+        <field name="col">83</field>
+        <field name="width">26</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Fecha - Hora de Emisión :</field>
+    </record>
+    <record id="obj_page_header_emission" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">70</field>
+        <field name="kind">field</field>
+        <field name="row">9</field>
+        <field name="col">109</field>
+        <field name="width">28</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">emission</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_partner_email" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">80</field>
+        <field name="kind">label</field>
+        <field name="row">10</field>
+        <field name="col">6</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Correo electrónico:</field>
+    </record>
+    <record id="obj_page_header_partner_email" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">90</field>
+        <field name="kind">field</field>
+        <field name="row">10</field>
+        <field name="col">26</field>
+        <field name="width">44</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">partner_email</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_partner_phone" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">100</field>
+        <field name="kind">label</field>
+        <field name="row">10</field>
+        <field name="col">70</field>
+        <field name="width">11</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Teléfonos:</field>
+    </record>
+    <record id="obj_page_header_partner_phone" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">110</field>
+        <field name="kind">field</field>
+        <field name="row">10</field>
+        <field name="col">81</field>
+        <field name="width">40</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">partner_phone</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_page" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">120</field>
+        <field name="kind">label</field>
+        <field name="row">10</field>
+        <field name="col">124</field>
+        <field name="width">7</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Página:</field>
+    </record>
+    <record id="obj_page_header_page" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">130</field>
+        <field name="kind">field</field>
+        <field name="row">10</field>
+        <field name="col">132</field>
+        <field name="width">6</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">'%03d' % page</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_partner_address" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">140</field>
+        <field name="kind">label</field>
+        <field name="row">11</field>
+        <field name="col">6</field>
+        <field name="width">18</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Domicilio Fiscal :</field>
+    </record>
+    <record id="obj_page_header_partner_address" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">150</field>
+        <field name="kind">field</field>
+        <field name="row">11</field>
+        <field name="col">26</field>
+        <field name="width">111</field>
+        <field name="height">2</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">partner_address</field>
+        <field name="format">text</field>
+        <field name="wrap" eval="True" />
+    </record>
+    <record id="obj_page_header_lbl_origin" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">160</field>
+        <field name="kind">label</field>
+        <field name="row">12</field>
+        <field name="col">98</field>
+        <field name="width">14</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Doc. afectado:</field>
+    </record>
+    <record id="obj_page_header_origin_document" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">170</field>
+        <field name="kind">field</field>
+        <field name="row">12</field>
+        <field name="col">112</field>
+        <field name="width">25</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">origin_document</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_client_code" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">180</field>
+        <field name="kind">label</field>
+        <field name="row">13</field>
+        <field name="col">6</field>
+        <field name="width">17</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Código Cliente :</field>
+    </record>
+    <record id="obj_page_header_client_code" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">190</field>
+        <field name="kind">field</field>
+        <field name="row">13</field>
+        <field name="col">26</field>
+        <field name="width">23</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">client_code</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_seller" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">200</field>
+        <field name="kind">label</field>
+        <field name="row">13</field>
+        <field name="col">57</field>
+        <field name="width">10</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Vendedor:</field>
+    </record>
+    <record id="obj_page_header_seller" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">210</field>
+        <field name="kind">field</field>
+        <field name="row">13</field>
+        <field name="col">69</field>
+        <field name="width">23</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">seller</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_header_lbl_payment_term" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">220</field>
+        <field name="kind">label</field>
+        <field name="row">13</field>
+        <field name="col">98</field>
+        <field name="width">11</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Condición:</field>
+    </record>
+    <record id="obj_page_header_payment_term" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_header" />
+        <field name="sequence">230</field>
+        <field name="kind">field</field>
+        <field name="row">13</field>
+        <field name="col">112</field>
+        <field name="width">25</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">payment_term</field>
+        <field name="format">text</field>
+    </record>
+    <record id="band_column_header" model="l10n.ve.escp.report.band">
+        <field name="report_id" ref="l10n_ve_escp_report_invoice" />
+        <field name="band_type">column_header</field>
+        <field name="height">1</field>
+    </record>
+    <record id="obj_column_header_hdr_code" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_column_header" />
+        <field name="sequence">0</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">12</field>
+        <field name="width">8</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Código</field>
+    </record>
+    <record id="obj_column_header_hdr_desc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_column_header" />
+        <field name="sequence">10</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">36</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Nombre del artículo</field>
+    </record>
+    <record id="obj_column_header_hdr_ref" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_column_header" />
+        <field name="sequence">20</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">69</field>
+        <field name="width">11</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Referencia</field>
+    </record>
+    <record id="obj_column_header_hdr_brand" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_column_header" />
+        <field name="sequence">30</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">87</field>
+        <field name="width">6</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Marca</field>
+    </record>
+    <record id="obj_column_header_hdr_qty" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_column_header" />
+        <field name="sequence">40</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">100</field>
+        <field name="width">5</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Cant</field>
+    </record>
+    <record id="obj_column_header_hdr_price_unit" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_column_header" />
+        <field name="sequence">50</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">108</field>
+        <field name="width">12</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Precio Unit.</field>
+    </record>
+    <record id="obj_column_header_hdr_subtotal" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_column_header" />
+        <field name="sequence">60</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">124</field>
+        <field name="width">12</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Monto Bruto</field>
+    </record>
+    <record id="band_detail" model="l10n.ve.escp.report.band">
+        <field name="report_id" ref="l10n_ve_escp_report_invoice" />
+        <field name="band_type">detail</field>
+        <field name="height">1</field>
+        <field name="detail_expr">product_lines</field>
+        <field name="detail_rows">35</field>
+    </record>
+    <record id="obj_detail_prod_code" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_detail" />
+        <field name="sequence">0</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">5</field>
+        <field name="width">19</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">pl.code</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_detail_prod_desc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_detail" />
+        <field name="sequence">10</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">25</field>
+        <field name="width">38</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">pl.desc</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_detail_prod_ref" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_detail" />
+        <field name="sequence">20</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">64</field>
+        <field name="width">19</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">pl.ref</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_detail_prod_brand" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_detail" />
+        <field name="sequence">30</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">83</field>
+        <field name="width">13</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">pl.brand</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_detail_prod_qty" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_detail" />
+        <field name="sequence">40</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">97</field>
+        <field name="width">8</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">pl.qty</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_detail_prod_price_unit" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_detail" />
+        <field name="sequence">50</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">105</field>
+        <field name="width">15</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">pl.price_unit</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_detail_prod_subtotal" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_detail" />
+        <field name="sequence">60</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">120</field>
+        <field name="width">17</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">pl.subtotal</field>
+        <field name="format">text</field>
+    </record>
+    <record id="band_page_footer" model="l10n.ve.escp.report.band">
+        <field name="report_id" ref="l10n_ve_escp_report_invoice" />
+        <field name="band_type">page_footer</field>
+        <field name="height">16</field>
+    </record>
+    <record id="obj_page_footer_lbl_count_articles" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">0</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">3</field>
+        <field name="width">22</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Números de Artículos :</field>
+    </record>
+    <record id="obj_page_footer_count_articles" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">10</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">26</field>
+        <field name="width">6</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">count_articles</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_count_qty" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">20</field>
+        <field name="kind">label</field>
+        <field name="row">0</field>
+        <field name="col">36</field>
+        <field name="width">33</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Cantidades Totales de Artículos :</field>
+    </record>
+    <record id="obj_page_footer_count_qty" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">30</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">70</field>
+        <field name="width">6</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">count_qty</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_currency_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">40</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">doc_currency.name if dual_currency else ''</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_currency_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">50</field>
+        <field name="kind">field</field>
+        <field name="row">0</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">comp_currency.name if dual_currency else doc_currency.name</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_note_bcv" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">60</field>
+        <field name="kind">label</field>
+        <field name="row">1</field>
+        <field name="col">3</field>
+        <field name="width">72</field>
+        <field name="height">4</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="text">El precio pactado de esta venta es en dolares americanos y se expresa en Bolivares a la tasa de cambio referencial publicada por el BCV a la fecha de esta facturacion; según disposición de los Artículos 25 de Ley I.V.A y 38 de su reglamento.</field>
+        <field name="wrap" eval="True" />
+    </record>
+    <record id="obj_page_footer_lbl_exempt" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">70</field>
+        <field name="kind">label</field>
+        <field name="row">1</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="text">Exento (+):</field>
+    </record>
+    <record id="obj_page_footer_exempt_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">80</field>
+        <field name="kind">field</field>
+        <field name="row">1</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.doc.exempt</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_exempt_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">90</field>
+        <field name="kind">field</field>
+        <field name="row">1</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.comp.exempt</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_gross" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">100</field>
+        <field name="kind">label</field>
+        <field name="row">2</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="text">Monto Neto (+):</field>
+    </record>
+    <record id="obj_page_footer_gross_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">110</field>
+        <field name="kind">field</field>
+        <field name="row">2</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.doc.gross</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_gross_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">120</field>
+        <field name="kind">field</field>
+        <field name="row">2</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.comp.gross</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_discount" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">130</field>
+        <field name="kind">field</field>
+        <field name="row">3</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">('Descuento %s (-):' % discount_percent).replace('  ', ' ')</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_discount_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">140</field>
+        <field name="kind">field</field>
+        <field name="row">3</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.doc.discount</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_discount_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">150</field>
+        <field name="kind">field</field>
+        <field name="row">3</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.comp.discount</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_subtotal" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">160</field>
+        <field name="kind">label</field>
+        <field name="row">4</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Sub-Total:</field>
+    </record>
+    <record id="obj_page_footer_subtotal_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">170</field>
+        <field name="kind">field</field>
+        <field name="row">4</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.doc.subtotal</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_subtotal_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">180</field>
+        <field name="kind">field</field>
+        <field name="row">4</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.comp.subtotal</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_note_payment" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">190</field>
+        <field name="kind">label</field>
+        <field name="row">5</field>
+        <field name="col">3</field>
+        <field name="width">72</field>
+        <field name="height">3</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="text">Si el pago se efectúa en Bs. debe aplicarse la tasa de cambio oficial vigente al día de pago, el cual queda sujeto a los ajustes previstos en el Articulo 51 del reglamento del I.V.A.</field>
+        <field name="wrap" eval="True" />
+    </record>
+    <record id="obj_page_footer_lbl_vat_base" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">200</field>
+        <field name="kind">label</field>
+        <field name="row">5</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Subtotal Base Imponible:</field>
+    </record>
+    <record id="obj_page_footer_vat_base_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">210</field>
+        <field name="kind">field</field>
+        <field name="row">5</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.doc.vat_base</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_vat_base_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">220</field>
+        <field name="kind">field</field>
+        <field name="row">5</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.comp.vat_base</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_vat" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">230</field>
+        <field name="kind">field</field>
+        <field name="row">6</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="expr">'Total I.V.A. al %s (+):' % vat_percent</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_vat_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">240</field>
+        <field name="kind">field</field>
+        <field name="row">6</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.doc.vat</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_vat_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">250</field>
+        <field name="kind">field</field>
+        <field name="row">6</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.comp.vat</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_invoice" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">260</field>
+        <field name="kind">label</field>
+        <field name="row">7</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">TOTAL FACTURA:</field>
+    </record>
+    <record id="obj_page_footer_invoice_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">270</field>
+        <field name="kind">field</field>
+        <field name="row">7</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">tot.doc.invoice</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_invoice_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">280</field>
+        <field name="kind">field</field>
+        <field name="row">7</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">tot.comp.invoice</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_exchange_rate" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">290</field>
+        <field name="kind">label</field>
+        <field name="row">8</field>
+        <field name="col">3</field>
+        <field name="width">40</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Tasa de Cambio según fecha de Factura:</field>
+    </record>
+    <record id="obj_page_footer_exchange_rate" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">300</field>
+        <field name="kind">field</field>
+        <field name="row">8</field>
+        <field name="col">44</field>
+        <field name="width">22</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="expr">exchange_rate</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_igtf" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">310</field>
+        <field name="kind">field</field>
+        <field name="row">8</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">'IGTF %s (+):' % igtf_percent</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_igtf_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">320</field>
+        <field name="kind">field</field>
+        <field name="row">8</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.doc.igtf</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_igtf_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">330</field>
+        <field name="kind">field</field>
+        <field name="row">8</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">normal</field>
+        <field name="expr">tot.comp.igtf</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_igtf_base" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">340</field>
+        <field name="kind">label</field>
+        <field name="row">9</field>
+        <field name="col">3</field>
+        <field name="width">18</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">Monto Base IGTF:</field>
+    </record>
+    <record id="obj_page_footer_igtf_base_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">350</field>
+        <field name="kind">field</field>
+        <field name="row">9</field>
+        <field name="col">22</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">tot.doc.igtf_base</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_igtf_base_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">360</field>
+        <field name="kind">field</field>
+        <field name="row">9</field>
+        <field name="col">46</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">tot.comp.igtf_base</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_lbl_payable" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">370</field>
+        <field name="kind">label</field>
+        <field name="row">9</field>
+        <field name="col">76</field>
+        <field name="width">24</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="text">TOTAL A PAGAR</field>
+    </record>
+    <record id="obj_page_footer_payable_doc" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">380</field>
+        <field name="kind">field</field>
+        <field name="row">9</field>
+        <field name="col">100</field>
+        <field name="width">16</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">tot.doc.payable</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_payable_comp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">390</field>
+        <field name="kind">field</field>
+        <field name="row">9</field>
+        <field name="col">117</field>
+        <field name="width">20</field>
+        <field name="height">1</field>
+        <field name="align">right</field>
+        <field name="style">bold</field>
+        <field name="expr">tot.comp.payable</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_note_igtf" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">400</field>
+        <field name="kind">field</field>
+        <field name="row">10</field>
+        <field name="col">3</field>
+        <field name="width">72</field>
+        <field name="height">3</field>
+        <field name="align">left</field>
+        <field name="style">normal</field>
+        <field name="expr">'Esta factura está sujeta a percepción del %s de IGTF según forma de pago, en base a lo dispuesto en la Providencia Administrativa (SNAT/2022/000013).' % igtf_percent</field>
+        <field name="format">text</field>
+        <field name="wrap" eval="True" />
+    </record>
+    <record id="obj_page_footer_amount_words" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">410</field>
+        <field name="kind">field</field>
+        <field name="row">13</field>
+        <field name="col">3</field>
+        <field name="width">130</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="expr">amount_words</field>
+        <field name="format">text</field>
+    </record>
+    <record id="obj_page_footer_stamp" model="l10n.ve.escp.report.object">
+        <field name="band_id" ref="band_page_footer" />
+        <field name="sequence">420</field>
+        <field name="kind">field</field>
+        <field name="row">14</field>
+        <field name="col">53</field>
+        <field name="width">40</field>
+        <field name="height">1</field>
+        <field name="align">left</field>
+        <field name="style">bold</field>
+        <field name="expr">stamp</field>
+        <field name="format">text</field>
+    </record>
+</odoo>

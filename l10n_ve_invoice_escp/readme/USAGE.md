@@ -1,8 +1,5 @@
-To print a document:
+1. Post a customer invoice, credit note or debit note on a continuous-paper journal.
+2. Click **Print**. The ESC/P preview dialog renders the exact byte stream as PDF (bold labels, double-width title, condensed pitch, 66 lines per letter form).
+3. Click **Imprimir** and select the Epson USB printer in the browser dialog.
 
-1. Configure a sales journal with **Free form** emission and **Continuous** print medium.
-2. Post a customer invoice, credit note, or debit note on that journal.
-3. Use the continuous-paper print action on the document.
-4. Select the Epson ESC/P USB printer in the browser dialog.
-
-The first successful print marks the original as printed. Later prints include a copy legend. Cancelled documents print with an annulled stamp.
+The first successful print marks the original as printed; later prints carry the copy legend and cancelled documents print the annulled stamp. The report is also available under **Print > Factura forma libre carta** on the invoice list and form.

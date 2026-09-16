@@ -1,0 +1,3 @@
+Many Venezuelan companies still issue free-form invoices and dispatch guides on continuous pre-printed paper with Epson dot-matrix printers driven by ESC/P. Their legacy DOS/FoxPro systems positioned every value by row and column; Odoo's QWeb/PDF pipeline cannot reproduce that on a matrix printer.
+
+This module brings that capability into Odoo as a reusable engine: layouts are data, not code, so administrators can adjust positions when the pre-printed form changes and preview the result before wasting paper. Business modules (invoice, picking...) only provide the values available to expressions.

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_journal_form_inherit" model="ir.ui.view">
+        <field name="name">account.journal.form.l10n.ve.invoice.escp</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="l10n_ve_seniat.view_account_journal_form_inherit" />
+        <field name="arch" type="xml">
+            <field name="l10n_ve_free_form_print_medium" position="after">
+                <field
+                    name="l10n_ve_escp_report_id"
+                    invisible="l10n_ve_emission_medium != 'free' or l10n_ve_free_form_print_medium != 'continuous'"
+                />
+            </field>
+        </field>
+    </record>
+
+    <record id="l10n_ve_escp_report_invoice_action" model="ir.actions.act_window">
+        <field name="name">Reportes ESC/P</field>
+        <field name="res_model">l10n.ve.escp.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('model', '=', 'account.move')]</field>
+        <field name="context">{'default_model_name': 'account.move'}</field>
+    </record>
+
+    <menuitem
+        id="l10n_ve_escp_report_invoice_menu"
+        name="Reportes ESC/P"
+        parent="account.menu_finance_configuration"
+        action="l10n_ve_escp_report_invoice_action"
+        sequence="90"
+    />
+</odoo>

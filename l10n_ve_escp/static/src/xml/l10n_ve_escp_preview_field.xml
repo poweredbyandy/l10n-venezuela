@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="l10n_ve_escp.PreviewField">
+        <div class="o_l10n_ve_escp_preview_field" t-ref="root">
+            <iframe
+                t-if="pdfUrl"
+                class="o_l10n_ve_escp_pdf"
+                t-ref="pdf"
+                t-att-src="pdfUrl"
+                t-on-load="scheduleResize"
+                title="Vista previa ESC/P"
+            />
+            <div t-else="" class="o_l10n_ve_escp_preview_html" t-out="htmlContent" />
+        </div>
+    </t>
+</templates>

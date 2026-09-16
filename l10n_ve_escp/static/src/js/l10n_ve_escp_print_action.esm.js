@@ -117,7 +117,7 @@ async function sendOnBulkInterface(device, iface, uint8Array) {
     return true;
 }
 
-async function sendEpsonEscpWebUSB(uint8Array) {
+export async function sendEpsonEscpWebUSB(uint8Array) {
     const device = await openEpsonUsbDevice();
     try {
         const config = resolveUsbConfiguration(device);
@@ -146,7 +146,7 @@ async function sendEpsonEscpWebUSB(uint8Array) {
     }
 }
 
-export class L10nVeInvoiceEscpPrintAction extends Component {
+export class L10nVeEscpPrintAction extends Component {
     static target = "new";
     static props = {...standardActionServiceProps};
     static template = xml`<div class="o_invisible_modifier"/>`;
@@ -159,25 +159,29 @@ export class L10nVeInvoiceEscpPrintAction extends Component {
     }
 
     async run() {
-        const moveId = this.props.action.params?.move_id;
+        const params = this.props.action.params || {};
+        const {report_id: reportId, res_model: resModel, res_ids: resIds} = params;
+        const testMode = Boolean(params.test_mode);
         try {
-            if (!moveId) {
-                this.notification.add(_t("Falta el identificador de la factura."), {
+            if (!reportId || !resIds || !resIds.length) {
+                this.notification.add(_t("Faltan el reporte o los registros a imprimir."), {
                     type: "danger",
                 });
                 return;
             }
             const {payload_b64: b64} = await this.orm.call(
-                "account.move",
-                "l10n_ve_invoice_escp_get_payload",
-                [moveId]
+                "l10n.ve.escp.report",
+                "get_print_payload",
+                [reportId, resModel, resIds, testMode]
             );
             await sendEpsonEscpWebUSB(decodePayloadBytes(b64));
-            await this.orm.call(
-                "account.move",
-                "l10n_ve_invoice_escp_confirm_printed",
-                [moveId]
-            );
+            if (!testMode) {
+                await this.orm.call("l10n.ve.escp.report", "confirm_printed", [
+                    reportId,
+                    resModel,
+                    resIds,
+                ]);
+            }
             this.notification.add(_t("Impresión enviada a la impresora."), {
                 type: "success",
             });
@@ -193,6 +197,4 @@ export class L10nVeInvoiceEscpPrintAction extends Component {
     }
 }
 
-registry
-    .category("actions")
-    .add("l10n_ve_invoice_escp_print", L10nVeInvoiceEscpPrintAction);
+registry.category("actions").add("l10n_ve_escp_print", L10nVeEscpPrintAction);

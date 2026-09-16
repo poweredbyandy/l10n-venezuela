@@ -1,0 +1,149 @@
+.o_dialog .modal-dialog.o_l10n_ve_escp_preview_modal {
+    width: 98vw;
+    max-width: 98vw;
+    height: 98vh;
+    margin: 1vh auto;
+
+    .modal-content {
+        height: 98vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        flex: none;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .modal-footer {
+        flex: none;
+        padding-top: 0.4rem;
+        padding-bottom: 0.4rem;
+    }
+
+    .o_l10n_ve_escp_preview_form,
+    .o_form_view,
+    .o_form_view_container,
+    .o_content,
+    .o_form_renderer,
+    .o_form_sheet_bg,
+    .o_form_sheet,
+    .o_inner_group,
+    .o_group,
+    .o_wrap_field,
+    .o_cell,
+    .o_field_widget.o_field_l10n_ve_escp_preview {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .o_form_renderer {
+        overflow: hidden;
+    }
+
+    .o_form_sheet_bg,
+    .o_form_sheet {
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .o_l10n_ve_escp_preview_field {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+
+        .o_l10n_ve_escp_pdf,
+        .o_l10n_ve_escp_preview_html {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+        }
+    }
+}
+
+.o_field_widget.o_field_l10n_ve_escp_preview {
+    display: block;
+    width: 100%;
+}
+
+.o_l10n_ve_escp_preview_field {
+    width: 100%;
+    display: block;
+
+    .o_l10n_ve_escp_pdf {
+        display: block;
+        width: 100%;
+        height: calc(100vh - 260px);
+        min-height: 480px;
+        border: 1px solid #c4bba8;
+        background: #525659;
+    }
+
+    .o_l10n_ve_escp_preview_html {
+        overflow: auto;
+        max-height: calc(100vh - 260px);
+    }
+}
+
+.o_l10n_ve_escp_preview {
+    display: inline-block;
+    min-width: 100%;
+    margin: 0;
+    padding: 12px 16px;
+    background: #f7f4ea;
+    border: 1px solid #c4bba8;
+    font-family: "Courier New", Courier, "Liberation Mono", monospace;
+    font-size: 11px;
+    line-height: 1.25;
+    white-space: pre;
+    color: #4a4a4a;
+
+    .o_escp_gutter {
+        color: #b3a98f;
+        user-select: none;
+    }
+
+    .o_escp_b {
+        font-weight: 700;
+        color: #1e1e1e;
+    }
+
+    .o_escp_u {
+        text-decoration: underline;
+    }
+
+    .o_escp_w {
+        display: inline-block;
+        width: 2ch;
+        transform: scaleX(2);
+        transform-origin: left center;
+    }
+}

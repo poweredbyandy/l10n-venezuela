@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_ve_escp_report_user,l10n.ve.escp.report user,model_l10n_ve_escp_report,base.group_user,1,0,0,0
+access_l10n_ve_escp_report_system,l10n.ve.escp.report system,model_l10n_ve_escp_report,base.group_system,1,1,1,1
+access_l10n_ve_escp_report_band_user,l10n.ve.escp.report.band user,model_l10n_ve_escp_report_band,base.group_user,1,0,0,0
+access_l10n_ve_escp_report_band_system,l10n.ve.escp.report.band system,model_l10n_ve_escp_report_band,base.group_system,1,1,1,1
+access_l10n_ve_escp_report_object_user,l10n.ve.escp.report.object user,model_l10n_ve_escp_report_object,base.group_user,1,0,0,0
+access_l10n_ve_escp_report_object_system,l10n.ve.escp.report.object system,model_l10n_ve_escp_report_object,base.group_system,1,1,1,1
+access_l10n_ve_escp_preview_user,l10n.ve.escp.preview user,model_l10n_ve_escp_preview,base.group_user,1,1,1,1
+access_l10n_ve_escp_frx_import_system,l10n.ve.escp.frx.import system,model_l10n_ve_escp_frx_import,base.group_system,1,1,1,1

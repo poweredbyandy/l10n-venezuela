@@ -1,3 +1,3 @@
-Print Venezuelan customer invoices and credit or debit notes on continuous paper using Epson ESC/P printers over WebUSB.
+Print Venezuelan customer invoices and credit or debit notes on continuous pre-printed forms using Epson ESC/P printers over WebUSB.
 
-The module builds an ESC/P payload from the posted document and sends it from the browser to a compatible Epson USB printer. It applies only when the journal uses free-form emission and continuous paper.
+The module builds on `l10n_ve_escp` (band-based ESC/P report engine) and ships the invoice report ported from the legacy Visual FoxPro `factur01.frx`: customer block, column titles, detail lines, dual-currency totals, IGTF, exchange rate, legal notes, amount in words and copy/annulled stamp. It exposes the invoice business values (`partner_name`, `tot.doc.vat`, `pl.desc`...) to report expressions and hooks the SENIAT free-form flow: the *Print* button opens the ESC/P preview when the journal uses continuous paper, and the first print marks the original as printed.

@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="l10n_ve_escp_report_view_list" model="ir.ui.view">
+        <field name="name">l10n.ve.escp.report.list</field>
+        <field name="model">l10n.ve.escp.report</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="model_id" />
+                <field name="cpi" />
+                <field name="lpi" />
+                <field name="line_width" />
+                <field name="page_rows" />
+                <field name="show_in_print_menu" widget="boolean_toggle" />
+                <field name="company_id" groups="base.group_multi_company" />
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_ve_escp_report_view_search" model="ir.ui.view">
+        <field name="name">l10n.ve.escp.report.search</field>
+        <field name="model">l10n.ve.escp.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="model_id" />
+                <filter
+                    name="inactive"
+                    string="Archivados"
+                    domain="[('active', '=', False)]"
+                />
+                <group expand="0" string="Agrupar por">
+                    <filter
+                        name="group_model"
+                        string="Modelo"
+                        context="{'group_by': 'model_id'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_ve_escp_report_object_view_list" model="ir.ui.view">
+        <field name="name">l10n.ve.escp.report.object.list</field>
+        <field name="model">l10n.ve.escp.report.object</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" default_group_by="band_id">
+                <field name="band_id" />
+                <field name="kind" />
+                <field name="row" />
+                <field name="col" />
+                <field name="width" />
+                <field name="height" />
+                <field name="align" />
+                <field name="style" />
+                <field name="text" />
+                <field name="expr" />
+                <field name="format" />
+                <field name="print_when" optional="hide" />
+                <field name="foxpro_expr" optional="hide" />
+                <field name="active" widget="boolean_toggle" />
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_ve_escp_report_action" model="ir.actions.act_window">
+        <field name="name">Reportes ESC/P</field>
+        <field name="res_model">l10n.ve.escp.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cree un reporte ESC/P</p>
+            <p>
+                Defina bandas (encabezado, columnas, detalle, pie) y coloque etiquetas y
+                campos por fila y columna. También puede importar un reporte de
+                Visual FoxPro (.frx/.frt).
+            </p>
+        </field>
+    </record>
+
+    <record id="l10n_ve_escp_report_object_action" model="ir.actions.act_window">
+        <field name="name">Objetos del reporte</field>
+        <field name="res_model">l10n.ve.escp.report.object</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="l10n_ve_escp_report_object_view_list" />
+        <field name="domain">[('report_id', '=', active_id)]</field>
+        <field name="context">{'default_report_id': active_id}</field>
+    </record>
+
+    <record id="l10n_ve_escp_report_view_form" model="ir.ui.view">
+        <field name="name">l10n.ve.escp.report.form</field>
+        <field name="model">l10n.ve.escp.report</field>
+        <field name="arch" type="xml">
+            <form string="Reporte ESC/P">
+                <header>
+                    <button
+                        name="action_open_designer"
+                        type="object"
+                        string="Diseñador"
+                        class="btn-primary"
+                        invisible="not id"
+                    />
+                    <button
+                        name="action_preview_sample"
+                        type="object"
+                        string="Vista previa"
+                        class="btn-secondary"
+                        invisible="not sample_ref"
+                    />
+                    <button
+                        name="action_print_sample"
+                        type="object"
+                        string="Imprimir prueba"
+                        class="btn-secondary"
+                        invisible="not sample_ref"
+                    />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="%(l10n_ve_escp_report_object_action)d"
+                            type="action"
+                            class="oe_stat_button"
+                            icon="fa-th-list"
+                            string="Objetos"
+                            invisible="not id"
+                        />
+                    </div>
+                    <widget
+                        name="web_ribbon"
+                        title="Archivado"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Factura forma libre" /></h1>
+                    </div>
+                    <group>
+                        <group string="Documento">
+                            <field name="model_id" options="{'no_create': True}" />
+                            <field name="model" invisible="1" />
+                            <field name="show_in_print_menu" />
+                            <field name="active" invisible="1" />
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                            />
+                            <field name="report_action_id" groups="base.group_no_one" />
+                        </group>
+                        <group string="Impresora y papel">
+                            <field name="cpi" />
+                            <field name="lpi" />
+                            <field name="paper_width_in" />
+                            <field name="paper_height_in" />
+                            <field name="line_width" />
+                            <field name="page_rows" />
+                            <field name="margin_top_lines" />
+                            <field name="print_quality" />
+                            <field name="print_head_pins" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="bands" string="Bandas y objetos">
+                            <field name="band_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" column_invisible="1" />
+                                    <field name="band_type" />
+                                    <field name="height" />
+                                    <field name="detail_expr" />
+                                    <field name="detail_rows" />
+                                </list>
+                                <form string="Banda">
+                                    <group>
+                                        <group>
+                                            <field name="band_type" />
+                                            <field name="height" />
+                                        </group>
+                                        <group invisible="band_type != 'detail'">
+                                            <field name="detail_expr" />
+                                            <field name="detail_rows" />
+                                        </group>
+                                    </group>
+                                    <field name="object_ids">
+                                        <list editable="bottom">
+                                            <field name="sequence" widget="handle" />
+                                            <field name="kind" />
+                                            <field name="row" />
+                                            <field name="col" />
+                                            <field name="width" />
+                                            <field name="height" />
+                                            <field name="align" />
+                                            <field name="style" />
+                                            <field name="text" />
+                                            <field name="expr" />
+                                            <field name="format" />
+                                            <field name="digits" optional="hide" />
+                                            <field name="currency_expr" optional="hide" />
+                                            <field name="wrap" optional="hide" />
+                                            <field name="print_when" optional="hide" />
+                                            <field name="fill_char" optional="hide" />
+                                            <field name="foxpro_expr" optional="hide" />
+                                            <field name="active" widget="boolean_toggle" />
+                                        </list>
+                                    </field>
+                                </form>
+                            </field>
+                        </page>
+                        <page name="preview" string="Vista previa">
+                            <group>
+                                <field name="sample_ref" />
+                            </group>
+                            <field name="preview_html" invisible="1" />
+                            <field
+                                name="preview_pdf"
+                                nolabel="1"
+                                widget="l10n_ve_escp_preview"
+                                options="{'html_field': 'preview_html'}"
+                            />
+                        </page>
+                        <page name="notes" string="Notas">
+                            <field name="note" nolabel="1" />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem
+        id="l10n_ve_escp_report_menu"
+        name="Reportes ESC/P"
+        parent="base.reporting_menuitem"
+        action="l10n_ve_escp_report_action"
+        sequence="30"
+    />
+</odoo>

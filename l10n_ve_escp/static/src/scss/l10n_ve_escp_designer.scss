@@ -1,0 +1,283 @@
+.o_escp_dsg {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #f1f1ee;
+    user-select: none;
+
+    .o_escp_dsg_toolbar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        background: #fff;
+        border-bottom: 1px solid #d5d1c6;
+
+        .o_escp_dsg_title {
+            font-weight: 600;
+        }
+
+        .o_escp_dsg_meta {
+            color: #6c6a63;
+            font-size: 0.85rem;
+        }
+
+        .o_escp_dsg_spacer {
+            flex: 1;
+        }
+
+        .o_escp_dsg_band_add {
+            width: auto;
+
+            .form-select {
+                width: 14rem;
+            }
+        }
+
+        .o_escp_dsg_switch {
+            margin: 0 0.25rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    .o_escp_dsg_body {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .o_escp_dsg_canvas_wrap {
+        flex: 1;
+        overflow: auto;
+        padding: 1rem 1rem 3rem 2.5rem;
+    }
+
+    .o_escp_dsg_canvas {
+        outline: none;
+        font-family: "Courier New", Courier, "Liberation Mono", monospace;
+        font-size: calc(var(--cell-w) / 0.6);
+        line-height: var(--cell-h);
+        width: max-content;
+    }
+
+    .o_escp_dsg_ruler {
+        position: relative;
+        height: 16px;
+        margin-bottom: 2px;
+        border-bottom: 1px solid #b9b4a6;
+        font-size: 10px;
+        color: #7a766b;
+
+        .o_escp_dsg_ruler_mark {
+            position: absolute;
+            top: 0;
+            border-left: 1px solid #b9b4a6;
+            padding-left: 2px;
+            line-height: 14px;
+        }
+    }
+
+    .o_escp_dsg_margin {
+        position: relative;
+        background-color: #efe9d8;
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+        border: 1px dashed #c9bd9a;
+
+        .o_escp_dsg_margin_label {
+            position: absolute;
+            left: 6px;
+            top: 2px;
+            font-family: var(--font-family-sans-serif, sans-serif);
+            font-size: 11px;
+            color: #8a7f5f;
+        }
+    }
+
+    .o_escp_dsg_band {
+        &.o_escp_dsg_band_selected .o_escp_dsg_band_bar {
+            background: #4c6ef5;
+            color: #fff;
+        }
+    }
+
+    .o_escp_dsg_band_body {
+        position: relative;
+        background-color: #fffdf7;
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+        border-left: 1px solid #c9c4b6;
+        border-right: 1px solid #c9c4b6;
+        overflow: visible;
+    }
+
+    .o_escp_dsg_rows {
+        position: absolute;
+        left: -2.4rem;
+        top: 0;
+        width: 2.2rem;
+        text-align: right;
+        font-family: var(--font-family-sans-serif, sans-serif);
+        font-size: 10px;
+        color: #9a958a;
+        pointer-events: none;
+
+        .o_escp_dsg_row_mark {
+            position: absolute;
+            right: 0;
+            display: block;
+            line-height: inherit;
+        }
+    }
+
+    .o_escp_dsg_band_bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 0.5rem;
+        background: #d9d5ca;
+        color: #3d3a33;
+        font-family: var(--font-family-sans-serif, sans-serif);
+        font-size: 11.5px;
+        border: 1px solid #c9c4b6;
+        cursor: default;
+
+        .o_escp_dsg_band_name {
+            flex: 1;
+        }
+
+        .o_escp_dsg_band_actions {
+            margin-right: 1.25rem;
+            cursor: pointer;
+            opacity: 0.7;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        .o_escp_dsg_band_handle {
+            position: absolute;
+            right: 4px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-top: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            cursor: ns-resize;
+            opacity: 0.6;
+        }
+    }
+
+    .o_escp_dsg_object {
+        position: absolute;
+        box-sizing: border-box;
+        border: 1px solid rgba(76, 110, 245, 0.35);
+        background: rgba(76, 110, 245, 0.06);
+        color: #222;
+        white-space: pre;
+        overflow: hidden;
+        cursor: move;
+
+        .o_escp_dsg_text {
+            display: block;
+            padding-left: 0;
+            transform-origin: left center;
+        }
+
+        &.o_escp_dsg_kind_label {
+            border-color: rgba(40, 160, 90, 0.45);
+            background: rgba(40, 160, 90, 0.08);
+        }
+
+        &.o_escp_dsg_kind_hline {
+            border-color: rgba(120, 120, 120, 0.45);
+            background: rgba(120, 120, 120, 0.08);
+        }
+
+        &.o_escp_dsg_bold .o_escp_dsg_text {
+            font-weight: 700;
+        }
+
+        &.o_escp_dsg_wide .o_escp_dsg_text {
+            transform: scaleX(2);
+        }
+
+        &.o_escp_dsg_underline .o_escp_dsg_text {
+            text-decoration: underline;
+        }
+
+        &.o_escp_dsg_align_right .o_escp_dsg_text {
+            text-align: right;
+            transform-origin: right center;
+        }
+
+        &.o_escp_dsg_align_center .o_escp_dsg_text {
+            text-align: center;
+            transform-origin: center center;
+        }
+
+        &.o_escp_dsg_inactive {
+            opacity: 0.4;
+            border-style: dashed;
+        }
+
+        &.o_escp_dsg_selected {
+            border: 1px solid #ff8a00;
+            background: rgba(255, 138, 0, 0.12);
+            z-index: 2;
+
+            .o_escp_dsg_handle_w,
+            .o_escp_dsg_handle_h {
+                display: block;
+            }
+        }
+
+        .o_escp_dsg_handle_w,
+        .o_escp_dsg_handle_h {
+            display: none;
+            position: absolute;
+            background: #ff8a00;
+            z-index: 3;
+        }
+
+        .o_escp_dsg_handle_w {
+            right: -3px;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: ew-resize;
+        }
+
+        .o_escp_dsg_handle_h {
+            left: 0;
+            right: 0;
+            bottom: -3px;
+            height: 6px;
+            cursor: ns-resize;
+        }
+    }
+
+    .o_escp_dsg_props {
+        width: 22rem;
+        flex: none;
+        overflow: auto;
+        padding: 0.75rem;
+        background: #fff;
+        border-left: 1px solid #d5d1c6;
+        user-select: text;
+
+        .form-label {
+            margin-bottom: 0.1rem;
+            font-size: 0.75rem;
+            color: #6c6a63;
+        }
+
+        .o_escp_dsg_code {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.8rem;
+        }
+    }
+}

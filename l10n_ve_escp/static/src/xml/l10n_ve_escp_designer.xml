@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="l10n_ve_escp.Designer">
+        <div class="o_escp_dsg" t-on-keydown="onKeyDown">
+            <div class="o_escp_dsg_toolbar">
+                <button class="btn btn-secondary btn-sm" t-on-click="openReportForm" title="Volver a la ficha del reporte">
+                    <i class="fa fa-arrow-left"/>
+                </button>
+                <span class="o_escp_dsg_title" t-esc="state.report.name"/>
+                <span class="o_escp_dsg_meta">
+                    <t t-esc="state.report.model"/> · <t t-esc="state.report.line_width"/> col ·
+                    <span t-att-class="usedRows > state.report.page_rows ? 'text-danger fw-bold' : ''">
+                        <t t-esc="usedRows"/>/<t t-esc="state.report.page_rows"/> líneas
+                    </span>
+                </span>
+                <span class="o_escp_dsg_spacer"/>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-secondary" t-on-click="() => this.addObject('label')" title="Añadir etiqueta"><i class="fa fa-font"/> Etiqueta</button>
+                    <button class="btn btn-secondary" t-on-click="() => this.addObject('field')" title="Añadir campo"><i class="fa fa-database"/> Campo</button>
+                    <button class="btn btn-secondary" t-on-click="() => this.addObject('hline')" title="Añadir línea"><i class="fa fa-minus"/> Línea</button>
+                </div>
+                <div class="input-group input-group-sm o_escp_dsg_band_add">
+                    <select class="form-select" t-model="state.newBandType">
+                        <t t-foreach="state.options.band_types" t-as="bt" t-key="bt[0]">
+                            <option t-att-value="bt[0]" t-esc="bt[1]"/>
+                        </t>
+                    </select>
+                    <button class="btn btn-secondary" t-on-click="addBand" title="Añadir banda"><i class="fa fa-plus"/> Banda</button>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-secondary" t-on-click="duplicateSelected" t-att-disabled="!selectedObject" title="Duplicar (Ctrl+D)"><i class="fa fa-clone"/></button>
+                    <button class="btn btn-secondary" t-on-click="deleteSelected" t-att-disabled="!selectedObject" title="Eliminar (Supr)"><i class="fa fa-trash"/></button>
+                    <button class="btn btn-secondary" t-on-click="undo" t-att-disabled="!state.canUndo" title="Deshacer (Ctrl+Z)"><i class="fa fa-undo"/></button>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-secondary" t-on-click="zoomOut" title="Alejar"><i class="fa fa-search-minus"/></button>
+                    <button class="btn btn-secondary" disabled="1"><t t-esc="zoomPercent"/>%</button>
+                    <button class="btn btn-secondary" t-on-click="zoomIn" title="Acercar"><i class="fa fa-search-plus"/></button>
+                </div>
+                <div class="form-check form-switch o_escp_dsg_switch" t-att-title="state.report.sample ? state.report.sample : 'Elija un registro de muestra en la ficha del reporte'">
+                    <input class="form-check-input" type="checkbox" id="escp_dsg_sample" t-model="state.showSample" t-att-disabled="!state.report.sample"/>
+                    <label class="form-check-label" for="escp_dsg_sample">Datos de muestra</label>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-secondary" t-on-click="preview" t-att-disabled="!state.report.sample" title="Vista previa PDF"><i class="fa fa-eye"/> Vista previa</button>
+                    <button class="btn btn-secondary" t-on-click="printTest" t-att-disabled="!state.report.sample" title="Imprimir prueba"><i class="fa fa-print"/></button>
+                </div>
+                <button class="btn btn-primary btn-sm" t-on-click="save" t-att-disabled="!state.dirty"><i class="fa fa-save"/> Guardar</button>
+                <button class="btn btn-secondary btn-sm" t-on-click="discard" t-att-disabled="!state.dirty">Descartar</button>
+            </div>
+
+            <div class="o_escp_dsg_body">
+                <div class="o_escp_dsg_canvas_wrap">
+                    <div class="o_escp_dsg_canvas" t-ref="canvas" tabindex="0" t-attf-style="--cell-w: {{cellW}}px; --cell-h: {{cellH}}px;">
+                        <t t-if="state.loading">
+                            <div class="p-4 text-muted">Cargando...</div>
+                        </t>
+                        <t t-else="">
+                            <div class="o_escp_dsg_ruler" t-attf-style="width: {{canvasWidth}}px;">
+                                <t t-foreach="columns" t-as="col" t-key="col">
+                                    <span class="o_escp_dsg_ruler_mark" t-attf-style="left: {{col * cellW}}px;" t-esc="col"/>
+                                </t>
+                            </div>
+                            <div class="o_escp_dsg_margin" t-if="state.report.margin_top_lines" t-attf-style="height: {{state.report.margin_top_lines * cellH}}px; width: {{canvasWidth}}px; background-size: {{cellW}}px {{cellH}}px;">
+                                <span class="o_escp_dsg_margin_label">Margen superior: <t t-esc="state.report.margin_top_lines"/> líneas</span>
+                            </div>
+                            <t t-foreach="state.bands" t-as="band" t-key="band.id">
+                                <div class="o_escp_dsg_band" t-att-class="{'o_escp_dsg_band_selected': band.id === state.selectedBandId}">
+                                    <div class="o_escp_dsg_band_body" t-att-data-band-id="band.id" t-att-style="bandStyle(band)" t-on-pointerdown="(ev) => this.onCanvasPointerDown(ev, band)">
+                                        <div class="o_escp_dsg_rows">
+                                            <t t-foreach="bandRows(band)" t-as="row" t-key="row">
+                                                <span class="o_escp_dsg_row_mark" t-attf-style="top: {{row * cellH}}px; height: {{cellH}}px;" t-esc="row"/>
+                                            </t>
+                                        </div>
+                                        <t t-foreach="band.objects" t-as="obj" t-key="obj.id">
+                                            <div t-att-class="objectClasses(obj)" t-att-style="objectStyle(obj)" t-on-pointerdown="(ev) => this.onObjectPointerDown(ev, obj, band, 'move')" t-att-title="obj.kind === 'field' ? obj.expr : obj.text">
+                                                <span class="o_escp_dsg_text" t-esc="objectText(obj)"/>
+                                                <span class="o_escp_dsg_handle_w" t-on-pointerdown="(ev) => this.onObjectPointerDown(ev, obj, band, 'resize-w')"/>
+                                                <span class="o_escp_dsg_handle_h" t-on-pointerdown="(ev) => this.onObjectPointerDown(ev, obj, band, 'resize-h')"/>
+                                            </div>
+                                        </t>
+                                    </div>
+                                    <div class="o_escp_dsg_band_bar" t-attf-style="width: {{canvasWidth}}px;" t-on-pointerdown="() => this.selectBand(band)">
+                                        <span class="o_escp_dsg_band_name">
+                                            <i class="fa fa-bars"/> <t t-esc="bandLabel(band.band_type)"/>
+                                            · <t t-esc="band.height"/> líneas
+                                            <t t-if="band.band_type === 'detail'"> × <t t-esc="band.detail_rows || state.report.detail_rows"/> renglones</t>
+                                        </span>
+                                        <span class="o_escp_dsg_band_actions">
+                                            <i class="fa fa-trash" title="Eliminar banda" t-on-click.stop="() => this.deleteBand(band)"/>
+                                        </span>
+                                        <span class="o_escp_dsg_band_handle" title="Arrastre para cambiar el alto" t-on-pointerdown="(ev) => this.onBandHandlePointerDown(ev, band)"/>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+                    </div>
+                </div>
+
+                <div class="o_escp_dsg_props">
+                    <t t-if="selectedObject">
+                        <t t-set="obj" t-value="selectedObject"/>
+                        <h6>Objeto</h6>
+                        <div class="row g-1">
+                            <div class="col-12">
+                                <label class="form-label">Tipo</label>
+                                <select class="form-select form-select-sm" t-att-value="obj.kind" t-on-change="(ev) => this.updateSelected('kind', ev.target.value)">
+                                    <t t-foreach="state.options.kinds" t-as="k" t-key="k[0]"><option t-att-value="k[0]" t-esc="k[1]"/></t>
+                                </select>
+                            </div>
+                            <div class="col-3"><label class="form-label">Fila</label><input type="number" min="0" class="form-control form-control-sm" t-att-value="obj.row" t-on-change="(ev) => this.updateSelected('row', this.intValue(ev, 0))"/></div>
+                            <div class="col-3"><label class="form-label">Col.</label><input type="number" min="0" class="form-control form-control-sm" t-att-value="obj.col" t-on-change="(ev) => this.updateSelected('col', this.intValue(ev, 0))"/></div>
+                            <div class="col-3"><label class="form-label">Ancho</label><input type="number" min="1" class="form-control form-control-sm" t-att-value="obj.width" t-on-change="(ev) => this.updateSelected('width', this.intValue(ev, 1))"/></div>
+                            <div class="col-3"><label class="form-label">Líneas</label><input type="number" min="1" class="form-control form-control-sm" t-att-value="obj.height" t-on-change="(ev) => this.updateSelected('height', this.intValue(ev, 1))"/></div>
+                            <div class="col-6">
+                                <label class="form-label">Alineación</label>
+                                <select class="form-select form-select-sm" t-att-value="obj.align" t-on-change="(ev) => this.updateSelected('align', ev.target.value)">
+                                    <t t-foreach="state.options.aligns" t-as="a" t-key="a[0]"><option t-att-value="a[0]" t-esc="a[1]"/></t>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Estilo</label>
+                                <select class="form-select form-select-sm" t-att-value="obj.style" t-on-change="(ev) => this.updateSelected('style', ev.target.value)">
+                                    <t t-foreach="state.options.styles" t-as="s" t-key="s[0]"><option t-att-value="s[0]" t-esc="s[1]"/></t>
+                                </select>
+                            </div>
+                            <div class="col-12" t-if="obj.kind === 'label'">
+                                <label class="form-label">Texto</label>
+                                <textarea class="form-control form-control-sm" rows="3" t-att-value="obj.text || ''" t-on-change="(ev) => this.updateSelected('text', ev.target.value)"/>
+                            </div>
+                            <t t-if="obj.kind === 'field'">
+                                <div class="col-12">
+                                    <label class="form-label">Expresión</label>
+                                    <textarea class="form-control form-control-sm o_escp_dsg_code" rows="3" t-att-value="obj.expr || ''" t-on-change="(ev) => this.updateSelected('expr', ev.target.value)"/>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Formato</label>
+                                    <select class="form-select form-select-sm" t-att-value="obj.format" t-on-change="(ev) => this.updateSelected('format', ev.target.value)">
+                                        <t t-foreach="state.options.formats" t-as="f" t-key="f[0]"><option t-att-value="f[0]" t-esc="f[1]"/></t>
+                                    </select>
+                                </div>
+                                <div class="col-6" t-if="obj.format === 'float'"><label class="form-label">Decimales</label><input type="number" min="0" class="form-control form-control-sm" t-att-value="obj.digits" t-on-change="(ev) => this.updateSelected('digits', this.intValue(ev, 0))"/></div>
+                                <div class="col-12" t-if="obj.format === 'monetary'"><label class="form-label">Moneda (expresión)</label><input type="text" class="form-control form-control-sm o_escp_dsg_code" t-att-value="obj.currency_expr || ''" t-on-change="(ev) => this.updateSelected('currency_expr', ev.target.value)"/></div>
+                                <div class="col-12" t-if="obj.foxpro_expr"><label class="form-label text-muted">FoxPro</label><div class="o_escp_dsg_code text-muted small" t-esc="obj.foxpro_expr"/></div>
+                            </t>
+                            <div class="col-12" t-if="obj.kind === 'hline'">
+                                <label class="form-label">Carácter</label>
+                                <input type="text" maxlength="1" class="form-control form-control-sm" t-att-value="obj.fill_char || '-'" t-on-change="(ev) => this.updateSelected('fill_char', ev.target.value || '-')"/>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Imprimir si</label>
+                                <input type="text" class="form-control form-control-sm o_escp_dsg_code" t-att-value="obj.print_when || ''" t-on-change="(ev) => this.updateSelected('print_when', ev.target.value)"/>
+                            </div>
+                            <div class="col-6 form-check ms-1">
+                                <input class="form-check-input" type="checkbox" id="escp_dsg_wrap" t-att-checked="obj.wrap" t-on-change="(ev) => this.updateSelected('wrap', ev.target.checked)"/>
+                                <label class="form-check-label" for="escp_dsg_wrap">Ajustar texto</label>
+                            </div>
+                            <div class="col-5 form-check ms-1">
+                                <input class="form-check-input" type="checkbox" id="escp_dsg_active" t-att-checked="obj.active" t-on-change="(ev) => this.updateSelected('active', ev.target.checked)"/>
+                                <label class="form-check-label" for="escp_dsg_active">Activo</label>
+                            </div>
+                            <div class="col-12 text-muted small" t-if="state.showSample and obj.kind === 'field' and (obj.id in state.sampleValues)">
+                                Muestra: <span t-esc="state.sampleValues[obj.id]"/>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-elif="selectedBand">
+                        <t t-set="band" t-value="selectedBand"/>
+                        <h6>Banda: <t t-esc="bandLabel(band.band_type)"/></h6>
+                        <div class="row g-1">
+                            <div class="col-6"><label class="form-label">Alto (líneas)</label><input type="number" min="1" class="form-control form-control-sm" t-att-value="band.height" t-on-change="(ev) => this.updateBand(band, 'height', ev.target.value)"/></div>
+                            <t t-if="band.band_type === 'detail'">
+                                <div class="col-6"><label class="form-label">Renglones/página</label><input type="number" min="0" class="form-control form-control-sm" t-att-value="band.detail_rows" t-on-change="(ev) => this.updateBand(band, 'detail_rows', this.intValue(ev, 0))"/></div>
+                                <div class="col-12"><label class="form-label">Registros del detalle</label><input type="text" class="form-control form-control-sm o_escp_dsg_code" t-att-value="band.detail_expr || ''" t-on-change="(ev) => this.updateBand(band, 'detail_expr', ev.target.value)"/></div>
+                            </t>
+                            <div class="col-12 text-muted small">Haga clic en un objeto para editarlo; arrastre para mover, use los bordes para redimensionar. Flechas mueven 1 celda, Shift+flechas cambian el tamaño.</div>
+                        </div>
+                        <h6 class="mt-3">Reporte</h6>
+                        <div class="row g-1">
+                            <div class="col-6"><label class="form-label">Margen superior</label><input type="number" min="0" class="form-control form-control-sm" t-att-value="state.report.margin_top_lines" t-on-change="(ev) => this.updateReportMargin(ev.target.value)"/></div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <h6>Diseñador ESC/P</h6>
+                        <p class="text-muted small">Seleccione una banda o un objeto en el lienzo. Cada celda es un carácter de la impresora (<t t-esc="state.report.line_width"/> columnas por línea).</p>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

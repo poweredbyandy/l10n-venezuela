@@ -1,0 +1,3 @@
+- Multi-selection and alignment guides in the visual designer.
+- Automatic mapping of more FoxPro expressions during import.
+- Graphics bands (bit image) for logos on plain paper.
