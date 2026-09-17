@@ -266,6 +266,9 @@ class AccountMove(models.Model):
                         move.tax_totals,
                     )
                 )
+                move.tax_totals = move._l10n_ve_align_refund_tax_totals_to_accounting(
+                    move.tax_totals
+                )
         return res
 
     def _l10n_ve_check_credit_note_creation_allowed(self):
@@ -502,6 +505,15 @@ class AccountMove(models.Model):
             self, subtotal_by_taxes
         )
 
+    def unlink(self):
+        discounts = self.sudo().l10n_ve_global_discount_ids
+        if discounts:
+            discounts.with_context(
+                l10n_ve_skip_discount_refresh=True,
+                l10n_ve_skip_global_discount_access_check=True,
+            ).unlink()
+        return super().unlink()
+
     def _l10n_ve_refresh_global_discounts_from_lines(self):
         moves = self.filtered(
             lambda move: move.state == "draft"
@@ -509,6 +521,13 @@ class AccountMove(models.Model):
             and move.l10n_ve_global_discount_ids
         )
         if not moves or self.env.context.get("l10n_ve_skip_discount_refresh"):
+            return
+        moves = moves.filtered(
+            lambda move: move.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product"
+            )
+        )
+        if not moves:
             return
         moves._l10n_ve_refresh_percentage_global_discount_amounts()
         moves._l10n_ve_validate_global_discount_total()

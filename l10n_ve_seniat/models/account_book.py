@@ -797,10 +797,10 @@ class AccountBookDocument(models.Model):
     @api.depends("res_model", "res_id")
     def _compute_source_record(self):
         for line in self:
+            record = False
             if line.res_model and line.res_id:
-                line.source_record = line.env[line.res_model].browse(line.res_id)
-            else:
-                line.source_record = False
+                record = line.env[line.res_model].browse(line.res_id).exists()
+            line.source_record = record or False
 
     @api.depends("number", "book_id", "book_id.l10n_ve_series_prefix")
     def _compute_l10n_ve_control_number(self):
@@ -817,8 +817,8 @@ class AccountBookDocument(models.Model):
         void_model = "l10n_ve.book.folio.void"
         for line in self:
             if line.res_model == void_model and line.res_id:
-                void = self.env[void_model].browse(line.res_id)
-                line.l10n_ve_correlative_label = void.reason if void.exists() else ""
+                void = self.env[void_model].browse(line.res_id).exists()
+                line.l10n_ve_correlative_label = void.reason if void else ""
             elif line.source_record:
                 line.l10n_ve_correlative_label = line.source_record.display_name
             else:

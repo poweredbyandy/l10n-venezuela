@@ -1,4 +1,5 @@
 from collections import defaultdict
+from copy import deepcopy
 
 from odoo import _, fields, models
 from odoo.exceptions import ValidationError
@@ -61,7 +62,7 @@ class AccountMove(models.Model):
         discount_factor = 1.0 - (line.discount or 0.0) / 100.0
         if discount_factor <= 0.0:
             return 0.0
-        subtotal = self._l10n_ve_company_subtotal_from_origin_line(line)
+        subtotal = self._l10n_ve_company_subtotal_unrounded_from_origin_line(line)
         prec = self.env["decimal.precision"].precision_get("Product Price")
         return float_round(subtotal / discount_factor / qty, precision_digits=prec)
 
@@ -173,6 +174,14 @@ class AccountMove(models.Model):
         company_cur = credit_line.company_currency_id
         origin_pu = self._l10n_ve_company_price_unit_from_origin_line(origin_line)
         price_prec = self.env["decimal.precision"].precision_get("Product Price")
+        qty_prec = self.env["decimal.precision"].precision_get(
+            "Product Unit of Measure"
+        )
+        same_qty = not float_compare(
+            abs(credit_line.quantity or 0.0),
+            abs(origin_line.quantity or 0.0),
+            precision_digits=qty_prec,
+        )
         if origin_pu and not float_compare(
             credit_line.price_unit,
             origin_pu,
@@ -198,7 +207,7 @@ class AccountMove(models.Model):
                 precision_rounding=company_cur.rounding,
             ):
                 return True
-        return False
+        return bool(same_qty)
 
     def _l10n_ve_company_price_unit_from_refund_line(self, origin_line, credit_line):
         origin_pu = self._l10n_ve_company_price_unit_from_origin_line(origin_line)
@@ -397,9 +406,39 @@ class AccountMove(models.Model):
         self._l10n_ve_align_refund_company_amounts_to_origin()
 
     def _l10n_ve_copy_origin_tax_company_amounts(self):
+        for move in self:
+            move._l10n_ve_copy_origin_tax_company_amounts_on_move()
         return self
 
     def _l10n_ve_copy_origin_tax_company_amounts_on_move(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        if not origin:
+            return False
+        orig_taxes = origin.line_ids.filtered(
+            lambda line: line.display_type == "tax"
+        ).sorted(lambda line: (line.tax_line_id.id or 0, line.id))
+        cred_taxes = self.line_ids.filtered(
+            lambda line: line.display_type == "tax"
+        ).sorted(lambda line: (line.tax_line_id.id or 0, line.id))
+        if len(orig_taxes) != len(cred_taxes):
+            return False
+        company_cur = self.company_currency_id
+        line_cmds = []
+        for origin_line, credit_line in zip(orig_taxes, cred_taxes, strict=False):
+            if origin_line.tax_line_id != credit_line.tax_line_id:
+                return False
+            sign = 1.0 if credit_line.balance >= 0.0 else -1.0
+            amount = company_cur.round(abs(origin_line.balance)) * sign
+            command = self._l10n_ve_align_refund_balance_cmd(credit_line, amount)
+            if command:
+                line_cmds.append(command)
+        if line_cmds:
+            self.with_context(
+                skip_invoice_sync=True,
+                check_move_validity=False,
+            ).write({"line_ids": line_cmds})
+            self._l10n_ve_resync_refund_payment_term_after_tax_align()
         return True
 
     def _l10n_ve_resync_refund_payment_term_after_tax_align(self):
@@ -539,9 +578,34 @@ class AccountMove(models.Model):
         if not price_cmds:
             return cred_products
         self.write({"invoice_line_ids": price_cmds})
-        return self.invoice_line_ids.filtered(
+        refreshed_ids = set(self.invoice_line_ids.ids)
+        return self.env["account.move.line"].browse(
+            [line.id for line in cred_products if line.id in refreshed_ids]
+        )
+
+    def _l10n_ve_align_refund_is_full_origin_mirror(
+        self, orig_products, cred_products
+    ):
+        if len(orig_products) != len(cred_products):
+            return False
+        origin_products = self.reversed_entry_id.invoice_line_ids.filtered(
             lambda line: line.display_type in ("product", "cogs")
-        ).sorted(lambda line: (line.sequence, line.id))
+        )
+        if len(origin_products) != len(orig_products):
+            return False
+        qty_prec = self.env["decimal.precision"].precision_get(
+            "Product Unit of Measure"
+        )
+        return all(
+            not float_compare(
+                abs(origin_line.quantity or 0.0),
+                abs(credit_line.quantity or 0.0),
+                precision_digits=qty_prec,
+            )
+            for origin_line, credit_line in zip(
+                orig_products, cred_products, strict=False
+            )
+        )
 
     def _l10n_ve_align_refund_balance_cmd(self, credit_line, amount):
         company_cur = self.company_currency_id
@@ -640,7 +704,83 @@ class AccountMove(models.Model):
                 check_move_validity=False,
             ).write({"line_ids": line_cmds})
             self._l10n_ve_resync_refund_payment_term_after_tax_align()
-        self._l10n_ve_cap_refund_company_amount_to_remaining()
+        self._l10n_ve_copy_origin_tax_company_amounts_on_move()
+        if not self._l10n_ve_align_refund_is_full_origin_mirror(
+            orig_products, cred_products
+        ):
+            self._l10n_ve_cap_refund_company_amount_to_remaining()
+
+    def _l10n_ve_refund_tax_totals_should_follow_accounting(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        if (
+            self.move_type != "out_refund"
+            or not origin
+            or self.currency_id != self.company_currency_id
+            or origin.currency_id == origin.company_currency_id
+            or self.country_code != self.env.ref("base.ve").code
+        ):
+            return False
+        if (
+            hasattr(self, "_l10n_ve_is_post_discount_credit_note")
+            and self._l10n_ve_is_post_discount_credit_note()
+        ):
+            return False
+        return True
+
+    def _l10n_ve_align_refund_tax_totals_to_accounting(self, tax_totals):
+        self.ensure_one()
+        if not tax_totals or not (
+            self._l10n_ve_refund_tax_totals_should_follow_accounting()
+        ):
+            return tax_totals
+        company_cur = self.company_currency_id
+        totals = deepcopy(tax_totals)
+        base = company_cur.round(abs(self.amount_untaxed))
+        tax = company_cur.round(abs(self.amount_tax))
+        total = company_cur.round(abs(self.amount_total))
+        totals["base_amount_currency"] = base
+        totals["base_amount"] = base
+        totals["tax_amount_currency"] = tax
+        totals["tax_amount"] = tax
+        totals["total_amount_currency"] = total
+        totals["total_amount"] = total
+        for subtotal in totals.get("subtotals") or []:
+            subtotal["base_amount_currency"] = base
+            subtotal["base_amount"] = base
+            subtotal["tax_amount_currency"] = tax
+            subtotal["tax_amount"] = tax
+            groups = subtotal.get("tax_groups") or []
+            if len(groups) == 1:
+                group = groups[0]
+                group["base_amount_currency"] = base
+                group["base_amount"] = base
+                group["display_base_amount_currency"] = base
+                group["display_base_amount"] = base
+                group["tax_amount_currency"] = tax
+                group["tax_amount"] = tax
+        self._l10n_ve_align_refund_tax_totals_discount_fields(totals, base)
+        return totals
+
+    def _l10n_ve_align_refund_tax_totals_discount_fields(self, totals, base):
+        origin_totals = (self.reversed_entry_id.tax_totals or {})
+        origin_discount = origin_totals.get("l10n_ve_global_discount_amount")
+        origin_gross = origin_totals.get("l10n_ve_subtotal_gross")
+        if origin_discount and origin_gross:
+            discount = self.company_currency_id.round(origin_discount)
+            gross = self.company_currency_id.round(origin_gross)
+        else:
+            gross = totals.get("l10n_ve_subtotal_gross_currency") or 0.0
+            discount = self.company_currency_id.round(gross - base)
+        totals["l10n_ve_subtotal_gross"] = gross
+        totals["l10n_ve_subtotal_gross_currency"] = gross
+        totals["l10n_ve_global_discount_amount"] = discount
+        totals["l10n_ve_global_discount_amount_currency"] = discount
+        lines = list(totals.get("l10n_ve_global_discount_lines") or [])
+        if len(lines) == 1:
+            line = dict(lines[0])
+            line["amount"] = discount
+            totals["l10n_ve_global_discount_lines"] = [line]
 
     def _l10n_ve_cap_refund_company_amount_to_remaining(self):
         self.ensure_one()

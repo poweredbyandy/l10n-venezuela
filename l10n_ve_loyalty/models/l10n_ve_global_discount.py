@@ -244,6 +244,15 @@ def l10n_ve_refresh_percentage_global_discount_amounts(document):
         new_amount = sequential.get(discount.id, 0.0)
         if (
             float_compare(
+                new_amount,
+                0.0,
+                precision_digits=document.currency_id.decimal_places,
+            )
+            <= 0
+        ):
+            continue
+        if (
+            float_compare(
                 discount.amount,
                 new_amount,
                 precision_digits=document.currency_id.decimal_places,

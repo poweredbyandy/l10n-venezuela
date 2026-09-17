@@ -150,6 +150,10 @@ class AccountMoveLine(models.Model):
     def unlink(self):
         moves = self.move_id
         res = super().unlink()
+        if self.env.context.get("dynamic_unlink") or self.env.context.get(
+            "l10n_ve_skip_discount_refresh"
+        ):
+            return res
         moves._l10n_ve_refresh_global_discounts_from_lines()
         return res
 

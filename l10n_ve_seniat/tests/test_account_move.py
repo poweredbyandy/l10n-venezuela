@@ -353,6 +353,62 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertFalse((move.l10n_ve_control_number or "").strip())
         self.assertEqual(move.l10n_ve_control_number_placeholder, "00-00000001")
 
+    def test_unlink_draft_invoice_releases_book_correlative(self):
+        section = self.company_data["default_journal_sale"].l10n_ve_invoice_section_id
+        book = section.book_id
+        first = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        first.action_post()
+        self.assertEqual(first.l10n_ve_control_number, "00-00000001")
+        draft = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        formatted = book.l10n_ve_allocate_correlative(section, draft)
+        draft.write({"l10n_ve_control_number": formatted})
+        doc = self.env["account.book.document"].search(
+            [("res_model", "=", "account.move"), ("res_id", "=", draft.id)]
+        )
+        self.assertEqual(doc.number, 2)
+        self.assertEqual(section.l10n_ve_sequence_id.number_next, 3)
+        draft.unlink()
+        self.assertFalse(doc.exists())
+        self.assertEqual(section.l10n_ve_sequence_id.number_next, 2)
+        reused = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        reused.action_post()
+        self.assertEqual(reused.l10n_ve_control_number, "00-00000002")
+
+    def test_book_web_read_survives_deleted_source_move(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.action_post()
+        doc = self.env["account.book.document"].search(
+            [("res_model", "=", "account.move"), ("res_id", "=", move.id)]
+        )
+        self.assertEqual(len(doc), 1)
+        book = doc.book_id
+        doc.write({"res_id": 2147483647})
+        values = book.web_read(
+            {
+                "document_ids": {
+                    "fields": {
+                        "l10n_ve_control_number": {},
+                        "l10n_ve_correlative_label": {},
+                        "source_record": {},
+                        "res_model": {},
+                        "res_id": {},
+                    }
+                }
+            }
+        )
+        self.assertEqual(len(values), 1)
+        orphan = next(row for row in values[0]["document_ids"] if row["id"] == doc.id)
+        self.assertFalse(orphan["source_record"])
+        self.assertFalse(orphan["l10n_ve_correlative_label"])
+
     def test_book_correlative_admin_unlink_clears_control_number(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)

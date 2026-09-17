@@ -1636,6 +1636,23 @@ Please create a credit note instead.
         """)
         )
 
+    def unlink(self):
+        self._l10n_ve_release_book_correlatives()
+        return super().unlink()
+
+    def _l10n_ve_release_book_correlatives(self):
+        move_ids = [move_id for move_id in self.ids if isinstance(move_id, int)]
+        if not move_ids:
+            return
+        docs = self.env["account.book.document"].search(
+            [
+                ("res_model", "=", "account.move"),
+                ("res_id", "in", move_ids),
+            ]
+        )
+        if docs:
+            docs.with_context(l10n_ve_allow_book_document_unlink=True).unlink()
+
     def _l10n_ve_date_from_document_datetime(self, invoice_dt=None):
         self.ensure_one()
         invoice_dt = invoice_dt or self.l10n_ve_invoice_date

@@ -386,6 +386,19 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
         self.assertAlmostEqual(move.amount_untaxed, subtotal, places=2)
         self.assertFalse(move.tax_totals.get("l10n_ve_show_global_discount"))
 
+    def test_unlink_draft_invoice_with_percentage_global_discount(self):
+        move = self._create_invoice()
+        self._add_global_discount(
+            move,
+            "Porcentaje",
+            10.0,
+            discount_type="percentage",
+            discount_percentage=0.1,
+        )
+        move_id = move.id
+        move.unlink()
+        self.assertFalse(self.env["account.move"].browse(move_id).exists())
+
     def test_global_discount_cannot_exceed_subtotal(self):
         move = self._create_invoice()
         with self.assertRaises(UserError):

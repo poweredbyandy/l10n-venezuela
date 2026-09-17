@@ -413,6 +413,71 @@ class TestAccountMovePostDiscountRefundCurrency(L10nVeLoyaltyCommon):
         credit.ensure_one()
         self._assert_full_reverse_mirrors_origin(invoice, credit)
 
+    def test_full_reversal_usd_percentage_without_allocation_keeps_origin_amounts(
+        self,
+    ):
+        date_invoice = fields.Date.to_date("2026-09-16")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=846.451)
+        self.env.company.account_discount_expense_allocation_id = False
+        if "account_discount_income_allocation_id" in self.env.company._fields:
+            self.env.company.account_discount_income_allocation_id = False
+        prices = [
+            (3.0, 168.18),
+            (3.0, 6.36),
+            (2.0, 33.36),
+            (16.0, 19.59),
+            (16.0, 16.19),
+            (4.0, 17.21),
+            (4.0, 24.72),
+            (1.0, 68.23),
+            (2.0, 89.68),
+            (12.0, 17.36),
+        ]
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_ve.id,
+                "currency_id": self.usd.id,
+                "invoice_date": date_invoice,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": self.product_iva_16.id,
+                            "name": "Linea %s" % idx,
+                            "quantity": qty,
+                            "price_unit": price,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [Command.set(self.iva_16.ids)],
+                        }
+                    )
+                    for idx, (qty, price) in enumerate(prices, start=1)
+                ],
+            }
+        )
+        self.env["l10n.ve.account.move.discount"].create(
+            {
+                "move_id": invoice.id,
+                "reason_id": self.reason_early.id,
+                "discount_type": "percentage",
+                "discount_percentage": 0.1,
+                "amount": 178.65,
+            }
+        )
+        invoice.action_post()
+        self.assertFalse(invoice._l10n_ve_uses_global_discount_journal_lines())
+        invoice.l10n_ve_invoice_original_printed = True
+        wiz = (
+            self.env["account.move.reversal"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create({"reason": "NC total sin cuenta de prorrateo"})
+        )
+        wiz.reverse_moves()
+        credit = wiz.new_move_ids
+        credit.ensure_one()
+        self._assert_full_reverse_mirrors_origin(invoice, credit)
+
     def test_full_reversal_ves_with_line_and_global_discount_keeps_origin_tax(self):
         invoice = self.env["account.move"].create(
             {
@@ -477,10 +542,60 @@ class TestAccountMovePostDiscountRefundCurrency(L10nVeLoyaltyCommon):
             company_cur.round(self._company_base_amount(credit)),
             company_cur.round(self._company_base_amount(invoice)),
         )
+        self.assertEqual(
+            company_cur.round(self._company_tax_amount(credit)),
+            company_cur.round(self._company_tax_amount(invoice)),
+        )
+        self.assertEqual(
+            company_cur.round(credit._l10n_ve_to_company_abs_amount()),
+            company_cur.round(invoice._l10n_ve_to_company_abs_amount()),
+        )
+        origin_products = invoice.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        ).sorted(lambda line: (line.sequence, line.id))
+        credit_products = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        ).sorted(lambda line: (line.sequence, line.id))
+        self.assertEqual(len(origin_products), len(credit_products))
+        for origin_line, credit_line in zip(
+            origin_products, credit_products, strict=True
+        ):
+            self.assertEqual(
+                company_cur.round(abs(credit_line.balance)),
+                company_cur.round(abs(origin_line.balance)),
+            )
         self.assertLessEqual(
             company_cur.round(credit._l10n_ve_to_company_abs_amount()),
             company_cur.round(invoice._l10n_ve_max_credit_note_company_amount()),
         )
+        self._assert_tax_totals_match_origin_company(invoice, credit)
         credit.action_post()
         self.assertEqual(credit.state, "posted")
         self.assertGreater(self._company_tax_amount(credit), 0.0)
+        self.assertEqual(
+            company_cur.round(self._company_base_amount(credit)),
+            company_cur.round(self._company_base_amount(invoice)),
+        )
+        self._assert_tax_totals_match_origin_company(invoice, credit)
+
+    def _assert_tax_totals_match_origin_company(self, invoice, credit):
+        company_cur = invoice.company_currency_id
+        invoice_totals = invoice.tax_totals or {}
+        credit_totals = credit.tax_totals or {}
+        for key in ("base_amount", "tax_amount", "total_amount"):
+            self.assertEqual(
+                company_cur.round(credit_totals.get(key) or 0.0),
+                company_cur.round(invoice_totals.get(key) or 0.0),
+            )
+        self.assertEqual(
+            company_cur.round(credit_totals.get("base_amount_currency") or 0.0),
+            company_cur.round(invoice_totals.get("base_amount") or 0.0),
+        )
+        self.assertEqual(
+            company_cur.round(credit_totals.get("tax_amount_currency") or 0.0),
+            company_cur.round(invoice_totals.get("tax_amount") or 0.0),
+        )
+        self.assertEqual(
+            company_cur.round(credit_totals.get("total_amount_currency") or 0.0),
+            company_cur.round(invoice_totals.get("total_amount") or 0.0),
+        )
