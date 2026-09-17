@@ -40,6 +40,64 @@ class AccountMoveLine(models.Model):
         compute="_compute_l10n_ve_line_discount_allocation_key",
         exportable=False,
     )
+    l10n_ve_price_subtotal_wo_discount = fields.Monetary(
+        string="Subtotal sin descuento",
+        compute="_compute_l10n_ve_price_subtotal_wo_discount",
+        currency_field="currency_id",
+    )
+    l10n_ve_price_subtotal_wo_discount_currency = fields.Monetary(
+        string="Subtotal sin descuento (compañía)",
+        compute="_compute_l10n_ve_price_subtotal_wo_discount",
+        currency_field="company_currency_id",
+    )
+    l10n_ve_price_discount = fields.Monetary(
+        string="Descuento",
+        compute="_compute_l10n_ve_price_subtotal_wo_discount",
+        currency_field="currency_id",
+    )
+    l10n_ve_price_discount_currency = fields.Monetary(
+        string="Descuento (compañía)",
+        compute="_compute_l10n_ve_price_subtotal_wo_discount",
+        currency_field="company_currency_id",
+    )
+
+    @api.depends(
+        "quantity",
+        "price_unit",
+        "discount",
+        "price_subtotal",
+        "currency_id",
+        "company_currency_id",
+        "subtotal_company_currency",
+        "currency_rate",
+    )
+    def _compute_l10n_ve_price_subtotal_wo_discount(self):
+        for line in self:
+            qty = line.quantity or 0.0
+            price_unit = line.price_unit or 0.0
+            amount = qty * price_unit
+            if line.currency_id:
+                amount = line.currency_id.round(amount)
+            line.l10n_ve_price_subtotal_wo_discount = amount
+            discount_doc = amount - (line.price_subtotal or 0.0)
+            if line.currency_id:
+                discount_doc = line.currency_id.round(discount_doc)
+            line.l10n_ve_price_discount = discount_doc
+
+            discount_factor = 1.0 - ((line.discount or 0.0) / 100.0)
+            company_subtotal = line.subtotal_company_currency or 0.0
+            if discount_factor:
+                amount_company = company_subtotal / discount_factor
+            else:
+                rate = line.currency_rate or 1.0
+                amount_company = amount * rate if rate else amount
+            if line.company_currency_id:
+                amount_company = line.company_currency_id.round(amount_company)
+            line.l10n_ve_price_subtotal_wo_discount_currency = amount_company
+            discount_company = amount_company - company_subtotal
+            if line.company_currency_id:
+                discount_company = line.company_currency_id.round(discount_company)
+            line.l10n_ve_price_discount_currency = discount_company
 
     @api.depends(
         "l10n_ve_global_discount_line",

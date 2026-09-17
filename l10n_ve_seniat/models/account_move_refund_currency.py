@@ -330,14 +330,22 @@ class AccountMove(models.Model):
                 or not origin.invoice_currency_rate
             ):
                 continue
-            if float_compare(
+            origin_rate = origin.invoice_currency_rate
+            if not float_compare(
                 move.invoice_currency_rate,
-                origin.invoice_currency_rate,
+                origin_rate,
                 precision_digits=6,
             ):
-                move.with_context(check_move_validity=False).write(
-                    {"invoice_currency_rate": origin.invoice_currency_rate}
-                )
+                continue
+            # Keep the origin rate even if invoice_date triggers a recompute.
+            with move.env.protecting(
+                [move._fields["invoice_currency_rate"]], move
+            ):
+                move.with_context(
+                    check_move_validity=False,
+                    l10n_ve_skip_refund_rate_lock=True,
+                ).write({"invoice_currency_rate": origin_rate})
+            move.invalidate_recordset(["l10n_ve_inverse_rate"])
 
     def _l10n_ve_force_refund_to_company_currency(self):
         """Keep refund currency; freeze origin rate and company balances instead."""

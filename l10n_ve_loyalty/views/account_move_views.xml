@@ -25,6 +25,10 @@
             </xpath>
             <xpath expr="//field[@name='tax_totals']" position="before">
                 <field name="l10n_ve_global_discount_ids" invisible="1" />
+                <field name="l10n_ve_amount_untaxed_gross" invisible="1" />
+                <field name="l10n_ve_amount_discount" invisible="1" />
+                <field name="l10n_ve_amount_untaxed_gross_signed" invisible="1" />
+                <field name="l10n_ve_amount_discount_signed" invisible="1" />
                 <div
                     class="d-flex justify-content-end mb-1"
                     invisible="not l10n_ve_show_global_discount_action"
@@ -37,6 +41,56 @@
                         groups="l10n_ve_loyalty.group_l10n_ve_global_discount"
                     />
                 </div>
+            </xpath>
+            <xpath
+                expr="//field[@name='invoice_line_ids']/list/field[@name='discount']"
+                position="after"
+            >
+                <field
+                    name="l10n_ve_price_subtotal_wo_discount"
+                    string="Subtotal sin desc."
+                    optional="hide"
+                />
+                <field
+                    name="l10n_ve_price_subtotal_wo_discount_currency"
+                    string="Subtotal sin desc. (compañía)"
+                    optional="hide"
+                />
+                <field
+                    name="l10n_ve_price_discount"
+                    string="Descuento"
+                    optional="hide"
+                />
+                <field
+                    name="l10n_ve_price_discount_currency"
+                    string="Descuento (compañía)"
+                    optional="hide"
+                />
+            </xpath>
+            <xpath
+                expr="//field[@name='invoice_line_ids']/form//field[@name='discount']"
+                position="after"
+            >
+                <field
+                    name="l10n_ve_price_subtotal_wo_discount"
+                    string="Subtotal sin descuento"
+                    readonly="1"
+                />
+                <field
+                    name="l10n_ve_price_subtotal_wo_discount_currency"
+                    string="Subtotal sin descuento (compañía)"
+                    readonly="1"
+                />
+                <field
+                    name="l10n_ve_price_discount"
+                    string="Descuento"
+                    readonly="1"
+                />
+                <field
+                    name="l10n_ve_price_discount_currency"
+                    string="Descuento (compañía)"
+                    readonly="1"
+                />
             </xpath>
         </field>
     </record>

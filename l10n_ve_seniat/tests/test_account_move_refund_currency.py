@@ -316,6 +316,53 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         credit.action_post()
         self.assertEqual(credit.state, "posted")
 
+    def test_full_reversal_usd_later_rate_does_not_flag_outdated_alert(self):
+        """NC on a later BCV rate keeps origin rate/Bs and skips outdated banner."""
+        date_invoice = fields.Date.to_date("2026-08-18")
+        date_credit = fields.Date.to_date("2026-08-20")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=773.32)
+        self._ensure_usd_rate(date_credit, inverse_company_rate=791.32)
+        invoice = self._create_usd_invoice(date_invoice, (100.0, 50.0, 25.0))
+        origin_rate = invoice.invoice_currency_rate
+        origin_untaxed_bs = abs(invoice.amount_untaxed_signed)
+        credit = self._reverse_invoice(invoice, reason="NC tasa posterior sin alerta")
+        credit.write(
+            {
+                "invoice_date": date_credit,
+                "invoice_date_due": date_credit,
+            }
+        )
+        credit.invalidate_recordset(
+            [
+                "expected_currency_rate",
+                "l10n_ve_currency_rate_outdated",
+                "invoice_currency_rate",
+            ]
+        )
+        self.assertEqual(credit.currency_id, invoice.currency_id)
+        self.assertEqual(credit.invoice_currency_rate, origin_rate)
+        self.assertNotEqual(credit.invoice_currency_rate, credit.expected_currency_rate)
+        self.assertFalse(credit.l10n_ve_currency_rate_outdated)
+        credit.invalidate_recordset(["l10n_ve_inverse_rate"])
+        self.assertAlmostEqual(
+            credit.l10n_ve_inverse_rate,
+            1.0 / origin_rate,
+            places=6,
+        )
+        self.assertAlmostEqual(
+            abs(credit.amount_untaxed_signed),
+            origin_untaxed_bs,
+            places=2,
+        )
+        credit.action_post()
+        self.assertEqual(credit.state, "posted")
+        self.assertAlmostEqual(
+            abs(credit.amount_untaxed_signed),
+            origin_untaxed_bs,
+            places=2,
+        )
+
+
     def test_full_reversal_usd_line_discount_keeps_origin_tax(self):
         date_invoice = fields.Date.to_date("2026-07-10")
         self._ensure_usd_rate(date_invoice, inverse_company_rate=100.0)

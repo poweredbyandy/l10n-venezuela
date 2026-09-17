@@ -201,6 +201,31 @@ class AccountMove(models.Model):
     l10n_ve_show_global_discount_action = fields.Boolean(
         compute="_compute_l10n_ve_show_global_discount_action",
     )
+    l10n_ve_amount_untaxed_gross = fields.Monetary(
+        string="Subtotal sin descuento",
+        compute="_compute_l10n_ve_amount_untaxed_gross",
+        currency_field="currency_id",
+        help="Base imponible antes de descuentos globales (y líneas de descuento "
+        "equivalentes) en la moneda del documento.",
+    )
+    l10n_ve_amount_untaxed_gross_signed = fields.Monetary(
+        string="Subtotal sin descuento (compañía)",
+        compute="_compute_l10n_ve_amount_untaxed_gross",
+        currency_field="company_currency_id",
+        help="Base imponible antes de descuentos en la moneda de la compañía.",
+    )
+    l10n_ve_amount_discount = fields.Monetary(
+        string="Descuento",
+        compute="_compute_l10n_ve_amount_untaxed_gross",
+        currency_field="currency_id",
+        help="Monto total de descuento global aplicado en la moneda del documento.",
+    )
+    l10n_ve_amount_discount_signed = fields.Monetary(
+        string="Descuento (compañía)",
+        compute="_compute_l10n_ve_amount_untaxed_gross",
+        currency_field="company_currency_id",
+        help="Monto total de descuento global en la moneda de la compañía.",
+    )
 
     @api.depends(
         "state",
@@ -215,6 +240,38 @@ class AccountMove(models.Model):
                 and move.is_invoice(include_receipts=True)
                 and move._l10n_ve_user_can_apply_global_discount()
             )
+
+    @api.depends(
+        "tax_totals",
+        "amount_untaxed",
+        "amount_untaxed_signed",
+        "currency_id",
+        "company_currency_id",
+        "country_code",
+    )
+    def _compute_l10n_ve_amount_untaxed_gross(self):
+        for move in self:
+            totals = move.tax_totals or {}
+            if move.country_code == "VE" and totals.get("l10n_ve_show_global_discount"):
+                move.l10n_ve_amount_untaxed_gross = totals.get(
+                    "l10n_ve_subtotal_gross_currency", move.amount_untaxed
+                )
+                move.l10n_ve_amount_untaxed_gross_signed = totals.get(
+                    "l10n_ve_subtotal_gross", abs(move.amount_untaxed_signed)
+                )
+                move.l10n_ve_amount_discount = totals.get(
+                    "l10n_ve_global_discount_amount_currency", 0.0
+                )
+                move.l10n_ve_amount_discount_signed = totals.get(
+                    "l10n_ve_global_discount_amount", 0.0
+                )
+            else:
+                move.l10n_ve_amount_untaxed_gross = move.amount_untaxed
+                move.l10n_ve_amount_untaxed_gross_signed = abs(
+                    move.amount_untaxed_signed
+                )
+                move.l10n_ve_amount_discount = 0.0
+                move.l10n_ve_amount_discount_signed = 0.0
 
     def _l10n_ve_user_can_apply_global_discount(self):
         return self.env.user.has_group("l10n_ve_loyalty.group_l10n_ve_global_discount")
@@ -968,6 +1025,10 @@ class AccountMove(models.Model):
         )
         if credit_note.currency_id != target_currency:
             credit_note._l10n_ve_force_refund_to_company_currency()
+        elif hasattr(
+            credit_note, "_l10n_ve_lock_refund_invoice_currency_rate_from_origin"
+        ):
+            credit_note._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
         credit_note.with_context(
             l10n_ve_skip_exempt_tax_line=True
         )._l10n_ve_adjust_post_discount_to_untaxed_amount(line_amount)

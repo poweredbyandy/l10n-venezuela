@@ -689,6 +689,16 @@ class TestAccountMovePostDiscountRefundCurrency(L10nVeLoyaltyCommon):
         self.assertEqual(credit.currency_id, invoice.currency_id)
         self.assertEqual(credit.invoice_currency_rate, invoice.invoice_currency_rate)
         self.assertNotEqual(credit.invoice_date, invoice.invoice_date)
+        self.assertNotEqual(credit.invoice_currency_rate, credit.expected_currency_rate)
+        self.assertFalse(
+            credit.l10n_ve_currency_rate_outdated,
+            "NC with frozen origin rate must not show outdated-rate alert",
+        )
+        self.assertAlmostEqual(
+            abs(credit.amount_untaxed_signed),
+            abs(invoice.amount_untaxed_signed),
+            places=2,
+        )
         self._assert_full_reverse_mirrors_origin(invoice, credit)
 
     def test_full_reversal_usd_earlier_day_lower_rate_keeps_origin_bs(self):

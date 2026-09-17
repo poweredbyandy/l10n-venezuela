@@ -200,6 +200,17 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
         self.assertAlmostEqual(
             move.amount_untaxed, tax_totals["base_amount_currency"], places=2
         )
+        self.assertAlmostEqual(
+            move.l10n_ve_amount_untaxed_gross,
+            tax_totals["l10n_ve_subtotal_gross_currency"],
+            places=2,
+        )
+        self.assertAlmostEqual(move.l10n_ve_amount_discount, 10.0, places=2)
+        self.assertAlmostEqual(
+            move.l10n_ve_amount_untaxed_gross - move.l10n_ve_amount_discount,
+            move.amount_untaxed,
+            places=2,
+        )
 
     def test_original_tax_totals_template_shows_global_discount(self):
         move = self._create_invoice()
@@ -250,6 +261,25 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
 
         self.assertFalse(tax_totals.get("l10n_ve_show_global_discount"))
         self.assertFalse(tax_totals.get("l10n_ve_show_line_discount"))
+
+    def test_line_price_subtotal_wo_discount(self):
+        move = self._create_invoice(price_unit=100.0, quantity=2.0, discount=10.0)
+        line = move.invoice_line_ids.filtered(
+            lambda aml: aml.display_type == "product"
+        )[:1]
+        self.assertAlmostEqual(line.l10n_ve_price_subtotal_wo_discount, 200.0, places=2)
+        self.assertAlmostEqual(line.price_subtotal, 180.0, places=2)
+        self.assertAlmostEqual(line.l10n_ve_price_discount, 20.0, places=2)
+        self.assertAlmostEqual(
+            line.l10n_ve_price_subtotal_wo_discount_currency,
+            line.l10n_ve_price_subtotal_wo_discount,
+            places=2,
+        )
+        self.assertAlmostEqual(
+            line.l10n_ve_price_discount_currency,
+            line.l10n_ve_price_discount,
+            places=2,
+        )
 
     def _ensure_sale_discount_product(self, name):
         if "sale_discount_product_id" not in self.env["res.company"]._fields:
