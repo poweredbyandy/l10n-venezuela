@@ -247,11 +247,22 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         credit = self.env["account.move"].browse(action["res_id"])
         self.assertEqual(credit.state, "draft")
         self.assertTrue(credit._l10n_ve_is_post_discount_credit_note())
-        self.assertEqual(credit.currency_id, invoice.company_currency_id)
+        self.assertEqual(credit.currency_id, invoice.currency_id)
         expected_bs = invoice._l10n_ve_post_discount_amount_in_currency(
             10.0, invoice.company_currency_id
         )
-        self.assertAlmostEqual(credit.amount_untaxed, expected_bs, places=2)
+        self.assertAlmostEqual(credit.amount_untaxed, 10.0, places=2)
+        company_cur = invoice.company_currency_id
+        credit_bs = abs(
+            sum(
+                credit.line_ids.filtered(
+                    lambda line: line.display_type == "product"
+                ).mapped("balance")
+            )
+        )
+        self.assertAlmostEqual(
+            company_cur.round(credit_bs), company_cur.round(expected_bs), places=2
+        )
         self.assertNotEqual(len(credit.invoice_line_ids), len(invoice.invoice_line_ids))
         credit.action_post()
         self.assertEqual(credit.state, "posted")
@@ -353,12 +364,23 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         )
         action = wizard.action_apply_discount()
         credit = self.env["account.move"].browse(action["res_id"])
-        self.assertEqual(credit.currency_id, invoice.company_currency_id)
-        self.assertAlmostEqual(credit.amount_untaxed, amount_bs, places=2)
+        self.assertEqual(credit.currency_id, invoice.currency_id)
+        self.assertAlmostEqual(credit.amount_untaxed, 10.0, places=2)
         self.assertAlmostEqual(
             invoice._l10n_ve_credit_untaxed_in_invoice_currency(credit),
             10.0,
             places=2,
+        )
+        company_cur = invoice.company_currency_id
+        credit_bs = abs(
+            sum(
+                credit.line_ids.filtered(
+                    lambda line: line.display_type == "product"
+                ).mapped("balance")
+            )
+        )
+        self.assertAlmostEqual(
+            company_cur.round(credit_bs), company_cur.round(amount_bs), places=2
         )
 
     def test_post_discount_keeps_entered_company_currency_untaxed(self):
@@ -408,8 +430,20 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         )
         action = wizard.action_apply_discount()
         credit = self.env["account.move"].browse(action["res_id"])
-        self.assertEqual(credit.currency_id, invoice.company_currency_id)
-        self.assertAlmostEqual(credit.amount_untaxed, 100.0, places=2)
+        self.assertEqual(credit.currency_id, invoice.currency_id)
+        expected_foreign = invoice._l10n_ve_post_discount_amount_from_currency(
+            100.0, invoice.company_currency_id
+        )
+        self.assertAlmostEqual(credit.amount_untaxed, expected_foreign, places=2)
+        company_cur = invoice.company_currency_id
+        credit_bs = abs(
+            sum(
+                credit.line_ids.filtered(
+                    lambda line: line.display_type == "product"
+                ).mapped("balance")
+            )
+        )
+        self.assertAlmostEqual(company_cur.round(credit_bs), 100.0, places=2)
 
     def test_post_discount_fixed_amount_on_total_uses_same_base_as_draft(self):
         invoice = self._create_posted_invoice(price_unit=100.0)
@@ -543,7 +577,7 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         self.assertTrue(credit.l10n_ve_global_discount_ids)
         credit.action_post()
         self.assertEqual(credit.state, "posted")
-        self.assertEqual(credit.currency_id, credit.company_currency_id)
+        self.assertEqual(credit.currency_id, invoice.currency_id)
         company_cur = invoice.company_currency_id
         self.assertLessEqual(
             company_cur.round(credit._l10n_ve_to_company_abs_amount()),

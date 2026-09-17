@@ -736,11 +736,6 @@ class AccountMove(models.Model):
 
     def _l10n_ve_post_discount_credit_note_currency(self):
         self.ensure_one()
-        if (
-            hasattr(self, "_l10n_ve_requires_refund_company_currency")
-            and self._l10n_ve_requires_refund_company_currency()
-        ):
-            return self.company_currency_id
         return self.currency_id
 
     def _l10n_ve_credit_untaxed_in_invoice_currency(self, credit):

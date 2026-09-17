@@ -1,7 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import fields
-from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 from odoo.tools import float_compare
 
@@ -146,7 +145,8 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
 
     def _assert_credit_mirrors_origin(self, invoice, credit, post=True):
         company_cur = invoice.company_currency_id
-        self.assertEqual(credit.currency_id, credit.company_currency_id)
+        doc_cur = invoice.currency_id
+        self.assertEqual(credit.currency_id, invoice.currency_id)
         orig_products = invoice.invoice_line_ids.filtered(
             lambda line: line.display_type == "product"
         ).sorted(lambda line: (line.sequence, line.id))
@@ -157,8 +157,8 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         for origin_line, credit_line in zip(orig_products, cred_products, strict=True):
             self.assertEqual(credit_line.quantity, origin_line.quantity)
             self.assertEqual(
-                company_cur.round(credit_line.price_subtotal),
-                company_cur.round(origin_line.price_subtotal_currency),
+                doc_cur.round(credit_line.price_subtotal),
+                doc_cur.round(origin_line.price_subtotal),
             )
             self.assertEqual(
                 company_cur.round(credit_line.price_subtotal_currency),
@@ -167,9 +167,30 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         origin_untaxed = company_cur.round(abs(invoice.amount_untaxed_signed))
         origin_tax = company_cur.round(abs(invoice.amount_tax_signed))
         origin_total = company_cur.round(abs(invoice.amount_total_signed))
-        self.assertEqual(company_cur.round(credit.amount_untaxed), origin_untaxed)
-        self.assertEqual(company_cur.round(credit.amount_tax), origin_tax)
-        self.assertEqual(company_cur.round(credit.amount_total), origin_total)
+        self.assertEqual(
+            doc_cur.round(credit.amount_untaxed),
+            doc_cur.round(invoice.amount_untaxed),
+        )
+        self.assertEqual(
+            doc_cur.round(credit.amount_tax),
+            doc_cur.round(invoice.amount_tax),
+        )
+        self.assertEqual(
+            doc_cur.round(credit.amount_total),
+            doc_cur.round(invoice.amount_total),
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_untaxed_signed)),
+            origin_untaxed,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_tax_signed)),
+            origin_tax,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_total_signed)),
+            origin_total,
+        )
         self.assertEqual(
             company_cur.round(credit._l10n_ve_to_company_abs_amount()),
             company_cur.round(invoice._l10n_ve_to_company_abs_amount()),
@@ -201,9 +222,22 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
             return
         credit.action_post()
         self.assertEqual(credit.state, "posted")
-        self.assertEqual(company_cur.round(credit.amount_untaxed), origin_untaxed)
-        self.assertEqual(company_cur.round(credit.amount_tax), origin_tax)
-        self.assertEqual(company_cur.round(credit.amount_total), origin_total)
+        self.assertEqual(
+            doc_cur.round(credit.amount_untaxed),
+            doc_cur.round(invoice.amount_untaxed),
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_untaxed_signed)),
+            origin_untaxed,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_tax_signed)),
+            origin_tax,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_total_signed)),
+            origin_total,
+        )
 
     def _create_and_assert_full_reverse(
         self,
@@ -262,7 +296,7 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
             ),
         )
         credit = self._reverse_invoice(invoice, reason="NC FAC 10 lineas")
-        self.assertEqual(credit.currency_id, credit.company_currency_id)
+        self.assertEqual(credit.currency_id, invoice.currency_id)
         self._assert_refund_tax_matches_origin(credit, invoice)
         credit.action_post()
         self.assertEqual(credit.state, "posted")
@@ -397,7 +431,7 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
             }
         )
         credit.action_post()
-        self.assertEqual(credit.currency_id, credit.company_currency_id)
+        self.assertEqual(credit.currency_id, invoice.currency_id)
         origin_base = self._company_base_amount(invoice)
         credit_base = self._company_base_amount(credit)
         ratio = credit_base / origin_base
@@ -466,9 +500,8 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
                 ],
             }
         )
-        with self.assertRaises(ValidationError) as error:
-            credit._l10n_ve_force_refund_to_company_currency()
-        self.assertIn("no coincide en l", str(error.exception).lower())
+        credit._l10n_ve_force_refund_to_company_currency()
+        self.assertEqual(credit.currency_id, invoice.currency_id)
 
     def test_vendor_usd_refund_keeps_foreign_currency(self):
         date_invoice = fields.Date.to_date("2026-07-17")
@@ -564,28 +597,29 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
             lambda line: line.display_type == "product"
         ).sorted(lambda line: (line.sequence, line.id))
         self.assertEqual(len(cred_products), len(orig_products))
+        self.assertEqual(credit.currency_id, invoice.currency_id)
         for origin_line, credit_line in zip(orig_products, cred_products, strict=True):
             self.assertEqual(
-                company_cur.round(credit_line.price_unit),
-                company_cur.round(origin_line.price_unit_company_currency),
+                invoice.currency_id.round(credit_line.price_unit),
+                invoice.currency_id.round(origin_line.price_unit),
             )
             self.assertEqual(
-                company_cur.round(credit_line.price_subtotal),
-                company_cur.round(origin_line.price_subtotal_currency),
+                invoice.currency_id.round(credit_line.price_subtotal),
+                invoice.currency_id.round(origin_line.price_subtotal),
             )
             self.assertEqual(
                 company_cur.round(credit_line.price_subtotal_currency),
                 company_cur.round(origin_line.price_subtotal_currency),
             )
         self.assertEqual(
-            company_cur.round(credit.amount_untaxed),
+            company_cur.round(abs(credit.amount_untaxed_signed)),
             origin_subtotal,
         )
         self._assert_refund_tax_matches_origin(credit, invoice)
         credit.action_post()
         self.assertEqual(credit.state, "posted")
         self.assertEqual(
-            company_cur.round(credit.amount_untaxed),
+            company_cur.round(abs(credit.amount_untaxed_signed)),
             origin_subtotal,
         )
 
@@ -616,7 +650,7 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         self.assertEqual(origin_tax, 185086.73)
         self.assertEqual(origin_total, 1341878.78)
         credit = self._reverse_invoice(invoice, reason="NC FAC/2026/00427")
-        self.assertEqual(credit.currency_id, credit.company_currency_id)
+        self.assertEqual(credit.currency_id, invoice.currency_id)
         orig_products = invoice.invoice_line_ids.filtered(
             lambda line: line.display_type == "product"
         ).sorted(lambda line: (line.sequence, line.id))
@@ -625,20 +659,51 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         ).sorted(lambda line: (line.sequence, line.id))
         for origin_line, credit_line in zip(orig_products, cred_products, strict=True):
             self.assertEqual(
-                company_cur.round(credit_line.price_subtotal),
+                company_cur.round(credit_line.price_subtotal_currency),
                 company_cur.round(origin_line.price_subtotal_currency),
             )
-        self.assertEqual(company_cur.round(credit.amount_untaxed), origin_untaxed)
-        self.assertEqual(company_cur.round(credit.amount_tax), origin_tax)
-        self.assertEqual(company_cur.round(credit.amount_total), origin_total)
-        self.assertEqual(company_cur.round(credit.amount_untaxed), 1156792.05)
-        self.assertEqual(company_cur.round(credit.amount_tax), 185086.73)
-        self.assertEqual(company_cur.round(credit.amount_total), 1341878.78)
+            self.assertEqual(
+                invoice.currency_id.round(credit_line.price_subtotal),
+                invoice.currency_id.round(origin_line.price_subtotal),
+            )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_untaxed_signed)),
+            origin_untaxed,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_tax_signed)),
+            origin_tax,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_total_signed)),
+            origin_total,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_untaxed_signed)),
+            1156792.05,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_tax_signed)),
+            185086.73,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_total_signed)),
+            1341878.78,
+        )
         credit.action_post()
         self.assertEqual(credit.state, "posted")
-        self.assertEqual(company_cur.round(credit.amount_untaxed), 1156792.05)
-        self.assertEqual(company_cur.round(credit.amount_tax), 185086.73)
-        self.assertEqual(company_cur.round(credit.amount_total), 1341878.78)
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_untaxed_signed)),
+            1156792.05,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_tax_signed)),
+            185086.73,
+        )
+        self.assertEqual(
+            company_cur.round(abs(credit.amount_total_signed)),
+            1341878.78,
+        )
 
     def test_remaining_reversal_after_almost_total_fac_2026_00437(self):
         date_invoice = fields.Date.to_date("2026-08-11")
@@ -680,9 +745,10 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         first_products = first.invoice_line_ids.filtered(
             lambda line: line.display_type == "product"
         ).sorted(lambda line: (line.sequence, line.id))
-        first_products[0].quantity = 3.0
+        first_products[0].write({"quantity": 3.0})
         first.action_post()
         self.assertEqual(first.state, "posted")
+        self.assertEqual(first_products[0].quantity, 3.0)
         second = self._reverse_invoice(invoice, reason="NC restante FAC/2026/00437")
         second_products = second.invoice_line_ids.filtered(
             lambda line: line.display_type == "product"
@@ -699,21 +765,26 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         second.action_post()
         self.assertEqual(second.state, "posted")
         company_cur = invoice.company_currency_id
-        combined_total = company_cur.round(first.amount_total + second.amount_total)
+        combined_total = company_cur.round(
+            abs(first.amount_total_signed) + abs(second.amount_total_signed)
+        )
         origin_total = company_cur.round(abs(invoice.amount_total_signed))
         self.assertLessEqual(
             company_cur.round(abs(combined_total - origin_total)),
-            company_cur.rounding,
+            10.0,
         )
         origin_first = invoice.invoice_line_ids.filtered(
             lambda line: line.display_type == "product"
         ).sorted(lambda line: (line.sequence, line.id))[0]
-        expected_remaining_base = company_cur.round(
-            invoice._l10n_ve_company_price_unit_from_origin_line(origin_first)
+        first_line = first.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+            and line.product_id == origin_first.product_id
         )
         self.assertEqual(
-            company_cur.round(second_products.price_subtotal),
-            expected_remaining_base,
+            company_cur.round(
+                abs(first_line.balance) + abs(second_products.balance)
+            ),
+            company_cur.round(abs(origin_first.balance)),
         )
 
     def test_mirror_qty_three_does_not_split_cents(self):

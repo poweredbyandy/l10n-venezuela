@@ -2605,10 +2605,44 @@ Please create a credit note instead.
                 )
             )
 
-    @api.depends("currency_id", "company_currency_id", "company_id", "invoice_date")
+    @api.depends(
+        "currency_id",
+        "company_currency_id",
+        "company_id",
+        "invoice_date",
+        "reversed_entry_id",
+        "reversed_entry_id.invoice_currency_rate",
+    )
+    def refresh_invoice_currency_rate(self):
+        refunds = self.filtered(
+            lambda move: move.move_type == "out_refund"
+            and move.reversed_entry_id
+            and move.currency_id != move.company_currency_id
+            and move.reversed_entry_id.currency_id == move.currency_id
+        )
+        others = self - refunds
+        if others:
+            super(AccountMove, others).refresh_invoice_currency_rate()
+        if refunds and hasattr(
+            refunds, "_l10n_ve_lock_refund_invoice_currency_rate_from_origin"
+        ):
+            refunds._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
+
     def _compute_invoice_currency_rate(self):
         res = super()._compute_invoice_currency_rate()
         for move in self:
+            origin = move.reversed_entry_id
+            if (
+                move.move_type == "out_refund"
+                and move.country_code == "VE"
+                and origin
+                and move.currency_id
+                and move.currency_id != move.company_currency_id
+                and origin.currency_id == move.currency_id
+                and origin.invoice_currency_rate
+            ):
+                move.invoice_currency_rate = origin.invoice_currency_rate
+                continue
             if (
                 not move.is_invoice(include_receipts=True)
                 or not move.currency_id
@@ -3177,6 +3211,11 @@ Please create a credit note instead.
         )
         if not cancel:
             reverse_moves._l10n_ve_apply_remaining_credit_note_lines()
+            if hasattr(
+                reverse_moves, "_l10n_ve_lock_refund_invoice_currency_rate_from_origin"
+            ):
+                reverse_moves._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
+                reverse_moves._l10n_ve_align_refund_company_amounts_to_origin()
         return reverse_moves
 
     def action_reverse(self):
