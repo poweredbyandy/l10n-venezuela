@@ -2584,6 +2584,7 @@ Please create a credit note instead.
 
             move.purchase_tax_data = tax_data
 
+    invoice_currency_rate = fields.Float(recursive=True)
     l10n_ve_inverse_rate = fields.Float(
         string="Tasa de Cambio Inversa",
         compute="_compute_l10n_ve_inverse_rate",
@@ -3251,6 +3252,9 @@ Please create a credit note instead.
             default_values_list=default_values_list, cancel=cancel
         )
         if not cancel:
+            reverse_moves = reverse_moves.with_context(
+                l10n_ve_skip_refund_realign=True
+            )
             reverse_moves._l10n_ve_apply_remaining_credit_note_lines()
             if hasattr(
                 reverse_moves, "_l10n_ve_lock_refund_invoice_currency_rate_from_origin"

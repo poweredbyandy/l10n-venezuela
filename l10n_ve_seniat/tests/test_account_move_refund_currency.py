@@ -549,6 +549,11 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         )
         credit._l10n_ve_force_refund_to_company_currency()
         self.assertEqual(credit.currency_id, invoice.currency_id)
+        warning = credit.message_ids.filtered(
+            lambda message: message.body
+            and "emparejar" in message.body.lower()
+        )
+        self.assertTrue(warning)
 
     def test_vendor_usd_refund_keeps_foreign_currency(self):
         date_invoice = fields.Date.to_date("2026-07-17")
@@ -964,6 +969,301 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
                 11.0,
             ),
         )
+
+    def _assert_refund_tax_totals_match_move(self, credit, invoice):
+        company_cur = invoice.company_currency_id
+        doc_cur = invoice.currency_id
+        tax_totals = credit.tax_totals or {}
+        self.assertAlmostEqual(
+            doc_cur.round(tax_totals.get("base_amount_currency", 0.0)),
+            doc_cur.round(abs(credit.amount_untaxed)),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            doc_cur.round(tax_totals.get("tax_amount_currency", 0.0)),
+            doc_cur.round(abs(credit.amount_tax)),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            doc_cur.round(tax_totals.get("total_amount_currency", 0.0)),
+            doc_cur.round(abs(credit.amount_total)),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            company_cur.round(tax_totals.get("base_amount", 0.0)),
+            company_cur.round(abs(credit.amount_untaxed_signed)),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            company_cur.round(tax_totals.get("tax_amount", 0.0)),
+            company_cur.round(abs(credit.amount_tax_signed)),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            company_cur.round(tax_totals.get("total_amount", 0.0)),
+            company_cur.round(abs(credit.amount_total_signed)),
+            places=2,
+        )
+
+    def _assert_refund_lines_use_document_currency(self, credit, invoice):
+        doc_cur = invoice.currency_id
+        company_cur = invoice.company_currency_id
+        self.assertEqual(credit.currency_id, doc_cur)
+        origin_products = invoice.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        ).sorted(lambda line: (line.sequence, line.id))
+        credit_products = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        ).sorted(lambda line: (line.sequence, line.id))
+        for origin_line, credit_line in zip(
+            origin_products, credit_products, strict=True
+        ):
+            self.assertAlmostEqual(
+                credit_line.price_unit,
+                origin_line.price_unit,
+                places=4,
+            )
+            self.assertAlmostEqual(
+                doc_cur.round(credit_line.price_subtotal),
+                doc_cur.round(origin_line.price_subtotal),
+                places=2,
+            )
+            if doc_cur != company_cur and credit_line.amount_currency:
+                ratio = abs(credit_line.balance / credit_line.amount_currency)
+                self.assertGreater(ratio, 1.0)
+
+    def test_full_reversal_tax_totals_match_accounting_amounts(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0, 50.0))
+        credit = self._reverse_invoice(invoice, reason="NC tax totals")
+        self._assert_refund_lines_use_document_currency(credit, invoice)
+        self._assert_refund_tax_totals_match_move(credit, invoice)
+        self.assertGreater(abs(credit.amount_tax), 0.0)
+
+    def test_delete_credit_line_updates_tax_totals_subtotal(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0, 50.0))
+        credit = self._reverse_invoice(invoice, reason="NC borrar linea")
+        line_to_delete = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )[0]
+        line_to_delete.unlink()
+        credit.invalidate_recordset(
+            ["tax_totals", "amount_untaxed", "amount_tax", "amount_total"]
+        )
+        self.assertEqual(len(credit.invoice_line_ids), 1)
+        self._assert_refund_tax_totals_match_move(credit, invoice)
+        remaining = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        self.assertAlmostEqual(
+            invoice.currency_id.round(credit.amount_untaxed),
+            invoice.currency_id.round(remaining.price_subtotal),
+            places=2,
+        )
+
+    def test_partial_qty_credit_tax_totals_match_accounting(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0,))
+        credit = self._reverse_invoice(invoice, reason="NC parcial tax totals")
+        product_line = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        product_line.quantity = 0.5
+        credit.invalidate_recordset(
+            ["tax_totals", "amount_untaxed", "amount_tax", "amount_total"]
+        )
+        self._assert_refund_tax_totals_match_move(credit, invoice)
+        self.assertAlmostEqual(
+            invoice.currency_id.round(credit.amount_untaxed),
+            invoice.currency_id.round(50.0),
+            places=2,
+        )
+
+    def test_line_write_quantity_realigns_company_balance(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0,))
+        credit = self._reverse_invoice(invoice, reason="NC write qty")
+        origin_line = invoice.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        origin_line.ensure_one()
+        origin_bs = abs(origin_line.balance)
+        product_line = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        product_line.ensure_one()
+        product_line.write({"quantity": 0.5})
+        credit.invalidate_recordset(
+            ["tax_totals", "amount_untaxed", "amount_tax", "amount_total"]
+        )
+        self.assertAlmostEqual(abs(product_line.balance), origin_bs * 0.5, delta=1.0)
+        self._assert_refund_tax_totals_match_move(credit, invoice)
+
+    def test_company_currency_refund_partial_price_scales_origin_bs(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0,))
+        origin_line = invoice.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        origin_line.ensure_one()
+        origin_bs = abs(origin_line.balance)
+        company_cur = invoice.company_currency_id
+        origin_pu_bs = invoice._l10n_ve_company_price_unit_from_origin_line(
+            origin_line
+        )
+        credit = self.env["account.move"].create(
+            {
+                "move_type": "out_refund",
+                "reversed_entry_id": invoice.id,
+                "partner_id": invoice.partner_id.id,
+                "currency_id": company_cur.id,
+                "invoice_date": date_invoice,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Ajuste precio Bs",
+                            "product_id": self.product_iva_16.id,
+                            "quantity": origin_line.quantity,
+                            "price_unit": company_cur.round(origin_pu_bs * 0.5),
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [(6, 0, self._sale_tax().ids)],
+                        },
+                    )
+                ],
+            }
+        )
+        credit._l10n_ve_align_refund_company_amounts_to_origin()
+        product_line = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        product_line.ensure_one()
+        self.assertLess(abs(product_line.balance), origin_bs)
+        self.assertAlmostEqual(abs(product_line.balance), origin_bs * 0.5, delta=1.0)
+
+    def test_cap_posts_message_when_excess_trimmed(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0,))
+        credit = self._reverse_invoice(invoice, reason="NC cap mensaje")
+        product_line = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        product_line.ensure_one()
+        product_line.write({"quantity": product_line.quantity * 2.0})
+        credit._l10n_ve_cap_refund_company_amount_to_remaining()
+        warning = credit.message_ids.filtered(
+            lambda message: message.body
+            and "saldo restante" in message.body.lower()
+        )
+        self.assertTrue(warning)
+        origin_bs = abs(
+            invoice.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product"
+            ).balance
+        )
+        self.assertLessEqual(abs(product_line.balance), origin_bs + 1.0)
+
+    def test_mixed_tax_refund_tax_totals_match_accounting(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        tax_8 = self.percent_tax(
+            8.0,
+            type_tax_use="sale",
+            country_id=self.env.ref("base.ve").id,
+            price_include_override="tax_excluded",
+        )
+        product_8 = self._create_taxed_product("Producto IVA 8 subtotales", tax_8)
+        invoice = self._create_usd_invoice(
+            date_invoice,
+            (100.0, 50.0),
+            taxes=(self._sale_tax(), tax_8),
+            products=(self.product_iva_16, product_8),
+        )
+        credit = self._reverse_invoice(invoice, reason="NC subtotales mixtos")
+        company_cur = invoice.company_currency_id
+        for tax in (self._sale_tax(), tax_8):
+            origin_tax = abs(
+                sum(
+                    invoice.line_ids.filtered(
+                        lambda line, tax=tax: line.display_type == "tax"
+                        and line.tax_line_id == tax
+                    ).mapped("balance")
+                )
+            )
+            credit_tax = abs(
+                sum(
+                    credit.line_ids.filtered(
+                        lambda line, tax=tax: line.display_type == "tax"
+                        and line.tax_line_id == tax
+                    ).mapped("balance")
+                )
+            )
+            self.assertEqual(
+                company_cur.round(credit_tax),
+                company_cur.round(origin_tax),
+            )
+        tax_totals = credit.tax_totals or {}
+        subtotals = tax_totals.get("subtotals") or []
+        tax_groups = [
+            group
+            for subtotal in subtotals
+            for group in (subtotal.get("tax_groups") or [])
+        ]
+        if tax_groups:
+            group_base = company_cur.round(
+                sum(group.get("base_amount", 0.0) for group in tax_groups)
+            )
+            self.assertEqual(group_base, tax_totals.get("base_amount"))
+        self._assert_refund_tax_totals_match_move(credit, invoice)
+
+    @classmethod
+    def _loyalty_installed(cls):
+        return bool(
+            cls.env["ir.module.module"].search(
+                [("name", "=", "l10n_ve_loyalty"), ("state", "=", "installed")],
+                limit=1,
+            )
+        )
+
+    def test_loyalty_global_discount_refund_keeps_document_currency(self):
+        if not self._loyalty_installed():
+            self.skipTest("l10n_ve_loyalty no instalado")
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (1000.0,))
+        reason = self.env["l10n.ve.discount.reason"].search([], limit=1)
+        if not reason:
+            reason = self.env["l10n.ve.discount.reason"].create(
+                {"name": "Descuento prueba NC"}
+            )
+        self.env["l10n.ve.account.move.discount"].create(
+            {
+                "move_id": invoice.id,
+                "reason_id": reason.id,
+                "amount": 100.0,
+                "discount_type": "fixed",
+            }
+        )
+        credit = self._reverse_invoice(invoice, reason="NC con descuento global")
+        self.assertEqual(credit.currency_id, invoice.currency_id)
+        self._assert_refund_tax_totals_match_move(credit, invoice)
+        tax_totals = credit.tax_totals or {}
+        if tax_totals.get("l10n_ve_show_global_discount"):
+            self.assertAlmostEqual(
+                invoice.currency_id.round(tax_totals["base_amount_currency"]),
+                invoice.currency_id.round(abs(credit.amount_untaxed)),
+                places=2,
+            )
 
     def test_mirror_installments_with_uneven_qty(self):
         term = self.env["account.payment.term"].create(

@@ -149,3 +149,7 @@ class TestResCurrencyRate(L10nVeSeniatCommon):
         invoice = self._create_usd_invoice(post=True)
         with self.assertRaises(ValidationError):
             invoice.write({"invoice_currency_rate": 0})
+
+    def test_invoice_currency_rate_declared_recursive(self):
+        field = self.env["account.move"]._fields["invoice_currency_rate"]
+        self.assertTrue(field.recursive)

@@ -78,8 +78,45 @@ class AccountMoveLine(models.Model):
             record._put_unique_tax_per_line()
         return res
 
+    def unlink(self):
+        refund_moves = self.move_id.filtered(
+            lambda move: move.state == "draft"
+            and move.move_type == "out_refund"
+            and move.reversed_entry_id
+            and move.country_code == self.env.ref("base.ve").code
+            and move.reversed_entry_id.currency_id
+            != move.reversed_entry_id.company_currency_id
+        )
+        res = super().unlink()
+        if refund_moves and hasattr(
+            refund_moves, "_l10n_ve_realign_refund_on_draft_line_change"
+        ):
+            refund_moves.with_context(
+                l10n_ve_skip_refund_realign=True
+            )._l10n_ve_realign_refund_on_draft_line_change()
+        return res
+
     def write(self, vals):
+        refund_moves = self.env["account.move"]
+        if (
+            not self.env.context.get("l10n_ve_skip_refund_realign")
+            and {"quantity", "price_unit", "discount"} & set(vals)
+        ):
+            refund_moves = self.move_id.filtered(
+                lambda move: move.state == "draft"
+                and move.move_type == "out_refund"
+                and move.reversed_entry_id
+                and move.country_code == self.env.ref("base.ve").code
+                and move.reversed_entry_id.currency_id
+                != move.reversed_entry_id.company_currency_id
+            )
         res = super().write(vals)
+        if refund_moves and hasattr(
+            refund_moves, "_l10n_ve_realign_refund_on_draft_line_change"
+        ):
+            refund_moves.with_context(
+                l10n_ve_skip_refund_realign=True
+            )._l10n_ve_realign_refund_on_draft_line_change()
         if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
             return res
         for record in self:
