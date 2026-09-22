@@ -455,12 +455,28 @@ class AccountMove(models.Model):
         if not term_lines:
             return
         company_cur = self.company_currency_id
-        residual = company_cur.round(
-            -sum((self.line_ids - term_lines).mapped("balance"))
-        )
-        current = company_cur.round(sum(term_lines.mapped("balance")))
-        if not float_compare(
-            current, residual, precision_rounding=company_cur.rounding
+        document_cur = self.currency_id
+        non_term_lines = self.line_ids - term_lines
+        residual_balance = company_cur.round(-sum(non_term_lines.mapped("balance")))
+        current_balance = company_cur.round(sum(term_lines.mapped("balance")))
+        if document_cur == company_cur:
+            residual_currency = residual_balance
+        else:
+            residual_currency = document_cur.round(
+                -sum(non_term_lines.mapped("amount_currency"))
+            )
+        current_currency = document_cur.round(sum(term_lines.mapped("amount_currency")))
+        if (
+            not float_compare(
+                current_balance,
+                residual_balance,
+                precision_rounding=company_cur.rounding,
+            )
+            and not float_compare(
+                current_currency,
+                residual_currency,
+                precision_rounding=document_cur.rounding,
+            )
         ):
             return
         weights = [abs(line.balance) for line in term_lines]
@@ -468,29 +484,37 @@ class AccountMove(models.Model):
         if company_cur.is_zero(weight_sum):
             weights = [1.0] * len(term_lines)
             weight_sum = float(len(term_lines))
-        allocated = 0.0
+        allocated_balance = 0.0
+        allocated_currency = 0.0
         line_cmds = []
         last_index = len(term_lines) - 1
         for index, line in enumerate(term_lines):
             if index == last_index:
-                amount = company_cur.round(residual - allocated)
-            else:
-                amount = company_cur.round(residual * (weights[index] / weight_sum))
-                allocated += amount
-            if float_compare(
-                line.balance, amount, precision_rounding=company_cur.rounding
-            ) or float_compare(
-                line.amount_currency, amount, precision_rounding=company_cur.rounding
-            ):
-                line_cmds.append(
-                    Command.update(
-                        line.id,
-                        {
-                            "amount_currency": amount,
-                            "balance": amount,
-                        },
-                    )
+                balance = company_cur.round(residual_balance - allocated_balance)
+                amount_currency = document_cur.round(
+                    residual_currency - allocated_currency
                 )
+            else:
+                weight_ratio = weights[index] / weight_sum
+                balance = company_cur.round(residual_balance * weight_ratio)
+                amount_currency = document_cur.round(
+                    residual_currency * weight_ratio
+                )
+                allocated_balance += balance
+                allocated_currency += amount_currency
+            vals = {}
+            if float_compare(
+                line.balance, balance, precision_rounding=company_cur.rounding
+            ):
+                vals["balance"] = balance
+            if float_compare(
+                line.amount_currency,
+                amount_currency,
+                precision_rounding=document_cur.rounding,
+            ):
+                vals["amount_currency"] = amount_currency
+            if vals:
+                line_cmds.append(Command.update(line.id, vals))
         if not line_cmds:
             return
         self.with_context(
@@ -1384,6 +1408,36 @@ class AccountMove(models.Model):
         )
         return True
 
+    def _l10n_ve_repair_refund_restore_payment_term_currency(self):
+        self.ensure_one()
+        if self.currency_id == self.company_currency_id:
+            return False
+        term_lines = self.line_ids.filtered(
+            lambda line: line.display_type == "payment_term"
+        )
+        if not term_lines:
+            return False
+        document_cur = self.currency_id
+        target_currency = document_cur.round(
+            -sum((self.line_ids - term_lines).mapped("amount_currency"))
+        )
+        current_currency = document_cur.round(sum(term_lines.mapped("amount_currency")))
+        if not float_compare(
+            current_currency,
+            target_currency,
+            precision_rounding=document_cur.rounding,
+        ):
+            return False
+        before = current_currency
+        self._l10n_ve_resync_refund_payment_term_after_tax_align()
+        term_lines.invalidate_recordset(["amount_currency", "balance"])
+        after = document_cur.round(sum(term_lines.mapped("amount_currency")))
+        return bool(
+            float_compare(
+                before, after, precision_rounding=document_cur.rounding
+            )
+        )
+
     def _l10n_ve_repair_refund_currency_alignment_on_move(self):
         self.ensure_one()
         if not self._l10n_ve_refund_repair_eligible():
@@ -1395,6 +1449,8 @@ class AccountMove(models.Model):
             changes.append(_("precios en moneda del documento"))
         self._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
         self._l10n_ve_realign_refund_on_draft_line_change()
+        if self._l10n_ve_repair_refund_restore_payment_term_currency():
+            changes.append(_("cuenta por cobrar en moneda del documento"))
         self.invalidate_recordset(
             [
                 "tax_totals",

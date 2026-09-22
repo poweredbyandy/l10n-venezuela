@@ -1268,6 +1268,37 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         self._assert_refund_tax_totals_match_move(credit, invoice)
         self._assert_refund_lines_use_document_currency(credit, invoice)
 
+    def test_repair_refund_restores_payment_term_amount_currency(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0,))
+        credit = self._reverse_invoice(invoice, reason="NC cobro corrupto")
+        term_line = credit.line_ids.filtered(
+            lambda line: line.display_type == "payment_term"
+        )
+        term_line.ensure_one()
+        self.env.cr.execute(
+            "UPDATE account_move_line SET amount_currency = balance WHERE id = %s",
+            [term_line.id],
+        )
+        term_line.invalidate_recordset(["amount_currency", "balance"])
+        self.assertAlmostEqual(
+            abs(term_line.amount_currency),
+            abs(term_line.balance),
+            places=2,
+        )
+        credit.action_l10n_ve_repair_refund_currency_alignment()
+        term_line.invalidate_recordset(["amount_currency", "balance"])
+        self.assertAlmostEqual(
+            invoice.currency_id.round(abs(term_line.amount_currency)),
+            invoice.currency_id.round(abs(credit.amount_total)),
+            places=2,
+        )
+        self.assertGreater(
+            abs(term_line.balance) / abs(term_line.amount_currency),
+            1.0,
+        )
+
     def test_repair_refund_rejects_posted_credit_notes(self):
         date_invoice = fields.Date.to_date("2026-08-25")
         self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
