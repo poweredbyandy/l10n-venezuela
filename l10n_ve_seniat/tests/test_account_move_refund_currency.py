@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import fields
+from odoo.exceptions import UserError
 from odoo.tests import tagged
 from odoo.tools import float_compare
 
@@ -1234,6 +1235,47 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
                 limit=1,
             )
         )
+
+    def test_repair_refund_restores_document_prices_and_tax_totals(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0,))
+        credit = self._reverse_invoice(invoice, reason="NC reparacion")
+        origin_line = invoice.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        origin_line.ensure_one()
+        company_pu = invoice._l10n_ve_company_price_unit_from_origin_line(origin_line)
+        product_line = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        product_line.ensure_one()
+        product_line.with_context(l10n_ve_skip_refund_realign=True).write(
+            {"price_unit": company_pu}
+        )
+        credit.invalidate_recordset(["tax_totals", "amount_untaxed", "amount_total"])
+        self.assertNotAlmostEqual(
+            product_line.price_unit,
+            origin_line.price_unit,
+            places=2,
+        )
+        credit.action_l10n_ve_repair_refund_currency_alignment()
+        self.assertAlmostEqual(
+            product_line.price_unit,
+            origin_line.price_unit,
+            places=4,
+        )
+        self._assert_refund_tax_totals_match_move(credit, invoice)
+        self._assert_refund_lines_use_document_currency(credit, invoice)
+
+    def test_repair_refund_rejects_posted_credit_notes(self):
+        date_invoice = fields.Date.to_date("2026-08-25")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=785.0685)
+        invoice = self._create_usd_invoice(date_invoice, (100.0,))
+        credit = self._reverse_invoice(invoice, reason="NC confirmada")
+        credit.action_post()
+        with self.assertRaises(UserError):
+            credit.action_l10n_ve_repair_refund_currency_alignment()
 
     def test_loyalty_global_discount_refund_keeps_document_currency(self):
         if not self._loyalty_installed():

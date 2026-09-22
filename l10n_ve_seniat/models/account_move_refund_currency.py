@@ -2,6 +2,7 @@ from collections import defaultdict
 from copy import deepcopy
 
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 from odoo.fields import Command
 from odoo.tools import float_compare, float_is_zero, float_round
 
@@ -1320,6 +1321,167 @@ class AccountMove(models.Model):
                 origin_date,
             )
         )
+
+    def _l10n_ve_refund_repair_eligible(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        return (
+            self.move_type == "out_refund"
+            and self.state == "draft"
+            and origin
+            and origin.state == "posted"
+            and self.country_code == self.env.ref("base.ve").code
+            and origin.currency_id != origin.company_currency_id
+            and self.currency_id in (self.company_currency_id, origin.currency_id)
+        )
+
+    def _l10n_ve_repair_refund_restore_document_currency(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        if self.currency_id == origin.currency_id:
+            return False
+        self.with_context(l10n_ve_skip_refund_realign=True).write(
+            {"currency_id": origin.currency_id.id}
+        )
+        return True
+
+    def _l10n_ve_repair_refund_restore_document_prices(self):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        pairs = self._l10n_ve_refund_origin_credit_line_pairs(origin)
+        if not pairs:
+            return False
+        price_prec = self.env["decimal.precision"].precision_get("Product Price")
+        line_cmds = []
+        for origin_line, credit_line in pairs:
+            if origin_line.display_type not in ("product", "cogs"):
+                continue
+            origin_doc_pu = origin_line.price_unit
+            company_pu = self._l10n_ve_company_price_unit_from_origin_line(origin_line)
+            credit_pu = credit_line.price_unit or 0.0
+            if not float_compare(credit_pu, origin_doc_pu, precision_digits=price_prec):
+                continue
+            restore_price = False
+            if company_pu and not float_compare(
+                credit_pu, company_pu, precision_digits=price_prec
+            ):
+                restore_price = True
+            elif (
+                self.currency_id == origin.currency_id
+                and origin_doc_pu
+                and credit_pu > origin_doc_pu * 50.0
+            ):
+                restore_price = True
+            if not restore_price:
+                continue
+            line_cmds.append(
+                Command.update(credit_line.id, {"price_unit": origin_doc_pu})
+            )
+        if not line_cmds:
+            return False
+        self.with_context(l10n_ve_skip_refund_realign=True).write(
+            {"invoice_line_ids": line_cmds}
+        )
+        return True
+
+    def _l10n_ve_repair_refund_currency_alignment_on_move(self):
+        self.ensure_one()
+        if not self._l10n_ve_refund_repair_eligible():
+            return False
+        changes = []
+        if self._l10n_ve_repair_refund_restore_document_currency():
+            changes.append(_("moneda del documento"))
+        if self._l10n_ve_repair_refund_restore_document_prices():
+            changes.append(_("precios en moneda del documento"))
+        self._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
+        self._l10n_ve_realign_refund_on_draft_line_change()
+        self.invalidate_recordset(
+            [
+                "tax_totals",
+                "amount_untaxed",
+                "amount_tax",
+                "amount_total",
+                "amount_untaxed_signed",
+                "amount_tax_signed",
+                "amount_total_signed",
+            ]
+        )
+        summary = ", ".join(changes) if changes else _("totales contables")
+        self.message_post(
+            body=_(
+                "Reparacion de alineacion de nota de credito ejecutada (%(summary)s).",
+                summary=summary,
+            )
+        )
+        return True
+
+    def action_l10n_ve_repair_refund_currency_alignment(self):
+        """Repara NC en borrador con montos desalineados respecto a la factura origen."""
+        eligible = self.filtered(lambda move: move._l10n_ve_refund_repair_eligible())
+        posted = self.filtered(
+            lambda move: move.move_type == "out_refund"
+            and move.state == "posted"
+            and move.reversed_entry_id
+            and move.country_code == self.env.ref("base.ve").code
+        )
+        if not eligible:
+            if posted:
+                raise UserError(
+                    _(
+                        "Las notas de credito confirmadas no pueden repararse "
+                        "directamente. Pase a borrador las que necesite corregir "
+                        "y vuelva a ejecutar esta accion."
+                    )
+                )
+            raise UserError(
+                _(
+                    "Seleccione notas de credito de cliente en borrador, "
+                    "referenciadas a una factura confirmada en moneda extranjera."
+                )
+            )
+        repaired = self.env["account.move"]
+        for move in eligible:
+            if move._l10n_ve_repair_refund_currency_alignment_on_move():
+                repaired |= move
+        message = _(
+            "%(count)s nota(s) de credito reparada(s).",
+            count=len(repaired),
+        )
+        if posted:
+            message += " " + _(
+                "Omitidas confirmadas: %(names)s.",
+                names=", ".join(posted.mapped("display_name")),
+            )
+        skipped = len(self) - len(eligible)
+        if skipped:
+            message += " " + _(
+                "Omitidas no elegibles: %(count)s.",
+                count=skipped,
+            )
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Reparacion NC"),
+                "message": message,
+                "type": "success",
+                "sticky": bool(posted),
+            },
+        }
+
+    @api.model
+    def action_l10n_ve_repair_refund_currency_alignment_all_draft(self):
+        """Repara en lote todas las NC elegibles en borrador (consola o cron)."""
+        moves = self.search(
+            [
+                ("move_type", "=", "out_refund"),
+                ("state", "=", "draft"),
+                ("reversed_entry_id", "!=", False),
+                ("company_id.account_fiscal_country_id.code", "=", "VE"),
+            ]
+        )
+        moves = moves.filtered(lambda move: move._l10n_ve_refund_repair_eligible())
+        return moves.action_l10n_ve_repair_refund_currency_alignment()
 
     def action_post(self):
         ve_code = self.env.ref("base.ve").code
