@@ -233,11 +233,7 @@ class AccountMoveLine(models.Model):
             return False
         if self.display_type == "line_section":
             return False
-        if self.display_type == "line_note":
-            return True
-        if self.display_type == "product" and not self.product_id:
-            return True
-        return False
+        return self.display_type == "line_note"
 
     def _l10n_ve_can_auto_update_tax_fields(self):
         self.ensure_one()
@@ -259,16 +255,44 @@ class AccountMoveLine(models.Model):
                 continue
             if not line._l10n_ve_can_auto_update_tax_fields():
                 continue
-            if not line._l10n_ve_must_use_exempt_tax():
+            if line._l10n_ve_must_use_exempt_tax():
+                tax = line._l10n_ve_get_exempt_tax_for_line()
+                if not tax:
+                    continue
+                if line.move_id.fiscal_position_id:
+                    tax = line.move_id.fiscal_position_id.map_tax(tax)
+                if tax:
+                    line.tax_ids = tax
                 continue
-            tax = line._l10n_ve_get_exempt_tax_for_line()
-            if not tax:
-                continue
-            if line.move_id.fiscal_position_id:
-                tax = line.move_id.fiscal_position_id.map_tax(tax)
-            if tax:
-                line.tax_ids = tax
+            line._l10n_ve_assign_company_default_tax_if_empty()
         return result
+
+    def _l10n_ve_company_default_tax(self):
+        self.ensure_one()
+        company = self.move_id.company_id
+        if self.move_id.is_sale_document(include_receipts=True):
+            return company.account_sale_tax_id
+        if self.move_id.is_purchase_document(include_receipts=True):
+            return company.account_purchase_tax_id
+        return self.env["account.tax"]
+
+    def _l10n_ve_assign_company_default_tax_if_empty(self):
+        """Impuesto de la compañía cuando la línea no tiene producto ni impuesto.
+
+        Un impuesto ya elegido se conserva.
+        """
+        self.ensure_one()
+        if self.display_type != "product" or self.product_id or self.tax_ids:
+            return
+        if self.move_id.country_code != "VE" or self.move_id.move_type == "entry":
+            return
+        tax = self._l10n_ve_company_default_tax()
+        if not tax:
+            return
+        if self.move_id.fiscal_position_id:
+            tax = self.move_id.fiscal_position_id.map_tax(tax)
+        if tax:
+            self.tax_ids = tax
 
     def _l10n_ve_get_exempt_tax_for_line(self):
         self.ensure_one()

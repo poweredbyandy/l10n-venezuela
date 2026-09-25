@@ -144,6 +144,26 @@ class AccountMoveRetention(models.Model):
     not_edit_municipal_retention_lines = fields.Boolean(
         compute="_compute_state_retentions_lines",
     )
+    retention_iva_count = fields.Integer(
+        compute="_compute_retention_line_counts",
+    )
+    retention_islr_count = fields.Integer(
+        compute="_compute_retention_line_counts",
+    )
+    retention_municipal_count = fields.Integer(
+        compute="_compute_retention_line_counts",
+    )
+
+    @api.depends(
+        "retention_iva_line_ids",
+        "retention_islr_line_ids",
+        "retention_municipal_line_ids",
+    )
+    def _compute_retention_line_counts(self):
+        for move in self:
+            move.retention_iva_count = len(move.retention_iva_line_ids)
+            move.retention_islr_count = len(move.retention_islr_line_ids)
+            move.retention_municipal_count = len(move.retention_municipal_line_ids)
 
     @api.depends(
         "retention_iva_line_ids.retention_id",
@@ -266,6 +286,45 @@ class AccountMoveRetention(models.Model):
                 _("No municipal retention document linked to this vendor bill.")
             )
         return self.municipal_retention_id.action_print_retention_voucher()
+
+    def _l10n_ve_action_view_retention_lines(self, view_xmlid, name):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": name,
+            "res_model": "account.move",
+            "res_id": self.id,
+            "view_mode": "form",
+            "views": [(self.env.ref(view_xmlid).id, "form")],
+            "target": "new",
+        }
+
+    def action_view_iva_retention_lines(self):
+        self.ensure_one()
+        if self.iva_retention_id:
+            return self.action_open_iva_retention()
+        return self._l10n_ve_action_view_retention_lines(
+            "l10n_ve_withholding.view_move_form_iva_retention_lines",
+            _("IVA Retentions"),
+        )
+
+    def action_view_islr_retention_lines(self):
+        self.ensure_one()
+        if self.islr_retention_id:
+            return self.action_open_islr_retention()
+        return self._l10n_ve_action_view_retention_lines(
+            "l10n_ve_withholding.view_move_form_islr_retention_lines",
+            _("ISLR Retentions"),
+        )
+
+    def action_view_municipal_retention_lines(self):
+        self.ensure_one()
+        if self.municipal_retention_id:
+            return self.action_open_municipal_retention()
+        return self._l10n_ve_action_view_retention_lines(
+            "l10n_ve_withholding.view_move_form_municipal_retention_lines",
+            _("Municipal Retentions"),
+        )
 
     def write(self, vals):
         res = super().write(vals)

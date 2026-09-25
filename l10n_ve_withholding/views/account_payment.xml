@@ -1,9 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <record id="account_payment_view_form_l10n_ve_withholding" model="ir.ui.view">
         <field name="name">account_payment_view_form_l10n_ve_withholding</field>
         <field name="model">account.payment</field>
         <field name="inherit_id" ref="account.view_account_payment_form" />
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_view_retention"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-percent"
+                    invisible="not retention_count"
+                >
+                    <field
+                        name="retention_count"
+                        widget="statinfo"
+                        string="Retention"
+                    />
+                </button>
+            </xpath>
             <xpath expr="//group[@name='group2']" position="after">
                 <field name="is_retention" string="Is retention" invisible="1" />
                 <field

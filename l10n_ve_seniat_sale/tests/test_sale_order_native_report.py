@@ -82,12 +82,16 @@ class TestSaleOrderNativeReport(L10nVeSeniatCommon):
             html.index('name="td_name"'),
         )
 
-    def test_native_sale_report_uses_product_name_as_description(self):
+    def test_native_sale_report_shows_name_and_description_without_code(self):
         order = self._create_ve_sale_order()
-        order.order_line.name = "Custom line description"
+        line = order.order_line
+        line.product_id.default_code = "COD-1"
+        line.name = "[COD-1] Producto informe\nDetalle de la línea"
         html = self._render_native_sale_report(order)
         self.assertIn("Producto informe", html)
-        self.assertNotIn("Custom line description", html)
+        self.assertIn("Detalle de la línea", html)
+        self.assertNotIn("[COD-1]", html)
+        self.assertIn("COD-1", html)
 
     def test_ve_quote_native_report_shows_totals(self):
         order = self._create_ve_sale_order()

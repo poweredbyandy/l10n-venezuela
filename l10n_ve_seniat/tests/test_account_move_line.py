@@ -188,6 +188,51 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         self.assertEqual(line.tax_ids, purchase_tax)
         self.assertFalse(line._l10n_ve_must_use_exempt_tax())
 
+    def test_sale_line_without_product_keeps_chosen_tax(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente linea libre",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J11223344",
+            }
+        )
+        sale_tax = self.env.company.account_sale_tax_id
+        alt_tax = self.env["account.tax"].create(
+            {
+                "name": "IVA 8% linea libre",
+                "amount": 8.0,
+                "amount_type": "percent",
+                "type_tax_use": "sale",
+                "company_id": self.env.company.id,
+                "country_id": self.env.ref("base.ve").id,
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.today(),
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Servicio sin producto",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                        }
+                    )
+                ],
+            }
+        )
+        line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
+        self.assertFalse(line.product_id)
+        self.assertEqual(line.tax_ids, sale_tax)
+        self.assertFalse(line._l10n_ve_must_use_exempt_tax())
+        line.write({"tax_ids": [Command.set([alt_tax.id])]})
+        self.assertEqual(line.tax_ids, alt_tax)
+
     def test_subtotal_refund(self):
         partner = self.env["res.partner"].create(
             {"name": "P", "country_id": self.env.ref("base.ve").id, "vat": "J12345678"}

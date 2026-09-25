@@ -9,7 +9,7 @@
     "maintainers": ["andyengit"],
     "website": "https://github.com/OCA/l10n-venezuela",
     "category": "Accountant/Accountant",
-    "version": "18.0.1.5.8",
+    "version": "18.0.1.6.2",
     "depends": [
         "base",
         "account",

@@ -72,7 +72,10 @@
             expr="//td[@name='td_name']/span[@t-field='line.name']"
             position="replace"
         >
-            <span t-if="line.product_id" t-field="line.product_id.name" />
+            <span
+                t-if="line.product_id"
+                t-out="line.l10n_ve_quotation_line_description()"
+            />
             <span t-else="" t-field="line.name" />
         </xpath>
         <xpath expr="//t[@t-foreach='lines_to_report']" position="before">

@@ -1,6 +1,6 @@
 import logging
 
-from odoo import Command, fields, models
+from odoo import _, api, Command, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -47,6 +47,61 @@ class AccountPayment(models.Model):
         store=True,
         copy=False,
     )
+    retention_count = fields.Integer(
+        compute="_compute_retention_count",
+    )
+
+    @api.depends("retention_id", "retention_line_ids.retention_id")
+    def _compute_retention_count(self):
+        for payment in self:
+            payment.retention_count = len(
+                payment.retention_id | payment.retention_line_ids.retention_id
+            )
+
+    def _l10n_ve_get_linked_retentions(self):
+        self.ensure_one()
+        return self.retention_id | self.retention_line_ids.retention_id
+
+    def _l10n_ve_retention_form_view(self, retention):
+        xmlids = {
+            "iva": "l10n_ve_withholding.view_retention_iva_form_l10n_ve_withholding",
+            "islr": "l10n_ve_withholding.view_retention_islr_form_l10n_ve_withholding",
+            "municipal": (
+                "l10n_ve_withholding.view_retention_municipal_form_l10n_ve_withholding"
+            ),
+        }
+        xmlid = xmlids.get(retention.type_retention)
+        if not xmlid:
+            return False
+        return self.env.ref(xmlid, raise_if_not_found=False)
+
+    def action_view_retention(self):
+        self.ensure_one()
+        retentions = self._l10n_ve_get_linked_retentions()
+        if not retentions:
+            return False
+        if len(retentions) > 1:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Retentions"),
+                "res_model": "account.retention",
+                "view_mode": "list,form",
+                "domain": [("id", "in", retentions.ids)],
+                "target": "current",
+            }
+        retention = retentions
+        action = {
+            "type": "ir.actions.act_window",
+            "name": retention.display_name,
+            "res_model": "account.retention",
+            "res_id": retention.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+        view = self._l10n_ve_retention_form_view(retention)
+        if view:
+            action["views"] = [(view.id, "form")]
+        return action
 
     def unlink(self):
         for payment in self:

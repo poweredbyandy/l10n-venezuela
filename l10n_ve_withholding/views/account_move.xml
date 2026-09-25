@@ -1,9 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <record id="account_move_form_l10n_ve_withholding" model="ir.ui.view">
         <field name="name">account.move.form.l10n.ve.payment.extension</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form" />
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_view_iva_retention_lines"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-percent"
+                    invisible="not retention_iva_line_ids"
+                >
+                    <field
+                        name="retention_iva_count"
+                        widget="statinfo"
+                        string="IVA Retentions"
+                    />
+                </button>
+                <button
+                    name="action_view_islr_retention_lines"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-percent"
+                    invisible="not retention_islr_line_ids"
+                >
+                    <field
+                        name="retention_islr_count"
+                        widget="statinfo"
+                        string="ISLR Retentions"
+                    />
+                </button>
+                <button
+                    name="action_view_municipal_retention_lines"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-building"
+                    invisible="not retention_municipal_line_ids"
+                >
+                    <field
+                        name="retention_municipal_count"
+                        widget="statinfo"
+                        string="Municipal Retentions"
+                    />
+                </button>
+            </xpath>
+
             <xpath expr="//field[@name='partner_shipping_id']" position="after">
                 <field name="iva_retention_id" invisible="1" />
                 <field name="islr_retention_id" invisible="1" />
@@ -134,154 +177,179 @@
             >
                 <field name="ciu_id" optional="hide" />
             </xpath>
+        </field>
+    </record>
 
-            <xpath expr="//notebook" position="inside">
-                <page
-                    name="iva_retention"
-                    string="IVA Retentions"
-                    invisible="not retention_iva_line_ids"
+    <record id="view_move_form_iva_retention_lines" model="ir.ui.view">
+        <field name="name">account.move.form.iva.retention.lines</field>
+        <field name="model">account.move</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form string="IVA Retentions">
+                <field name="company_currency_id" invisible="1" />
+                <field name="retention_iva_line_ids" nolabel="1" readonly="1">
+                    <list editable="bottom">
+                        <field name="invoice_type" column_invisible="True" />
+                        <field name="company_currency_id" column_invisible="True" />
+                        <field name="name" />
+                        <field name="move_id" />
+                        <field name="aliquot" />
+                        <field name="related_percentage_tax_base" optional="hide" />
+                        <field
+                            name="invoice_total"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field
+                            name="invoice_amount"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field
+                            name="iva_amount"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field
+                            name="retention_amount"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field name="state" />
+                    </list>
+                </field>
+                <footer>
+                    <button string="Close" special="cancel" class="btn-secondary" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_move_form_islr_retention_lines" model="ir.ui.view">
+        <field name="name">account.move.form.islr.retention.lines</field>
+        <field name="model">account.move</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form string="ISLR Retentions">
+                <field name="company_currency_id" invisible="1" />
+                <field name="move_type" invisible="1" />
+                <field name="state" invisible="1" />
+                <field
+                    name="retention_islr_line_ids"
+                    nolabel="1"
+                    readonly="move_type not in ('in_invoice', 'in_refund') or state != 'draft'"
                 >
-                    <field name="retention_iva_line_ids" nolabel="1" readonly="1">
-                        <list editable='bottom'>
-                            <!-- Invisible Fields -->
-                            <field name="invoice_type" column_invisible="True" />
-                            <field name="company_currency_id" column_invisible="True" />
-                            <field name="name" />
-                            <field name="move_id" />
-                            <field name="aliquot" />
-                            <field name="related_percentage_tax_base" optional="hide" />
-                            <!-- Amounts -->
-                            <field
-                                name="invoice_total"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field
-                                name="invoice_amount"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field
-                                name="iva_amount"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field
-                                name="retention_amount"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field name="state" />
-                        </list>
-                    </field>
-                </page>
-                <page
-                    name="islr_retention"
-                    string="ISLR Retentions"
-                    invisible="not retention_islr_line_ids"
+                    <list editable="bottom">
+                        <field name="invoice_type" column_invisible="True" />
+                        <field name="company_currency_id" column_invisible="True" />
+                        <field name="name" />
+                        <field name="payment_concept_id" />
+                        <field
+                            name="invoice_total"
+                            readonly="1"
+                            force_save="1"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field
+                            name="invoice_amount"
+                            force_save="1"
+                            string="Invoice Amount"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field
+                            name="related_pay_from"
+                            force_save="1"
+                            readonly="1"
+                        />
+                        <field
+                            name="related_percentage_tax_base"
+                            force_save="1"
+                            readonly="1"
+                        />
+                        <field
+                            name="related_percentage_fees"
+                            force_save="1"
+                            readonly="1"
+                        />
+                        <field
+                            name="related_amount_subtract_fees"
+                            force_save="1"
+                            readonly="1"
+                        />
+                        <field
+                            name="retention_amount"
+                            readonly="1"
+                            force_save="1"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field name="state" />
+                    </list>
+                </field>
+                <footer>
+                    <button string="Save" special="save" class="btn-primary" />
+                    <button string="Close" special="cancel" class="btn-secondary" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_move_form_municipal_retention_lines" model="ir.ui.view">
+        <field name="name">account.move.form.municipal.retention.lines</field>
+        <field name="model">account.move</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form string="Municipal Retentions">
+                <field name="company_currency_id" invisible="1" />
+                <field name="move_type" invisible="1" />
+                <field name="state" invisible="1" />
+                <field name="not_edit_municipal_retention_lines" invisible="1" />
+                <field
+                    name="retention_municipal_line_ids"
+                    nolabel="1"
+                    readonly="move_type not in ('in_invoice', 'in_refund') or state != 'draft' or not_edit_municipal_retention_lines"
                 >
-                    <field
-                        name="retention_islr_line_ids"
-                        nolabel="1"
-                        readonly="move_type not in ('in_invoice', 'in_refund') or state != 'draft'"
-                    >
-                        <list editable='bottom'>
-                            <!-- Invisible Fields -->
-                            <field name="invoice_type" column_invisible="True" />
-                            <field name="company_currency_id" column_invisible="True" />
-                            <field name="name" />
-                            <field name="payment_concept_id" />
-                            <field
-                                name="invoice_total"
-                                readonly="1"
-                                force_save="1"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field
-                                name="invoice_amount"
-                                force_save="1"
-                                string="Invoice Amount"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field
-                                name="related_pay_from"
-                                force_save="1"
-                                readonly="1"
-                            />
-                            <field
-                                name="related_percentage_tax_base"
-                                force_save="1"
-                                readonly="1"
-                            />
-                            <field
-                                name="related_percentage_fees"
-                                force_save="1"
-                                readonly="1"
-                            />
-                            <field
-                                name="related_amount_subtract_fees"
-                                force_save="1"
-                                readonly="1"
-                            />
-                            <field
-                                name="retention_amount"
-                                readonly="1"
-                                force_save="1"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field name="state" />
-                        </list>
-                    </field>
-                </page>
-                <page
-                    name="municipal_retention"
-                    string="Municipal Retentions"
-                    invisible="move_type not in ('in_invoice', 'in_refund')"
-                >
-                    <field
-                        name="retention_municipal_line_ids"
-                        nolabel="1"
-                        readonly="move_type not in ('in_invoice', 'in_refund') or state != 'draft' or not_edit_municipal_retention_lines"
-                    >
-                        <list editable='bottom'>
-                            <field name="company_currency_id" column_invisible="True" />
-                            <field
-                                name="name"
-                                force_save="1"
-                                readonly="1"
-                                column_invisible="True"
-                            />
-                            <field name="economic_activity_id" force_save="1" />
-                            <field name="aliquot" readonly="1" force_save="1" />
-                            <field
-                                name="invoice_amount"
-                                force_save="1"
-                                string="Invoice Amount"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field
-                                name="invoice_total"
-                                readonly="1"
-                                force_save="1"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field
-                                name="retention_amount"
-                                readonly="1"
-                                force_save="1"
-                                widget="monetary"
-                                options="{'currency_field': 'company_currency_id'}"
-                            />
-                            <field name="state" force_save="1" />
-                        </list>
-                    </field>
-                </page>
-            </xpath>
+                    <list editable="bottom">
+                        <field name="company_currency_id" column_invisible="True" />
+                        <field
+                            name="name"
+                            force_save="1"
+                            readonly="1"
+                            column_invisible="True"
+                        />
+                        <field name="economic_activity_id" force_save="1" />
+                        <field name="aliquot" readonly="1" force_save="1" />
+                        <field
+                            name="invoice_amount"
+                            force_save="1"
+                            string="Invoice Amount"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field
+                            name="invoice_total"
+                            readonly="1"
+                            force_save="1"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field
+                            name="retention_amount"
+                            readonly="1"
+                            force_save="1"
+                            widget="monetary"
+                            options="{'currency_field': 'company_currency_id'}"
+                        />
+                        <field name="state" force_save="1" />
+                    </list>
+                </field>
+                <footer>
+                    <button string="Save" special="save" class="btn-primary" />
+                    <button string="Close" special="cancel" class="btn-secondary" />
+                </footer>
+            </form>
         </field>
     </record>
 </odoo>

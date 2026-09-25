@@ -103,6 +103,13 @@ class SaleOrderLine(models.Model):
             line.qty_invoiced = qty_invoiced
         return res
 
+    def l10n_ve_quotation_line_description(self):
+        self.ensure_one()
+        text = self._l10n_ve_strip_default_code_prefix((self.name or "").strip())
+        if not text and self.product_id:
+            text = self.product_id.name or ""
+        return plaintext2html(text, with_paragraph=False)
+
     def l10n_ve_report_line_description(self):
         self.ensure_one()
         if self.display_type or self.is_downpayment or self.product_type == "combo":
