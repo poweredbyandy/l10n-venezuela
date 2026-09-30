@@ -124,7 +124,7 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
 
         journal_income = _named_lines("Ingresos", 1)
         journal_expense = _named_lines("Egresos", 1)
-        grand_total = _named_lines("Total", 0)
+        grand_total = _named_lines("Total pagos", 0)
         self.assertTrue(journal_income)
         self.assertTrue(journal_expense)
         self.assertAlmostEqual(self._get_line_amount(journal_income[0]), 500.0)
@@ -142,3 +142,86 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         self.assertTrue(
             any(line.get("name") == outbound_method.name for line in expense_methods)
         )
+
+    def test_credit_sales_section_by_document_kind(self):
+        sale_journal = self.company_data["default_journal_sale"]
+        if "l10n_ve_emission_medium" in sale_journal._fields:
+            sale_journal.l10n_ve_emission_medium = "fiscal_machine"
+        fiscal_invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": "2025-01-15",
+                "journal_id": sale_journal.id,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Venta crédito fiscal",
+                            "quantity": 1,
+                            "price_unit": 250.0,
+                            "account_id": self.company_data["default_account_revenue"].id,
+                        }
+                    )
+                ],
+            }
+        )
+        fiscal_invoice.action_post()
+
+        delivery_journal = self.env["account.journal"].create(
+            {
+                "name": "Notas de entrega",
+                "code": "NDE",
+                "type": "sale",
+                "company_id": self.company_data["company"].id,
+            }
+        )
+        if "l10n_ve_emission_medium" in delivery_journal._fields:
+            delivery_journal.l10n_ve_emission_medium = "free"
+        delivery_invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": "2025-01-16",
+                "journal_id": delivery_journal.id,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Venta crédito entrega",
+                            "quantity": 1,
+                            "price_unit": 80.0,
+                            "account_id": self.company_data["default_account_revenue"].id,
+                        }
+                    )
+                ],
+            }
+        )
+        delivery_invoice.action_post()
+
+        lines, _options = self._get_report_lines()
+        section = [
+            line
+            for line in lines
+            if line.get("name") == "Ventas a crédito" and line.get("level") == 0
+        ]
+        self.assertTrue(section, "Credit sales section should appear")
+        credit_total = [
+            line
+            for line in lines
+            if line.get("name") == "Total ventas a crédito" and line.get("level") == 0
+        ]
+        self.assertTrue(credit_total)
+        self.assertAlmostEqual(self._get_line_amount(credit_total[0]), 330.0)
+        fiscal_lines = [
+            line
+            for line in lines
+            if line.get("name", "").startswith("Ventas por Facturas Fiscales")
+        ]
+        delivery_lines = [
+            line
+            for line in lines
+            if line.get("name", "").startswith("Ventas por Notas de Entrega")
+        ]
+        self.assertTrue(fiscal_lines)
+        self.assertTrue(delivery_lines)
+        self.assertIn("(1)", fiscal_lines[0]["name"])
+        self.assertIn("(1)", delivery_lines[0]["name"])

@@ -1231,10 +1231,219 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             report,
             options,
             report._get_generic_line_id(None, None, markup="daily_pay_total"),
-            _("Total"),
+            _("Total pagos"),
             totals_by_group,
             0,
             css_class="total",
         )
 
+        self._append_credit_sales_section(
+            lines, report, options, company_ids, date_from, date_to
+        )
+
         return lines
+
+    def _get_credit_sale_document_kind(self, move):
+        """Classify invoice as fiscal invoice or delivery note."""
+        medium = getattr(move.journal_id, "l10n_ve_emission_medium", False)
+        if medium in ("fiscal_machine", "digital"):
+            return "fiscal"
+        return "delivery"
+
+    def _get_credit_sale_document_kind_label(self, kind):
+        if kind == "fiscal":
+            return _("Ventas por Facturas Fiscales")
+        return _("Ventas por Notas de Entrega")
+
+    def _get_credit_sale_moves(self, company_ids, date_from, date_to):
+        return self.env["account.move"].search(
+            [
+                ("company_id", "in", company_ids),
+                ("move_type", "=", "out_invoice"),
+                ("state", "=", "posted"),
+                ("payment_state", "in", ("not_paid", "partial")),
+                ("invoice_date", ">=", date_from),
+                ("invoice_date", "<=", date_to),
+                ("journal_id.type", "=", "sale"),
+            ],
+            order="invoice_date asc, name asc, id asc",
+        )
+
+    def _append_credit_sales_section(
+        self, lines, report, options, company_ids, date_from, date_to
+    ):
+        moves = self._get_credit_sale_moves(company_ids, date_from, date_to)
+        if not moves:
+            return
+
+        section_id = report._get_generic_line_id(
+            None, None, markup="daily_pay_credit_sales_section"
+        )
+        credit_totals = defaultdict(float)
+        lines.append(
+            (
+                0,
+                {
+                    "id": section_id,
+                    "name": _("Ventas a crédito"),
+                    "columns": self._build_row_columns(report, options, {}),
+                    "level": 0,
+                    "unfoldable": False,
+                },
+            )
+        )
+
+        moves_by_journal = defaultdict(lambda: self.env["account.move"])
+        for move in moves:
+            moves_by_journal[move.journal_id] |= move
+
+        for journal in sorted(
+            moves_by_journal.keys(), key=lambda journal: journal.display_name
+        ):
+            journal_moves = moves_by_journal[journal]
+            journal_totals = defaultdict(float)
+            journal_line_id = report._get_generic_line_id(
+                "account.journal",
+                journal.id,
+                markup="daily_pay_credit_journal",
+                parent_line_id=section_id,
+            )
+            lines.append(
+                (
+                    0,
+                    {
+                        "id": journal_line_id,
+                        "name": journal.display_name,
+                        "columns": self._build_row_columns(report, options, {}),
+                        "level": 1,
+                        "unfoldable": True,
+                        "unfolded": (
+                            journal_line_id in options["unfolded_lines"]
+                            or options["unfold_all"]
+                        ),
+                        "parent_id": section_id,
+                    },
+                )
+            )
+
+            kind_groups = {
+                "fiscal": self.env["account.move"],
+                "delivery": self.env["account.move"],
+            }
+            for move in journal_moves:
+                kind_groups[self._get_credit_sale_document_kind(move)] |= move
+
+            for kind in ("fiscal", "delivery"):
+                kind_moves = kind_groups[kind]
+                if not kind_moves:
+                    continue
+                kind_totals = defaultdict(float)
+                kind_line_id = report._get_generic_line_id(
+                    "account.journal",
+                    journal.id,
+                    markup=f"daily_pay_credit_kind_{kind}",
+                    parent_line_id=journal_line_id,
+                )
+                detail_lines = []
+                for move in kind_moves:
+                    amount = self._amount_to_report_currency(
+                        move.amount_total_signed,
+                        move.company_id,
+                        options,
+                        move.invoice_date,
+                    )
+                    if self._is_report_amount_zero(amount, options):
+                        continue
+                    for col_group_key in options["column_groups"]:
+                        kind_totals[col_group_key] += amount
+                        journal_totals[col_group_key] += amount
+                        credit_totals[col_group_key] += amount
+                    partner_label = (
+                        move.partner_id.display_name if move.partner_id else ""
+                    )
+                    detail_lines.append(
+                        (
+                            0,
+                            {
+                                "id": report._get_generic_line_id(
+                                    "account.move",
+                                    move.id,
+                                    markup="daily_pay_credit_move",
+                                    parent_line_id=kind_line_id,
+                                ),
+                                "name": move.name or move.display_name,
+                                "columns": self._build_row_columns(
+                                    report,
+                                    options,
+                                    {
+                                        "line_date": move.invoice_date,
+                                        "invoice_documents": move.name
+                                        or move.display_name,
+                                        "partner": partner_label,
+                                        "amount": amount,
+                                    },
+                                ),
+                                "level": 3,
+                                "unfoldable": False,
+                                "parent_id": kind_line_id,
+                                "caret_options": "account.move",
+                            },
+                        )
+                    )
+                if not detail_lines:
+                    continue
+                count = len(detail_lines)
+                lines.append(
+                    (
+                        0,
+                        {
+                            "id": kind_line_id,
+                            "name": _(
+                                "%(label)s (%(count)s)",
+                                label=self._get_credit_sale_document_kind_label(kind),
+                                count=count,
+                            ),
+                            "columns": self._build_amount_total_columns(
+                                report, options, kind_totals
+                            ),
+                            "level": 2,
+                            "unfoldable": True,
+                            "unfolded": (
+                                kind_line_id in options["unfolded_lines"]
+                                or options["unfold_all"]
+                            ),
+                            "parent_id": journal_line_id,
+                        },
+                    )
+                )
+                lines.extend(detail_lines)
+
+            self._append_named_total_line(
+                lines,
+                report,
+                options,
+                report._get_generic_line_id(
+                    "account.journal",
+                    journal.id,
+                    markup="daily_pay_credit_journal_total",
+                    parent_line_id=journal_line_id,
+                ),
+                _("Total crédito (%(journal)s)", journal=journal.display_name),
+                journal_totals,
+                2,
+                css_class="total",
+                parent_id=journal_line_id,
+            )
+
+        self._append_named_total_line(
+            lines,
+            report,
+            options,
+            report._get_generic_line_id(
+                None, None, markup="daily_pay_credit_sales_total"
+            ),
+            _("Total ventas a crédito"),
+            credit_totals,
+            0,
+            css_class="total",
+        )
