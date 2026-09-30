@@ -2412,7 +2412,12 @@ Please create a credit note instead.
                     if not isinstance(tax_info, dict):
                         continue
                     tax_group_id = tax_info.get("id")
-                    if not tax_group_id:
+                    # Negative ids are pseudo-groups injected into tax_totals
+                    # by other modules (e.g. IGTF uses -1); they are not VAT
+                    # rates and must not enter the SENIAT breakdown.
+                    if not tax_group_id or (
+                        isinstance(tax_group_id, int) and tax_group_id < 0
+                    ):
                         continue
 
                     tax_type = None
@@ -2534,7 +2539,12 @@ Please create a credit note instead.
                     if not isinstance(tax_info, dict):
                         continue
                     tax_group_id = tax_info.get("id")
-                    if not tax_group_id:
+                    # Negative ids are pseudo-groups injected into tax_totals
+                    # by other modules (e.g. IGTF uses -1); they are not VAT
+                    # rates and must not enter the SENIAT breakdown.
+                    if not tax_group_id or (
+                        isinstance(tax_group_id, int) and tax_group_id < 0
+                    ):
                         continue
 
                     tax_type = None
