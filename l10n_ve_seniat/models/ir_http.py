@@ -7,19 +7,6 @@ from odoo.http import request
 class IrHttp(models.AbstractModel):
     _inherit = "ir.http"
 
-    def _get_l10n_ve_version(self):
-        Module = self.env["ir.module.module"].sudo()
-        module = Module.search([("name", "=", "l10n_ve_seniat")], limit=1)
-        version = module.installed_version if module else ""
-        if not version:
-            return ""
-        enterprise = Module.search(
-            [("name", "=", "web_enterprise"), ("state", "=", "installed")],
-            limit=1,
-        )
-        edition = "Enterprise" if enterprise else "Community"
-        return f"Odoo {edition} v{version}"
-
     @classmethod
     def _l10n_ve_allowed_company_ids_from_request(cls, user):
         """Company ids from the webclient cids cookie (active company switch)."""
@@ -54,7 +41,6 @@ class IrHttp(models.AbstractModel):
     def session_info(self):
         self = self._l10n_ve_with_request_companies()
         session = super().session_info()
-        session["l10n_ve_version"] = self._get_l10n_ve_version()
         company = self.env.company.sudo()
         codes = list(company._l10n_ve_emission_medium_codes())
         session["l10n_ve_emission_medium_codes"] = codes

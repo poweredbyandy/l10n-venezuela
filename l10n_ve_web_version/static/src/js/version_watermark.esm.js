@@ -3,7 +3,7 @@ import {registry} from "@web/core/registry";
 import {session} from "@web/session";
 
 class VersionLabel extends Component {
-    static template = "l10n_ve_seniat.VersionLabel";
+    static template = "l10n_ve_web_version.VersionLabel";
     static props = {"*": true};
 
     setup() {
