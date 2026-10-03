@@ -6,7 +6,7 @@
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "category": "Inventory/Localizations",
-    "version": "18.0.1.0.25",
+    "version": "18.0.1.1.0",
     "depends": [
         "base",
         "web",
@@ -29,7 +29,6 @@
         "views/account_move_views.xml",
         "views/report_invoice_inherit.xml",
         "views/stock_picking_views.xml",
-        "views/stock_picking_dispatch_guide_dashboard_views.xml",
         "views/sale_stock_portal_template.xml",
         "views/report_delivery_inherit.xml",
         "report/report_dispatch_guide.xml",

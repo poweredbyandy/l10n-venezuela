@@ -7,14 +7,7 @@
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Accounting/Localizations/Account Charts",
-    "depends": [
-        "base",
-        "web",
-        "mail",
-        "account",
-        "account_debit_note",
-        "l10n_ve_web_version",
-    ],
+    "depends": ["base", "web", "mail", "account", "account_debit_note"],
     "demo": [
         "demo/demo_company.xml",
     ],
@@ -60,11 +53,6 @@
         ],
         "web.assets_backend": [
             "l10n_ve_seniat/static/src/scss/seniat_kanban.scss",
-            "l10n_ve_seniat/static/src/components/seniat_invoice_dashboard/seniat_invoice_dashboard.esm.js",
-            "l10n_ve_seniat/static/src/components/seniat_invoice_dashboard/seniat_invoice_dashboard.xml",
-            "l10n_ve_seniat/static/src/views/account_dashboard_kanban/seniat_account_dashboard_kanban.esm.js",
-            "l10n_ve_seniat/static/src/views/account_dashboard_kanban/seniat_account_dashboard_kanban.xml",
-            "l10n_ve_seniat/static/src/scss/seniat_invoice_dashboard.scss",
             "l10n_ve_seniat/static/src/components/tax_totals/tax_totals.esm.js",
             "l10n_ve_seniat/static/src/components/tax_totals/tax_totals.xml",
         ],

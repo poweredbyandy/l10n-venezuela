@@ -20,7 +20,6 @@ from . import account_debit_note
 from . import l10n_ve_invoice_cancel_reason
 from . import account_move_line
 from . import account_journal
-from . import account_journal_dashboard
 from . import account_payment
 from . import ir_actions_report
 from . import ir_http
