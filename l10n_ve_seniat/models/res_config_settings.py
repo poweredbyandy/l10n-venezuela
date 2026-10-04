@@ -18,10 +18,6 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.l10n_ve_on_behalf_of_third_party_enabled",
         readonly=False,
     )
-    l10n_ve_validate_partner_vat_format = fields.Boolean(
-        related="company_id.l10n_ve_validate_partner_vat_format",
-        readonly=False,
-    )
     l10n_ve_lock_partner_fiscal_data = fields.Boolean(
         related="company_id.l10n_ve_lock_partner_fiscal_data",
         readonly=False,

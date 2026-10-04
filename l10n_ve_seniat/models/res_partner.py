@@ -26,9 +26,6 @@ class ResPartner(models.Model):
     def _l10n_ve_lock_partner_fiscal_data_enabled(self):
         return self.env.company.l10n_ve_lock_partner_fiscal_data
 
-    def _l10n_ve_validate_partner_vat_format_enabled(self):
-        return self.env.company.l10n_ve_validate_partner_vat_format
-
     def _l10n_ve_has_posted_accounting_activity(self):
         self.ensure_one()
         commercial = self.commercial_partner_id
@@ -359,52 +356,6 @@ class ResPartner(models.Model):
         ]
         return expression.OR([domain, *variant_domains])
 
-    def check_vat_ve(self, vat):
-        """Valida formato de RIF/CI venezolano.
-
-        Parameters
-        ----------
-        vat : str
-            Identificación fiscal a validar.
-
-        Returns
-        -------
-        bool
-
-        Notes
-        -----
-        Art. 13 num. 5-7 PA SNAT/2011/0071: RIF del emisor y adquiriente.
-        Art. 7 num. 3 y 7 PA SNAT/2024/000102: datos del receptor digital.
-        """
-
-        vat_regex = re.compile(
-            r"""
-            ^([vecjpg])                          # group 1 - kind
-            (
-                (?:
-                    (?P<optional_1>-)?                  # optional '-' (1)
-                    [0-9]{2}
-                    (?(optional_1)(?P<optional_2>[.])?) # optional '.' (2) only if (1)
-                    [0-9]{3}
-                    (?(optional_2)[.])                  # mandatory '.' if (2)
-                    [0-9]{3}
-                    (?(optional_1)-)                    # mandatory '-' if (1)
-                |
-                    [0-9]{7}                            # cédula compacta (ej. V7440703)
-                )
-            )                                       # group 2 - identifier number
-            ([0-9])?                                # dígito verificador opcional
-            $
-        """,
-            re.VERBOSE | re.IGNORECASE,
-        )
-
-        matches = re.fullmatch(vat_regex, vat)
-        if not matches:
-            return False
-
-        return True
-
     @api.model
     @api.readonly
     def name_search(self, name="", args=None, operator="ilike", limit=100):
@@ -449,47 +400,6 @@ class ResPartner(models.Model):
                 if len(out) >= limit:
                     break
         return out
-
-    def _l10n_ve_must_check_rif_vat_format(self):
-        self.ensure_one()
-        if self.env.context.get("skip_l10n_ve_vat_rif_format_check"):
-            return False
-        if not self._l10n_ve_validate_partner_vat_format_enabled():
-            return False
-        commercial = self.commercial_partner_id
-        return (
-            self.customer_rank > 0
-            or self.supplier_rank > 0
-            or commercial.customer_rank > 0
-            or commercial.supplier_rank > 0
-        )
-
-    @api.constrains("vat", "country_id", "customer_rank", "supplier_rank")
-    def _check_l10n_ve_vat_format(self):
-        """Restricción ORM sobre formato de RIF en contactos venezolanos.
-
-        Notes
-        -----
-        Art. 13 num. 5-7 PA SNAT/2011/0071: RIF en facturas.
-        """
-
-        for partner in self:
-            if not partner.country_id or partner.country_id.code != VE_CODE:
-                continue
-            if not partner._l10n_ve_must_check_rif_vat_format():
-                continue
-            vat = (partner.vat or "").strip()
-            if not vat or vat == "/":
-                continue
-            if not partner.check_vat_ve(vat):
-                raise ValidationError(
-                    _(
-                        "El RIF («%(vat)s») no tiene un formato válido para contactos "
-                        "venezolanos. Use [V/E/J/C/P/G] y el número (ej.: V7440703, "
-                        "V12345678, J-12.345.678-9)."
-                    )
-                    % {"vat": vat}
-                )
 
     @api.constrains("country_id", "taxpayer_type")
     def _check_taxpayer_type_country(self):

@@ -42,7 +42,7 @@ coverage html -d htmlcov
 ## Estructura de tests
 
 - `common.py`: Clase base L10nVeSeniatCommon con compañía venezolana
-- `test_res_partner.py`: Validación RIF (check_vat_ve), taxpayer_type
+- `test_res_partner.py`: taxpayer_type, prefijo de RIF y bloqueo de datos fiscales (la validación RIF está en `l10n_ve_base_vat`)
 - `test_account_tax.py`: Restricción de modificar alícuota de impuestos VE
 - `test_account_move.py`: Validaciones VAT, total 0, múltiples impuestos, cancelación,
   draft, número de control

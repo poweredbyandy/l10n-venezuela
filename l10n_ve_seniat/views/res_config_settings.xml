@@ -117,21 +117,6 @@
                         </div>
                     </div>
                     <div
-                        id="l10n_ve_seniat_div_validate_vat"
-                        class="col-12 col-lg-6 o_setting_box"
-                    >
-                        <div class="o_setting_left_pane">
-                            <field name="l10n_ve_validate_partner_vat_format" />
-                        </div>
-                        <div class="o_setting_right_pane">
-                            <label for="l10n_ve_validate_partner_vat_format" />
-                            <div class="text-muted">
-                                Valida que el RIF o la cédula de identidad de los
-                                contactos cumplan el formato exigido por el SENIAT.
-                            </div>
-                        </div>
-                    </div>
-                    <div
                         id="l10n_ve_seniat_div_lock_fiscal_data"
                         class="col-12 col-lg-6 o_setting_box"
                     >
