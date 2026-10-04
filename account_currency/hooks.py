@@ -5,6 +5,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 _MODULE = "account_currency"
+_INVOICE_MOVE_TYPES = ("out_invoice", "in_invoice", "out_refund", "in_refund")
 _MOVE_FIELDS = (
     "invoice_currency_rate",
     "l10n_ve_inverse_rate",
@@ -80,3 +81,35 @@ def pre_init_hook(env):
         moved = _move_xmlids(cr, previous, xmlids["names"], xmlids["patterns"])
         if moved:
             _logger.info("Moved %s xmlids from %s to %s", moved, previous, _MODULE)
+
+
+def recompute_price_subtotal_currency(env):
+    env.cr.execute(
+        """
+        UPDATE account_move_line AS aml
+           SET price_subtotal_currency = 0.0
+          FROM account_move AS am
+         WHERE am.id = aml.move_id
+           AND COALESCE(aml.price_subtotal_currency, 0.0) != 0.0
+           AND (
+                am.move_type NOT IN %(move_types)s
+                OR aml.display_type IS DISTINCT FROM 'product'
+           )
+        """,
+        {"move_types": _INVOICE_MOVE_TYPES},
+    )
+    env["account.move.line"].invalidate_model(["price_subtotal_currency"])
+    lines = env["account.move.line"].search(
+        [
+            ("move_id.move_type", "in", _INVOICE_MOVE_TYPES),
+            ("display_type", "=", "product"),
+            ("manually_price_subtotal_currency", "=", False),
+        ]
+    )
+    env.add_to_compute(lines._fields["price_subtotal_currency"], lines)
+    lines.flush_recordset(["price_subtotal_currency"])
+    _logger.info("Recomputed price_subtotal_currency on %s lines", len(lines))
+
+
+def post_init_hook(env):
+    recompute_price_subtotal_currency(env)

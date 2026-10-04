@@ -1,6 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
@@ -279,6 +279,56 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
             line.l10n_ve_price_discount_currency,
             line.l10n_ve_price_discount,
             places=2,
+        )
+
+    def test_global_discount_keeps_company_currency_subtotal_gross(self):
+        company_currency = self.env.company.currency_id
+        usd = self.env.ref("base.USD")
+        foreign = usd if company_currency != usd else self.env.ref("base.EUR")
+        foreign.write({"active": True})
+        journal = self.company_data["default_journal_sale"]
+        self._l10n_ve_configure_journal_free(journal)
+        invoice_date = fields.Date.today()
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": foreign.id,
+                "company_id": self.env.company.id,
+                "name": invoice_date,
+                "inverse_company_rate": 2.0,
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_ve.id,
+                "journal_id": journal.id,
+                "currency_id": foreign.id,
+                "invoice_date": invoice_date,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Product line",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                Command.set([self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    )
+                ],
+            }
+        )
+        self._add_global_discount(move, "Promoción", 10.0)
+        line = move.invoice_line_ids
+
+        self.assertAlmostEqual(line.price_subtotal, 100.0, places=2)
+        self.assertAlmostEqual(line.price_subtotal_currency, 200.0, places=2)
+        self.assertAlmostEqual(line.price_unit_company_currency, 200.0, places=2)
+        self.assertAlmostEqual(
+            move.tax_totals["l10n_ve_global_discount_amount"], 20.0, places=2
         )
 
     def _ensure_sale_discount_product(self, name):

@@ -572,7 +572,7 @@ class SerialFiscalDriver(SerialDriver):
         if price_unit < 0:
             return None, abs(price_unit)
 
-        code = f'|{item["default_code"]}|' if item.get("default_code") else ""
+        code = f"|{item['default_code']}|" if item.get("default_code") else ""
 
         amount_i, amount_d = self.split_amount(
             round(price_unit, max_amount_decimal), max_amount_decimal
@@ -901,7 +901,7 @@ class SerialFiscalDriver(SerialDriver):
 
             if len(invoice.get("info", [])) > 0:
                 for index, info in enumerate(invoice.get("info")):
-                    cmd.append(f"i{str(index+2).zfill(2)}{info}")
+                    cmd.append(f"i{str(index + 2).zfill(2)}{info}")
 
             discount_amount = 0
 
@@ -1071,7 +1071,7 @@ class SerialFiscalDriver(SerialDriver):
         if price_unit < 0:
             return None, abs(price_unit)
 
-        code = f'|{item["default_code"]}|' if item.get("default_code") else ""
+        code = f"|{item['default_code']}|" if item.get("default_code") else ""
 
         tax_code = str(item.get("tax", ""))
         tax_value = TAX.get(tax_code, tax_code)
@@ -1820,8 +1820,8 @@ class SerialFiscalDriver(SerialDriver):
                 return {
                     "valid": True,
                     "message": f"""
-                    {status['status']['code']}: {status['status']['msg']}
-                    {status['error']['code']}: {status['error']['msg']}
+                    {status["status"]["code"]}: {status["status"]["msg"]}
+                    {status["error"]["code"]}: {status["error"]["msg"]}
                     """,
                     "data": status,
                     "status": status_obj,
@@ -1832,8 +1832,8 @@ class SerialFiscalDriver(SerialDriver):
                 return {
                     "valid": False,
                     "message": f"""
-                    {status['status']['code']}: {status['status']['msg']}
-                    {status['error']['code']}: {status['error']['msg']}
+                    {status["status"]["code"]}: {status["status"]["msg"]}
+                    {status["error"]["code"]}: {status["error"]["msg"]}
                     """,
                     "data": status,
                     "status": False,
@@ -1846,8 +1846,8 @@ class SerialFiscalDriver(SerialDriver):
             return {
                 "valid": False,
                 "message": f"""
-                {status['status']['code']}: {status['status']['msg']}
-                {status['error']['code']}: {status['error']['msg']}
+                {status["status"]["code"]}: {status["status"]["msg"]}
+                {status["error"]["code"]}: {status["error"]["msg"]}
                 """,
                 "data": status,
             }

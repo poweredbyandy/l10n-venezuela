@@ -193,13 +193,7 @@ class AccountMove(models.Model):
 
     def _l10n_ve_fiscal_serial_line_price_unit_for_print(self, line):
         self.ensure_one()
-        price = line.price_unit or 0.0
-        if self.currency_id == self.company_currency_id:
-            return price
-        rate = line.currency_rate or self.invoice_currency_rate or 0.0
-        if not float_is_zero(rate, precision_rounding=1e-9):
-            return self.company_currency_id.round(price / rate)
-        return price
+        return line.price_unit_company_currency
 
     def _l10n_ve_fiscal_serial_global_discount_amount(self):
         self.ensure_one()

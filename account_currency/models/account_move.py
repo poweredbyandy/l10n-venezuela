@@ -389,7 +389,7 @@ class AccountMove(models.Model):
     def _l10n_ve_company_subtotal_from_origin_line(self, line):
         if line.currency_id == line.company_currency_id:
             return abs(line.price_subtotal)
-        return line.price_subtotal_currency
+        return abs(line.balance)
 
     def _l10n_ve_company_price_unit_from_refund_line(self, origin_line, credit_line):
         origin_pu = self._l10n_ve_company_price_unit_from_origin_line(origin_line)

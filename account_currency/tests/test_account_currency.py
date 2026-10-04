@@ -45,6 +45,13 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         self.assertAlmostEqual(line.price_unit_company_currency, 50.0)
         self.assertAlmostEqual(invoice._l10n_ve_to_company_abs_amount(), 50.0)
 
+    def test_company_currency_price_unit_ignores_discount(self):
+        invoice = self._create_invoice()
+        line = invoice.invoice_line_ids
+        line.discount = 10.0
+        self.assertAlmostEqual(line.price_subtotal_currency, 45.0)
+        self.assertAlmostEqual(line.price_unit_company_currency, 50.0)
+
     def test_manual_company_currency_subtotal(self):
         invoice = self._create_invoice()
         line = invoice.invoice_line_ids

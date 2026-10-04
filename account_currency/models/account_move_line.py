@@ -35,31 +35,35 @@ class AccountMoveLine(models.Model):
         compute="_compute_has_rate_difference",
     )
 
-    @api.depends("balance", "move_id.move_type", "manually_price_subtotal_currency")
+    @api.depends(
+        "quantity",
+        "discount",
+        "price_unit",
+        "tax_ids",
+        "currency_id",
+        "display_type",
+        "move_id.move_type",
+        "move_id.invoice_currency_rate",
+        "manually_price_subtotal_currency",
+    )
     def _compute_price_subtotal_currency(self):
         for line in self:
             if line.manually_price_subtotal_currency:
                 continue
             line.price_subtotal_currency = line._l10n_ve_company_currency_subtotal()
 
-    @api.depends("price_subtotal_currency", "discount", "quantity")
+    @api.depends("price_unit", "currency_rate", "currency_id", "company_currency_id")
     def _compute_price_unit_company_currency(self):
         for line in self:
-            qty = line.quantity or 0.0
-            if not qty:
-                line.price_unit_company_currency = 0.0
+            if line.currency_id == line.company_currency_id or not line.currency_rate:
+                line.price_unit_company_currency = line.price_unit
                 continue
-            discount_factor = 1 - ((line.discount or 0.0) / 100.0)
-            if not discount_factor:
-                line.price_unit_company_currency = 0.0
-                continue
-            subtotal_wo_discount = line.price_subtotal_currency / discount_factor
-            line.price_unit_company_currency = subtotal_wo_discount / qty
+            line.price_unit_company_currency = line.price_unit / line.currency_rate
 
     @api.depends(
         "price_subtotal_currency",
         "manually_price_subtotal_currency",
-        "amount_currency",
+        "price_subtotal",
     )
     def _compute_currency_rate(self):
         res = super()._compute_currency_rate()
@@ -75,7 +79,7 @@ class AccountMoveLine(models.Model):
         "move_id.invoice_currency_rate",
         "price_subtotal_currency",
         "manually_price_subtotal_currency",
-        "amount_currency",
+        "price_subtotal",
     )
     def _compute_warning_rate_difference(self):
         for line in self:
@@ -106,16 +110,14 @@ class AccountMoveLine(models.Model):
             and aml.display_type == "product"
             and aml.move_id.move_type in INVOICE_MOVE_TYPES
         ):
-            line.price_subtotal_currency = (
-                line._l10n_ve_company_currency_subtotal_from_price()
-            )
+            line.price_subtotal_currency = line._l10n_ve_company_currency_subtotal()
 
     @api.onchange("price_subtotal_currency")
     def _onchange_price_subtotal_currency(self):
         for line in self.filtered("price_subtotal_currency"):
             if line.company_currency_id.compare_amounts(
                 line.price_subtotal_currency,
-                line._l10n_ve_company_currency_subtotal_from_price(),
+                line._l10n_ve_company_currency_subtotal(),
             ):
                 line.manually_price_subtotal_currency = True
 
@@ -124,17 +126,19 @@ class AccountMoveLine(models.Model):
 
     def _l10n_ve_company_currency_subtotal(self):
         self.ensure_one()
-        if self.move_id.move_type not in INVOICE_MOVE_TYPES:
+        if (
+            self.move_id.move_type not in INVOICE_MOVE_TYPES
+            or self.display_type != "product"
+        ):
             return 0.0
-        if isinstance(self.id, models.NewId) and self.display_type == "product":
-            return self._l10n_ve_company_currency_subtotal_from_price()
-        return abs(self.balance)
-
-    def _l10n_ve_company_currency_subtotal_from_price(self):
-        self.ensure_one()
-        rate = self.move_id.invoice_currency_rate or 1.0
-        return self.company_currency_id.round(abs(self.price_subtotal) / rate)
+        base_line = self.move_id._prepare_product_base_line_for_taxes_computation(self)
+        self.env["account.tax"]._add_tax_details_in_base_line(
+            base_line, self.company_id
+        )
+        return self.company_currency_id.round(
+            base_line["tax_details"]["raw_total_excluded"]
+        )
 
     def _l10n_ve_manual_currency_rate(self):
         self.ensure_one()
-        return abs(self.amount_currency) / abs(self.price_subtotal_currency)
+        return abs(self.price_subtotal) / abs(self.price_subtotal_currency)
