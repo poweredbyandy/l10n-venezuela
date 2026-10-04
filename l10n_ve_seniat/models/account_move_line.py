@@ -74,7 +74,6 @@ class AccountMoveLine(models.Model):
                 continue
 
             record._validate_line_unit_price_ve()
-            record._l10n_ve_apply_exempt_tax_no_product_line()
             record._put_unique_tax_per_line()
         return res
 
@@ -132,7 +131,6 @@ class AccountMoveLine(models.Model):
 
             if "price_unit" in vals or "quantity" in vals:
                 record._validate_line_unit_price_ve()
-            record._l10n_ve_apply_exempt_tax_no_product_line()
             record._put_unique_tax_per_line()
         return res
 
@@ -231,24 +229,6 @@ class AccountMoveLine(models.Model):
             for tax in self.tax_ids
         )
 
-    def _l10n_ve_must_use_exempt_tax(self):
-        self.ensure_one()
-        if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
-            return False
-        if self.move_id.country_code != "VE":
-            return False
-        if not self.move_id.is_sale_document(include_receipts=True):
-            return False
-        if self.move_id.move_type not in (
-            "out_invoice",
-            "out_refund",
-            "out_receipt",
-        ):
-            return False
-        if self.display_type == "line_section":
-            return False
-        return self.display_type == "line_note"
-
     def _l10n_ve_can_auto_update_tax_fields(self):
         self.ensure_one()
         return self.parent_state != "posted"
@@ -268,15 +248,6 @@ class AccountMoveLine(models.Model):
             if not line.move_id:
                 continue
             if not line._l10n_ve_can_auto_update_tax_fields():
-                continue
-            if line._l10n_ve_must_use_exempt_tax():
-                tax = line._l10n_ve_get_exempt_tax_for_line()
-                if not tax:
-                    continue
-                if line.move_id.fiscal_position_id:
-                    tax = line.move_id.fiscal_position_id.map_tax(tax)
-                if tax:
-                    line.tax_ids = tax
                 continue
             line._l10n_ve_assign_company_default_tax_if_empty()
         return result
@@ -307,35 +278,6 @@ class AccountMoveLine(models.Model):
             tax = self.move_id.fiscal_position_id.map_tax(tax)
         if tax:
             self.tax_ids = tax
-
-    def _l10n_ve_get_exempt_tax_for_line(self):
-        self.ensure_one()
-        company = self.move_id.company_id
-        ProductTemplate = self.env["product.template"]
-        if self.move_id.is_sale_document(include_receipts=True):
-            return ProductTemplate._l10n_ve_get_exent_sale_tax(company)
-        return ProductTemplate._l10n_ve_get_exent_purchase_tax(company)
-
-    def _l10n_ve_apply_exempt_tax_no_product_line(self):
-        self.ensure_one()
-        if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
-            return
-        if not self._l10n_ve_can_auto_update_tax_fields():
-            return
-        if not self._l10n_ve_must_use_exempt_tax():
-            return
-        tax = self._l10n_ve_get_exempt_tax_for_line()
-        if not tax:
-            return
-        if self.move_id.fiscal_position_id:
-            tax = self.move_id.fiscal_position_id.map_tax(tax)
-        if not tax:
-            return
-        if set(self.tax_ids.ids) == set(tax.ids):
-            return
-        self.with_context(l10n_ve_skip_exempt_tax_line=True).write(
-            {"tax_ids": [Command.set(tax.ids)]}
-        )
 
     @api.constrains("discount", "move_id")
     def _l10n_ve_check_line_discount(self):
@@ -374,14 +316,15 @@ class AccountMoveLine(models.Model):
         if self.display_type not in ("product", "discount"):
             return
 
-        if len(self.tax_ids) == 0:
-            if self.move_id.move_type in ("out_invoice", "out_refund", "out_receipt"):
-                self.tax_ids = [Command.link(self.env.company.account_sale_tax_id.id)]
+        if self.tax_ids:
+            return
+        company = self.move_id.company_id
+        if self.move_id.move_type in ("out_invoice", "out_refund", "out_receipt"):
+            if company.account_sale_tax_id:
+                self.tax_ids = [Command.link(company.account_sale_tax_id.id)]
                 self.move_id.message_post(
                     body=_("Added default sales tax to line: %s.") % self.name
                 )
-
-            if self.move_id.move_type in ("in_invoice", "in_refund", "in_receipt"):
-                self.tax_ids = [
-                    Command.link(self.env.company.account_purchase_tax_id.id)
-                ]
+        elif self.move_id.move_type in ("in_invoice", "in_refund", "in_receipt"):
+            if company.account_purchase_tax_id:
+                self.tax_ids = [Command.link(company.account_purchase_tax_id.id)]

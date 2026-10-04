@@ -437,7 +437,7 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
     def test_global_discount_with_mixed_tax_and_untaxed_lines(self):
         company = self.env.company
         sale_tax = company.account_sale_tax_id
-        exempt_tax = self.env["product.template"]._l10n_ve_get_exent_sale_tax(company)
+        exempt_tax = self.env["account.tax.group"]._l10n_ve_get_exent_sale_tax(company)
         product_taxed = self._create_product(
             name="Gravada",
             list_price=100.0,
@@ -593,7 +593,7 @@ class TestAccountMoveGlobalDiscountJournalLines(L10nVeLoyaltyCommon):
     def test_global_discount_accounting_lines_per_tax_group(self):
         revenue_account = self.company_data["default_account_revenue"]
         sale_tax = self.company_data["default_tax_sale"]
-        exempt_tax = self.env["product.template"]._l10n_ve_get_exent_sale_tax(
+        exempt_tax = self.env["account.tax.group"]._l10n_ve_get_exent_sale_tax(
             self.env.company
         )
 
@@ -696,7 +696,7 @@ class TestAccountMoveGlobalDiscountJournalLines(L10nVeLoyaltyCommon):
     def test_remove_global_discount_with_line_discount_rebalances_invoice(self):
         revenue_account = self.company_data["default_account_revenue"]
         sale_tax = self.company_data["default_tax_sale"]
-        exempt_tax = self.env["product.template"]._l10n_ve_get_exent_sale_tax(
+        exempt_tax = self.env["account.tax.group"]._l10n_ve_get_exent_sale_tax(
             self.env.company
         )
 
@@ -754,7 +754,7 @@ class TestAccountMoveGlobalDiscountJournalLines(L10nVeLoyaltyCommon):
         revenue_account = self.company_data["default_account_revenue"]
         discount_account = self.discount_allocation_account
         sale_tax = self.company_data["default_tax_sale"]
-        exempt_tax = self.env["product.template"]._l10n_ve_get_exent_sale_tax(
+        exempt_tax = self.env["account.tax.group"]._l10n_ve_get_exent_sale_tax(
             self.env.company
         )
 

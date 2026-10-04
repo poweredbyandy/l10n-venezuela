@@ -188,7 +188,6 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         self.assertEqual(line.tax_ids, purchase_tax)
         line.write({"tax_ids": [Command.set([purchase_tax.id])]})
         self.assertEqual(line.tax_ids, purchase_tax)
-        self.assertFalse(line._l10n_ve_must_use_exempt_tax())
 
     def test_sale_line_without_product_keeps_chosen_tax(self):
         partner = self.env["res.partner"].create(
@@ -231,9 +230,65 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertFalse(line.product_id)
         self.assertEqual(line.tax_ids, sale_tax)
-        self.assertFalse(line._l10n_ve_must_use_exempt_tax())
         line.write({"tax_ids": [Command.set([alt_tax.id])]})
         self.assertEqual(line.tax_ids, alt_tax)
+
+    def _create_out_invoice_with_note(self):
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Cliente con nota",
+                "country_id": self.env.ref("base.ve").id,
+                "vat": "J11223355",
+            }
+        )
+        return self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.today(),
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Servicio",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                Command.set([self.company_data["default_tax_sale"].id])
+                            ],
+                        }
+                    ),
+                    Command.create({"display_type": "line_note", "name": "Nota"}),
+                ],
+            }
+        )
+
+    def test_out_invoice_note_line_has_no_tax(self):
+        move = self._create_out_invoice_with_note()
+        note = move.invoice_line_ids.filtered(
+            lambda aml: aml.display_type == "line_note"
+        )
+        note.ensure_one()
+        self.assertFalse(note.tax_ids)
+        note.write({"name": "Nota editada"})
+        self.assertFalse(note.tax_ids)
+
+    def test_put_unique_tax_per_line_uses_invoice_company(self):
+        move = self._create_out_invoice_with_note()
+        line = move.invoice_line_ids.filtered(lambda aml: aml.display_type == "product")
+        line.with_context(l10n_ve_skip_exempt_tax_line=True).write(
+            {"tax_ids": [Command.clear()]}
+        )
+        self.assertFalse(line.tax_ids)
+        company = self.env.company
+        other_company = self.env["res.company"].create({"name": "Otra compañía"})
+        self.env.user.company_ids |= other_company
+        line.with_context(
+            allowed_company_ids=[other_company.id, company.id]
+        )._put_unique_tax_per_line()
+        self.assertEqual(line.tax_ids, company.account_sale_tax_id)
 
     def test_subtotal_refund(self):
         partner = self.env["res.partner"].create(
@@ -589,7 +644,7 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
                 "vat": "J12345678",
             }
         )
-        exempt_tax = self.env["product.template"]._l10n_ve_get_exent_sale_tax(
+        exempt_tax = self.env["account.tax.group"]._l10n_ve_get_exent_sale_tax(
             self.env.company
         )
         self.assertTrue(exempt_tax)

@@ -2,6 +2,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 ALIQUOT_TYPE_SELECTION = [
+    ("exempt", "E - Exento"),
     ("general", "G - General"),
     ("reduced", "R - Reducido"),
     ("extend", "A - Extendida"),
@@ -45,9 +46,11 @@ class AccountTaxGroup(models.Model):
 
     def _l10n_ve_get_report_type(self):
         self.ensure_one()
+        if self.l10n_ve_aliquot_type:
+            return self.l10n_ve_aliquot_type
         if self.l10n_ve_exclude_from_reports:
             return "exempt"
-        return self.l10n_ve_aliquot_type or None
+        return None
 
     def _l10n_ve_get_representative_tax(self, type_tax_use):
         self.ensure_one()
@@ -85,25 +88,72 @@ class AccountTaxGroup(models.Model):
     @api.model
     def _l10n_ve_build_tax_config(self, company):
         tax_config = {}
+        typed_report_types = set()
         for group in self._l10n_ve_get_report_tax_groups(company):
             report_type = group._l10n_ve_get_report_type()
-            if report_type:
-                tax_config[report_type] = group.id
+            if not report_type or report_type in typed_report_types:
+                continue
+            tax_config[report_type] = group.id
+            if group.l10n_ve_aliquot_type:
+                typed_report_types.add(report_type)
         return tax_config
 
     @api.model
-    def _l10n_ve_get_exempt_tax(self, company, type_tax_use):
-        group = self.search(
-            [
-                ("company_id", "=", company.id),
-                ("country_id.code", "=", "VE"),
-                ("l10n_ve_exclude_from_reports", "=", True),
-            ],
+    def _l10n_ve_get_exempt_group(self, company):
+        domain = [
+            ("company_id", "=", company.id),
+            ("country_id.code", "=", "VE"),
+        ]
+        return self.search(
+            domain + [("l10n_ve_aliquot_type", "=", "exempt")], limit=1
+        ) or self.search(
+            domain + [("l10n_ve_exclude_from_reports", "=", True)],
+            order="sequence, id",
             limit=1,
         )
+
+    @api.model
+    def _l10n_ve_get_exempt_tax(self, company, type_tax_use):
+        group = self._l10n_ve_get_exempt_group(company)
         if group:
             return group._l10n_ve_get_representative_tax(type_tax_use)
         return self.env["account.tax"]
+
+    @api.model
+    def _l10n_ve_get_exent_sale_tax(self, company):
+        tax = self.sudo()._l10n_ve_get_exempt_tax(company, "sale")
+        if tax:
+            return tax
+        return (
+            self.env["account.tax"]
+            .sudo()
+            .search(
+                [
+                    ("company_id", "parent_of", company.id),
+                    ("type_tax_use", "=", "sale"),
+                    ("amount", "=", 0.0),
+                ],
+                limit=1,
+            )
+        )
+
+    @api.model
+    def _l10n_ve_get_exent_purchase_tax(self, company):
+        tax = self.sudo()._l10n_ve_get_exempt_tax(company, "purchase")
+        if tax:
+            return tax
+        return (
+            self.env["account.tax"]
+            .sudo()
+            .search(
+                [
+                    ("company_id", "parent_of", company.id),
+                    ("type_tax_use", "=", "purchase"),
+                    ("amount", "=", 0.0),
+                ],
+                limit=1,
+            )
+        )
 
     @api.model
     def _l10n_ve_get_tax_rate_for_type(self, company, aliquot_type, type_tax_use):

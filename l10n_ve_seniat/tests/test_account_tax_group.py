@@ -18,7 +18,7 @@ class TestAccountTaxGroupL10nVe(L10nVeSeniatCommon):
         cls.ve_country = cls.env.ref("base.ve")
         cls.exempt_group = cls._configure_tax_group(
             "IVA Exento Test",
-            exclude=True,
+            aliquot_type="exempt",
             sequence=10,
         )
         cls.general_group = cls._configure_tax_group(
@@ -108,3 +108,53 @@ class TestAccountTaxGroupL10nVe(L10nVeSeniatCommon):
         tax_config = self.tax_group_model._l10n_ve_build_tax_config(self.env.company)
         self.assertEqual(tax_config.get("general"), self.general_group.id)
         self.assertEqual(tax_config.get("exempt"), self.exempt_group.id)
+
+    def _create_zero_tax(self, name, group, type_tax_use="sale"):
+        return self.env["account.tax"].create(
+            {
+                "name": name,
+                "amount": 0.0,
+                "amount_type": "percent",
+                "type_tax_use": type_tax_use,
+                "tax_group_id": group.id,
+                "company_id": self.env.company.id,
+                "country_id": self.ve_country.id,
+            }
+        )
+
+    def test_exempt_aliquot_wins_over_excluded_group(self):
+        export_group = self._create_ve_tax_group(
+            "IVA Exportación Test",
+            l10n_ve_exclude_from_reports=True,
+            sequence=5,
+        )
+        export_tax = self._create_zero_tax("Exportación Test", export_group)
+        self._create_zero_tax("Exento Test", self.exempt_group)
+        self.exempt_group.sequence = 50
+        company = self.env.company
+        self.assertEqual(
+            self.tax_group_model._l10n_ve_get_exempt_group(company),
+            self.exempt_group,
+        )
+        self.assertEqual(
+            self.tax_group_model._l10n_ve_build_tax_config(company).get("exempt"),
+            self.exempt_group.id,
+        )
+        sale_tax = self.tax_group_model._l10n_ve_get_exent_sale_tax(company)
+        self.assertEqual(sale_tax.tax_group_id, self.exempt_group)
+        self.assertNotEqual(sale_tax, export_tax)
+        self.assertEqual(export_group._l10n_ve_get_report_type(), "exempt")
+
+    def test_exempt_falls_back_to_excluded_group(self):
+        self.exempt_group.write(
+            {"l10n_ve_aliquot_type": False, "l10n_ve_exclude_from_reports": True}
+        )
+        company = self.env.company
+        self.assertEqual(
+            self.tax_group_model._l10n_ve_get_exempt_group(company),
+            self.exempt_group,
+        )
+        self.assertEqual(
+            self.tax_group_model._l10n_ve_build_tax_config(company).get("exempt"),
+            self.exempt_group.id,
+        )

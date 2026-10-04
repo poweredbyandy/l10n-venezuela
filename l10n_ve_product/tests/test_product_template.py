@@ -292,7 +292,7 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
             other_purchase,
         )
 
-    def test_ve_product_auto_exent_when_created_without_taxes(self):
+    def test_ve_product_gets_company_default_taxes_when_created_without_taxes(self):
         p = self.env["product.template"].create(
             {
                 "name": "Producto sin impuestos en vals",
@@ -301,10 +301,99 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
                 "standard_price": 50.0,
             }
         )
-        self.assertEqual(len(p.taxes_id), 1)
-        self.assertEqual(len(p.supplier_taxes_id), 1)
-        self.assertEqual(p.taxes_id.amount, 0.0)
-        self.assertEqual(p.supplier_taxes_id.amount, 0.0)
+        self.assertEqual(p.taxes_id, self.env.company.account_sale_tax_id)
+        self.assertEqual(p.supplier_taxes_id, self.env.company.account_purchase_tax_id)
+
+    def test_ve_product_gets_exempt_taxes_without_company_default(self):
+        exempt_sale, exempt_purchase = self._exempt_taxes()
+        self.env.company.write(
+            {"account_sale_tax_id": False, "account_purchase_tax_id": False}
+        )
+        p = self.env["product.template"].create(
+            {
+                "name": "Producto sin impuesto por defecto",
+                "company_id": self.env.company.id,
+                "list_price": 100.0,
+                "standard_price": 50.0,
+            }
+        )
+        self.assertEqual(p.taxes_id, exempt_sale)
+        self.assertEqual(p.supplier_taxes_id, exempt_purchase)
+
+    def _create_product_with_tax_values(self, **taxes):
+        return self.env["product.template"].create(
+            {
+                "name": "Producto con comandos de impuestos",
+                "company_id": self.env.company.id,
+                **taxes,
+            }
+        )
+
+    def _exempt_taxes(self):
+        TaxGroup = self.env["account.tax.group"]
+        company = self.env.company
+        return (
+            TaxGroup._l10n_ve_get_exent_sale_tax(company),
+            TaxGroup._l10n_ve_get_exent_purchase_tax(company),
+        )
+
+    def test_ve_product_unlink_only_gets_default_taxes(self):
+        product = self._create_product_with_tax_values(
+            taxes_id=[Command.unlink(self.sale_tax_b.id)],
+            supplier_taxes_id=[Command.unlink(self.purchase_tax.id)],
+        )
+        self.assertEqual(product.taxes_id, self.env.company.account_sale_tax_id)
+        self.assertEqual(
+            product.supplier_taxes_id, self.env.company.account_purchase_tax_id
+        )
+
+    def test_ve_product_link_then_clear_gets_default_taxes(self):
+        product = self._create_product_with_tax_values(
+            taxes_id=[Command.link(self.sale_tax_b.id), Command.clear()],
+            supplier_taxes_id=[Command.link(self.purchase_tax.id), Command.clear()],
+        )
+        self.assertEqual(product.taxes_id, self.env.company.account_sale_tax_id)
+        self.assertEqual(
+            product.supplier_taxes_id, self.env.company.account_purchase_tax_id
+        )
+
+    def test_ve_product_plain_id_list_keeps_taxes(self):
+        product = self._create_product_with_tax_values(
+            taxes_id=[self.sale_tax.id],
+            supplier_taxes_id=[self.purchase_tax.id],
+        )
+        self.assertEqual(product.taxes_id, self.sale_tax)
+        self.assertEqual(product.supplier_taxes_id, self.purchase_tax)
+        product.write({"taxes_id": [self.sale_tax_b.id]})
+        self.assertEqual(product.taxes_id, self.sale_tax_b)
+
+    def test_ve_product_inline_created_taxes_are_kept(self):
+        product = self._create_product_with_tax_values(
+            taxes_id=[
+                Command.create(
+                    {
+                        "name": "IVA Venta en línea",
+                        "amount": 16.0,
+                        "type_tax_use": "sale",
+                        "company_id": self.env.company.id,
+                    }
+                )
+            ],
+            supplier_taxes_id=[Command.set(self.purchase_tax.ids)],
+        )
+        self.assertEqual(product.taxes_id.name, "IVA Venta en línea")
+        self.assertEqual(product.supplier_taxes_id, self.purchase_tax)
+
+    def test_m2m_ids_from_commands(self):
+        template = self.env["product.template"]
+        self.assertEqual(template._l10n_ve_m2m_ids_from_commands([1, 2]), [1, 2])
+        self.assertEqual(template._l10n_ve_m2m_ids_from_commands(False), [])
+        self.assertEqual(
+            template._l10n_ve_m2m_ids_from_commands(
+                [Command.set([1, 2]), Command.link(2), Command.unlink(1)]
+            ),
+            [2],
+        )
 
     def test_ve_product_allows_zero_list_price(self):
         p = self.env["product.template"].create(

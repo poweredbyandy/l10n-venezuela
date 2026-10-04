@@ -14,8 +14,7 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.l10n_ve_igtf_account_id",
         readonly=False,
         domain=(
-            "[('account_type', 'in', "
-            "('liability_current', 'liability_non_current'))]"
+            "[('account_type', 'in', ('liability_current', 'liability_non_current'))]"
         ),
     )
     l10n_ve_igtf_percent = fields.Float(

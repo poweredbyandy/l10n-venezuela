@@ -19,11 +19,9 @@ class LoyaltyReward(models.Model):
 
     def _l10n_ve_get_technical_discount_product_taxes(self, company):
         """Return exempt sale/purchase taxes for loyalty technical products."""
-        ProductTemplate = self.env["product.template"]
-        if not hasattr(ProductTemplate, "_l10n_ve_get_exent_sale_tax"):
-            return self.env["account.tax"], self.env["account.tax"]
-        sale_tax = ProductTemplate._l10n_ve_get_exent_sale_tax(company)
-        purchase_tax = ProductTemplate._l10n_ve_get_exent_purchase_tax(company)
+        TaxGroup = self.env["account.tax.group"]
+        sale_tax = TaxGroup._l10n_ve_get_exent_sale_tax(company)
+        purchase_tax = TaxGroup._l10n_ve_get_exent_purchase_tax(company)
         return sale_tax, purchase_tax
 
     def _l10n_ve_prepare_discount_product_values(self, values):

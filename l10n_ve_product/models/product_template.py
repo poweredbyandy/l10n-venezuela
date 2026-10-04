@@ -10,7 +10,7 @@ class ProductTemplate(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            self._l10n_ve_inject_default_exent_taxes_in_vals(vals)
+            self._l10n_ve_inject_default_taxes_in_vals(vals)
         products = super(
             ProductTemplate,
             self.with_context(l10n_ve_skip_product_tax_constraint=True),
@@ -53,51 +53,47 @@ class ProductTemplate(models.Model):
 
     @api.model
     def _l10n_ve_vals_get_company(self, vals):
-        if "company_id" not in vals or vals["company_id"] is False:
+        company = vals.get("company_id")
+        if not company:
             return self.env.company
-        cid = vals["company_id"]
-        if isinstance(cid, int):
-            return self.env["res.company"].browse(cid)
-        if isinstance(cid, models.Model):
-            return cid
-        if isinstance(cid, list | tuple) and len(cid) >= 2:
-            if cid[0] == 4:
-                return self.env["res.company"].browse(cid[1])
-            if cid[0] == 1 and len(cid) >= 2:
-                return self.env["res.company"].browse(cid[1])
-        return self.env.company
+        if isinstance(company, models.Model):
+            return company
+        return self.env["res.company"].browse(company)
+
+    @api.model
+    def _l10n_ve_m2m_normalize_commands(self, value):
+        if value is False or value is None:
+            return [Command.clear()]
+        if isinstance(value, models.BaseModel):
+            return [Command.set(value.ids)]
+        if isinstance(value, tuple):
+            return [Command.set(list(value))]
+        if value and not isinstance(value[0], list | tuple):
+            return [Command.set(list(value))]
+        return value
 
     @api.model
     def _l10n_ve_m2m_commands_have_tax_ids(self, field_name, vals):
         if field_name not in vals:
             return False
-        cmds = vals[field_name]
-        if not cmds:
-            return False
-        for c in cmds:
-            if c[0] == 6 and c[2]:
-                return True
-            if c[0] == 4:
-                return True
-            if c[0] == 3:
-                return True
-            if c[0] == 0:
-                return True
-        return False
+        commands = self._l10n_ve_m2m_normalize_commands(vals[field_name])
+        if any(command[0] == Command.CREATE for command in commands):
+            return True
+        return bool(self._l10n_ve_m2m_ids_from_commands(commands))
 
     @api.model
     def _l10n_ve_m2m_ids_from_commands(self, commands):
         ids = []
-        for cmd in commands or []:
-            op = cmd[0]
-            if op == 6:
-                ids = list(cmd[2] or [])
-            elif op == 5:
+        for command in self._l10n_ve_m2m_normalize_commands(commands):
+            operation = command[0]
+            if operation == Command.SET:
+                ids = list(command[2] or [])
+            elif operation == Command.CLEAR:
                 ids = []
-            elif op == 4:
-                ids.append(cmd[1])
-            elif op in (2, 3) and cmd[1] in ids:
-                ids.remove(cmd[1])
+            elif operation == Command.LINK and command[1] not in ids:
+                ids.append(command[1])
+            elif operation in (Command.DELETE, Command.UNLINK) and command[1] in ids:
+                ids.remove(command[1])
         return ids
 
     def _l10n_ve_merge_hidden_company_taxes_into_vals(self, vals):
@@ -106,77 +102,35 @@ class ProductTemplate(models.Model):
         for field_name in ("taxes_id", "supplier_taxes_id"):
             if field_name not in vals:
                 continue
-            cmds = vals[field_name]
-            if not any(cmd[0] in (5, 6) for cmd in (cmds or [])):
+            commands = self._l10n_ve_m2m_normalize_commands(vals[field_name])
+            if not any(
+                command[0] in (Command.CLEAR, Command.SET) for command in commands
+            ):
                 continue
             hidden = self.sudo()[field_name].filtered(
                 lambda tax: tax.company_id.id not in allowed
             )
             if not hidden:
                 continue
-            new_ids = self._l10n_ve_m2m_ids_from_commands(cmds)
+            new_ids = self._l10n_ve_m2m_ids_from_commands(commands)
             vals[field_name] = [Command.set(list(dict.fromkeys(new_ids + hidden.ids)))]
-
-    @api.model
-    def _l10n_ve_get_exent_sale_tax(self, company):
-        tax = (
-            self.env["account.tax.group"]
-            .sudo()
-            ._l10n_ve_get_exempt_tax(company, "sale")
-        )
-        if tax:
-            return tax
-        return (
-            self.env["account.tax"]
-            .sudo()
-            .search(
-                [
-                    ("company_id", "parent_of", company.id),
-                    ("type_tax_use", "=", "sale"),
-                    ("amount", "=", 0.0),
-                ],
-                limit=1,
-            )
-        )
-
-    @api.model
-    def _l10n_ve_get_exent_purchase_tax(self, company):
-        tax = (
-            self.env["account.tax.group"]
-            .sudo()
-            ._l10n_ve_get_exempt_tax(company, "purchase")
-        )
-        if tax:
-            return tax
-        return (
-            self.env["account.tax"]
-            .sudo()
-            .search(
-                [
-                    ("company_id", "parent_of", company.id),
-                    ("type_tax_use", "=", "purchase"),
-                    ("amount", "=", 0.0),
-                ],
-                limit=1,
-            )
-        )
 
     @api.model
     def _l10n_ve_get_company_sale_tax(self, company):
         tax = company.sudo().account_sale_tax_id
         if tax:
             return tax
-        return self._l10n_ve_get_exent_sale_tax(company)
+        return self.env["account.tax.group"]._l10n_ve_get_exent_sale_tax(company)
 
     @api.model
     def _l10n_ve_get_company_purchase_tax(self, company):
         tax = company.sudo().account_purchase_tax_id
         if tax:
             return tax
-        return self._l10n_ve_get_exent_purchase_tax(company)
+        return self.env["account.tax.group"]._l10n_ve_get_exent_purchase_tax(company)
 
     @api.model
-    def _l10n_ve_inject_default_exent_taxes_in_vals(self, vals):
+    def _l10n_ve_inject_default_taxes_in_vals(self, vals):
         if self.env.context.get("l10n_ve_skip_auto_exent_taxes"):
             return
         ve = self.env.ref("base.ve", raise_if_not_found=False)
@@ -185,16 +139,17 @@ class ProductTemplate(models.Model):
         company = self._l10n_ve_vals_get_company(vals)
         if company.account_fiscal_country_id != ve:
             return
-        if not self.env["account.tax.group"]._l10n_ve_get_report_tax_groups(company):
+        TaxGroup = self.env["account.tax.group"]
+        if not TaxGroup._l10n_ve_get_report_tax_groups(company):
             return
         if not self._l10n_ve_m2m_commands_have_tax_ids("taxes_id", vals):
-            sale_tax = self._l10n_ve_get_exent_sale_tax(company)
+            sale_tax = self._l10n_ve_get_company_sale_tax(company)
             if sale_tax:
-                vals["taxes_id"] = [(6, 0, [sale_tax.id])]
+                vals["taxes_id"] = [Command.set(sale_tax.ids)]
         if not self._l10n_ve_m2m_commands_have_tax_ids("supplier_taxes_id", vals):
-            purchase_tax = self._l10n_ve_get_exent_purchase_tax(company)
+            purchase_tax = self._l10n_ve_get_company_purchase_tax(company)
             if purchase_tax:
-                vals["supplier_taxes_id"] = [(6, 0, [purchase_tax.id])]
+                vals["supplier_taxes_id"] = [Command.set(purchase_tax.ids)]
 
     def _l10n_ve_ve_companies(self, companies):
         ve_country = self.env.ref("base.ve", raise_if_not_found=False)

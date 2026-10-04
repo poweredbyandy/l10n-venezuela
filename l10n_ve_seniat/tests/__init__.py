@@ -3,7 +3,6 @@ from . import test_account_book
 from . import test_chart_template_ve
 from . import test_coverage_extra
 from . import test_account_move_refund_currency
-from . import test_product_template
 from . import test_res_partner
 from . import test_account_move
 from . import test_credit_debit_button_scenarios
