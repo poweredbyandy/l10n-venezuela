@@ -9,14 +9,12 @@
             type="base64"
             file="l10n_ve_seniat/static/src/img/LogoSENIAT.png"
         />
-        <field name="active" eval="True" />
     </record>
 
     <record id="user_seniat" model="res.users" context="{'no_reset_password': True}">
         <field name="partner_id" ref="partner_seniat" />
         <field name="login">seniat</field>
-        <field name="password" />
-        <field name="active" eval="True" />
+        <field name="active" eval="False" />
         <field
             name="groups_id"
             eval="[
