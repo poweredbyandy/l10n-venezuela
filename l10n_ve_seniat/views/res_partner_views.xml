@@ -12,28 +12,6 @@
             <xpath expr="//field[@name='vat']" position="attributes">
                 <attribute name="invisible">country_code == 'VE'</attribute>
             </xpath>
-            <xpath
-                expr="//sheet/group/group/div[hasclass('o_address_format')]/field[@name='state_id']"
-                position="after"
-            >
-                <!-- Art. 13 num. 5 PA SNAT/2011/0071: domicilio fiscal (municipio/parroquia). -->
-                <field
-                    name="municipality_id"
-                    class="o_address_state"
-                    placeholder="Municipality"
-                    domain="[('state_id', '=', state_id)]"
-                    invisible="country_code != 'VE'"
-                    readonly="type == 'contact' and parent_id"
-                />
-                <field
-                    name="parish_id"
-                    class="o_address_state"
-                    placeholder="Parish"
-                    domain="[('municipality_id', '=', municipality_id)]"
-                    invisible="country_code != 'VE'"
-                    readonly="type == 'contact' and parent_id"
-                />
-            </xpath>
             <xpath expr="//field[@name='company_type']" position="after">
                 <h1 invisible="country_code != 'VE'">
                     <field name="vat" placeholder="VAT" />

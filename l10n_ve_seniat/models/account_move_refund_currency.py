@@ -638,8 +638,7 @@ class AccountMove(models.Model):
         pairs = self._l10n_ve_refund_origin_credit_line_pairs(self.reversed_entry_id)
         if pairs is None:
             pairing_reason = _(
-                "No se pudieron emparejar las lineas de producto con la "
-                "factura origen."
+                "No se pudieron emparejar las lineas de producto con la factura origen."
             )
             self.message_post(body=pairing_reason)
             self._l10n_ve_cap_refund_company_amount_to_remaining()

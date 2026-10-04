@@ -1,13 +1,11 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.exceptions import ValidationError
-from odoo.tests import tagged
-
-from .common import L10nVeSeniatCommon
+from odoo.tests import TransactionCase, tagged
 
 
 @tagged("post_install", "-at_install")
-class TestResCountryMunicipality(L10nVeSeniatCommon):
+class TestResCountryMunicipality(TransactionCase):
     def test_onchange_name_uppercase(self):
         state = self.env["res.country.state"].search(
             [("country_id", "=", self.env.ref("base.ve").id)], limit=1

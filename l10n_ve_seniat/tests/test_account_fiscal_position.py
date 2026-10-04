@@ -8,8 +8,8 @@ class TestAccountFiscalPosition(L10nVeSeniatCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.Fpos = cls.env["account.fiscal.position"]
-        cls.ne_state = cls.env.ref("l10n_ve_seniat.res_country_state_17")
-        cls.caracas_state = cls.env.ref("l10n_ve_seniat.res_country_state_1")
+        cls.ne_state = cls.env.ref("l10n_ve_address.res_country_state_17")
+        cls.caracas_state = cls.env.ref("l10n_ve_address.res_country_state_1")
         cls.free_port_fpos = cls.env.ref(
             "l10n_ve_seniat.fiscal_position_puerto_libre",
             raise_if_not_found=False,

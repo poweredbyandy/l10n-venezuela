@@ -244,8 +244,6 @@ class ResPartner(models.Model):
 
     # TODO: prefix_vat isn't used anywhere
     prefix_vat = fields.Char(string="Prefix vat", compute="_compute_vat_prefix")
-    municipality_id = fields.Many2one("res.country.municipality", "Municipality")
-    parish_id = fields.Many2one("res.country.parish", "Parish")
     country_id = fields.Many2one("res.country", default=_default_res_country)
     vat = fields.Char(default=_default_vat)
 
@@ -263,15 +261,6 @@ class ResPartner(models.Model):
     def _onchange_country_id_clear_taxpayer_type(self):
         if self.country_id and self.country_id.code != VE_CODE:
             self.taxpayer_type = False
-
-    @api.onchange("municipality_id")
-    def _onchange_municipality_id(self):
-        self.parish_id = False
-
-    @api.onchange("state_id")
-    def _onchange_state_id(self):
-        self.municipality_id = False
-        self.parish_id = False
 
     @api.onchange("vat", "country_id")
     def _onchange_l10n_ve_vat_auto_prefix(self):

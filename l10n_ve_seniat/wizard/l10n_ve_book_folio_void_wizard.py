@@ -23,8 +23,7 @@ class L10nVeBookFolioVoidWizard(models.TransientModel):
         string="Motivo",
         required=True,
         help=(
-            "Motivo por el cual se consume un número de control sin "
-            "documento asociado."
+            "Motivo por el cual se consume un número de control sin documento asociado."
         ),
     )
 

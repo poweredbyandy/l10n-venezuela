@@ -14,7 +14,6 @@ from . import test_account_payment
 from . import test_ir_ui_menu
 from . import test_emission_medium_context
 from . import test_ir_actions_report
-from . import test_res_country_municipality
 from . import test_res_currency_rate
 from . import test_account_tax_group
 from . import test_account_fiscal_position

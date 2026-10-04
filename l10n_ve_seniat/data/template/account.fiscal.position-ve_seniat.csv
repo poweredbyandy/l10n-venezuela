@@ -1,5 +1,5 @@
 "id","sequence","name","auto_apply","vat_required","country_id","state_ids","tax_ids/tax_src_id","tax_ids/tax_dest_id"
-"fiscal_position_puerto_libre","5","Puerto Libre","True","False","base.ve","l10n_ve_seniat.res_country_state_17","tax1sale","tax0sale"
+"fiscal_position_puerto_libre","5","Puerto Libre","True","False","base.ve","l10n_ve_address.res_country_state_17","tax1sale","tax0sale"
 "","","","","","","","tax2sale","tax0sale"
 "","","","","","","","tax3sale","tax0sale"
 "","","","","","","","tax1purchase","tax0purchase"
