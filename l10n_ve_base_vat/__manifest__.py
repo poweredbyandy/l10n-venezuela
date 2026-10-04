@@ -12,6 +12,7 @@
     "data": [
         "views/res_config_settings_views.xml",
     ],
+    "pre_init_hook": "pre_init_hook",
     "license": "AGPL-3",
     "installable": True,
 }
