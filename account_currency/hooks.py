@@ -1,0 +1,82 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+import logging
+
+_logger = logging.getLogger(__name__)
+
+_MODULE = "account_currency"
+_MOVE_FIELDS = (
+    "invoice_currency_rate",
+    "l10n_ve_inverse_rate",
+    "l10n_ve_currency_rate_outdated",
+    "lines_with_rate_difference",
+)
+_MOVE_LINE_FIELDS = (
+    "price_subtotal_currency",
+    "price_unit_company_currency",
+    "manually_price_subtotal_currency",
+    "warning_rate_difference",
+)
+_SENIAT_XMLIDS = (
+    "model_res_currency",
+    "model_inherit__res_currency__mail_thread",
+    "model_inherit__res_currency__mail_activity_mixin",
+    "model_inherit__res_currency_rate__mail_thread",
+    "view_currency_form_l10n_ve_chatter",
+    "view_currency_rate_form_l10n_ve",
+)
+_PREVIOUS_MODULES = {
+    "l10n_ve_seniat": {
+        "names": _SENIAT_XMLIDS,
+        "patterns": (
+            "field\\_res\\_currency\\_\\_%",
+            "field\\_res\\_currency\\_rate\\_\\_%",
+        ),
+    },
+    "currency_account": {
+        "names": (),
+        "patterns": (),
+    },
+}
+
+
+def _field_xmlids():
+    move_models = ("account_move", "account_bank_statement_line")
+    return [
+        f"field_{model}__{field}" for model in move_models for field in _MOVE_FIELDS
+    ] + [f"field_account_move_line__{field}" for field in _MOVE_LINE_FIELDS]
+
+
+def _move_xmlids(cr, previous, names, patterns):
+    cr.execute(
+        """
+        UPDATE ir_model_data AS src
+           SET module = %(module)s
+         WHERE src.module = %(previous)s
+           AND (
+                src.name = ANY(%(names)s)
+                OR src.name LIKE ANY(%(patterns)s)
+           )
+           AND NOT EXISTS (
+                SELECT 1
+                  FROM ir_model_data AS dst
+                 WHERE dst.module = %(module)s
+                   AND dst.name = src.name
+           )
+        """,
+        {
+            "module": _MODULE,
+            "previous": previous,
+            "names": list(names) + _field_xmlids(),
+            "patterns": list(patterns) or [""],
+        },
+    )
+    return cr.rowcount
+
+
+def pre_init_hook(env):
+    cr = env.cr
+    for previous, xmlids in _PREVIOUS_MODULES.items():
+        moved = _move_xmlids(cr, previous, xmlids["names"], xmlids["patterns"])
+        if moved:
+            _logger.info("Moved %s xmlids from %s to %s", moved, previous, _MODULE)

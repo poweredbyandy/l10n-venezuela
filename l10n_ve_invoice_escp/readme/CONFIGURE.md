@@ -6,7 +6,7 @@
 Expressions available on `account.move` reports, besides the engine helpers:
 
 - Header: `doc_title`, `doc_label`, `invoice_number`, `emission`, `partner_name`, `partner_vat`, `partner_email`, `partner_phone`, `partner_address`, `client_code`, `seller`, `payment_term`, `origin_document`.
-- Detail: any `account.move.line` field via `line.<field>` or `pl.<field>` (for example `line.price_subtotal_currency`, `line.product_id.default_code`). Shortcuts with formatting: `pl.code`, `pl.desc`, `pl.ref`, `pl.brand`, `pl.qty`, `pl.price_unit`, `pl.subtotal`, `pl.price_unit_company_currency`, `pl.price_subtotal_currency`, `pl.subtotal_company_currency`.
+- Detail: any `account.move.line` field via `line.<field>` or `pl.<field>` (for example `line.price_subtotal_currency`, `line.product_id.default_code`). Shortcuts with formatting: `pl.code`, `pl.desc`, `pl.ref`, `pl.brand`, `pl.qty`, `pl.price_unit`, `pl.subtotal`, `pl.price_unit_company_currency`, `pl.price_subtotal_currency`.
 - Totals: `tot.doc.<key>` / `tot.comp.<key>` formatted in document and company currency (`exempt`, `gross`, `discount`, `subtotal`, `vat_base`, `vat`, `invoice`, `igtf_base`, `igtf`, `payable`), raw amounts in `tot.doc_amount` / `tot.comp_amount`, plus `vat_percent`, `igtf_percent`, `discount_percent`, `dual_currency`, `doc_currency`, `comp_currency`.
 - Footer: `count_articles`, `count_qty`, `exchange_rate`, `amount_words`, `stamp`.
 

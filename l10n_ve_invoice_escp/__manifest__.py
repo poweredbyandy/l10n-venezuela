@@ -1,6 +1,6 @@
 {
     "name": "Venezuela — Factura ESC/P Epson (WebUSB)",
-    "version": "18.0.3.0.0",
+    "version": "18.0.3.0.1",
     "category": "Accounting/Localizations",
     "summary": "Impresión de facturas VE en papel continuo vía WebUSB (ESC/P Epson)",
     "author": "andyengit, Odoo Community Association (OCA)",

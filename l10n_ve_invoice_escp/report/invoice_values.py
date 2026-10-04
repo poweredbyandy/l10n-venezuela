@@ -306,8 +306,5 @@ def line_context(move, line):
             price_subtotal_currency=money(
                 move.env, line.price_subtotal_currency, comp_currency
             ),
-            subtotal_company_currency=money(
-                move.env, line.subtotal_company_currency, comp_currency
-            ),
         )
     }

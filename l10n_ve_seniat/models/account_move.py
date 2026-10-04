@@ -130,33 +130,6 @@ class AccountMove(models.Model):
             else:
                 move.seniat_invoice_tag = False
 
-    @api.model
-    def _l10n_ve_drop_invalid_invoice_currency_rate_from_vals(self, vals):
-        if vals.get("invoice_currency_rate", 1) > 0:
-            return vals
-        if "invoice_currency_rate" not in vals:
-            return vals
-        if not self or all(move.state == "draft" for move in self):
-            vals = dict(vals)
-            vals.pop("invoice_currency_rate", None)
-        return vals
-
-    def _l10n_ve_ensure_draft_invoice_currency_rate(self):
-        moves = self.filtered(
-            lambda move: move.state == "draft"
-            and move.is_invoice(include_receipts=True)
-            and move.currency_id
-            and move.company_id
-            and move.currency_id != move.company_currency_id
-            and move.invoice_currency_rate <= 0
-        )
-        for move in moves:
-            rate = move._get_expected_currency_rate_at(
-                move._get_invoice_currency_rate_date()
-            )
-            if rate > 0:
-                move.invoice_currency_rate = rate
-
     def write(self, vals):
         """Impide cambiar diario o contacto en NC/ND venezolanas confirmadas.
 
@@ -165,7 +138,6 @@ class AccountMove(models.Model):
         Art. 22-24 PA SNAT/2011/0071: coherencia del documento origen en NC/ND.
         """
 
-        vals = self._l10n_ve_drop_invalid_invoice_currency_rate_from_vals(vals)
         if not self.env.context.get("l10n_ve_skip_credit_debit_journal_lock") and (
             "journal_id" in vals or "partner_id" in vals
         ):
@@ -193,40 +165,14 @@ class AccountMove(models.Model):
             "l10n_ve_skip_invoice_date_sync"
         ):
             self._l10n_ve_sync_invoice_date_from_document_datetime()
-        self._l10n_ve_ensure_draft_invoice_currency_rate()
-        if not self.env.context.get("l10n_ve_skip_refund_rate_lock") and (
-            "invoice_date" in vals
-            or "date" in vals
-            or "currency_id" in vals
-            or "reversed_entry_id" in vals
-        ):
-            self._l10n_ve_lock_refund_rate_if_needed()
         return res
 
     @api.model_create_multi
     def create(self, vals_list):
-        vals_list = [
-            self._l10n_ve_drop_invalid_invoice_currency_rate_from_vals(dict(vals))
-            for vals in vals_list
-        ]
         records = super().create(vals_list)
         records._l10n_ve_sync_journal_with_origin_from_create()
         records._l10n_ve_sync_invoice_date_from_document_datetime()
-        records._l10n_ve_ensure_draft_invoice_currency_rate()
-        records._l10n_ve_lock_refund_rate_if_needed()
         return records
-
-    def _l10n_ve_lock_refund_rate_if_needed(self):
-        refunds = self.filtered(
-            lambda move: move.move_type == "out_refund"
-            and move.reversed_entry_id
-            and move.currency_id != move.company_currency_id
-            and move.reversed_entry_id.currency_id == move.currency_id
-        )
-        if refunds and hasattr(
-            refunds, "_l10n_ve_lock_refund_invoice_currency_rate_from_origin"
-        ):
-            refunds._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
 
     l10n_ve_invoice_original_printed = fields.Boolean(
         string="VE Invoice Original Printed",
@@ -797,32 +743,6 @@ class AccountMove(models.Model):
 
     def _l10n_ve_force_refund_to_company_currency(self):
         """Hook extended by account_move_refund_currency for dual-currency refunds."""
-
-    def _l10n_ve_to_company_abs_amount(self):
-        self.ensure_one()
-        lines = self.line_ids.filtered(
-            lambda line: line.display_type
-            in ("product", "tax", "rounding", "global_discount", "discount")
-        )
-        if lines:
-            return abs(sum(lines.mapped("balance")))
-        rp_lines = self.line_ids.filtered(
-            lambda line: line.account_id.account_type
-            in ("asset_receivable", "liability_payable")
-        )
-        if rp_lines:
-            return abs(sum(rp_lines.mapped("balance")))
-        return abs(self.amount_total_signed)
-
-    def _l10n_ve_to_company_abs_untaxed_amount(self):
-        self.ensure_one()
-        lines = self.line_ids.filtered(
-            lambda line: line.display_type in ("product", "global_discount", "discount")
-            or (line.display_type == "rounding" and not line.tax_repartition_line_id)
-        )
-        if lines:
-            return abs(sum(lines.mapped("balance")))
-        return abs(self.amount_untaxed_signed)
 
     def _l10n_ve_posted_credit_on_invoice_company_amount(self):
         self.ensure_one()
@@ -2594,199 +2514,11 @@ Please create a credit note instead.
 
             move.purchase_tax_data = tax_data
 
-    invoice_currency_rate = fields.Float(recursive=True)
-    l10n_ve_inverse_rate = fields.Float(
-        string="Tasa de Cambio Inversa",
-        compute="_compute_l10n_ve_inverse_rate",
-        store=True,
-        help=(
-            "Tasa de cambio inversa (inverse_rate) de la moneda de la factura "
-            "para la fecha de la factura"
-        ),
-    )
-    l10n_ve_currency_rate_outdated = fields.Boolean(
-        string="Tasa de cambio desactualizada",
-        compute="_compute_l10n_ve_currency_rate_outdated",
-    )
-
-    def _l10n_ve_refund_keeps_origin_currency_rate(self):
-        """Credit notes keep the origin invoice rate even on a later date."""
-        self.ensure_one()
-        origin = self.reversed_entry_id
-        return bool(
-            self.move_type == "out_refund"
-            and self.country_code == "VE"
-            and origin
-            and self.currency_id
-            and self.currency_id != self.company_currency_id
-            and origin.currency_id == self.currency_id
-            and origin.invoice_currency_rate
-        )
-
-    @api.depends(
-        "state",
-        "move_type",
-        "currency_id",
-        "company_currency_id",
-        "invoice_currency_rate",
-        "expected_currency_rate",
-        "invoice_date",
-        "country_code",
-        "reversed_entry_id",
-        "reversed_entry_id.invoice_currency_rate",
-        "reversed_entry_id.currency_id",
-    )
-    def _compute_l10n_ve_currency_rate_outdated(self):
-        for move in self:
-            if (
-                move.state != "draft"
-                or move.move_type == "entry"
-                or not move.currency_id
-                or move.currency_id == move.company_currency_id
-            ):
-                move.l10n_ve_currency_rate_outdated = False
-                continue
-            if move._l10n_ve_refund_keeps_origin_currency_rate():
-                # Intentional: NC keeps origin rate; only warn if it drifted.
-                move.l10n_ve_currency_rate_outdated = bool(
-                    float_compare(
-                        move.invoice_currency_rate,
-                        move.reversed_entry_id.invoice_currency_rate,
-                        precision_digits=6,
-                    )
-                )
-                continue
-            move.l10n_ve_currency_rate_outdated = bool(
-                float_compare(
-                    move.invoice_currency_rate,
-                    move.expected_currency_rate,
-                    precision_digits=6,
-                )
-            )
-
-    def refresh_invoice_currency_rate(self):
-        refunds = self.filtered(
-            lambda move: move.move_type == "out_refund"
-            and move.reversed_entry_id
-            and move.currency_id != move.company_currency_id
-            and move.reversed_entry_id.currency_id == move.currency_id
-        )
-        others = self - refunds
-        res = None
-        if others:
-            res = super(AccountMove, others).refresh_invoice_currency_rate()
-        if refunds and hasattr(
-            refunds, "_l10n_ve_lock_refund_invoice_currency_rate_from_origin"
-        ):
-            refunds._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
-        return res
-
-    @api.depends(
-        "currency_id",
-        "company_currency_id",
-        "company_id",
-        "invoice_date",
-        "move_type",
-        "reversed_entry_id",
-        "reversed_entry_id.invoice_currency_rate",
-        "reversed_entry_id.currency_id",
-    )
-    def _compute_invoice_currency_rate(self):
-        res = super()._compute_invoice_currency_rate()
-        for move in self:
-            origin = move.reversed_entry_id
-            if (
-                move.move_type == "out_refund"
-                and origin
-                and move.currency_id
-                and move.currency_id != move.company_currency_id
-                and origin.currency_id == move.currency_id
-                and origin.invoice_currency_rate
-            ):
-                move.invoice_currency_rate = origin.invoice_currency_rate
-                continue
-            if (
-                not move.is_invoice(include_receipts=True)
-                or not move.currency_id
-                or move.currency_id == move.company_currency_id
-                or move.invoice_currency_rate > 0
-            ):
-                continue
-            rate = move._get_expected_currency_rate_at(
-                move._get_invoice_currency_rate_date()
-            )
-            if rate > 0:
-                move.invoice_currency_rate = rate
-        return res
-
-    @api.constrains("invoice_currency_rate")
-    def _check_invoice_currency_rate(self):
-        moves = self.filtered(lambda move: move.state != "draft")
-        if moves:
-            return super(AccountMove, moves)._check_invoice_currency_rate()
-
-    @api.depends(
-        "currency_id",
-        "company_id",
-        "company_currency_id",
-        "invoice_currency_rate",
-    )
-    def _compute_l10n_ve_inverse_rate(self):
-        for move in self:
-            if not move.currency_id or not move.company_id:
-                move.l10n_ve_inverse_rate = 0.0
-                continue
-            if move.currency_id == move.company_currency_id:
-                move.l10n_ve_inverse_rate = 1.0
-                continue
-            rate = move.invoice_currency_rate or 0.0
-            move.l10n_ve_inverse_rate = (1.0 / rate) if rate else 0.0
-
     def _get_name_invoice_report(self):
         self.ensure_one()
         if self._l10n_ve_applies_fiscal_print_rules():
             return "l10n_ve_seniat.report_invoice_document"
         return super()._get_name_invoice_report()
-
-    @api.depends_context("lang")
-    @api.depends(
-        "invoice_line_ids.currency_rate",
-        "invoice_line_ids.tax_base_amount",
-        "invoice_line_ids.tax_line_id",
-        "invoice_line_ids.price_total",
-        "invoice_line_ids.price_subtotal",
-        "invoice_payment_term_id",
-        "partner_id",
-        "currency_id",
-        "invoice_line_ids.product_id",
-    )
-    def _compute_tax_totals(self):
-        res = super()._compute_tax_totals()
-        for move in self:
-            if move.country_code != "VE" or not move.tax_totals:
-                continue
-            totals = dict(move.tax_totals)
-            totals["same_tax_base"] = False
-            company_currency = move.company_currency_id
-            totals["display_in_company_currency"] = bool(
-                move.currency_id
-                and company_currency
-                and move.currency_id != company_currency
-            )
-            if company_currency and not totals.get("company_currency_id"):
-                totals["company_currency_id"] = company_currency.id
-            for subtotal in totals.get("subtotals", []):
-                for tax_group in subtotal.get("tax_groups", []):
-                    if tax_group.get("display_base_amount_currency") is False:
-                        tax_group["display_base_amount_currency"] = tax_group.get(
-                            "base_amount_currency", 0.0
-                        )
-                    if tax_group.get("display_base_amount") in (False, None):
-                        tax_group["display_base_amount"] = tax_group.get(
-                            "base_amount", 0.0
-                        )
-            move.tax_totals = totals
-        return res
 
     def action_send_and_print(self):
         for move in self:
@@ -3266,11 +2998,8 @@ Please create a credit note instead.
         if not cancel:
             reverse_moves = reverse_moves.with_context(l10n_ve_skip_refund_realign=True)
             reverse_moves._l10n_ve_apply_remaining_credit_note_lines()
-            if hasattr(
-                reverse_moves, "_l10n_ve_lock_refund_invoice_currency_rate_from_origin"
-            ):
-                reverse_moves._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
-                reverse_moves._l10n_ve_align_refund_company_amounts_to_origin()
+            reverse_moves._l10n_ve_lock_refund_invoice_currency_rate_from_origin()
+            reverse_moves._l10n_ve_align_refund_company_amounts_to_origin()
         return reverse_moves
 
     def action_reverse(self):

@@ -251,9 +251,7 @@ class TestAccountPaymentRegisterSameDay(L10nVeSeniatCommon):
         return wizard
 
     def _set_usd_inverse_rate(self, rate_date, inverse_rate):
-        Rate = self.env["res.currency.rate"].with_context(
-            l10n_ve_skip_currency_rate_validation=True
-        )
+        Rate = self.env["res.currency.rate"]
         rate = Rate.search(
             [
                 ("name", "=", rate_date),

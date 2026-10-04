@@ -68,7 +68,7 @@ class AccountMoveLine(models.Model):
         "price_subtotal",
         "currency_id",
         "company_currency_id",
-        "subtotal_company_currency",
+        "price_subtotal_currency",
         "currency_rate",
     )
     def _compute_l10n_ve_price_subtotal_wo_discount(self):
@@ -85,7 +85,7 @@ class AccountMoveLine(models.Model):
             line.l10n_ve_price_discount = discount_doc
 
             discount_factor = 1.0 - ((line.discount or 0.0) / 100.0)
-            company_subtotal = line.subtotal_company_currency or 0.0
+            company_subtotal = line.price_subtotal_currency or 0.0
             if discount_factor:
                 amount_company = company_subtotal / discount_factor
             else:

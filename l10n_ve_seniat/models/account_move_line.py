@@ -1,6 +1,6 @@
 import logging
 
-from odoo import Command, _, api, fields, models
+from odoo import Command, _, api, models
 from odoo.exceptions import ValidationError
 from odoo.tools import float_compare
 
@@ -9,57 +9,6 @@ _logger = logging.getLogger(__name__)
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
-
-    subtotal_company_currency = fields.Monetary(
-        compute="_compute_subtotal_company_currency",
-        currency_field="company_currency_id",
-    )
-    price_subtotal_currency = fields.Monetary(
-        string="Subtotal in Company Currency",
-        compute="_compute_price_subtotal_currency",
-        currency_field="company_currency_id",
-        store=True,
-    )
-    price_unit_company_currency = fields.Monetary(
-        compute="_compute_price_unit_company_currency",
-        currency_field="company_currency_id",
-    )
-
-    def _l10n_ve_company_currency_subtotal(self):
-        self.ensure_one()
-        invoice_types = (
-            "out_invoice",
-            "in_invoice",
-            "out_refund",
-            "in_refund",
-        )
-        if self.move_id.move_type in invoice_types:
-            return abs(self.balance)
-        return 0.0
-
-    @api.depends("balance", "move_id.move_type")
-    def _compute_subtotal_company_currency(self):
-        for line in self:
-            line.subtotal_company_currency = line._l10n_ve_company_currency_subtotal()
-
-    @api.depends("balance", "move_id.move_type")
-    def _compute_price_subtotal_currency(self):
-        for line in self:
-            line.price_subtotal_currency = line._l10n_ve_company_currency_subtotal()
-
-    @api.depends("subtotal_company_currency", "discount", "quantity")
-    def _compute_price_unit_company_currency(self):
-        for line in self:
-            qty = line.quantity or 0.0
-            if not qty:
-                line.price_unit_company_currency = 0.0
-                continue
-            discount_factor = 1 - ((line.discount or 0.0) / 100.0)
-            if not discount_factor:
-                line.price_unit_company_currency = 0.0
-                continue
-            subtotal_wo_discount = line.subtotal_company_currency / discount_factor
-            line.price_unit_company_currency = subtotal_wo_discount / qty
 
     @api.model_create_multi
     def create(self, vals_list):

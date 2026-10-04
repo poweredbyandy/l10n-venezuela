@@ -80,7 +80,6 @@ class TestL10nVeInvoiceEscp(L10nVeSeniatCommon):
         for name in (
             "price_unit_company_currency",
             "price_subtotal_currency",
-            "subtotal_company_currency",
         ):
             self.assertTrue(getattr(pl, name), msg=name)
 

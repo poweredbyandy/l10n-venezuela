@@ -81,7 +81,7 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
             )
         self.assertIn("100%", str(cm.exception))
 
-    def test_subtotal_company_currency_invoice(self):
+    def test_price_subtotal_currency_invoice(self):
         partner = self.env["res.partner"].create(
             {
                 "name": "Partner",
@@ -115,7 +115,7 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         move.action_post()
         line = move.line_ids.filtered(lambda aml: aml.display_type == "product")
         self.assertEqual(len(line), 1)
-        self.assertGreater(line.subtotal_company_currency, 0)
+        self.assertGreater(line.price_subtotal_currency, 0)
         self.assertAlmostEqual(
             line.price_subtotal_currency, abs(line.balance), places=2
         )
@@ -323,7 +323,7 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         move = invoice._reverse_moves()
         move.action_post()
         line = move.line_ids.filtered(lambda aml: aml.display_type == "product")
-        self.assertGreater(line.subtotal_company_currency, 0)
+        self.assertGreater(line.price_subtotal_currency, 0)
 
     def test_out_refund_line_allows_changing_price_unit(self):
         partner = self.env["res.partner"].create(
@@ -504,7 +504,7 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         self.assertIn("move_type == 'out_refund'", readonly)
         self.assertNotIn("debit_origin_id", readonly)
 
-    def test_subtotal_company_currency_entry_is_zero(self):
+    def test_price_subtotal_currency_entry_is_zero(self):
         move = self.env["account.move"].create(
             {
                 "move_type": "entry",
@@ -539,7 +539,7 @@ class TestAccountMoveLine(L10nVeSeniatCommon):
         move.action_post()
         line = move.line_ids.filtered(lambda aml: aml.debit > 0)
         self.assertEqual(len(line), 1)
-        self.assertEqual(line.subtotal_company_currency, 0.0)
+        self.assertEqual(line.price_subtotal_currency, 0.0)
 
     def test_entry_lines_skip_ve_validations_on_write(self):
         move = self.env["account.move"].create(

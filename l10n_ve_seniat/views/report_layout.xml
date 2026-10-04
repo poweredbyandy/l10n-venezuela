@@ -332,7 +332,7 @@
                                                     class="text-end"
                                                 >
                                                     <span
-                                                        t-field="line.subtotal_company_currency"
+                                                        t-field="line.price_subtotal_currency"
                                                     />
                                                 </td>
                                                 <td class="text-end">

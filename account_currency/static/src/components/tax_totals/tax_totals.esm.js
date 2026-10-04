@@ -1,5 +1,3 @@
-/** @odoo-module **/
-
 import {TaxTotalsComponent} from "@account/components/tax_totals/tax_totals";
 import {formatMonetary} from "@web/views/fields/formatters";
 import {patch} from "@web/core/utils/patch";

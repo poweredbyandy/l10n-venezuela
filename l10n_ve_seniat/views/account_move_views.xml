@@ -185,23 +185,6 @@
                         groups="account.group_account_invoice"
                     />
                 </div>
-                <div
-                    class="alert alert-warning d-flex align-items-center flex-wrap gap-2"
-                    role="alert"
-                    invisible="state != 'draft' or move_type == 'entry' or currency_id == company_currency_id or not l10n_ve_currency_rate_outdated"
-                >
-                    <span>
-                        La tasa de cambio de esta factura no coincide con la tasa
-                        vigente para la fecha del documento.
-                    </span>
-                    <button
-                        type="object"
-                        name="refresh_invoice_currency_rate"
-                        string="Recalcular tasa"
-                        class="btn btn-link p-0"
-                    />
-                </div>
-                <field name="l10n_ve_currency_rate_outdated" invisible="1" />
             </xpath>
             <xpath expr="//button[@name='button_cancel'][2]" position="after">
                 <!-- Art. 18 PA SNAT/2024/000102; Art. 11 PA SNAT/2011/0071: no anular en máquina fiscal. -->
@@ -431,33 +414,6 @@
                 position="attributes"
             >
                 <attribute name="readonly">True</attribute>
-            </xpath>
-            <xpath expr="//div[@name='currency_conversion_div']" position="after">
-                <!-- Art. 13 num. 14 PA SNAT/2011/0071: equivalencia en divisas. -->
-                <div
-                    class="d-flex gap-1 text-muted mt-1"
-                    invisible="currency_id == company_currency_id or not l10n_ve_inverse_rate"
-                >
-                    <span>1</span>
-                    <field
-                        name="currency_id"
-                        readonly="True"
-                        options="{'no_open': True}"
-                        class="w-auto"
-                    />
-                    <span>=</span>
-                    <field
-                        name="l10n_ve_inverse_rate"
-                        digits="[12,6]"
-                        readonly="True"
-                    />
-                    <field
-                        name="company_currency_id"
-                        readonly="True"
-                        options="{'no_open': True}"
-                        class="w-auto"
-                    />
-                </div>
             </xpath>
             <xpath
                 expr="//page[@id='other_tab']//group[@name='accounting_info_group']"

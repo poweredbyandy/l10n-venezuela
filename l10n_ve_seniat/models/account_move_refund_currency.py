@@ -16,28 +16,6 @@ class AccountMove(models.Model):
         self.ensure_one()
         return False
 
-    def _l10n_ve_document_base_amount(self, line):
-        qty = abs(line.quantity or 0.0)
-        discount_factor = 1.0 - (line.discount or 0.0) / 100.0
-        return qty * (line.price_unit or 0.0) * discount_factor
-
-    def _l10n_ve_company_subtotal_unrounded_from_origin_line(self, line):
-        raw_base = self._l10n_ve_document_base_amount(line)
-        if line.currency_id == line.company_currency_id:
-            return raw_base
-        date = (
-            line.move_id.invoice_date
-            or line.move_id.date
-            or fields.Date.context_today(self)
-        )
-        return line.currency_id._convert(
-            raw_base,
-            line.company_currency_id,
-            line.company_id,
-            date,
-            round=False,
-        )
-
     def _l10n_ve_tax_price_unit_from_origin_line(self, line):
         if line.currency_id == line.company_currency_id:
             return line.price_unit
@@ -51,24 +29,6 @@ class AccountMove(models.Model):
         prec = self.env["decimal.precision"].precision_get("Product Price")
         prec = max(prec, 4)
         return float_round(subtotal / discount_factor / qty, precision_digits=prec)
-
-    def _l10n_ve_company_price_unit_from_origin_line(self, line):
-        if line.currency_id == line.company_currency_id:
-            return line.price_unit
-        qty = abs(line.quantity or 0.0)
-        if not qty:
-            return line.price_unit_company_currency
-        discount_factor = 1.0 - (line.discount or 0.0) / 100.0
-        if discount_factor <= 0.0:
-            return 0.0
-        subtotal = self._l10n_ve_company_subtotal_unrounded_from_origin_line(line)
-        prec = self.env["decimal.precision"].precision_get("Product Price")
-        return float_round(subtotal / discount_factor / qty, precision_digits=prec)
-
-    def _l10n_ve_company_subtotal_from_origin_line(self, line):
-        if line.currency_id == line.company_currency_id:
-            return abs(line.price_subtotal)
-        return line.price_subtotal_currency
 
     def _l10n_ve_refund_should_use_unrounded_tax_base(self):
         self.ensure_one()
@@ -218,21 +178,6 @@ class AccountMove(models.Model):
             return False
         return False
 
-    def _l10n_ve_company_price_unit_from_refund_line(self, origin_line, credit_line):
-        origin_pu = self._l10n_ve_company_price_unit_from_origin_line(origin_line)
-        origin_currency = origin_line.currency_id
-        if origin_currency.is_zero(origin_line.price_unit):
-            return origin_pu
-        if credit_line.currency_id != origin_currency:
-            return origin_pu
-        if not float_compare(
-            origin_line.price_unit,
-            credit_line.price_unit,
-            precision_rounding=origin_currency.rounding,
-        ):
-            return origin_pu
-        return origin_pu * (credit_line.price_unit / origin_line.price_unit)
-
     def _l10n_ve_refund_line_pair_key(self, line, company=False):
         if line.display_type in ("product", "cogs"):
             if company:
@@ -326,32 +271,6 @@ class AccountMove(models.Model):
                 },
             )
         return None
-
-    def _l10n_ve_lock_refund_invoice_currency_rate_from_origin(self):
-        for move in self:
-            origin = move.reversed_entry_id
-            if (
-                move.move_type != "out_refund"
-                or not origin
-                or move.currency_id == move.company_currency_id
-                or origin.currency_id != move.currency_id
-                or not origin.invoice_currency_rate
-            ):
-                continue
-            origin_rate = origin.invoice_currency_rate
-            if not float_compare(
-                move.invoice_currency_rate,
-                origin_rate,
-                precision_digits=6,
-            ):
-                continue
-            # Keep the origin rate even if invoice_date triggers a recompute.
-            with move.env.protecting([move._fields["invoice_currency_rate"]], move):
-                move.with_context(
-                    check_move_validity=False,
-                    l10n_ve_skip_refund_rate_lock=True,
-                ).write({"invoice_currency_rate": origin_rate})
-            move.invalidate_recordset(["l10n_ve_inverse_rate"])
 
     def _l10n_ve_force_refund_to_company_currency(self):
         """Keep refund currency; freeze origin rate and company balances instead."""
@@ -1294,39 +1213,6 @@ class AccountMove(models.Model):
                 )
             )
             self.message_post(body=" ".join(body_parts))
-
-    def _l10n_ve_to_company_abs_amount(self):
-        self.ensure_one()
-        amount = super()._l10n_ve_to_company_abs_amount()
-        if (
-            self.move_type != "out_refund"
-            or not self.reversed_entry_id
-            or self.currency_id == self.company_currency_id
-            or self.country_code != self.env.ref("base.ve").code
-        ):
-            return amount
-        origin = self.reversed_entry_id
-        company_cur = self.company_currency_id
-        origin_total = abs(origin.amount_total)
-        origin_company = origin._l10n_ve_to_company_abs_amount()
-        if (
-            self.currency_id == origin.currency_id
-            and not self.currency_id.is_zero(origin_total)
-            and not company_cur.is_zero(origin_company)
-        ):
-            ratio = abs(self.amount_total) / origin_total
-            return company_cur.round(origin_company * ratio)
-        origin_date = (
-            origin.invoice_date or origin.date or fields.Date.context_today(self)
-        )
-        return company_cur.round(
-            self.currency_id._convert(
-                abs(self.amount_total),
-                company_cur,
-                self.company_id,
-                origin_date,
-            )
-        )
 
     def _l10n_ve_refund_repair_eligible(self):
         self.ensure_one()

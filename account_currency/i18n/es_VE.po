@@ -1,0 +1,335 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_currency
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-04 04:04+0000\n"
+"PO-Revision-Date: 2026-10-04 04:04+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_currency
+#: model_terms:ir.ui.view,arch_db:account_currency.view_move_form
+msgid ""
+"<span>\n"
+"                        La tasa de cambio de esta factura no coincide con la tasa\n"
+"                        vigente para la fecha del documento.\n"
+"                    </span>"
+msgstr ""
+"<span>\n"
+"                        La tasa de cambio de esta factura no coincide con la tasa\n"
+"                        vigente para la fecha del documento.\n"
+"                    </span>"
+
+#. module: account_currency
+#: model_terms:ir.ui.view,arch_db:account_currency.view_move_form
+msgid "<span>1</span>"
+msgstr "<span>1</span>"
+
+#. module: account_currency
+#: model_terms:ir.ui.view,arch_db:account_currency.view_move_form
+msgid "<span>=</span>"
+msgstr "<span>=</span>"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_needaction
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_needaction
+msgid "Action Needed"
+msgstr "Acción Necesaria"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_ids
+msgid "Activities"
+msgstr "Actividades"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Actividad Exception Decoration"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_state
+msgid "Activity State"
+msgstr "Estado de actividad"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Icono del tipo de actividad"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_attachment_count
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_attachment_count
+msgid "Attachment Count"
+msgstr "Contador Adjuntos"
+
+#. module: account_currency
+#: model:ir.model,name:account_currency.model_res_currency
+msgid "Currency"
+msgstr "Moneda"
+
+#. module: account_currency
+#: model:ir.model,name:account_currency.model_res_currency_rate
+#: model:ir.model.fields,field_description:account_currency.field_account_bank_statement_line__invoice_currency_rate
+#: model:ir.model.fields,field_description:account_currency.field_account_move__invoice_currency_rate
+msgid "Currency Rate"
+msgstr "Tasa de cambio"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_account_bank_statement_line__invoice_currency_rate
+#: model:ir.model.fields,help:account_currency.field_account_move__invoice_currency_rate
+msgid "Currency rate from company currency to document currency."
+msgstr "Tasa de cambio de la moneda de la empresa a la del documento."
+
+#. module: account_currency
+#: model_terms:ir.ui.view,arch_db:account_currency.view_move_form
+msgid "Exchange Rate"
+msgstr "Tasa de Cambio"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_move_line__warning_rate_difference
+msgid "Exchange Rate Warning"
+msgstr "Advertencia de tasa de cambio"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_follower_ids
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_follower_ids
+msgid "Followers"
+msgstr "Seguidores"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_partner_ids
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Seguidores (Socios)"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "Fuente awesome icono e.g. fa-tasks"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_move_line__has_rate_difference
+msgid "Has Exchange Rate Difference"
+msgstr "Tiene diferencia de tasa de cambio"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__has_message
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__has_message
+msgid "Has Message"
+msgstr "Tiene Mensaje"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_exception_icon
+msgid "Icon"
+msgstr "Icono"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Icono hasta indicate an exception actividad."
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__message_needaction
+#: model:ir.model.fields,help:account_currency.field_res_currency_rate__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si activado, los nuevos mensajes requieren su atención."
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__message_has_error
+#: model:ir.model.fields,help:account_currency.field_res_currency_rate__message_has_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si activado, algunos mensajes tienen un error de entrega."
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_is_follower
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_is_follower
+msgid "Is Follower"
+msgstr "Es Seguidor"
+
+#. module: account_currency
+#: model:ir.model,name:account_currency.model_account_move
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: account_currency
+#: model:ir.model,name:account_currency.model_account_move_line
+msgid "Journal Item"
+msgstr "Apunte contable"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_bank_statement_line__lines_with_rate_difference
+#: model:ir.model.fields,field_description:account_currency.field_account_move__lines_with_rate_difference
+msgid "Lines with exchange rate difference"
+msgstr "Líneas con diferencia de tasa de cambio"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_move_line__manually_price_subtotal_currency
+msgid "Manual Subtotal in Company Currency"
+msgstr "Subtotal manual en moneda de la compañía"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_has_error
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_has_error
+msgid "Message Delivery error"
+msgstr "Error de Entrega de Mensaje"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_ids
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_ids
+msgid "Messages"
+msgstr "Mensajes"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "My Actividad Fecha límite"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "Siguiente Actividad Calendario Event"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Siguiente Actividad Fecha límite"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_summary
+msgid "Next Activity Summary"
+msgstr "Siguiente Actividad Resumen"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_type_id
+msgid "Next Activity Type"
+msgstr "Siguiente tipo de actividad"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_needaction_counter
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Número de Acciones"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__message_has_error_counter
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__message_has_error_counter
+msgid "Number of errors"
+msgstr "Número de errores"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__message_needaction_counter
+#: model:ir.model.fields,help:account_currency.field_res_currency_rate__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Número de mensajes que requieren una acción"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__message_has_error_counter
+#: model:ir.model.fields,help:account_currency.field_res_currency_rate__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Número de mensajes con error de entrega"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_move_line__price_unit_company_currency
+msgid "Price Unit Company Currency"
+msgstr "Precio Unidad Empresa Moneda"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__rating_ids
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__rating_ids
+msgid "Ratings"
+msgstr "Calificaciones"
+
+#. module: account_currency
+#: model_terms:ir.ui.view,arch_db:account_currency.view_move_form
+msgid "Recalcular tasa"
+msgstr "Recalcular tasa"
+
+#. module: account_currency
+#: model_terms:ir.ui.view,arch_db:account_currency.view_move_form
+msgid "Reset"
+msgstr "Restablecer"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__activity_user_id
+msgid "Responsible User"
+msgstr "Responsable Usuario"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Estado based en actividades\n"
+"Vencido: Vencido fecha es already passed\n"
+"Today: Actividad fecha es today\n"
+"Planned: Future actividades."
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_move_line__price_subtotal_currency
+msgid "Subtotal in Company Currency"
+msgstr "Subtotal en moneda de la compañía"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_bank_statement_line__l10n_ve_inverse_rate
+#: model:ir.model.fields,field_description:account_currency.field_account_move__l10n_ve_inverse_rate
+msgid "Tasa de Cambio Inversa"
+msgstr "Tasa de Cambio Inversa"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_bank_statement_line__l10n_ve_currency_rate_outdated
+#: model:ir.model.fields,field_description:account_currency.field_account_move__l10n_ve_currency_rate_outdated
+msgid "Tasa de cambio desactualizada"
+msgstr "Tasa de cambio desactualizada"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_account_bank_statement_line__l10n_ve_inverse_rate
+#: model:ir.model.fields,help:account_currency.field_account_move__l10n_ve_inverse_rate
+msgid ""
+"Tasa de cambio inversa (inverse_rate) de la moneda de la factura para la "
+"fecha de la factura"
+msgstr ""
+"Tasa de cambio inversa (inverse_rate) de la moneda de la factura para la "
+"fecha de la factura"
+
+#. module: account_currency
+#: model:ir.model,name:account_currency.model_account_tax
+msgid "Tax"
+msgstr "Impuesto"
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__rate
+msgid "Technical Rate"
+msgstr "Tasa técnica"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency_rate__rate
+msgid "The rate of the currency to the currency of rate 1"
+msgstr "El tipo de cambio al cambio de tipo 1"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "Tipo de el exception actividad en registro."
+
+#. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_res_currency__website_message_ids
+#: model:ir.model.fields,field_description:account_currency.field_res_currency_rate__website_message_ids
+msgid "Website Messages"
+msgstr "Mensajes Web"
+
+#. module: account_currency
+#: model:ir.model.fields,help:account_currency.field_res_currency__website_message_ids
+#: model:ir.model.fields,help:account_currency.field_res_currency_rate__website_message_ids
+msgid "Website communication history"
+msgstr "Histórico de comunicación web"
