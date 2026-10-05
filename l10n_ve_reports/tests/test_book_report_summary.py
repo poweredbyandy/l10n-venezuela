@@ -111,3 +111,54 @@ class TestBookReportSummary(TestAccountReportsCommon):
         self._assert_summary_nets_credit_notes(
             self.env.ref("l10n_ve_reports.purchases_book_report")
         )
+
+    def _create_ve_tax_group(self, name, **values):
+        return self.env["account.tax.group"].create(
+            {
+                "name": name,
+                "company_id": self.company_data["company"].id,
+                "country_id": self.env.ref("base.ve").id,
+                **values,
+            }
+        )
+
+    def _create_ve_tax(self, group, type_tax_use, amount):
+        return self.env["account.tax"].create(
+            {
+                "name": f"{group.name} {type_tax_use}",
+                "amount_type": "percent",
+                "amount": amount,
+                "type_tax_use": type_tax_use,
+                "tax_group_id": group.id,
+                "country_id": self.env.ref("base.ve").id,
+                "company_id": self.company_data["company"].id,
+            }
+        )
+
+    def test_book_total_with_vat_is_the_document_total(self):
+        exempt_group = self._create_ve_tax_group(
+            "Exento", l10n_ve_aliquot_type="exempt"
+        )
+        for move_type, type_tax_use, handler in (
+            ("out_invoice", "sale", "account.sales.book.report.handler.oca"),
+            ("in_invoice", "purchase", "account.purchase.book.report.handler.oca"),
+        ):
+            with self.subTest(move_type=move_type):
+                exempt_tax = self._create_ve_tax(exempt_group, type_tax_use, 0.0)
+                move = self._post_book_document(move_type, 50.0, exempt_tax, "00-9")
+                values = self.env[handler]._calculate_tax_values(move)
+                self.assertAlmostEqual(values["total_exempt"], 50.0)
+                self.assertAlmostEqual(values["total_taxed"], 50.0)
+
+    def test_sales_book_ignores_groups_excluded_from_reports(self):
+        excluded_group = self._create_ve_tax_group(
+            "Fuera de libros", l10n_ve_exclude_from_reports=True
+        )
+        excluded_tax = self._create_ve_tax(excluded_group, "sale", 5.0)
+        move = self._post_book_document("out_invoice", 100.0, excluded_tax, "00-8")
+        values = self.env[
+            "account.sales.book.report.handler.oca"
+        ]._calculate_tax_values(move)
+        self.assertAlmostEqual(values["total_exempt"], 0.0)
+        self.assertAlmostEqual(values["base_general"], 0.0)
+        self.assertAlmostEqual(values["amount_general"], 0.0)

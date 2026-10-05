@@ -123,11 +123,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
         for move_data in moves_data:
             move = move_data["move"]
 
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "sale_tax_data") and move.sale_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
             retention_values = self._get_retention_iva_values(move, options)
             igtf_amount = self._get_move_igtf_amount(move)
 
@@ -615,43 +611,6 @@ class SalesBookReportCustomHandler(models.AbstractModel):
             return move.reversed_entry_id.name
         return "--"
 
-    def _get_tax_values_from_stored(self, move):
-        if not hasattr(move, "sale_tax_data") or not move.sale_tax_data:
-            return self._calculate_tax_values(move)
-
-        company = move.company_id
-        _tax_config = self._l10n_ve_get_tax_config(company)
-        sale_tax_data = move.sale_tax_data
-        result = self._l10n_ve_init_tax_values_result(company, "sale")
-        result["total_taxed"] = sale_tax_data.get("_total_taxed", 0.0)
-
-        for tax_group_id_str, tax_info in sale_tax_data.items():
-            if tax_group_id_str.startswith("_"):
-                continue
-            tax_type = tax_info.get("tax_type")
-            if tax_type == "exempt":
-                result["total_exempt"] += tax_info.get("base", 0.0)
-            elif tax_type == "general":
-                result["base_general"] = tax_info.get("base", 0.0)
-                result["amount_general"] = tax_info.get("amount", 0.0)
-                result["percent_general"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "general", "sale"
-                )
-            elif tax_type == "reduced":
-                result["base_reduced"] = tax_info.get("base", 0.0)
-                result["amount_reduced"] = tax_info.get("amount", 0.0)
-                result["percent_reduced"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "reduced", "sale"
-                )
-            elif tax_type == "extend":
-                result["base_extend"] = tax_info.get("base", 0.0)
-                result["amount_extend"] = tax_info.get("amount", 0.0)
-                result["percent_extend"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "extend", "sale"
-                )
-
-        return result
-
     def _calculate_tax_values(self, move):
         company = move.company_id
         result = self._l10n_ve_init_tax_values_result(company, "sale")
@@ -693,6 +652,9 @@ class SalesBookReportCustomHandler(models.AbstractModel):
                         )
                         break
 
+        result["total_taxed"] = self._l10n_ve_document_total_amount(
+            tax_totals, multiplier
+        )
         return result
 
     def _generate_resume_lines(self, report, options, moves_data):
@@ -948,11 +910,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
         for move in invoices:
             if move.l10n_ve_on_behalf_of_third_party:
                 continue
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "sale_tax_data") and move.sale_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
 
             result["exempt"]["base_invoices"] += tax_values.get("total_exempt", 0.0)
             result["general"]["base_invoices"] += tax_values.get("base_general", 0.0)
@@ -967,11 +925,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
         for move in credit_notes:
             if move.l10n_ve_on_behalf_of_third_party:
                 continue
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "sale_tax_data") and move.sale_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
 
             result["exempt"]["base_credits"] += abs(tax_values.get("total_exempt", 0.0))
             result["general"]["base_credits"] += abs(
@@ -994,11 +948,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
             m for m in credit_notes if m.l10n_ve_on_behalf_of_third_party
         ]
         for move in third_party_invoices:
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "sale_tax_data") and move.sale_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
             result["third_party"]["total_taxed"] += tax_values.get("total_taxed", 0.0)
             result["third_party"]["total_exempt"] += tax_values.get("total_exempt", 0.0)
             result["third_party"]["base_general"] += tax_values.get("base_general", 0.0)
@@ -1014,11 +964,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
                 "amount_extend", 0.0
             )
         for move in third_party_credit_notes:
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "sale_tax_data") and move.sale_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
             result["third_party"]["total_taxed"] += tax_values.get("total_taxed", 0.0)
             result["third_party"]["total_exempt"] += tax_values.get("total_exempt", 0.0)
             result["third_party"]["base_general"] += tax_values.get("base_general", 0.0)

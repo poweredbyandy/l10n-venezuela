@@ -74,10 +74,7 @@ class AccountVeReportXHandler(models.AbstractModel):
         return line_columns
 
     def _tax_values_for_move(self, move):
-        sales = self._sales()
-        if hasattr(move, "sale_tax_data") and move.sale_tax_data:
-            return sales._get_tax_values_from_stored(move)
-        return sales._calculate_tax_values(move)
+        return self._sales()._calculate_tax_values(move)
 
     def _aggregate_tax_maps(self, moves):
         keys = (

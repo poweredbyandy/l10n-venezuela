@@ -854,33 +854,6 @@ class TestCoverageExtraAccountMove(L10nVeSeniatCommon):
         )
         self.assertFalse(move.seniat_invoice_tag)
 
-    def test_purchase_tax_data_on_vendor_refund_posted(self):
-        supplier = self.env["res.partner"].create(
-            {
-                "name": "Prov NC",
-                "country_id": self.env.ref("base.ve").id,
-                "vat": "J98765432",
-            }
-        )
-        bill = self._l10n_ve_create_invoice(
-            move_type="in_invoice",
-            partner=supplier,
-            invoice_date=fields.Date.today(),
-            amounts=[90.0],
-            taxes=self.tax_purchase_a,
-            post=True,
-        )
-        refund = bill._reverse_moves(
-            default_values_list=[
-                {
-                    "invoice_date": fields.Date.today(),
-                }
-            ],
-        )
-        refund.action_post()
-        self.assertTrue(isinstance(refund.purchase_tax_data, dict))
-        self.assertTrue(refund.purchase_tax_data)
-
     def test_entry_button_draft_allowed_in_ve(self):
         move = self.env["account.move"].create(
             {
@@ -1151,13 +1124,6 @@ class TestCoverageExtraInstallMode(L10nVeSeniatCommon):
         )
         move.with_context(install_mode=True).action_post()
         self.assertEqual(move.state, "posted")
-
-    def test_get_sale_tax_values_by_type_on_new_move(self):
-        move = self.env["account.move"].new({"company_id": self.env.company.id})
-        self.assertEqual(
-            move.get_sale_tax_values_by_type("general"),
-            {"base": 0.0, "amount": 0.0},
-        )
 
 
 @tagged("post_install", "-at_install")

@@ -126,11 +126,6 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         return move.date
 
     def _get_move_validation_date(self, move):
-        if move.l10n_ve_process_date:
-            return move.l10n_ve_process_date
-        payment = self._get_move_payment(move)
-        if payment and payment.l10n_ve_process_date:
-            return payment.l10n_ve_process_date
         return move.date
 
     def _get_move_filter_date(self, move, date_type):

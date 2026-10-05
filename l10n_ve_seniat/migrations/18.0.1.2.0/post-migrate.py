@@ -142,20 +142,3 @@ def migrate(cr, version):
             _configure_tax_group(
                 tax_group, aliquot_type, exclude, tax_group.sequence or default_sequence
             )
-
-    moves = env["account.move"].search(
-        [
-            ("company_id.account_fiscal_country_id", "=", ve_country.id),
-            (
-                "move_type",
-                "in",
-                ["out_invoice", "out_refund", "in_invoice", "in_refund"],
-            ),
-        ]
-    )
-    if moves:
-        moves._recompute_recordset(["sale_tax_data", "purchase_tax_data"])
-        _logger.info(
-            "Recomputed sale/purchase tax data for %s Venezuelan moves",
-            len(moves),
-        )

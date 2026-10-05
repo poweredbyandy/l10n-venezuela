@@ -123,48 +123,6 @@ class TestAccountMove(L10nVeSeniatCommon):
             move.action_post()
         self.assertIn("RIF", str(cm.exception))
 
-    def test_l10n_ve_process_date_on_invoice_post(self):
-        move = self.env["account.move"].create(
-            self._create_invoice_vals(self.partner_ve)
-        )
-        move.action_post()
-        self.assertEqual(move.state, "posted")
-        self.assertEqual(move.l10n_ve_process_date, fields.Date.today())
-
-    def test_l10n_ve_process_date_on_entry_post_and_draft(self):
-        move = self.env["account.move"].create(
-            {
-                "move_type": "entry",
-                "date": fields.Date.today(),
-                "line_ids": [
-                    Command.create(
-                        {
-                            "name": "Debit",
-                            "debit": 100.0,
-                            "credit": 0.0,
-                            "account_id": self.company_data[
-                                "default_account_expense"
-                            ].id,
-                        }
-                    ),
-                    Command.create(
-                        {
-                            "name": "Credit",
-                            "debit": 0.0,
-                            "credit": 100.0,
-                            "account_id": self.company_data[
-                                "default_account_revenue"
-                            ].id,
-                        }
-                    ),
-                ],
-            }
-        )
-        move.action_post()
-        self.assertEqual(move.l10n_ve_process_date, fields.Date.today())
-        move.button_draft()
-        self.assertFalse(move.l10n_ve_process_date)
-
     def test_out_invoice_post_skips_ve_rif_for_foreign_partner(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_foreign_no_vat)
@@ -1782,59 +1740,6 @@ class TestAccountMove(L10nVeSeniatCommon):
         action = move.action_print_pdf()
         self.assertEqual(action.get("type"), "ir.actions.report")
         self.assertEqual(action.get("report_type"), "qweb-pdf")
-
-    def test_get_sale_tax_values_by_type(self):
-        move = self.env["account.move"].create(
-            self._create_invoice_vals(self.partner_ve)
-        )
-        move.action_post()
-        result = move.get_sale_tax_values_by_type("general")
-        self.assertIn("base", result)
-        self.assertIn("amount", result)
-        result_empty = move.get_sale_tax_values_by_type("nonexistent")
-        self.assertEqual(result_empty, {"base": 0.0, "amount": 0.0})
-
-    def test_sale_tax_data_computed(self):
-        move = self.env["account.move"].create(
-            self._create_invoice_vals(self.partner_ve)
-        )
-        move.action_post()
-        self.assertTrue(isinstance(move.sale_tax_data, dict))
-
-    def test_purchase_tax_data_computed(self):
-        supplier = self.env["res.partner"].create(
-            {
-                "name": "Supplier",
-                "country_id": self.env.ref("base.ve").id,
-                "vat": "J98765432",
-            }
-        )
-        move = self.env["account.move"].create(
-            {
-                "move_type": "in_invoice",
-                "partner_id": supplier.id,
-                "invoice_date": fields.Date.today(),
-                "invoice_line_ids": [
-                    (
-                        0,
-                        0,
-                        {
-                            "name": "Line",
-                            "quantity": 1.0,
-                            "price_unit": 100.0,
-                            "account_id": self.company_data[
-                                "default_account_expense"
-                            ].id,
-                            "tax_ids": [
-                                (6, 0, [self.company_data["default_tax_purchase"].id])
-                            ],
-                        },
-                    )
-                ],
-            }
-        )
-        move.action_post()
-        self.assertTrue(isinstance(move.purchase_tax_data, dict))
 
     def test_compute_l10n_ve_inverse_rate_same_currency(self):
         move = self.env["account.move"].create(

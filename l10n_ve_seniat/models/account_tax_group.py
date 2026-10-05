@@ -46,11 +46,7 @@ class AccountTaxGroup(models.Model):
 
     def _l10n_ve_get_report_type(self):
         self.ensure_one()
-        if self.l10n_ve_aliquot_type:
-            return self.l10n_ve_aliquot_type
-        if self.l10n_ve_exclude_from_reports:
-            return "exempt"
-        return None
+        return self.l10n_ve_aliquot_type or None
 
     def _l10n_ve_get_representative_tax(self, type_tax_use):
         self.ensure_one()
@@ -78,8 +74,6 @@ class AccountTaxGroup(models.Model):
             [
                 ("company_id", "=", company.id),
                 ("country_id.code", "=", "VE"),
-                "|",
-                ("l10n_ve_exclude_from_reports", "=", True),
                 ("l10n_ve_aliquot_type", "!=", False),
             ],
             order="sequence, id",
@@ -88,27 +82,18 @@ class AccountTaxGroup(models.Model):
     @api.model
     def _l10n_ve_build_tax_config(self, company):
         tax_config = {}
-        typed_report_types = set()
         for group in self._l10n_ve_get_report_tax_groups(company):
-            report_type = group._l10n_ve_get_report_type()
-            if not report_type or report_type in typed_report_types:
-                continue
-            tax_config[report_type] = group.id
-            if group.l10n_ve_aliquot_type:
-                typed_report_types.add(report_type)
+            tax_config.setdefault(group._l10n_ve_get_report_type(), group.id)
         return tax_config
 
     @api.model
     def _l10n_ve_get_exempt_group(self, company):
-        domain = [
-            ("company_id", "=", company.id),
-            ("country_id.code", "=", "VE"),
-        ]
         return self.search(
-            domain + [("l10n_ve_aliquot_type", "=", "exempt")], limit=1
-        ) or self.search(
-            domain + [("l10n_ve_exclude_from_reports", "=", True)],
-            order="sequence, id",
+            [
+                ("company_id", "=", company.id),
+                ("country_id.code", "=", "VE"),
+                ("l10n_ve_aliquot_type", "=", "exempt"),
+            ],
             limit=1,
         )
 

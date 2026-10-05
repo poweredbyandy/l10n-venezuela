@@ -128,7 +128,12 @@ class L10nVeBookReportMixin(models.AbstractModel):
             if include_third_party
             else {}
         )
-        main_labels = {lbl for labels in column_map.values() for lbl in labels}
+        main_labels = {
+            lbl
+            for aliquot_type, labels in column_map.items()
+            if aliquot_type != "exempt"
+            for lbl in labels
+        }
         third_party_labels = (
             {lbl for labels in third_party_map.values() for lbl in labels}
             if third_party_map
@@ -147,7 +152,7 @@ class L10nVeBookReportMixin(models.AbstractModel):
 
             if label in main_labels:
                 for aliquot_type in ordered_types:
-                    if aliquot_type not in configured_types:
+                    if aliquot_type == "exempt" or aliquot_type not in configured_types:
                         continue
                     for col_label in column_map.get(aliquot_type, []):
                         matched = col_by_label.get(col_label)
@@ -228,21 +233,23 @@ class L10nVeBookReportMixin(models.AbstractModel):
             result["percent_general"] = self._l10n_ve_get_tax_rate_for_type(
                 company, "general", book_type
             )
-            result["total_taxed"] += base + amount
         elif tax_type == "reduced":
             result["base_reduced"] = base
             result["amount_reduced"] = amount
             result["percent_reduced"] = self._l10n_ve_get_tax_rate_for_type(
                 company, "reduced", book_type
             )
-            result["total_taxed"] += base + amount
         elif tax_type == "extend":
             result["base_extend"] = base
             result["amount_extend"] = amount
             result["percent_extend"] = self._l10n_ve_get_tax_rate_for_type(
                 company, "extend", book_type
             )
-            result["total_taxed"] += base + amount
+
+    def _l10n_ve_document_total_amount(self, tax_totals, multiplier):
+        total = tax_totals.get("total_amount", 0.0)
+        total = tax_totals.get("l10n_ve_igtf_total_without_igtf", total)
+        return total * multiplier
 
     def _l10n_ve_init_tax_values_result(self, company, book_type):
         default_rates = self._l10n_ve_get_default_tax_rates(company, book_type)

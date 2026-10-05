@@ -301,42 +301,6 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
 
         return ""
 
-    def _get_tax_values_from_stored(self, move):
-        if not hasattr(move, "sale_tax_data") or not move.sale_tax_data:
-            return self._calculate_tax_values(move)
-
-        company = move.company_id
-        sale_tax_data = move.sale_tax_data
-        result = self._l10n_ve_init_tax_values_result(company, "sale")
-        result["total_taxed"] = sale_tax_data.get("_total_taxed", 0.0)
-
-        for tax_group_id_str, tax_info in sale_tax_data.items():
-            if tax_group_id_str.startswith("_"):
-                continue
-            tax_type = tax_info.get("tax_type")
-            if tax_type == "exempt":
-                result["total_exempt"] += tax_info.get("base", 0.0)
-            elif tax_type == "general":
-                result["base_general"] = tax_info.get("base", 0.0)
-                result["amount_general"] = tax_info.get("amount", 0.0)
-                result["percent_general"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "general", "sale"
-                )
-            elif tax_type == "reduced":
-                result["base_reduced"] = tax_info.get("base", 0.0)
-                result["amount_reduced"] = tax_info.get("amount", 0.0)
-                result["percent_reduced"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "reduced", "sale"
-                )
-            elif tax_type == "extend":
-                result["base_extend"] = tax_info.get("base", 0.0)
-                result["amount_extend"] = tax_info.get("amount", 0.0)
-                result["percent_extend"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "extend", "sale"
-                )
-
-        return result
-
     def _calculate_tax_values(self, move):
         company = move.company_id
         result = self._l10n_ve_init_tax_values_result(company, "sale")
@@ -378,6 +342,9 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
                         )
                         break
 
+        result["total_taxed"] = self._l10n_ve_document_total_amount(
+            tax_totals, multiplier
+        )
         return result
 
     def _format_date(self, date_value):
@@ -448,11 +415,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
                     else:
                         is_last_move = True
 
-                    tax_values = (
-                        self._get_tax_values_from_stored(move)
-                        if hasattr(move, "sale_tax_data") and move.sale_tax_data
-                        else self._calculate_tax_values(move)
-                    )
+                    tax_values = self._calculate_tax_values(move)
                     amounts = {
                         "tax_base_exempt_aliquot": tax_values.get("total_exempt", 0.0),
                         "amount_taxed": tax_values.get("total_taxed", 0.0),
@@ -1297,11 +1260,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
         ]
 
         for move in invoices:
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "sale_tax_data") and move.sale_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
 
             result["exempt"]["base_invoices"] += tax_values.get("total_exempt", 0.0)
             result["general"]["base_invoices"] += tax_values.get("base_general", 0.0)
@@ -1314,11 +1273,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
             )
 
         for move in credit_notes:
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "sale_tax_data") and move.sale_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
 
             result["exempt"]["base_credits"] += abs(tax_values.get("total_exempt", 0.0))
             result["general"]["base_credits"] += abs(

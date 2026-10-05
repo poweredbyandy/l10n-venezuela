@@ -287,9 +287,9 @@ class TestAccountReportsCommon(AccountTestInvoicingCommon):
                         used_currency = self.env["res.currency"].search(
                             [("name", "=", currency_code)], limit=1
                         )
-                        assert (
-                            used_currency
-                        ), f"Currency having name={currency_code} not found."
+                        assert used_currency, (
+                            f"Currency having name={currency_code} not found."
+                        )
                 if not used_currency:
                     used_currency = self.env.company.currency_id
 

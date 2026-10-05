@@ -113,11 +113,7 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
         for move_data in moves_data:
             move = move_data["move"]
 
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "purchase_tax_data") and move.purchase_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
             retention_values = self._get_retention_iva_values(move, options)
 
             line_columns = []
@@ -455,42 +451,6 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
             return move.reversed_entry_id.ref or move.reversed_entry_id.name or ""
         return "--"
 
-    def _get_tax_values_from_stored(self, move):
-        if not hasattr(move, "purchase_tax_data") or not move.purchase_tax_data:
-            return self._calculate_tax_values(move)
-
-        company = move.company_id
-        purchase_tax_data = move.purchase_tax_data
-        result = self._l10n_ve_init_tax_values_result(company, "purchase")
-        result["total_taxed"] = purchase_tax_data.get("_total_taxed", 0.0)
-
-        for tax_group_id_str, tax_info in purchase_tax_data.items():
-            if tax_group_id_str.startswith("_"):
-                continue
-            tax_type = tax_info.get("tax_type")
-            if tax_type == "exempt":
-                result["total_exempt"] += tax_info.get("base", 0.0)
-            elif tax_type == "general":
-                result["base_general"] = tax_info.get("base", 0.0)
-                result["amount_general"] = tax_info.get("amount", 0.0)
-                result["percent_general"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "general", "purchase"
-                )
-            elif tax_type == "reduced":
-                result["base_reduced"] = tax_info.get("base", 0.0)
-                result["amount_reduced"] = tax_info.get("amount", 0.0)
-                result["percent_reduced"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "reduced", "purchase"
-                )
-            elif tax_type == "extend":
-                result["base_extend"] = tax_info.get("base", 0.0)
-                result["amount_extend"] = tax_info.get("amount", 0.0)
-                result["percent_extend"] = self._l10n_ve_get_tax_rate_for_type(
-                    company, "extend", "purchase"
-                )
-
-        return result
-
     def _calculate_tax_values(self, move):
         company = move.company_id
         result = self._l10n_ve_init_tax_values_result(company, "purchase")
@@ -546,10 +506,9 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
                             result["amount_extend"] = amount
                         break
 
-        total_taxed_amount = tax_totals.get(
-            "total_amount", tax_totals.get("total_amount_currency", 0.0)
+        result["total_taxed"] = self._l10n_ve_document_total_amount(
+            tax_totals, multiplier
         )
-        result["total_taxed"] = total_taxed_amount * multiplier
         return result
 
     def _generate_resume_lines(self, report, options, moves_data):
@@ -691,11 +650,7 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
         ]
 
         for move in invoices:
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "purchase_tax_data") and move.purchase_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
 
             result["exempt"]["base_invoices"] += tax_values.get("total_exempt", 0.0)
             result["general"]["base_invoices"] += tax_values.get("base_general", 0.0)
@@ -708,11 +663,7 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
             )
 
         for move in credit_notes:
-            tax_values = (
-                self._get_tax_values_from_stored(move)
-                if hasattr(move, "purchase_tax_data") and move.purchase_tax_data
-                else self._calculate_tax_values(move)
-            )
+            tax_values = self._calculate_tax_values(move)
 
             result["exempt"]["base_credits"] += abs(tax_values.get("total_exempt", 0.0))
             result["general"]["base_credits"] += abs(

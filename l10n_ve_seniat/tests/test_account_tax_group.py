@@ -143,18 +143,18 @@ class TestAccountTaxGroupL10nVe(L10nVeSeniatCommon):
         sale_tax = self.tax_group_model._l10n_ve_get_exent_sale_tax(company)
         self.assertEqual(sale_tax.tax_group_id, self.exempt_group)
         self.assertNotEqual(sale_tax, export_tax)
-        self.assertEqual(export_group._l10n_ve_get_report_type(), "exempt")
+        self.assertIsNone(export_group._l10n_ve_get_report_type())
 
-    def test_exempt_falls_back_to_excluded_group(self):
+    def test_excluded_group_is_left_out_of_books(self):
         self.exempt_group.write(
             {"l10n_ve_aliquot_type": False, "l10n_ve_exclude_from_reports": True}
         )
         company = self.env.company
-        self.assertEqual(
-            self.tax_group_model._l10n_ve_get_exempt_group(company),
-            self.exempt_group,
+        self.assertFalse(self.tax_group_model._l10n_ve_get_exempt_group(company))
+        self.assertNotIn(
+            "exempt", self.tax_group_model._l10n_ve_build_tax_config(company)
         )
-        self.assertEqual(
-            self.tax_group_model._l10n_ve_build_tax_config(company).get("exempt"),
-            self.exempt_group.id,
+        self.assertNotIn(
+            self.exempt_group,
+            self.tax_group_model._l10n_ve_get_report_tax_groups(company),
         )

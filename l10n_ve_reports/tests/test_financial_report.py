@@ -75,7 +75,9 @@ class TestFinancialReport(TestAccountReportsCommon):
 
         # ==== Custom filters ====
 
-        cls.horizontal_group = cls.env["account.report.horizontal.group.oca"].create(
+        cls.horizontal_group = cls.env[
+            "account.report.horizontal.group.oca"
+        ].create(
             {
                 "name": "Horizontal Group",
                 "rule_ids": [
