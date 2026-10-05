@@ -75,8 +75,36 @@ def _move_xmlids(cr, previous, names, patterns):
     return cr.rowcount
 
 
+def _drop_stale_currency_account_move_form(cr):
+    cr.execute(
+        """
+        SELECT view.id
+          FROM ir_ui_view AS view
+          JOIN ir_model_data AS imd
+            ON imd.model = 'ir.ui.view'
+           AND imd.res_id = view.id
+         WHERE imd.module = 'currency_account'
+           AND imd.name = 'view_move_form'
+           AND view.arch_db::text LIKE '%%has_rate_difrerence%%'
+           AND NOT EXISTS (
+                SELECT 1 FROM ir_ui_view AS child WHERE child.inherit_id = view.id
+           )
+        """
+    )
+    view_ids = [row[0] for row in cr.fetchall()]
+    if not view_ids:
+        return
+    cr.execute(
+        "DELETE FROM ir_model_data WHERE model = 'ir.ui.view' AND res_id = ANY(%s)",
+        (view_ids,),
+    )
+    cr.execute("DELETE FROM ir_ui_view WHERE id = ANY(%s)", (view_ids,))
+    _logger.info("Dropped stale currency_account move form views %s", view_ids)
+
+
 def pre_init_hook(env):
     cr = env.cr
+    _drop_stale_currency_account_move_form(cr)
     for previous, xmlids in _PREVIOUS_MODULES.items():
         moved = _move_xmlids(cr, previous, xmlids["names"], xmlids["patterns"])
         if moved:
