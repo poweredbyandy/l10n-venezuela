@@ -96,6 +96,36 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         self.assertAlmostEqual(line.price_subtotal_currency, 40.0)
         self.assertAlmostEqual(line.currency_rate, 2.5)
 
+    def test_manual_subtotal_on_zero_amount_line_keeps_invoice_rate(self):
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "in_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": "2024-01-10",
+                "currency_id": self.foreign_currency.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Zero quantity",
+                            "quantity": 0.0,
+                            "price_unit": 100.0,
+                            "tax_ids": [(6, 0, [])],
+                            "price_subtotal_currency": 40.0,
+                            "manually_price_subtotal_currency": True,
+                        },
+                    )
+                ],
+            }
+        )
+        line = invoice.invoice_line_ids
+        self.assertAlmostEqual(line.currency_rate, 2.0)
+        self.assertFalse(line.warning_rate_difference)
+        line.write({"quantity": 1.0})
+        self.assertAlmostEqual(line.currency_rate, 2.5)
+        self.assertAlmostEqual(abs(line.balance), 40.0)
+
     def test_tax_totals_in_company_currency(self):
         invoice = self._create_invoice()
         self.assertTrue(invoice.tax_totals["display_in_company_currency"])

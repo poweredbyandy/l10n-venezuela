@@ -71,7 +71,9 @@ class AccountMoveLine(models.Model):
             lambda aml: aml.manually_price_subtotal_currency
             and aml.price_subtotal_currency
         ):
-            line.currency_rate = line._l10n_ve_manual_currency_rate()
+            manual_rate = line._l10n_ve_manual_currency_rate()
+            if manual_rate:
+                line.currency_rate = manual_rate
         return res
 
     @api.depends(
@@ -84,7 +86,9 @@ class AccountMoveLine(models.Model):
     def _compute_warning_rate_difference(self):
         for line in self:
             if not (
-                line.manually_price_subtotal_currency and line.price_subtotal_currency
+                line.manually_price_subtotal_currency
+                and line.price_subtotal_currency
+                and line.price_subtotal
             ):
                 line.warning_rate_difference = False
                 continue
