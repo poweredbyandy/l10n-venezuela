@@ -1,8 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from collections import defaultdict
-
 from odoo import _, fields, models
+from odoo.exceptions import UserError
+
+LOAD_MORE_LIMIT = 80
 
 
 class L10nVeLiquidityBookReportMixin(models.AbstractModel):
@@ -27,7 +28,8 @@ class L10nVeLiquidityBookReportMixin(models.AbstractModel):
             previous_options=previous_options,
             additional_journals_domain=[("type", "in", self._get_journal_types())],
         )
-        options["unfold_all"] = options.get("unfold_all", True)
+        if "unfold_all" not in previous_options:
+            options["unfold_all"] = True
         return result
 
     def export_to_pdf(self, options):
@@ -62,37 +64,83 @@ class L10nVeLiquidityBookReportMixin(models.AbstractModel):
             date_from = date_to
         return date_from, date_to
 
+    def _get_move_line_domain(self, report, options, account_ids, date_from, date_to):
+        domain = [
+            ("account_id", "in", list(account_ids)),
+            ("company_id", "in", report.get_report_company_ids(options)),
+            ("parent_state", "=", "posted"),
+        ]
+        if date_from:
+            domain.append(("date", ">=", date_from))
+        if date_to:
+            domain.append(("date", "<=", date_to))
+        return domain
+
     def _get_opening_balances(self, report, options, account_ids):
         if not account_ids:
             return {}
         date_from, _date_to = self._get_report_date_bounds(options)
-        company_ids = report.get_report_company_ids(options)
-        balances = defaultdict(float)
-        lines = self.env["account.move.line"].search(
+        groups = self.env["account.move.line"]._read_group(
             [
-                ("account_id", "in", account_ids),
-                ("company_id", "in", company_ids),
+                ("account_id", "in", list(account_ids)),
+                ("company_id", "in", report.get_report_company_ids(options)),
                 ("parent_state", "=", "posted"),
                 ("date", "<", date_from),
-            ]
-        )
-        for line in lines:
-            balances[line.account_id.id] += line.balance
-        return balances
-
-    def _get_account_move_lines(self, report, options, account_id):
-        date_from, date_to = self._get_report_date_bounds(options)
-        company_ids = report.get_report_company_ids(options)
-        return self.env["account.move.line"].search(
-            [
-                ("account_id", "=", account_id),
-                ("company_id", "in", company_ids),
-                ("parent_state", "=", "posted"),
-                ("date", ">=", date_from),
-                ("date", "<=", date_to),
             ],
-            order="date asc, move_id asc, id asc",
+            ["account_id"],
+            ["balance:sum"],
         )
+        return {account.id: float(balance or 0.0) for account, balance in groups}
+
+    def _get_period_aggregates(self, report, options, account_ids):
+        if not account_ids:
+            return {}
+        date_from, date_to = self._get_report_date_bounds(options)
+        groups = self.env["account.move.line"]._read_group(
+            self._get_move_line_domain(
+                report, options, account_ids, date_from, date_to
+            ),
+            ["account_id"],
+            ["debit:sum", "credit:sum", "__count"],
+        )
+        return {
+            account.id: {
+                "debit": float(debit or 0.0),
+                "credit": float(credit or 0.0),
+                "count": count or 0,
+            }
+            for account, debit, credit, count in groups
+        }
+
+    def _get_screen_limit(self, report, options):
+        if options.get("export_mode") in ("print", "file"):
+            return None
+        return report.load_more_limit or LOAD_MORE_LIMIT
+
+    def _get_account_move_lines(
+        self, report, options, account_id, offset=0, limit=None
+    ):
+        date_from, date_to = self._get_report_date_bounds(options)
+        return self.env["account.move.line"].search(
+            self._get_move_line_domain(
+                report, options, [account_id], date_from, date_to
+            ),
+            order="date asc, move_id asc, id asc",
+            offset=offset,
+            limit=limit,
+        )
+
+    def _balance_progress(self, options, running_balance):
+        return {
+            column_group_key: running_balance
+            for column_group_key in options["column_groups"]
+        }
+
+    def _progress_balance(self, options, progress):
+        if not progress or not options.get("column_groups"):
+            return 0.0
+        column_group_key = next(iter(options["column_groups"]))
+        return float(progress.get(column_group_key) or 0.0)
 
     def _build_row_columns(self, report, options, values_map):
         line_columns = []
@@ -136,26 +184,50 @@ class L10nVeLiquidityBookReportMixin(models.AbstractModel):
     def _get_move_comp_number(self, aml):
         return aml.ref or aml.move_id.name or ""
 
+    def _empty_amount_bucket(self):
+        return {
+            "previous_balance": 0.0,
+            "debit": 0.0,
+            "credit": 0.0,
+            "balance": 0.0,
+        }
+
+    def _journal_amount_bucket(self, previous_balance, period):
+        debit = period.get("debit", 0.0)
+        credit = period.get("credit", 0.0)
+        return {
+            "previous_balance": previous_balance,
+            "debit": debit,
+            "credit": credit,
+            "balance": previous_balance + debit - credit,
+        }
+
+    def _is_journal_unfolded(self, options, line_id, has_moves):
+        if not has_moves:
+            return False
+        if options.get("export_mode") in ("print", "file"):
+            return True
+        if options.get("unfold_all"):
+            return True
+        return line_id in options.get("unfolded_lines", [])
+
     def _dynamic_lines_generator(
         self, report, options, all_column_groups_expression_totals, warnings=None
     ):
         lines = []
         journals = self._get_selected_journals(report, options)
-        totals_by_group = defaultdict(
-            lambda: {
-                "previous_balance": 0.0,
-                "debit": 0.0,
-                "credit": 0.0,
-                "balance": 0.0,
-            }
-        )
-
+        column_group_keys = list(options["column_groups"])
+        totals_by_group = {
+            column_group_key: self._empty_amount_bucket()
+            for column_group_key in column_group_keys
+        }
         account_ids = [
             account.id
             for journal in journals
             if (account := self._get_liquidity_account(journal))
         ]
         opening_balances = self._get_opening_balances(report, options, account_ids)
+        period_aggregates = self._get_period_aggregates(report, options, account_ids)
 
         for journal in journals:
             account = self._get_liquidity_account(journal)
@@ -163,89 +235,46 @@ class L10nVeLiquidityBookReportMixin(models.AbstractModel):
                 continue
 
             previous_balance = opening_balances.get(account.id, 0.0)
-            running_balance = previous_balance
-            journal_totals = defaultdict(
-                lambda: {
-                    "previous_balance": previous_balance,  # noqa: B023
-                    "debit": 0.0,
-                    "credit": 0.0,
-                    "balance": previous_balance,  # noqa: B023
-                }
-            )
-            account_title = _("%(journal)s — %(account)s") % {
-                "journal": journal.display_name,
-                "account": account.display_name,
+            period = period_aggregates.get(account.id, {})
+            journal_amounts = self._journal_amount_bucket(previous_balance, period)
+            journal_totals = {
+                column_group_key: dict(journal_amounts)
+                for column_group_key in column_group_keys
             }
+            for column_group_key in column_group_keys:
+                for label in ("previous_balance", "debit", "credit", "balance"):
+                    totals_by_group[column_group_key][label] += journal_amounts[label]
 
+            line_id = report._get_generic_line_id(
+                "account.journal",
+                journal.id,
+                markup="liquidity_book_journal_header",
+            )
+            has_moves = bool(period.get("count"))
             lines.append(
                 (
                     0,
                     {
-                        "id": report._get_generic_line_id(
-                            "account.journal",
-                            journal.id,
-                            markup="liquidity_book_journal_header",
-                        ),
-                        "name": account_title,
+                        "id": line_id,
+                        "name": _("%(journal)s — %(account)s")
+                        % {
+                            "journal": journal.display_name,
+                            "account": account.display_name,
+                        },
                         "columns": self._build_row_columns(report, options, {}),
                         "level": 0,
-                        "unfoldable": False,
+                        "unfoldable": has_moves,
+                        "unfolded": self._is_journal_unfolded(
+                            options, line_id, has_moves
+                        ),
+                        "expand_function": (
+                            "_report_expand_unfoldable_line_liquidity_book"
+                            if has_moves
+                            else None
+                        ),
                     },
                 )
             )
-
-            move_lines = self._get_account_move_lines(report, options, account.id)
-            for aml in move_lines:
-                debit = aml.debit
-                credit = aml.credit
-                running_balance += debit - credit
-                for col_group_key in options["column_groups"]:
-                    journal_totals[col_group_key]["debit"] += debit
-                    journal_totals[col_group_key]["credit"] += credit
-                    journal_totals[col_group_key]["balance"] = running_balance
-
-                lines.append(
-                    (
-                        0,
-                        {
-                            "id": report._get_generic_line_id(
-                                "account.move.line",
-                                aml.id,
-                                markup="liquidity_book_line",
-                            ),
-                            "name": account.code,
-                            "columns": self._build_row_columns(
-                                report,
-                                options,
-                                {
-                                    "date": aml.date,
-                                    "comp_number": self._get_move_comp_number(aml),
-                                    "document": aml.move_id.name or "",
-                                    "detail": self._get_move_detail_label(aml),
-                                    "debit": debit,
-                                    "credit": credit,
-                                    "balance": running_balance,
-                                },
-                            ),
-                            "level": 1,
-                            "unfoldable": False,
-                            "caret_options": "account.move.line",
-                        },
-                    )
-                )
-
-            for col_group_key in options["column_groups"]:
-                totals_by_group[col_group_key]["previous_balance"] += previous_balance
-                totals_by_group[col_group_key]["debit"] += journal_totals[
-                    col_group_key
-                ]["debit"]
-                totals_by_group[col_group_key]["credit"] += journal_totals[
-                    col_group_key
-                ]["credit"]
-                totals_by_group[col_group_key]["balance"] += journal_totals[
-                    col_group_key
-                ]["balance"]
-
             lines.append(
                 (
                     0,
@@ -302,3 +331,89 @@ class L10nVeLiquidityBookReportMixin(models.AbstractModel):
             )
 
         return lines
+
+    def _report_expand_unfoldable_line_liquidity_book(
+        self,
+        line_dict_id,
+        groupby,
+        options,
+        progress,
+        offset,
+        unfold_all_batch_data=None,
+    ):
+        report = self.env["account.report"].browse(options["report_id"])
+        model, journal_id = report._get_model_info_from_id(line_dict_id)
+        if model != "account.journal":
+            raise UserError(
+                _("Wrong ID for liquidity book line to expand: %s", line_dict_id)
+            )
+
+        journal = self.env["account.journal"].browse(journal_id)
+        account = self._get_liquidity_account(journal)
+        if not account:
+            return {
+                "lines": [],
+                "offset_increment": 0,
+                "has_more": False,
+                "progress": progress,
+            }
+
+        if offset:
+            running_balance = self._progress_balance(options, progress)
+        else:
+            running_balance = self._get_opening_balances(
+                report, options, [account.id]
+            ).get(account.id, 0.0)
+
+        limit = self._get_screen_limit(report, options)
+        move_lines = self._get_account_move_lines(
+            report,
+            options,
+            account.id,
+            offset=offset,
+            limit=(limit + 1) if limit else None,
+        )
+        has_more = bool(limit and len(move_lines) > limit)
+        if has_more:
+            move_lines = move_lines[:limit]
+
+        lines = []
+        for aml in move_lines:
+            debit = aml.debit
+            credit = aml.credit
+            running_balance += debit - credit
+            lines.append(
+                {
+                    "id": report._get_generic_line_id(
+                        "account.move.line",
+                        aml.id,
+                        parent_line_id=line_dict_id,
+                        markup="liquidity_book_line",
+                    ),
+                    "parent_id": line_dict_id,
+                    "name": account.code,
+                    "columns": self._build_row_columns(
+                        report,
+                        options,
+                        {
+                            "date": aml.date,
+                            "comp_number": self._get_move_comp_number(aml),
+                            "document": aml.move_id.name or "",
+                            "detail": self._get_move_detail_label(aml),
+                            "debit": debit,
+                            "credit": credit,
+                            "balance": running_balance,
+                        },
+                    ),
+                    "level": 1,
+                    "unfoldable": False,
+                    "caret_options": "account.move.line",
+                }
+            )
+
+        return {
+            "lines": lines,
+            "offset_increment": limit or len(lines),
+            "has_more": has_more,
+            "progress": self._balance_progress(options, running_balance),
+        }

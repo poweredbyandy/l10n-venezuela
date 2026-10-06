@@ -241,6 +241,50 @@ class TestBankCashBookReport(TestAccountReportsCommon):
         self.assertEqual(movement_values["debit"], 150.0)
         self.assertEqual(movement_values["balance"], 450.0)
 
+    def test_bank_book_load_more_keeps_running_balance(self):
+        self.bank_report.load_more_limit = 1
+        options = self._generate_options(self.bank_report, "2025-01-01", "2025-01-31")
+        options = self._update_multi_selector_filter(
+            options, "journals", self.bank_journal.ids
+        )
+        lines = self.bank_report.get_report_information(options)["lines"]
+        movement_lines = [
+            line for line in lines if line.get("caret_options") == "account.move.line"
+        ]
+        self.assertEqual(len(movement_lines), 1)
+        first_values = self._get_line_column_values(movement_lines[0], self.bank_report)
+        self.assertEqual(first_values["balance"], 1500.0)
+
+        total_lines = [line for line in lines if line.get("class") == "total"]
+        journal_total = self._get_line_column_values(total_lines[0], self.bank_report)
+        self.assertEqual(journal_total["previous_balance"], 1000.0)
+        self.assertEqual(journal_total["debit"], 500.0)
+        self.assertEqual(journal_total["credit"], 200.0)
+        self.assertEqual(journal_total["balance"], 1300.0)
+
+        load_more = next(line for line in lines if "load_more" in line["id"])
+        more_lines = self.bank_report.get_expanded_lines(
+            options,
+            load_more["parent_id"],
+            load_more.get("groupby"),
+            load_more["expand_function"],
+            load_more["progress"],
+            load_more["offset"],
+            load_more.get("horizontal_split_side"),
+        )
+        more_movements = [
+            line
+            for line in more_lines
+            if line.get("caret_options") == "account.move.line"
+        ]
+        self.assertEqual(len(more_movements), 1)
+        second_values = self._get_line_column_values(
+            more_movements[0], self.bank_report
+        )
+        self.assertEqual(second_values["credit"], 200.0)
+        self.assertEqual(second_values["balance"], 1300.0)
+        self.assertFalse(any("load_more" in line["id"] for line in more_lines))
+
     def test_bank_book_excludes_cash_journal(self):
         lines = self._get_report_lines(
             self.bank_report,

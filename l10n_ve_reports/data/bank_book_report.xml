@@ -11,6 +11,7 @@
         <field name="filter_hide_0_lines">never</field>
         <field name="filter_date_range" eval="True" />
         <field name="default_opening_date_filter">this_month</field>
+        <field name="load_more_limit" eval="80" />
         <field
             name="custom_handler_model_id"
             ref="model_account_bank_book_report_handler_oca"
