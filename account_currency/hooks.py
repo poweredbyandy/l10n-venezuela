@@ -75,7 +75,7 @@ def _move_xmlids(cr, previous, names, patterns):
     return cr.rowcount
 
 
-def _drop_stale_currency_account_move_form(cr):
+def drop_stale_currency_account_move_form(cr):
     cr.execute(
         """
         SELECT view.id
@@ -104,7 +104,7 @@ def _drop_stale_currency_account_move_form(cr):
 
 def pre_init_hook(env):
     cr = env.cr
-    _drop_stale_currency_account_move_form(cr)
+    drop_stale_currency_account_move_form(cr)
     for previous, xmlids in _PREVIOUS_MODULES.items():
         moved = _move_xmlids(cr, previous, xmlids["names"], xmlids["patterns"])
         if moved:
