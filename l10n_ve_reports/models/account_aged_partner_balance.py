@@ -603,6 +603,51 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
             domain = []
         return domain
 
+    def _custom_line_postprocessor(self, report, options, lines):
+        lines = super()._custom_line_postprocessor(report, options, lines)
+        document_lines = []
+        aml_ids = []
+        for line in lines:
+            model, record_id = report._get_model_info_from_id(line.get("id"))
+            if model == "account.move.line" and record_id:
+                document_lines.append(line)
+                aml_ids.append(record_id)
+        if not aml_ids:
+            return lines
+
+        amls = self.env["account.move.line"].browse(aml_ids)
+        labels = {
+            aml.id: label
+            for aml in amls
+            if (label := self._l10n_ve_aged_document_label(aml))
+        }
+        for line, aml_id in zip(document_lines, aml_ids, strict=True):
+            label = labels.get(aml_id)
+            if label:
+                line["name"] = label
+        return lines
+
+    def _l10n_ve_aged_document_label(self, aml):
+        """Invoice name and control number shown on receivable and payable lines."""
+        move = aml.move_id
+        control_number = (move.l10n_ve_control_number or "").strip()
+        invoice_number = (move.l10n_ve_invoice_number or "").strip()
+        if not control_number and not invoice_number:
+            return ""
+
+        if move.is_purchase_document(include_receipts=True):
+            invoice_name = invoice_number or (move.ref or "").strip()
+        else:
+            invoice_name = invoice_number
+        if not invoice_name or invoice_name == "/":
+            invoice_name = (move.name or "").strip()
+        if invoice_name == "/":
+            invoice_name = ""
+
+        if invoice_name and control_number:
+            return f"{invoice_name} / {control_number}"
+        return invoice_name or control_number
+
 
 class AgedPayableCustomHandler(models.AbstractModel):
     _name = "account.aged.payable.report.handler.oca"

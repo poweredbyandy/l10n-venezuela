@@ -5,7 +5,7 @@
     "category": "Accounting/Accounting",
     "author": "andyengit, Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/l10n-venezuela",
-    "version": "18.0.1.3.1",
+    "version": "18.0.1.3.2",
     "maintainers": ["andyengit"],
     "depends": ["account", "l10n_ve_seniat", "l10n_ve_withholding", "web"],
     "data": [
