@@ -1317,8 +1317,18 @@ msgstr "Retenciones de IVA para Proveedor"
 
 #. module: l10n_ve_withholding
 #: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_payment_register__is_retention
-msgid "IVA Retention payment"
-msgstr "Pago de retención de IVA"
+msgid "Retention payment"
+msgstr "Pago de retención"
+
+#. module: l10n_ve_withholding
+#: model:ir.model.fields,field_description:l10n_ve_withholding.field_account_payment_register__retention_type
+msgid "Retention type"
+msgstr "Tipo de retención"
+
+#. module: l10n_ve_withholding
+#: model:ir.model.fields,help:l10n_ve_withholding.field_account_payment_register__retention_type
+msgid "Type of retention that applies to this payment."
+msgstr "Tipo de retención que aplica a este pago."
 
 #. module: l10n_ve_withholding
 #: model:ir.ui.menu,name:l10n_ve_withholding.menu_retention_type_withholdings
@@ -2852,11 +2862,50 @@ msgstr "No se puede crear una retención con montos en 0."
 #. odoo-python
 #: code:addons/l10n_ve_withholding/wizard/account_payment_register.py:0
 msgid ""
-"You can't create a retention payment for the invoices selected because one "
-"or more of them already have an emitted retention."
+"You can't create a %(type)s retention payment for the invoices selected "
+"because one or more of them already have an emitted retention."
 msgstr ""
-"No puedes crear un pago de retención para las facturas seleccionadas porque "
-"una o más de ellas ya tienen una retención emitida."
+"No puedes crear un pago de retención de %(type)s para las facturas "
+"seleccionadas porque una o más de ellas ya tienen una retención emitida."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/wizard/account_payment_register.py:0
+msgid ""
+"The company must have a customer %(type)s retention journal configured."
+msgstr ""
+"La compañía debe tener configurado un diario de retenciones de %(type)s para "
+"clientes."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/wizard/account_payment_register.py:0
+msgid "Retention payments can only be registered for customer invoices."
+msgstr "Los pagos de retención solo se pueden registrar para facturas de cliente."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/wizard/account_payment_register.py:0
+msgid "Select the type of retention that applies."
+msgstr "Seleccione el tipo de retención que aplica."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/wizard/account_payment_register.py:0
+msgid "The voucher date and the retention reference are required."
+msgstr "La fecha y el número de comprobante de la retención son obligatorios."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/wizard/account_payment_register.py:0
+msgid "There are no retention lines to register."
+msgstr "No hay líneas de retención para registrar."
+
+#. module: l10n_ve_withholding
+#. odoo-python
+#: code:addons/l10n_ve_withholding/wizard/account_payment_register.py:0
+msgid "Select an economic activity"
+msgstr "Seleccione una actividad económica"
 
 #. module: l10n_ve_withholding
 #. odoo-python

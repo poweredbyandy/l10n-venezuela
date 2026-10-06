@@ -297,15 +297,20 @@ class AccountRetentionLine(models.Model):
                     type_retention = "islr"
                 elif record.economic_activity_id:
                     type_retention = "municipal"
+                elif record.iva_amount:
+                    type_retention = "iva"
 
             if type_retention == "iva" and retention_type == "out_invoice":
                 record.retention_amount = record.retention_amount or 0.0
                 continue
 
-            if type_retention == "islr" and (
-                retention_type == "in_invoice"
-                or (not retention and record.payment_concept_id)
-            ):
+            if type_retention == "iva":
+                record.retention_amount = record.iva_amount * (
+                    record.related_percentage_tax_base / 100
+                )
+                continue
+
+            if type_retention == "islr" and retention_type == "in_invoice":
                 calculated = (
                     record.invoice_amount
                     * (record.related_percentage_tax_base / 100)
@@ -314,16 +319,7 @@ class AccountRetentionLine(models.Model):
                 record.retention_amount = max(0.0, calculated)
                 continue
 
-            if type_retention == "iva" and retention_type == "in_invoice":
-                record.retention_amount = record.iva_amount * (
-                    record.related_percentage_tax_base / 100
-                )
-                continue
-
-            if type_retention == "municipal" and (
-                retention_type == "in_invoice"
-                or (not retention and record.economic_activity_id)
-            ):
+            if type_retention == "municipal" and retention_type == "in_invoice":
                 record.retention_amount = record.invoice_amount * record.aliquot / 100
                 continue
 
@@ -358,7 +354,8 @@ class AccountRetentionLine(models.Model):
             record.invoice_total = abs(move.amount_total_signed)
 
             record.aliquot = record.economic_activity_id.aliquot
-            record.retention_amount = record.invoice_amount * record.aliquot / 100
+            if record.retention_id:
+                record.retention_amount = record.invoice_amount * record.aliquot / 100
 
     @api.onchange("invoice_amount", "aliquot")
     def onchange_municipal_invoice_amount(self):
@@ -367,8 +364,7 @@ class AccountRetentionLine(models.Model):
         changed for the retentions of municipal type.
         """
         for record in self.filtered(
-            lambda line: (not line.retention_id and line.economic_activity_id)
-            or line.retention_id.type_retention == "municipal"
+            lambda line: line.retention_id.type_retention == "municipal"
         ):
             record.retention_amount = record.invoice_amount * record.aliquot / 100
 
