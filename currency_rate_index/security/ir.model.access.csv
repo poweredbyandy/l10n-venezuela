@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_res_currency_rate_index_user,res.currency.rate.index user,model_res_currency_rate_index,base.group_user,1,0,0,0
+access_res_currency_rate_index_system,res.currency.rate.index system,model_res_currency_rate_index,base.group_system,1,1,1,1

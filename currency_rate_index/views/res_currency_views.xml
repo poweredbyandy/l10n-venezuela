@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 Anderson Armeya
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="view_currency_form_rate_index" model="ir.ui.view">
+        <field name="name">res.currency.form.rate.index</field>
+        <field name="model">res.currency</field>
+        <field name="inherit_id" ref="base.view_currency_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='rates']" position="after">
+                <page
+                    string="Tasas índice"
+                    name="rate_index"
+                    invisible="is_current_company_currency or is_index_currency"
+                >
+                    <field name="is_index_currency" invisible="1" />
+                    <field name="rate_index_ids" widget="one2many">
+                        <list string="Index Rates" editable="top" limit="25">
+                            <field name="name" />
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                            />
+                            <field name="rate" digits="[12,12]" />
+                            <field name="inverse_rate" digits="[12,12]" />
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

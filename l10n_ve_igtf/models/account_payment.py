@@ -1,3 +1,6 @@
+import babel.dates
+from num2words import num2words
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -386,3 +389,113 @@ class AccountPayment(models.Model):
         idx = line_vals_list.index(counterpart_line)
         line_vals_list.insert(idx + 1, igtf_line_vals)
         return line_vals_list
+
+    def _l10n_ve_igtf_get_receipt_move_lines(self):
+        """
+        Return the posted IGTF journal items of the payment.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        recordset
+            `account.move.line` recordset booked on the company IGTF account.
+        """
+        self.ensure_one()
+        igtf_account = self.company_id.l10n_ve_igtf_account_id
+        if not igtf_account:
+            return self.env["account.move.line"]
+        return self.move_id.line_ids.filtered(
+            lambda line: line.account_id == igtf_account
+        )
+
+    @api.model
+    def _l10n_ve_igtf_receipt_document_type(self, move):
+        if move.move_type == "out_refund":
+            return "NC"
+        if move.debit_origin_id:
+            return "ND"
+        return "FAC"
+
+    @api.model
+    def _l10n_ve_igtf_receipt_amount_in_words(self, amount):
+        integer_part, decimal_part = f"{abs(amount):.2f}".split(".")
+        words = num2words(int(integer_part), lang="es").title().replace(" Y ", " y ")
+        return f"{words} Con {decimal_part}/100"
+
+    def _l10n_ve_igtf_get_receipt_values(self):
+        """
+        Build the values printed on the IGTF collection receipt.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        dict
+            Amounts, exchange rate, related documents and formatted texts.
+
+        Raises
+        ------
+        UserError
+            If the payment has no IGTF journal item.
+        """
+        self.ensure_one()
+        igtf_lines = self._l10n_ve_igtf_get_receipt_move_lines()
+        if self.state == "draft" or not igtf_lines:
+            raise UserError(
+                _(
+                    "The payment %s has no IGTF collected. The IGTF receipt is "
+                    "only available for posted payments with IGTF.",
+                    self.display_name,
+                )
+            )
+        company_currency = self.company_currency_id
+        igtf_amount_company = company_currency.round(
+            abs(sum(igtf_lines.mapped("balance")))
+        )
+        igtf_amount_currency = self.currency_id.round(
+            abs(sum(igtf_lines.mapped("amount_currency")))
+        )
+        rate = 1.0
+        liquidity_lines = self._seek_for_lines()[0]
+        liquidity_amount_currency = sum(liquidity_lines.mapped("amount_currency"))
+        if self.currency_id != company_currency and liquidity_amount_currency:
+            rate = abs(
+                sum(liquidity_lines.mapped("balance")) / liquidity_amount_currency
+            )
+        percent = self.company_id.l10n_ve_igtf_percent or 0.0
+        base_amount_currency = 0.0
+        if percent and rate:
+            base_amount_currency = self.currency_id.round(
+                igtf_amount_company / (percent / 100.0) / rate
+            )
+        long_date = babel.dates.format_date(
+            self.date,
+            format="EEEE d 'de' MMMM 'del' y",
+            locale="es_VE",
+        )
+        documents = self.reconciled_invoice_ids.sorted(
+            lambda move: (move.invoice_date or move.date, move.id)
+        )
+        return {
+            "igtf_amount_company": igtf_amount_company,
+            "igtf_amount_currency": igtf_amount_currency,
+            "base_amount_currency": base_amount_currency,
+            "percent": percent,
+            "rate": rate,
+            "long_date": long_date[:1].upper() + long_date[1:],
+            "amount_in_words": self._l10n_ve_igtf_receipt_amount_in_words(
+                igtf_amount_company
+            ),
+            "documents": [
+                {
+                    "move": move,
+                    "type": self._l10n_ve_igtf_receipt_document_type(move),
+                }
+                for move in documents
+            ],
+        }

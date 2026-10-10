@@ -1,0 +1,143 @@
+<odoo>
+    <template id="report_igtf_receipt_document">
+        <t t-set="company" t-value="o.company_id" />
+        <t t-set="values" t-value="receipt_values[o.id]" />
+        <t t-set="currency_symbol" t-value="o.currency_id.symbol" />
+        <t
+            t-set="company_address"
+            t-value="', '.join(part for part in [company.street, company.street2, company.city, company.state_id.name] if part)"
+        />
+        <t
+            t-set="document_names"
+            t-value="', '.join(document['move'].name for document in values['documents'])"
+        />
+        <div class="page o_l10n_ve_igtf_receipt" style="font-size:13px;">
+            <div class="row">
+                <div class="col-8">
+                    <div class="fw-bold" t-out="company.name" />
+                    <div>R.I.F.: <span t-out="company.vat" /></div>
+                    <div t-if="company_address" t-out="company_address" />
+                </div>
+                <div class="col-4 text-end">
+                    <div>Recibo Nº: <span class="fw-bold" t-out="o.name" /></div>
+                    <div>Fecha: <span t-out="o.date.strftime('%d/%m/%Y')" /></div>
+                </div>
+            </div>
+
+            <h5 class="text-center fw-bold mt-4 mb-4">
+                COMPROBANTE DE PERCEPCIÓN DEL IGTF
+            </h5>
+
+            <p t-out="values['long_date']" />
+            <p>
+                Hemos recibido del Cliente <span
+                    class="fw-bold"
+                    t-out="o.partner_id.name"
+                /> la cantidad de Bolívares:
+                <span class="fw-bold">****<span
+                        t-out="values['igtf_amount_company']"
+                        t-options='{"widget": "float", "precision": 2}'
+                    />*****</span>
+                (<span t-out="values['amount_in_words']" />) por concepto de
+                Cancelación de IGTF del documento <span t-out="document_names" />
+            </p>
+
+            <table class="table table-sm table-borderless mt-4">
+                <thead style="border-top:1px solid black;border-bottom:1px solid black;">
+                    <tr>
+                        <th>Fecha de Emisión de la Factura</th>
+                        <th>Tipo</th>
+                        <th>Docum.</th>
+                        <th>Nombre del Cliente</th>
+                        <th class="text-end">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="values['documents']" t-as="document">
+                        <t t-set="move" t-value="document['move']" />
+                        <td
+                            t-out="(move.invoice_date or move.date).strftime('%d-%m-%Y')"
+                        />
+                        <td t-out="document['type']" />
+                        <td t-out="move.name" />
+                        <td t-out="move.partner_id.name" />
+                        <td class="text-end">
+                            <span
+                                t-field="move.amount_total"
+                                t-options='{"widget": "monetary", "display_currency": move.currency_id}'
+                            />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table
+                class="table table-sm table-borderless"
+                style="border-top:1px solid black;border-bottom:1px solid black;"
+            >
+                <tbody>
+                    <tr>
+                        <td>Monto Imponible <span t-out="currency_symbol" /></td>
+                        <td class="text-end">
+                            <span
+                                t-out="values['base_amount_currency']"
+                                t-options='{"widget": "float", "precision": 2}'
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Monto IGTF <span
+                                t-out="values['percent']"
+                                t-options='{"widget": "float", "precision": 0}'
+                            />% <span t-out="currency_symbol" />
+                        </td>
+                        <td class="text-end">
+                            <span
+                                t-out="values['igtf_amount_currency']"
+                                t-options='{"widget": "float", "precision": 2}'
+                            />
+                        </td>
+                    </tr>
+                    <tr class="fw-bold">
+                        <td>
+                            Monto Cancelado TASA BCV <span
+                                t-out="o.date.strftime('%d-%m-%Y')"
+                            /> (<span
+                                t-out="values['rate']"
+                                t-options='{"widget": "float", "precision": 2}'
+                            /> BS)
+                            <t t-if="o.memo">Ref <span t-out="o.memo" /></t>
+                        </td>
+                        <td class="text-end">
+                            <span
+                                t-out="values['igtf_amount_company']"
+                                t-options='{"widget": "float", "precision": 2}'
+                            />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="row" style="margin-top:80px;">
+                <div class="col-5 text-center" style="border-top:1px solid black;">
+                    OFICINA
+                </div>
+                <div class="col-2" />
+                <div class="col-5 text-center" style="border-top:1px solid black;">
+                    RECIBIDO POR:
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_igtf_receipt">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <t t-call="l10n_ve_igtf.report_igtf_receipt_document" />
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

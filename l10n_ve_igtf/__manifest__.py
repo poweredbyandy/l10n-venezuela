@@ -1,6 +1,6 @@
 {
     "name": "Venezuela IGTF",
-    "version": "18.0.1.0.10",
+    "version": "18.0.1.1.0",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
     "author": "andyengit, Odoo Community Association (OCA)",
@@ -14,6 +14,8 @@
         "views/account_payment_register_views.xml",
         "views/res_config_settings.xml",
         "wizard/unreconcile_igtf_payment_views.xml",
+        "report/igtf_receipt_templates.xml",
+        "report/igtf_receipt_reports.xml",
     ],
     "assets": {
         "web.assets_backend": [

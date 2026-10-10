@@ -1,0 +1,12 @@
+.o_l10n_ve_force_currency {
+    width: 5.5rem;
+
+    input.o_input {
+        width: 100% !important;
+    }
+
+    input::placeholder {
+        color: #6c757d;
+        opacity: 1;
+    }
+}

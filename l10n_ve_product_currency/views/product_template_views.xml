@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <record id="product_template_only_form_view" model="ir.ui.view">
         <field name="name">product.template.form.l10n.ve.product.currency</field>
@@ -5,21 +6,68 @@
         <field name="inherit_id" ref="product.product_template_form_view" />
         <field name="priority">8</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='standard_price_uom']" position="after">
+            <field name="currency_id" position="after">
                 <field name="company_currency_id" invisible="1" />
+            </field>
+            <xpath
+                expr="//div[@name='list_price_uom']/span[@name='uom_span']"
+                position="before"
+            >
                 <field
                     name="force_currency_id"
+                    widget="l10n_ve_force_currency"
+                    nolabel="1"
+                    class="oe_inline o_l10n_ve_force_currency"
                     groups="base.group_multi_currency"
                     domain="[('id', '!=', company_currency_id)]"
-                    placeholder="Company currency"
-                    options="{'no_create': True}"
+                    options="{'no_create': True, 'no_open': True, 'placeholder_field': 'currency_id'}"
                 />
+            </xpath>
+            <xpath
+                expr="//div[@name='standard_price_uom']/field[@name='standard_price']"
+                position="after"
+            >
                 <field
                     name="force_cost_currency_id"
+                    widget="l10n_ve_force_currency"
+                    nolabel="1"
+                    class="oe_inline o_l10n_ve_force_currency"
                     groups="base.group_multi_currency"
                     domain="[('id', '!=', company_currency_id)]"
-                    placeholder="Company currency"
-                    options="{'no_create': True}"
+                    options="{'no_create': True, 'no_open': True, 'placeholder_field': 'cost_currency_id'}"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_variant_easy_edit_view" model="ir.ui.view">
+        <field name="name">product.product.form.easy.l10n.ve.product.currency</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view" />
+        <field name="arch" type="xml">
+            <field name="currency_id" position="after">
+                <field name="company_currency_id" invisible="1" />
+            </field>
+            <xpath expr="//field[@name='lst_price']" position="after">
+                <field
+                    name="force_currency_id"
+                    widget="l10n_ve_force_currency"
+                    nolabel="1"
+                    class="oe_inline o_l10n_ve_force_currency"
+                    groups="base.group_multi_currency"
+                    domain="[('id', '!=', company_currency_id)]"
+                    options="{'no_create': True, 'no_open': True, 'placeholder_field': 'currency_id'}"
+                />
+            </xpath>
+            <xpath expr="//field[@name='standard_price']" position="after">
+                <field
+                    name="force_cost_currency_id"
+                    widget="l10n_ve_force_currency"
+                    nolabel="1"
+                    class="oe_inline o_l10n_ve_force_currency"
+                    groups="base.group_multi_currency"
+                    domain="[('id', '!=', company_currency_id)]"
+                    options="{'no_create': True, 'no_open': True, 'placeholder_field': 'cost_currency_id'}"
                 />
             </xpath>
         </field>

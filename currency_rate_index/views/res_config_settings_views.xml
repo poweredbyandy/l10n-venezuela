@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 Anderson Armeya
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.currency.rate.index</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='main_currency']" position="after">
+                <setting
+                    id="currency_index"
+                    string="Moneda índice"
+                    company_dependent="1"
+                    help="Moneda usada como índice para conversiones directas entre monedas extranjeras"
+                    invisible="not group_multi_currency"
+                >
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <label for="currency_index_id" class="col-lg-3 o_light_label" />
+                            <field
+                                name="currency_index_id"
+                                options="{'no_create_edit': True, 'no_open': True}"
+                                domain="[('id', '!=', currency_id)]"
+                            />
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

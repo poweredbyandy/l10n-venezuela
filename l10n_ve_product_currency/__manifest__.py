@@ -1,7 +1,7 @@
 # This module is adapted from ADHOC module: https://github.com/ingadhoc/product/tree/18.0/product_currency
 {
     "name": "Product Currency",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.1.1",
     "category": "Products",
     "sequence": 10,
     "summary": "Select sales and cost currencies on product templates",
@@ -19,6 +19,12 @@
         "views/product_template_views.xml",
         "wizards/product_currency_migrate_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "l10n_ve_product_currency/static/src/fields/force_currency_field.esm.js",
+            "l10n_ve_product_currency/static/src/fields/force_currency_field.scss",
+        ],
+    },
     "demo": [],
     "installable": True,
     "auto_install": False,
