@@ -155,6 +155,70 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         with self.assertRaises(UserError):
             move.action_l10n_ve_open_post_discount_wizard()
 
+    def test_post_discount_credit_note_lines_without_invoice_products(self):
+        sale_tax, reduced_tax = (
+            self.percent_tax(
+                amount,
+                type_tax_use="sale",
+                country_id=self.env.ref("base.ve").id,
+                price_include_override="tax_excluded",
+            )
+            for amount in (16.0, 8.0)
+        )
+        products = self.env["product.product"]
+        for name, price, tax in (
+            ("Gravada", 800.0, sale_tax),
+            ("Reducida", 200.0, reduced_tax),
+        ):
+            product = self._create_product(name=name, list_price=price)
+            product.with_context(
+                l10n_ve_skip_product_tax_constraint=True
+            ).taxes_id = tax
+            products |= product
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_ve.id,
+                "invoice_date": fields.Date.today(),
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "name": product.name,
+                            "quantity": 1.0,
+                            "price_unit": product.list_price,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [Command.set(product.taxes_id.ids)],
+                        }
+                    )
+                    for product in products
+                ],
+            }
+        )
+        invoice.action_post()
+        invoice.l10n_ve_invoice_original_printed = True
+        wizard = self._create_wizard(invoice, mode="amount", amount=100.0)
+        action = wizard.action_apply_discount()
+        credit = self.env["account.move"].browse(action["res_id"])
+        lines = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        self.assertEqual(len(lines), 2)
+        self.assertFalse(lines.product_id)
+        self.assertEqual(
+            set(lines.mapped("name")),
+            {
+                f"Descuento: {self.reason_early.name} ({sale_tax.name})",
+                f"Descuento: {self.reason_early.name} ({reduced_tax.name})",
+            },
+        )
+        self.assertEqual(lines.tax_ids, sale_tax | reduced_tax)
+        self.assertAlmostEqual(credit.amount_untaxed, 100.0, places=2)
+        credit.action_post()
+        self.assertEqual(credit.state, "posted")
+
     def test_post_discount_split_amount_by_weights(self):
         invoice = self._create_posted_invoice()
         parts = invoice._l10n_ve_split_amount_by_weights(100.0, [800.0, 200.0])

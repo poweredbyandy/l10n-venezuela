@@ -911,18 +911,16 @@ class AccountMove(models.Model):
             return product_lines[0].account_id
         return self.journal_id.default_account_id
 
-    def _l10n_ve_post_discount_sample_line_for_taxes(self, taxes):
+    def _l10n_ve_post_discount_line_name(self, reason, taxes):
         self.ensure_one()
-        lines = self.invoice_line_ids.filtered(
-            lambda line: (
-                line.display_type == "product"
-                and set(
-                    line.tax_ids.filtered(lambda tax: tax.amount_type != "fixed").ids
-                )
-                == set(taxes.ids)
-            )
+        discount = _("Descuento: %(reason)s", reason=reason.name)
+        if not taxes:
+            return discount
+        return _(
+            "%(discount)s (%(taxes)s)",
+            discount=discount,
+            taxes=", ".join(taxes.mapped("name")),
         )
-        return lines[:1]
 
     def _l10n_ve_prepare_post_discount_credit_note_lines(
         self, amount, reason, currency=None
@@ -942,27 +940,26 @@ class AccountMove(models.Model):
         parts = self._l10n_ve_split_amount_by_weights(
             amount, weights, currency=currency
         )
-        line_name = _("Descuento: %(reason)s", reason=reason.name)
         line_vals = []
         for taxes, part in zip(tax_groups, parts, strict=False):
             if float_is_zero(part, precision_rounding=currency.rounding):
                 continue
-            sample = self._l10n_ve_post_discount_sample_line_for_taxes(taxes)
             account = self._l10n_ve_post_discount_account_for_taxes(taxes)
             if not account:
                 raise UserError(
                     _("No se encontró una cuenta contable para la nota de crédito.")
                 )
-            vals = {
-                "name": line_name,
-                "quantity": 1.0,
-                "price_unit": part,
-                "account_id": account.id,
-                "tax_ids": [Command.set(taxes.ids)],
-            }
-            if sample.product_id:
-                vals["product_id"] = sample.product_id.id
-            line_vals.append(Command.create(vals))
+            line_vals.append(
+                Command.create(
+                    {
+                        "name": self._l10n_ve_post_discount_line_name(reason, taxes),
+                        "quantity": 1.0,
+                        "price_unit": part,
+                        "account_id": account.id,
+                        "tax_ids": [Command.set(taxes.ids)],
+                    }
+                )
+            )
         if not line_vals:
             raise UserError(_("No se pudo construir líneas para la nota de crédito."))
         return line_vals
