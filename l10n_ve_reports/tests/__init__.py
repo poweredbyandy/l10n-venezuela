@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from . import test_aged_partner_document_label
+from . import test_aged_partner_journal_filter
 from . import test_bank_cash_book_report
 from . import test_book_report_summary
 from . import test_customer_statement_report

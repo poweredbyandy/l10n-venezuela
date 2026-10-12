@@ -8,6 +8,12 @@ To generate the auxiliary liquidity books:
 
 Each book only includes posted movements on the default liquidity account of the selected journals.
 
+To review receivables and payables by journal:
+
+#. Open **🇻🇪 Aged Receivable** or **🇻🇪 Aged Payable**.
+#. Use the **Journals** filter to select one or more journals.
+#. The aging buckets and the audit of each cell only include items from the selected journals. With no journal selected, all journals are included.
+
 To review payments:
 
 #. Go to **Accounting > SENIAT > Reports**.
