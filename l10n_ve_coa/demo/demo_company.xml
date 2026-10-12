@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <function model="account.chart.template" name="try_loading">
+        <value eval="[]" />
+        <value>ve_seniat</value>
+        <value
+            model="res.company"
+            eval="obj().env.ref('l10n_ve_seniat.demo_company_ve')"
+        />
+        <value name="install_demo" eval="True" />
+    </function>
+</odoo>

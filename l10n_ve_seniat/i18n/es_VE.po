@@ -2358,25 +2358,11 @@ msgid "Responsible User"
 msgstr "Responsable Usuario"
 
 #. module: l10n_ve_seniat
-#. odoo-python
-#: code:addons/l10n_ve_seniat/models/template_ve.py:0
 #: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_root
 #: model:res.groups,name:l10n_ve_seniat.group_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_journal_form_inherit
 msgid "SENIAT"
 msgstr "SENIAT"
-
-#. module: l10n_ve_seniat
-#. odoo-python
-#: code:addons/l10n_ve_seniat/models/template_ve.py:0
-msgid "SENIAT - Basic"
-msgstr "SÉNIAT - Básico"
-
-#. module: l10n_ve_seniat
-#. odoo-python
-#: code:addons/l10n_ve_seniat/models/template_ve.py:0
-msgid "SENIAT - Empty"
-msgstr "SENIAT - Vacío"
 
 #. module: l10n_ve_seniat
 #: model:res.groups,name:l10n_ve_seniat.group_seniat_readonly

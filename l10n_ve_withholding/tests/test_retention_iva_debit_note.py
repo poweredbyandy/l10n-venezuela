@@ -11,6 +11,18 @@ class TestRetentionIvaDebitNote(L10nVeSeniatCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._l10n_ve_setup_tax_groups()
+        company = cls.env.company
+        if not company.iva_supplier_retention_journal_id:
+            company.iva_supplier_retention_journal_id = cls.env[
+                "account.journal"
+            ].search(
+                [("company_id", "=", company.id), ("code", "=", "RIP")],
+                limit=1,
+            )
+        journal = company.iva_supplier_retention_journal_id
+        if journal and not journal.default_account_id:
+            journal.default_account_id = cls.company_data["default_account_payable"]
         cls.supplier = cls.env["res.partner"].create(
             {
                 "name": "Proveedor retención ND",

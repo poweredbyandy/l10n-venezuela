@@ -376,6 +376,10 @@ de notas de crédito y notas de débito tanto para facturas de cliente
 como de proveedor (<tt class="docutils literal">out_invoice</tt> / <tt class="docutils literal">in_invoice</tt>).</p>
 <p>Los descuentos globales y post-factura están en el módulo opcional
 <tt class="docutils literal">l10n_ve_loyalty</tt>.</p>
+<p>Los planes de cuentas venezolanos, con sus impuestos, grupos de
+impuestos y posiciones fiscales, están en <tt class="docutils literal">l10n_ve_coa</tt>. Este módulo
+no depende de él; al actualizarlo, si alguna compañía usa un plan
+SENIAT, la migración instala <tt class="docutils literal">l10n_ve_coa</tt> sin recargar el plan.</p>
 <p>Permite configurar por compañía los medios de emisión de facturas y
 otros documentos (forma libre, máquina fiscal y facturación digital).</p>
 <p>Los reportes nativos de facturas omiten el encabezado del diseño

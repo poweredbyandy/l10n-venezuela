@@ -6,6 +6,11 @@ proveedor (`out_invoice` / `in_invoice`).
 
 Los descuentos globales y post-factura están en el módulo opcional `l10n_ve_loyalty`.
 
+Los planes de cuentas venezolanos, con sus impuestos, grupos de impuestos y
+posiciones fiscales, están en `l10n_ve_coa`. Este módulo no depende de él; al
+actualizarlo, si alguna compañía usa un plan SENIAT, la migración instala
+`l10n_ve_coa` sin recargar el plan.
+
 Permite configurar por compañía los medios de emisión de facturas y otros
 documentos (forma libre, máquina fiscal y facturación digital).
 

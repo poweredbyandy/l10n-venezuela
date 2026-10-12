@@ -8,6 +8,7 @@ class TestL10nVeIgtfCommon(L10nVeSeniatCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._l10n_ve_setup_tax_groups()
 
         cls.company = cls.env.company
         cls.company_data_ve = cls.company_data

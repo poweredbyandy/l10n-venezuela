@@ -12,6 +12,7 @@ class TestProductTemplateL10nVe(L10nVeSeniatCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._l10n_ve_setup_tax_groups()
         cls.sale_tax = cls.company_data["default_tax_sale"]
         cls.purchase_tax = cls.company_data["default_tax_purchase"]
         cls.sale_tax_b = cls.env["account.tax"].create(

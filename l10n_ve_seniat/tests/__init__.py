@@ -1,6 +1,5 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from . import test_account_book
-from . import test_chart_template_ve
 from . import test_coverage_extra
 from . import test_account_move_refund_currency
 from . import test_res_partner

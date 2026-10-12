@@ -6,6 +6,8 @@ from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
 class L10nVeSeniatCommon(AccountTestInvoicingCommon):
+    chart_template = "generic_coa"
+
     @classmethod
     def _create_product(cls, **create_values):
         sale_tax = cls.company_data.get("default_tax_sale")
@@ -45,13 +47,13 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
 
     @classmethod
     @AccountTestInvoicingCommon.setup_country("ve")
-    @AccountTestInvoicingCommon.setup_chart_template("ve_seniat")
     def setUpClass(cls):
         super().setUpClass()
         cls.env.company.partner_id.write(
             {"vat": "J770023598", "country_id": cls.env.ref("base.ve").id}
         )
         cls.change_company_country(cls.env.company, cls.env.ref("base.ve"))
+        cls.env.company.tax_calculation_rounding_method = "round_globally"
         cls._l10n_ve_normalize_default_taxes()
         cls._setup_l10n_ve_sale_journal_sections()
         cls._l10n_ve_set_company_emission_medium_codes("free_form")
@@ -99,10 +101,7 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
                 "country_id": cls.env.ref("base.ve").id,
                 "price_include_override": "tax_excluded",
             }
-            if tax.amount_type == "percent" and tax.amount:
-                # Keep chart amounts (typically 16%); only force exclude-from-price.
-                pass
-            elif tax.amount_type == "percent":
+            if tax.amount_type == "percent":
                 vals["amount"] = 16.0
             tax.write(vals)
             children = tax.flatten_taxes_hierarchy() - tax
@@ -113,6 +112,57 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
                         "price_include_override": "tax_excluded",
                     }
                 )
+
+    @classmethod
+    def _l10n_ve_setup_tax_groups(cls):
+        company = cls.env.company
+        ve = cls.env.ref("base.ve")
+        TaxGroup = cls.env["account.tax.group"].sudo()
+        groups = {}
+        for aliquot_type, name, sequence in (
+            ("exempt", "IVA 0%", 10),
+            ("general", "IVA 16%", 20),
+            ("reduced", "IVA 8%", 30),
+            ("extend", "IVA 31%", 40),
+        ):
+            group = TaxGroup.search(
+                [
+                    ("company_id", "=", company.id),
+                    ("l10n_ve_aliquot_type", "=", aliquot_type),
+                ],
+                limit=1,
+            )
+            if not group:
+                group = TaxGroup.create(
+                    {
+                        "name": name,
+                        "company_id": company.id,
+                        "country_id": ve.id,
+                        "sequence": sequence,
+                        "l10n_ve_aliquot_type": aliquot_type,
+                    }
+                )
+            groups[aliquot_type] = group
+        for tax_key in ("default_tax_sale", "default_tax_purchase"):
+            tax = cls.company_data.get(tax_key)
+            if tax:
+                tax.sudo().tax_group_id = groups["general"]
+        for type_tax_use in ("sale", "purchase"):
+            if groups["exempt"]._l10n_ve_get_representative_tax(type_tax_use):
+                continue
+            cls.env["account.tax"].sudo().create(
+                {
+                    "name": "Exento",
+                    "invoice_label": "Exento",
+                    "amount": 0.0,
+                    "amount_type": "percent",
+                    "type_tax_use": type_tax_use,
+                    "tax_group_id": groups["exempt"].id,
+                    "company_id": company.id,
+                    "country_id": ve.id,
+                }
+            )
+        return groups
 
     @classmethod
     def _l10n_ve_normalize_fixture_products(cls):

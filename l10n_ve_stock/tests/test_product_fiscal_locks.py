@@ -11,6 +11,7 @@ class TestL10nVeStockProductFiscalLocks(L10nVeSeniatCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._l10n_ve_setup_tax_groups()
         if not getattr(cls, "tax_sale_b", None):
             cls.tax_sale_b = cls.tax_sale_a.copy({"name": "sale_tax_b_dup"})
         cls.locked_user = new_test_user(

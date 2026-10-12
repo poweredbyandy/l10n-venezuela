@@ -15,6 +15,7 @@ class TestL10nVeInvoiceEscp(L10nVeSeniatCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._l10n_ve_setup_tax_groups()
         cls.report = cls.env.ref("l10n_ve_invoice_escp.l10n_ve_escp_report_invoice")
 
     def _invoice(self, name, vat, price=10.0, qty=1.0, lines=1, post=True):
