@@ -19,25 +19,24 @@ class TestL10nVeIrUiMenu(L10nVeSeniatCommon):
             "l10n_ve_reports.menu_seniat_report_sales_book_fiscal_machine",
             raise_if_not_found=False,
         )
-        cls.fiscal_medium = cls.env.ref("l10n_ve_seniat.emission_medium_fiscal_machine")
+        cls.sale_journal = cls.company_data["default_journal_sale"]
+
+    def _use_fiscal_machine_journal(self):
+        self._l10n_ve_configure_journal_fiscal_machine(self.sale_journal)
 
     def test_fiscal_machine_menu_hidden_without_medium(self):
         if not self.menu:
             self.skipTest("l10n_ve_fiscal_serial is not installed.")
-        self.env.company.write({"l10n_ve_emission_medium_ids": [(5, 0, 0)]})
-        self.env.registry.clear_cache()
         blacklist = self.env["ir.ui.menu"]._l10n_ve_emission_medium_menus_blacklist()
         self.assertIn(self.menu.id, blacklist)
         menus = self.env["ir.ui.menu"].load_menus(False)
         self.assertNotIn(self.menu.id, menus)
 
-    def test_fiscal_machine_menu_visible_from_company_medium(self):
+    def test_fiscal_machine_menu_visible_from_journal_medium(self):
         if not self.menu:
             self.skipTest("l10n_ve_fiscal_serial is not installed.")
-        self.env.company.write(
-            {"l10n_ve_emission_medium_ids": [(6, 0, [self.fiscal_medium.id])]}
-        )
-        self.env.registry.clear_cache()
+        self.env["ir.ui.menu"].load_menus(False)
+        self._use_fiscal_machine_journal()
         blacklist = self.env["ir.ui.menu"]._l10n_ve_emission_medium_menus_blacklist()
         self.assertNotIn(self.menu.id, blacklist)
         menus = self.env["ir.ui.menu"].load_menus(False)
@@ -46,16 +45,13 @@ class TestL10nVeIrUiMenu(L10nVeSeniatCommon):
     def test_fiscal_machine_report_menu_hidden_without_medium(self):
         if not self.report_menu:
             self.skipTest("l10n_ve_reports fiscal machine menu is not installed.")
-        self.env.company.write({"l10n_ve_emission_medium_ids": [(5, 0, 0)]})
         blacklist = self.env["ir.ui.menu"]._l10n_ve_emission_medium_menus_blacklist()
         self.assertIn(self.report_menu.id, blacklist)
 
-    def test_fiscal_machine_report_menu_visible_from_company_medium(self):
+    def test_fiscal_machine_report_menu_visible_from_journal_medium(self):
         if not self.report_menu:
             self.skipTest("l10n_ve_reports fiscal machine menu is not installed.")
-        self.env.company.write(
-            {"l10n_ve_emission_medium_ids": [(6, 0, [self.fiscal_medium.id])]}
-        )
+        self._use_fiscal_machine_journal()
         blacklist = self.env["ir.ui.menu"]._l10n_ve_emission_medium_menus_blacklist()
         self.assertNotIn(self.report_menu.id, blacklist)
 
@@ -66,12 +62,8 @@ class TestL10nVeIrUiMenu(L10nVeSeniatCommon):
         other_company = self.env["res.company"].create(
             {"name": "Other Co Menu Test", "country_id": self.env.ref("base.ve").id}
         )
-        company.write(
-            {"l10n_ve_emission_medium_ids": [(6, 0, [self.fiscal_medium.id])]}
-        )
-        other_company.write({"l10n_ve_emission_medium_ids": [(5, 0, 0)]})
+        self._use_fiscal_machine_journal()
         self.env.user.company_ids |= other_company
-        self.env.registry.clear_cache()
         menus_with = (
             self.env["ir.ui.menu"]
             .with_context(allowed_company_ids=[company.id])

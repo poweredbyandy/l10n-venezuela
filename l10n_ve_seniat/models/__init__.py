@@ -3,7 +3,6 @@ from . import res_partner
 from . import res_users
 from . import account_tax_group
 from . import res_company
-from . import l10n_ve_emission_medium
 from . import res_config_settings
 from . import account_book
 from . import l10n_ve_book_folio_void

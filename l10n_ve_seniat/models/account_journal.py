@@ -1,8 +1,9 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
-VE_JOURNAL_EMISSION_TO_COMPANY_CODE = {
+VE_JOURNAL_EMISSION_CODES = {
     "free": "free_form",
+    "contingency": "contingency",
     "fiscal_machine": "fiscal_machine",
     "digital": "digital_billing",
 }
@@ -11,29 +12,6 @@ VE_JOURNAL_EMISSION_TO_COMPANY_CODE = {
 # pylint: disable=consider-merging-classes-inherited
 class AccountJournal(models.Model):
     _inherit = "account.journal"
-
-    l10n_ve_emission_medium = fields.Selection(
-        selection=[
-            ("free", "Forma libre (correlativo de talonario)"),
-            ("contingency", "Contingencia"),
-            ("fiscal_machine", "Máquina fiscal"),
-            ("digital", "Facturación digital"),
-        ],
-        string="Medio de emisión",
-        copy=False,
-        help=(
-            "Forma libre: asigna correlativo desde el talonario interno. "
-            "Contingencia: no usa el talonario; el N° de control se indica en la "
-            "factura antes de confirmar. Máquina fiscal y facturación digital: "
-            "tampoco generan correlativo automático del talonario; el N° de control "
-            "debe consignarse manualmente antes de confirmar."
-        ),
-    )
-
-    def _l10n_ve_company_emission_medium_code(self):
-        """Map journal emission medium to company settings code, if applicable."""
-        self.ensure_one()
-        return VE_JOURNAL_EMISSION_TO_COMPANY_CODE.get(self.l10n_ve_emission_medium)
 
     l10n_ve_free_form_print_medium = fields.Selection(
         selection=[
@@ -246,3 +224,16 @@ class AccountJournal(models.Model):
                             "journal": journal.display_name,
                         }
                     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        journals = super().create(vals_list)
+        if any(vals.get("l10n_ve_emission_medium") for vals in vals_list):
+            self.env.registry.clear_cache()
+        return journals
+
+    def write(self, vals):
+        res = super().write(vals)
+        if {"l10n_ve_emission_medium", "type", "active", "company_id"} & set(vals):
+            self.env.registry.clear_cache()
+        return res

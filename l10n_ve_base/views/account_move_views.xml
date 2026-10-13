@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_move_form" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.ve.base</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <xpath
+                expr="//group[@id='header_right_group']/label[@for='invoice_date'][1]"
+                position="before"
+            >
+                <label
+                    for="l10n_ve_invoice_date"
+                    string="Fecha del documento"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund')"
+                />
+                <field
+                    name="l10n_ve_invoice_date"
+                    nolabel="1"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund')"
+                    readonly="state == 'posted'"
+                />
+            </xpath>
+            <xpath expr="//field[@name='country_code']" position="after">
+                <field name="l10n_ve_journal_emission_medium" invisible="1" />
+            </xpath>
+            <xpath expr="//group[@id='header_left_group']/*[1]" position="before">
+                <label
+                    for="l10n_ve_control_number"
+                    class="text-danger"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or (move_type in ('out_invoice', 'out_refund') and not l10n_ve_control_number and (not l10n_ve_journal_emission_medium or (l10n_ve_journal_emission_medium == 'fiscal_machine' and not l10n_ve_on_behalf_of_third_party)))"
+                >N° Control:</label>
+                <field
+                    class="text-danger"
+                    name="l10n_ve_control_number"
+                    placeholder="00-00000000-0"
+                    nolabel="1"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or (move_type in ('out_invoice', 'out_refund') and not l10n_ve_control_number and (not l10n_ve_journal_emission_medium or (l10n_ve_journal_emission_medium == 'fiscal_machine' and not l10n_ve_on_behalf_of_third_party)))"
+                    readonly="move_type in ('out_invoice', 'out_refund') and (state == 'posted' or not l10n_ve_journal_emission_medium or l10n_ve_journal_emission_medium == 'free' or l10n_ve_journal_emission_medium == 'digital')"
+                    required="country_code == 'VE' and state == 'draft' and move_type in ('out_invoice', 'out_refund') and l10n_ve_journal_emission_medium and l10n_ve_journal_emission_medium != 'free' and l10n_ve_journal_emission_medium != 'digital' and l10n_ve_journal_emission_medium != 'contingency' and (l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party)"
+                />
+                <label
+                    for="l10n_ve_serial_number"
+                    string="Máquina Fiscal"
+                    style="font-weight:bold;"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
+                />
+                <div
+                    class="o_col"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
+                >
+                    <field
+                        name="l10n_ve_serial_number"
+                        nolabel="1"
+                        placeholder="Serial"
+                        readonly="state != 'posted'"
+                    />
+                    <field
+                        name="l10n_ve_invoice_number"
+                        nolabel="1"
+                        placeholder="N° Factura"
+                        readonly="state != 'posted'"
+                    />
+                    <field
+                        name="l10n_ve_report_z"
+                        nolabel="1"
+                        placeholder="Reporte Z"
+                        readonly="state != 'posted'"
+                    />
+                </div>
+            </xpath>
+            <xpath
+                expr="//group[@id='header_left_group']/div[hasclass('o_col')][.//field[@name='partner_id'][@widget='res_partner_many2one']]"
+                position="after"
+            >
+                <field name="l10n_ve_on_behalf_of_third_party" invisible="1" />
+                <label
+                    for="l10n_ve_third_party_partner_id"
+                    style="font-weight:bold;"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or (state != 'draft' and not l10n_ve_third_party_partner_id)"
+                />
+                <field
+                    name="l10n_ve_third_party_partner_id"
+                    widget="res_partner_many2one"
+                    nolabel="1"
+                    context="{
+                        'res_partner_search_mode': (move_type in ('out_invoice', 'out_refund') and 'customer') or (move_type in ('in_invoice', 'in_refund') and 'supplier') or False,
+                        'show_address': 1,
+                        'default_is_company': True,
+                        'show_vat': True,
+                    }"
+                    options='{"no_quick_create": True, "no_create": False, "no_create_edit": False}'
+                    placeholder="Buscar nombre o RIF..."
+                    readonly="state != 'draft'"
+                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or (state != 'draft' and not l10n_ve_third_party_partner_id)"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_invoice_tree" model="ir.ui.view">
+        <field name="name">account.invoice.list.l10n.ve.base</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree" />
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field
+                    name="l10n_ve_control_number"
+                    string="N° Control"
+                    optional="show"
+                    decoration-danger="1"
+                    readonly="move_type in ('out_invoice', 'out_refund') and (state == 'posted' or not l10n_ve_journal_emission_medium or l10n_ve_journal_emission_medium == 'free' or l10n_ve_journal_emission_medium == 'digital')"
+                />
+                <field name="l10n_ve_journal_emission_medium" column_invisible="True" />
+                <field
+                    name="l10n_ve_invoice_number"
+                    string="N° Factura"
+                    optional="hide"
+                />
+                <field name="l10n_ve_report_z" string="Reporte Z" optional="hide" />
+                <field name="l10n_ve_serial_number" string="Serial" optional="hide" />
+            </xpath>
+            <xpath
+                expr="//field[@name='invoice_date'][@column_invisible=&quot;context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt')&quot;]"
+                position="after"
+            >
+                <field
+                    name="l10n_ve_invoice_date"
+                    string="Fecha del documento"
+                    optional="hide"
+                    column_invisible="context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt')"
+                    readonly="state == 'posted'"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

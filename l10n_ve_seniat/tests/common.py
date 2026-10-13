@@ -56,7 +56,6 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
         cls.env.company.tax_calculation_rounding_method = "round_globally"
         cls._l10n_ve_normalize_default_taxes()
         cls._setup_l10n_ve_sale_journal_sections()
-        cls._l10n_ve_set_company_emission_medium_codes("free_form")
         cls.company_data["default_journal_sale"].write(
             {
                 "l10n_ve_emission_medium": "free",
@@ -185,13 +184,6 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
                 ).sudo().write(vals)
 
     @classmethod
-    def _l10n_ve_set_company_emission_medium_codes(cls, *codes):
-        mediums = cls.env["l10n.ve.emission.medium"].search(
-            [("code", "in", list(codes))]
-        )
-        cls.env.company.write({"l10n_ve_emission_medium_ids": [(6, 0, mediums.ids)]})
-
-    @classmethod
     def _setup_l10n_ve_sale_journal_sections(cls):
         company = cls.env.company
         journal = cls.company_data["default_journal_sale"]
@@ -247,7 +239,6 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
 
     @classmethod
     def _l10n_ve_configure_journal_fiscal_machine(cls, journal, **extra):
-        cls._l10n_ve_set_company_emission_medium_codes("fiscal_machine")
         vals = {"l10n_ve_emission_medium": "fiscal_machine"}
         if "l10n_ve_fiscal_machine_id" in journal._fields:
             machine_model = cls.env["l10n.ve.fiscal.machine"].sudo()
@@ -269,7 +260,6 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
 
     @classmethod
     def _l10n_ve_configure_journal_digital(cls, journal, **extra):
-        cls._l10n_ve_set_company_emission_medium_codes("digital_billing")
         vals = {
             "l10n_ve_emission_medium": "digital",
             "l10n_ve_invoice_section_id": False,
@@ -281,7 +271,6 @@ class L10nVeSeniatCommon(AccountTestInvoicingCommon):
 
     @classmethod
     def _l10n_ve_configure_journal_free(cls, journal, print_medium="pdf", **extra):
-        cls._l10n_ve_set_company_emission_medium_codes("free_form")
         vals = {
             "l10n_ve_emission_medium": "free",
             "l10n_ve_free_form_print_medium": print_medium,

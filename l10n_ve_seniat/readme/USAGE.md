@@ -3,9 +3,9 @@
 Medios de emisión
 -----------------
 
-En **SENIAT → Empresas** el kanban muestra los medios de emisión asignados
-a cada compañía. La selección se realiza en los ajustes de Contabilidad
-(véase la sección de configuración).
+Cada factura toma el medio de emisión de su diario. Los menús y columnas
+propios de un medio (por ejemplo, máquinas fiscales o número de control) solo
+aparecen si la compañía activa tiene un diario de ventas con ese medio.
 
 Notas de crédito y débito
 -------------------------

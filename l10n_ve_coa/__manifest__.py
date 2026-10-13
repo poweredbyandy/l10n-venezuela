@@ -6,9 +6,10 @@
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Accounting/Localizations/Account Charts",
-    "depends": ["l10n_ve_seniat"],
+    "depends": ["account", "l10n_ve_base", "l10n_ve_address"],
     "demo": [
         "demo/demo_company.xml",
     ],
     "license": "AGPL-3",
+    "pre_init_hook": "pre_init_hook",
 }

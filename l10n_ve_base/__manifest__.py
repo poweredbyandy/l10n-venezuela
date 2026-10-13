@@ -1,0 +1,20 @@
+{
+    "name": "Venezuela - Base",
+    "summary": "Basic Venezuelan fiscal fields on invoices, taxes and partners",
+    "version": "18.0.1.0.0",
+    "website": "https://github.com/OCA/l10n-venezuela",
+    "countries": ["ve"],
+    "author": "andyengit, Odoo Community Association (OCA)",
+    "maintainers": ["andyengit"],
+    "category": "Accounting/Localizations",
+    "depends": ["account"],
+    "data": [
+        "views/account_journal_views.xml",
+        "views/account_move_views.xml",
+        "views/account_tax_group_views.xml",
+        "views/res_partner_views.xml",
+        "views/res_company_views.xml",
+    ],
+    "license": "AGPL-3",
+    "pre_init_hook": "pre_init_hook",
+}

@@ -311,23 +311,6 @@ class AccountMove(models.Model):
     l10n_ve_use_reception_date_payment_term = fields.Boolean(
         compute="_compute_l10n_ve_use_reception_date_payment_term",
     )
-    l10n_ve_invoice_date = fields.Datetime(
-        string="Fecha del documento",
-        copy=False,
-        tracking=True,
-        help=(
-            "Forma libre: si está vacía se asigna al confirmar; si ya tiene fecha se "
-            "mantiene. Contingencia: indíquela antes de confirmar. Facturación "
-            "digital: fecha de sincronización con la imprenta. Máquina fiscal: fecha "
-            "en que se imprimió el documento."
-        ),
-    )
-    l10n_ve_control_number = fields.Char(
-        string="Control Number",
-        copy=False,
-        store=True,
-        tracking=True,
-    )
     l10n_ve_control_number_placeholder = fields.Char(
         string="Próximo N° de control (previsto)",
         compute="_compute_l10n_ve_control_number_placeholder",
@@ -335,11 +318,6 @@ class AccountMove(models.Model):
     )
     l10n_ve_show_control_number_ui = fields.Boolean(
         compute="_compute_l10n_ve_show_control_number_ui",
-    )
-    l10n_ve_journal_emission_medium = fields.Selection(
-        related="journal_id.l10n_ve_emission_medium",
-        string="Medio de emisión (diario)",
-        readonly=True,
     )
     l10n_ve_show_credit_debit_actions = fields.Boolean(
         compute="_compute_l10n_ve_show_credit_debit_actions",
@@ -1098,44 +1076,9 @@ class AccountMove(models.Model):
             and self._l10n_ve_get_effective_emission_medium() == "fiscal_machine"
         )
 
-    l10n_ve_serial_number = fields.Char(
-        string="Fiscal Machine Serial",
-        copy=False,
-        tracking=True,
-        help="Serial number of the fiscal machine",
-    )
-    l10n_ve_invoice_number = fields.Char(
-        string="Fiscal Invoice Number",
-        copy=False,
-        tracking=True,
-        help="Invoice number from the fiscal machine",
-    )
-    l10n_ve_report_z = fields.Char(
-        string="Report Z Number",
-        copy=False,
-        tracking=True,
-        help="Report Z number from the fiscal machine",
-    )
     l10n_ve_on_behalf_of_third_party_enabled = fields.Boolean(
         related="company_id.l10n_ve_on_behalf_of_third_party_enabled",
         readonly=True,
-    )
-    l10n_ve_on_behalf_of_third_party = fields.Boolean(
-        string="Indicador por cuenta de terceros",
-        compute="_compute_l10n_ve_on_behalf_of_third_party",
-        store=True,
-        copy=False,
-        help=(
-            "Verdadero si hay un contacto en Por cuenta de Terceros en "
-            "facturas de cliente. Según Art. 11 PA00071, esas operaciones "
-            "deben emitirse en forma libre."
-        ),
-    )
-    l10n_ve_third_party_partner_id = fields.Many2one(
-        "res.partner",
-        string="Por cuenta de Terceros",
-        copy=False,
-        ondelete="restrict",
     )
     l10n_ve_cancel_reason_id = fields.Many2one(
         "l10n_ve.invoice.cancel.reason",
@@ -1144,22 +1087,6 @@ class AccountMove(models.Model):
         readonly=True,
         tracking=True,
     )
-
-    @api.depends("l10n_ve_third_party_partner_id", "move_type")
-    def _compute_l10n_ve_on_behalf_of_third_party(self):
-        """Marca documentos emitidos por cuenta de terceros.
-
-        Notes
-        -----
-        Art. 10 Decreto con Rango, Valor y Fuerza de Ley del IVA.
-        Art. 11 y Art. 32 PA SNAT/2011/0071: deben emitirse en forma libre.
-        """
-
-        for move in self:
-            move.l10n_ve_on_behalf_of_third_party = bool(
-                move.l10n_ve_third_party_partner_id
-                and move.move_type in ("out_invoice", "out_refund")
-            )
 
     l10n_ve_certified_copy_deadline = fields.Date(
         string="Plazo entrega copia certificada",
@@ -1196,30 +1123,6 @@ class AccountMove(models.Model):
                 move.l10n_ve_certified_copy_deadline = next_month.replace(day=5)
             else:
                 move.l10n_ve_certified_copy_deadline = False
-
-    def _l10n_ve_emission_medium_label(self, journal, medium):
-        return dict(
-            journal._fields["l10n_ve_emission_medium"]._description_selection(self.env)
-        ).get(medium, medium)
-
-    def _l10n_ve_check_company_has_journal_medium(self, journal, medium):
-        company_medium_code = journal._l10n_ve_company_emission_medium_code()
-        if company_medium_code and not self.company_id._l10n_ve_has_emission_medium(
-            company_medium_code
-        ):
-            raise ValidationError(
-                _(
-                    "No se puede confirmar el documento “%(doc)s”. "
-                    "El diario “%(journal)s” usa el medio de emisión "
-                    "“%(medium)s”, pero ese medio no está configurado en los "
-                    "medios de emisión de la compañía."
-                )
-                % {
-                    "doc": self.name or _("Borrador"),
-                    "journal": journal.display_name,
-                    "medium": self._l10n_ve_emission_medium_label(journal, medium),
-                }
-            )
 
     def _l10n_ve_validate_emission_control_number(self, journal, medium):
         if medium == "contingency" and not self.l10n_ve_invoice_date:
@@ -1308,7 +1211,6 @@ class AccountMove(models.Model):
         medium = journal.l10n_ve_emission_medium
         if not medium:
             return
-        self._l10n_ve_check_company_has_journal_medium(journal, medium)
         self._l10n_ve_validate_emission_control_number(journal, medium)
 
     def _l10n_ve_validate_partner_vat_format_enabled(self):

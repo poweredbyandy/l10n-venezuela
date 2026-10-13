@@ -37,13 +37,22 @@ como de proveedor (``out_invoice`` / ``in_invoice``).
 Los descuentos globales y post-factura están en el módulo opcional
 ``l10n_ve_loyalty``.
 
-Los planes de cuentas venezolanos, con sus impuestos, grupos de
-impuestos y posiciones fiscales, están en ``l10n_ve_coa``. Este módulo
-no depende de él; al actualizarlo, si alguna compañía usa un plan
-SENIAT, la migración instala ``l10n_ve_coa`` sin recargar el plan.
+Los campos fiscales básicos (fecha del documento, número de control,
+datos de máquina fiscal, por cuenta de terceros, alícuota del grupo de
+impuestos y tipo de contribuyente) y sus vistas están en
+``l10n_ve_base``; este módulo agrega sus validaciones, la visibilidad
+según el medio de emisión y los reportes.
 
-Permite configurar por compañía los medios de emisión de facturas y
-otros documentos (forma libre, máquina fiscal y facturación digital).
+Los planes de cuentas venezolanos, con sus impuestos, grupos de
+impuestos, posiciones fiscales y la compañía demo, están en
+``l10n_ve_coa``. Ninguno de los dos depende del otro; al actualizarlo,
+si alguna compañía usa un plan SENIAT, la migración instala
+``l10n_ve_coa`` sin recargar el plan.
+
+El medio de emisión (forma libre, contingencia, máquina fiscal o
+facturación digital) se configura en cada diario de ventas. Los medios
+de una compañía son los de sus diarios de ventas activos, y con ellos se
+muestran u ocultan los menús y columnas que dependen del medio.
 
 Los reportes nativos de facturas omiten el encabezado del diseño
 seleccionado. El título muestra únicamente el nombre del documento y los
@@ -71,14 +80,14 @@ Configure
 Medios de emisión
 -----------------
 
-1. Vaya a **Contabilidad → Configuración → Ajustes**.
-2. En el bloque **Venezuela**, seleccione los **Medios de emisión** de
-   la compañía (forma libre, máquina fiscal y/o facturación digital).
-3. Guarde los ajustes.
+1. Vaya a **Contabilidad → Configuración → Diarios** y abra un diario de
+   ventas.
+2. Seleccione el **Medio de emisión** (forma libre, contingencia,
+   máquina fiscal o facturación digital) y complete los datos que pida
+   el medio.
+3. Guarde el diario.
 
-También puede gestionar el catálogo desde **SENIAT → Localización →
-Medios de emisión**, y ver los medios asignados en **SENIAT →
-Empresas**.
+La compañía usa los medios de todos sus diarios de ventas activos.
 
 Fecha de recepción
 ------------------
@@ -96,9 +105,10 @@ Usage
 Medios de emisión
 -----------------
 
-En **SENIAT → Empresas** el kanban muestra los medios de emisión
-asignados a cada compañía. La selección se realiza en los ajustes de
-Contabilidad (véase la sección de configuración).
+Cada factura toma el medio de emisión de su diario. Los menús y columnas
+propios de un medio (por ejemplo, máquinas fiscales o número de control)
+solo aparecen si la compañía activa tiene un diario de ventas con ese
+medio.
 
 Notas de crédito y débito
 -------------------------

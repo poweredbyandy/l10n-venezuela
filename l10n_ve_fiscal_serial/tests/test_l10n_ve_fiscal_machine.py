@@ -108,14 +108,11 @@ class TestL10nVeFiscalMachine(L10nVeSeniatCommon):
 
     def test_systray_data_hidden_without_fiscal_machine_medium(self):
         machine_model = self.env["l10n.ve.fiscal.machine"]
-        self.env.company.write({"l10n_ve_emission_medium_ids": [(5, 0, 0)]})
         data = machine_model.l10n_ve_fiscal_serial_get_systray_data()
         self.assertFalse(data["visible"])
 
     def test_systray_data_with_fiscal_machine(self):
         machine_model = self.env["l10n.ve.fiscal.machine"]
-        medium = self.env.ref("l10n_ve_seniat.emission_medium_fiscal_machine")
-        self.env.company.write({"l10n_ve_emission_medium_ids": [(6, 0, [medium.id])]})
         machine = machine_model.create(
             {
                 "name": "HKA Systray Test",

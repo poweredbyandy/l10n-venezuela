@@ -1,0 +1,210 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_base
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-14 01:54+0000\n"
+"PO-Revision-Date: 2026-06-14 02:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_base
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_move_form
+msgid "Buscar nombre o RIF..."
+msgstr "Buscar nombre o RIF..."
+
+#. module: l10n_ve_base
+#: model:ir.model.fields.selection,name:l10n_ve_base.selection__account_journal__l10n_ve_emission_medium__contingency
+msgid "Contingencia"
+msgstr "Contingencia"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_bank_statement_line__l10n_ve_control_number
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_move__l10n_ve_control_number
+msgid "Control Number"
+msgstr "Control Número"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields.selection,name:l10n_ve_base.selection__account_journal__l10n_ve_emission_medium__digital
+msgid "Facturación digital"
+msgstr "Facturación digital"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_bank_statement_line__l10n_ve_invoice_date
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_move__l10n_ve_invoice_date
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_invoice_tree
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_move_form
+msgid "Fecha del documento"
+msgstr "Fecha y hora de la factura"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_bank_statement_line__l10n_ve_invoice_number
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_move__l10n_ve_invoice_number
+msgid "Fiscal Invoice Number"
+msgstr "Número de factura fiscal"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_bank_statement_line__l10n_ve_serial_number
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_move__l10n_ve_serial_number
+msgid "Fiscal Machine Serial"
+msgstr "Serie de máquinas fiscales"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields.selection,name:l10n_ve_base.selection__account_journal__l10n_ve_emission_medium__free
+msgid "Forma libre (correlativo de talonario)"
+msgstr "Forma libre (correlativo de talonario)"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,help:l10n_ve_base.field_account_journal__l10n_ve_emission_medium
+#: model:ir.model.fields,help:l10n_ve_base.field_account_bank_statement_line__l10n_ve_journal_emission_medium
+#: model:ir.model.fields,help:l10n_ve_base.field_account_move__l10n_ve_journal_emission_medium
+msgid ""
+"Forma libre: asigna correlativo desde el talonario interno. Contingencia: no"
+" usa el talonario; el N° de control se indica en la factura antes de "
+"confirmar. Máquina fiscal y facturación digital: tampoco generan correlativo"
+" automático del talonario; el N° de control debe consignarse manualmente "
+"antes de confirmar."
+msgstr ""
+"Forma libre: asigna correlativo desde el talonario interno. Contingencia: no"
+" usa el talonario; el N° de control se indica en la factura antes de "
+"confirmar. Máquina fiscal y facturación digital: tampoco generan correlativo"
+" automático del talonario; el N° de control debe consignarse manualmente "
+"antes de confirmar."
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,help:l10n_ve_base.field_account_bank_statement_line__l10n_ve_invoice_date
+#: model:ir.model.fields,help:l10n_ve_base.field_account_move__l10n_ve_invoice_date
+msgid ""
+"Forma libre: si está vacía se asigna al confirmar; si ya tiene fecha se "
+"mantiene. Contingencia: indíquela antes de confirmar. Facturación digital: "
+"fecha de sincronización con la imprenta. Máquina fiscal: fecha en que se "
+"imprimió el documento."
+msgstr ""
+"Forma libre: si está vacía se asigna al confirmar; si ya tiene fecha se "
+"mantiene. Contingencia: indíquela antes de confirmar. Facturación digital: "
+"fecha de sincronización con la imprenta. Máquina fiscal: fecha en que se "
+"imprimió el documento."
+
+#. module: l10n_ve_base
+#: model:ir.model.fields.selection,name:l10n_ve_base.selection__res_partner__taxpayer_type__formal
+msgid "Formal"
+msgstr "Formal"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_move__l10n_ve_on_behalf_of_third_party
+msgid "Indicador por cuenta de terceros"
+msgstr "Indicador por cuenta de terceros"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,help:l10n_ve_base.field_account_bank_statement_line__l10n_ve_invoice_number
+#: model:ir.model.fields,help:l10n_ve_base.field_account_move__l10n_ve_invoice_number
+msgid "Invoice number from the fiscal machine"
+msgstr "Número de factura de la máquina fiscal"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_journal__l10n_ve_emission_medium
+msgid "Medio de emisión"
+msgstr "Medio de emisión"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_bank_statement_line__l10n_ve_journal_emission_medium
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_move__l10n_ve_journal_emission_medium
+msgid "Medio de emisión (diario)"
+msgstr "Medio de emisión (diario)"
+
+#. module: l10n_ve_base
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_move_form
+msgid "Máquina Fiscal"
+msgstr "Máquina Fiscal"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields.selection,name:l10n_ve_base.selection__account_journal__l10n_ve_emission_medium__fiscal_machine
+msgid "Máquina fiscal"
+msgstr "Máquina fiscal"
+
+#. module: l10n_ve_base
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_move_form
+msgid "N° Control:"
+msgstr "N°Control:"
+
+#. module: l10n_ve_base
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_move_form
+msgid "N° Factura"
+msgstr "N° Factura"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields.selection,name:l10n_ve_base.selection__res_partner__taxpayer_type__ordinary
+msgid "Ordinary"
+msgstr "Ordinario"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_bank_statement_line__l10n_ve_third_party_partner_id
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_move__l10n_ve_third_party_partner_id
+msgid "Por cuenta de Terceros"
+msgstr "Por cuenta de Terceros"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_bank_statement_line__l10n_ve_report_z
+#: model:ir.model.fields,field_description:l10n_ve_base.field_account_move__l10n_ve_report_z
+msgid "Report Z Number"
+msgstr "Reporte Z Número"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,help:l10n_ve_base.field_account_bank_statement_line__l10n_ve_report_z
+#: model:ir.model.fields,help:l10n_ve_base.field_account_move__l10n_ve_report_z
+msgid "Report Z number from the fiscal machine"
+msgstr "Reportar número Z de la máquina fiscal"
+
+#. module: l10n_ve_base
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_move_form
+msgid "Reporte Z"
+msgstr "Reporte Z"
+
+#. module: l10n_ve_base
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_account_journal_form
+msgid "SENIAT"
+msgstr "SENIAT"
+
+#. module: l10n_ve_base
+#: model_terms:ir.ui.view,arch_db:l10n_ve_base.view_move_form
+msgid "Serial"
+msgstr "Serial"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,help:l10n_ve_base.field_account_bank_statement_line__l10n_ve_serial_number
+#: model:ir.model.fields,help:l10n_ve_base.field_account_move__l10n_ve_serial_number
+msgid "Serial number of the fiscal machine"
+msgstr "Número de serie de la máquina fiscal."
+
+#. module: l10n_ve_base
+#: model:ir.model.fields.selection,name:l10n_ve_base.selection__res_partner__taxpayer_type__special
+msgid "Special"
+msgstr "Especial"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,field_description:l10n_ve_base.field_res_company__taxpayer_type
+#: model:ir.model.fields,field_description:l10n_ve_base.field_res_partner__taxpayer_type
+#: model:ir.model.fields,field_description:l10n_ve_base.field_res_users__taxpayer_type
+msgid "Taxpayer Type"
+msgstr "Tipo de contribuyente"
+
+#. module: l10n_ve_base
+#: model:ir.model.fields,help:l10n_ve_base.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party
+#: model:ir.model.fields,help:l10n_ve_base.field_account_move__l10n_ve_on_behalf_of_third_party
+msgid ""
+"Verdadero si hay un contacto en Por cuenta de Terceros en facturas de "
+"cliente. Según Art. 11 PA00071, esas operaciones deben emitirse en forma "
+"libre."
+msgstr ""
+"Verdadero si hay un contacto en Por cuenta de Terceros en facturas de "
+"cliente. Según Art. 11 PA00071, esas operaciones deben emitirse en forma "
+"libre."

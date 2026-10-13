@@ -234,14 +234,6 @@ class ResPartner(models.Model):
             else:
                 partner.display_name = name.strip()
 
-    taxpayer_type = fields.Selection(
-        [
-            ("ordinary", "Ordinary"),
-            ("formal", "Formal"),
-            ("special", "Special"),
-        ],
-    )
-
     # TODO: prefix_vat isn't used anywhere
     prefix_vat = fields.Char(string="Prefix vat", compute="_compute_vat_prefix")
     country_id = fields.Many2one("res.country", default=_default_res_country)

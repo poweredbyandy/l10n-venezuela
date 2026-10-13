@@ -2,7 +2,7 @@
     <record id="view_move_form" model="ir.ui.view">
         <field name="name">account.move.ve.form</field>
         <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="inherit_id" ref="l10n_ve_base.view_move_form" />
         <field name="arch" type="xml">
             <xpath
                 expr="//div[@name='due_date']/field[@name='invoice_payment_term_id']"
@@ -31,7 +31,7 @@
             </xpath>
             <!-- Art. 16 PA SNAT/2024/000102: fecha del documento en contingencia. -->
             <xpath
-                expr="//group[@id='header_right_group']/label[@for='invoice_date'][1]"
+                expr="//group[@id='header_right_group']/label[@for='l10n_ve_invoice_date']"
                 position="before"
             >
                 <field name="l10n_ve_use_reception_date_payment_term" invisible="1" />
@@ -42,21 +42,22 @@
                 />
             </xpath>
             <xpath
-                expr="//group[@id='header_right_group']/label[@for='invoice_date'][1]"
-                position="before"
+                expr="//group[@id='header_right_group']/label[@for='l10n_ve_invoice_date']"
+                position="attributes"
             >
-                <label
-                    for="l10n_ve_invoice_date"
-                    string="Fecha del documento"
-                    groups="account.group_account_manager"
-                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund')"
-                />
-                <field
-                    name="l10n_ve_invoice_date"
-                    nolabel="1"
-                    groups="account.group_account_manager"
-                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund')"
-                />
+                <attribute name="groups">account.group_account_manager</attribute>
+            </xpath>
+            <xpath
+                expr="//group[@id='header_right_group']/field[@name='l10n_ve_invoice_date']"
+                position="attributes"
+            >
+                <attribute name="groups">account.group_account_manager</attribute>
+                <attribute name="readonly" />
+            </xpath>
+            <xpath
+                expr="//group[@id='header_right_group']/field[@name='l10n_ve_invoice_date']"
+                position="after"
+            >
                 <label
                     for="l10n_ve_invoice_date"
                     string="Fecha del documento"
@@ -247,7 +248,6 @@
             <xpath expr="//field[@name='country_code']" position="after">
                 <field name="l10n_ve_on_behalf_of_third_party_enabled" invisible="1" />
                 <field name="l10n_ve_show_cancel_wizard" invisible="1" />
-                <field name="l10n_ve_journal_emission_medium" invisible="1" />
                 <field name="l10n_ve_show_control_number_ui" invisible="1" />
                 <field name="l10n_ve_show_credit_debit_actions" invisible="1" />
                 <field name="l10n_ve_show_credit_note_action" invisible="1" />
@@ -342,27 +342,37 @@
                     name="readonly"
                 >state != 'draft' or (country_code == 'VE' and move_type == 'out_refund')</attribute>
             </xpath>
-            <xpath expr="//group[@id='header_left_group']/*[1]" position="before">
-                <!-- Art. 13 num. 3-4 PA SNAT/2011/0071; Art. 11 PA SNAT/2011/0071: N° control (terceros en MF). -->
-                <label
-                    for="l10n_ve_control_number"
-                    class="text-danger"
-                    invisible="not l10n_ve_show_control_number_ui or (l10n_ve_control_number_placeholder and not l10n_ve_control_number)"
-                >N° Control:</label>
+            <!-- Art. 13 num. 3-4 PA SNAT/2011/0071; Art. 11 PA SNAT/2011/0071: N° control (terceros en MF). -->
+            <xpath
+                expr="//group[@id='header_left_group']/label[@for='l10n_ve_control_number']"
+                position="attributes"
+            >
+                <attribute
+                    name="invisible"
+                >not l10n_ve_show_control_number_ui or (l10n_ve_control_number_placeholder and not l10n_ve_control_number)</attribute>
+            </xpath>
+            <xpath
+                expr="//group[@id='header_left_group']/label[@for='l10n_ve_control_number']"
+                position="after"
+            >
                 <label
                     for="l10n_ve_control_number_placeholder"
                     class="text-danger"
                     invisible="not l10n_ve_show_control_number_ui or not l10n_ve_control_number_placeholder or l10n_ve_control_number"
                 >N° Control:</label>
-                <field
-                    class="text-danger"
-                    name="l10n_ve_control_number"
-                    placeholder="00-00000000-0"
-                    nolabel="1"
-                    invisible="not l10n_ve_show_control_number_ui or (l10n_ve_control_number_placeholder and not l10n_ve_control_number)"
-                    readonly="move_type in ('out_invoice', 'out_refund') and (state == 'posted' or not l10n_ve_journal_emission_medium or l10n_ve_journal_emission_medium == 'free' or l10n_ve_journal_emission_medium == 'digital')"
-                    required="country_code == 'VE' and state == 'draft' and move_type in ('out_invoice', 'out_refund') and l10n_ve_journal_emission_medium and l10n_ve_journal_emission_medium != 'free' and l10n_ve_journal_emission_medium != 'digital' and l10n_ve_journal_emission_medium != 'contingency' and (l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party)"
-                />
+            </xpath>
+            <xpath
+                expr="//group[@id='header_left_group']/field[@name='l10n_ve_control_number']"
+                position="attributes"
+            >
+                <attribute
+                    name="invisible"
+                >not l10n_ve_show_control_number_ui or (l10n_ve_control_number_placeholder and not l10n_ve_control_number)</attribute>
+            </xpath>
+            <xpath
+                expr="//group[@id='header_left_group']/field[@name='l10n_ve_control_number']"
+                position="after"
+            >
                 <field
                     name="l10n_ve_control_number_placeholder"
                     class="text-danger fst-italic opacity-75"
@@ -370,36 +380,6 @@
                     readonly="1"
                     invisible="not l10n_ve_show_control_number_ui or l10n_ve_control_number or not l10n_ve_control_number_placeholder"
                 />
-                <!-- Art. 14 PA SNAT/2011/0071: datos de máquina fiscal (serial, N° factura, reporte Z). -->
-                <label
-                    for="l10n_ve_serial_number"
-                    string="Máquina Fiscal"
-                    style="font-weight:bold;"
-                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
-                />
-                <div
-                    class="o_col"
-                    invisible="country_code != 'VE' or move_type not in ('out_invoice', 'out_refund') or l10n_ve_journal_emission_medium != 'fiscal_machine' or l10n_ve_on_behalf_of_third_party"
-                >
-                    <field
-                        name="l10n_ve_serial_number"
-                        nolabel="1"
-                        placeholder="Serial"
-                        readonly="state != 'posted'"
-                    />
-                    <field
-                        name="l10n_ve_invoice_number"
-                        nolabel="1"
-                        placeholder="N° Factura"
-                        readonly="state != 'posted'"
-                    />
-                    <field
-                        name="l10n_ve_report_z"
-                        nolabel="1"
-                        placeholder="Reporte Z"
-                        readonly="state != 'posted'"
-                    />
-                </div>
             </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <widget
@@ -463,31 +443,22 @@
                     name="options"
                 >{"no_quick_create": True, "no_create": False, "no_create_edit": False}</attribute>
             </xpath>
+            <!-- Art. 10 Ley del IVA; Art. 11 PA SNAT/2011/0071: contacto por cuenta de terceros. -->
             <xpath
-                expr="//group[@id='header_left_group']/div[hasclass('o_col')][.//field[@name='partner_id'][@widget='res_partner_many2one']]"
-                position="after"
+                expr="//group[@id='header_left_group']/label[@for='l10n_ve_third_party_partner_id']"
+                position="attributes"
             >
-                <!-- Art. 10 Ley del IVA; Art. 11 PA SNAT/2011/0071: contacto por cuenta de terceros. -->
-                <label
-                    for="l10n_ve_third_party_partner_id"
-                    style="font-weight:bold;"
-                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
-                />
-                <field
-                    name="l10n_ve_third_party_partner_id"
-                    widget="res_partner_many2one"
-                    nolabel="1"
-                    context="{
-                        'res_partner_search_mode': (move_type in ('out_invoice', 'out_refund') and 'customer') or (move_type in ('in_invoice', 'in_refund') and 'supplier') or False,
-                        'show_address': 1,
-                        'default_is_company': True,
-                        'show_vat': True,
-                    }"
-                    options='{"no_quick_create": True, "no_create": False, "no_create_edit": False}'
-                    placeholder="Buscar nombre o RIF..."
-                    readonly="state != 'draft'"
-                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)"
-                />
+                <attribute
+                    name="invisible"
+                >move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)</attribute>
+            </xpath>
+            <xpath
+                expr="//group[@id='header_left_group']/field[@name='l10n_ve_third_party_partner_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="invisible"
+                >move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') or not l10n_ve_on_behalf_of_third_party_enabled or (state != 'draft' and not l10n_ve_third_party_partner_id)</attribute>
             </xpath>
             <xpath
                 expr="//group[hasclass('oe_invoice_lines_tab', 'overflow-hidden')]//field[@name='narration']"
@@ -528,40 +499,31 @@
     <record id="view_invoice_tree" model="ir.ui.view">
         <field name="name">account.invoice.list</field>
         <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_invoice_tree" />
+        <field name="inherit_id" ref="l10n_ve_base.view_invoice_tree" />
         <field name="priority">110</field>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='name']" position="after">
-                <field name="l10n_ve_journal_emission_medium" column_invisible="True" />
-                <field
-                    name="l10n_ve_control_number"
-                    string="N° Control"
-                    optional="show"
-                    decoration-danger="1"
-                    readonly="move_type in ('out_invoice', 'out_refund') and (state == 'posted' or not l10n_ve_journal_emission_medium or l10n_ve_journal_emission_medium == 'free' or l10n_ve_journal_emission_medium == 'digital')"
-                    column_invisible="
-                        'free_form' not in (context.get('l10n_ve_emission_medium_codes') or [])
-                        and 'digital_billing' not in (context.get('l10n_ve_emission_medium_codes') or [])
-                    "
-                />
-                <field
-                    name="l10n_ve_invoice_number"
-                    string="N° Factura"
-                    optional="show"
-                    column_invisible="'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])"
-                />
-                <field
-                    name="l10n_ve_report_z"
-                    string="Reporte Z"
-                    optional="show"
-                    column_invisible="'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])"
-                />
-                <field
-                    name="l10n_ve_serial_number"
-                    string="Serial"
-                    optional="show"
-                    column_invisible="'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])"
-                />
+            <xpath expr="//field[@name='l10n_ve_control_number']" position="attributes">
+                <attribute
+                    name="column_invisible"
+                >'free_form' not in (context.get('l10n_ve_emission_medium_codes') or []) and 'digital_billing' not in (context.get('l10n_ve_emission_medium_codes') or []) and 'contingency' not in (context.get('l10n_ve_emission_medium_codes') or [])</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_ve_invoice_number']" position="attributes">
+                <attribute name="optional">show</attribute>
+                <attribute
+                    name="column_invisible"
+                >'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_ve_report_z']" position="attributes">
+                <attribute name="optional">show</attribute>
+                <attribute
+                    name="column_invisible"
+                >'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_ve_serial_number']" position="attributes">
+                <attribute name="optional">show</attribute>
+                <attribute
+                    name="column_invisible"
+                >'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])</attribute>
             </xpath>
             <xpath expr="//field[@name='move_type']" position="after">
                 <field name="country_code" column_invisible="1" />
@@ -579,16 +541,17 @@
                     string="Fecha del documento"
                     optional="show"
                     column_invisible="context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt')"
-                    groups="account.group_account_manager"
-                />
-                <field
-                    name="l10n_ve_invoice_date"
-                    string="Fecha del documento"
-                    optional="show"
-                    column_invisible="context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt')"
                     readonly="state == 'posted' or l10n_ve_journal_emission_medium != 'contingency'"
                     groups="!account.group_account_manager"
                 />
+            </xpath>
+            <xpath
+                expr="//field[@name='l10n_ve_invoice_date'][not(@groups)]"
+                position="attributes"
+            >
+                <attribute name="groups">account.group_account_manager</attribute>
+                <attribute name="optional">show</attribute>
+                <attribute name="readonly" />
             </xpath>
             <xpath expr="//field[@name='currency_id']" position="attributes">
                 <attribute

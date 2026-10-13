@@ -1,7 +1,5 @@
 from odoo.tests import TransactionCase, tagged
 
-from odoo.addons.l10n_ve_seniat.tests.common import L10nVeSeniatCommon
-
 
 @tagged("post_install", "-at_install")
 class TestL10nVeCoa(TransactionCase):
@@ -66,14 +64,27 @@ class TestL10nVeCoa(TransactionCase):
 
 
 @tagged("post_install", "-at_install")
-class TestL10nVeCoaTaxes(L10nVeSeniatCommon):
-    chart_template = "ve_seniat"
+class TestL10nVeCoaTaxes(TransactionCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = cls.env["res.company"].create(
+            {"name": "VE Coa Company", "country_id": cls.env.ref("base.ve").id}
+        )
+        cls.env.user.company_ids |= cls.company
+        cls.env = cls.env(
+            context=dict(cls.env.context, allowed_company_ids=cls.company.ids)
+        )
+        cls.company = cls.company.with_env(cls.env)
+        cls.env["account.chart.template"].try_loading(
+            "ve_seniat", cls.company, install_demo=False
+        )
 
     def _ref(self, xmlid):
-        return self.env.ref(f"account.{self.env.company.id}_{xmlid}")
+        return self.env.ref(f"account.{self.company.id}_{xmlid}")
 
     def test_ve_seniat_loads_accounts(self):
-        company = self.env.company
+        company = self.company
         self.assertEqual(company.chart_template, "ve_seniat")
         self.assertEqual(
             company.account_journal_early_pay_discount_loss_account_id.code,
@@ -84,7 +95,7 @@ class TestL10nVeCoaTaxes(L10nVeSeniatCommon):
         )
 
     def test_company_default_taxes(self):
-        company = self.env.company
+        company = self.company
         self.assertEqual(company.account_sale_tax_id, self._ref("tax1sale"))
         self.assertEqual(company.account_purchase_tax_id, self._ref("tax1purchase"))
         self.assertEqual(company.account_sale_tax_id.amount, 16.0)

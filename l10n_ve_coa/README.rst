@@ -45,6 +45,10 @@ Los tres planes incluyen:
 - Posiciones fiscales (por ejemplo, Puerto Libre).
 - Impuestos de venta y compra por defecto de la compañía.
 
+Depende de ``account``, ``l10n_ve_base`` (alícuota de los grupos de
+impuestos) y ``l10n_ve_address`` (estado Nueva Esparta de Puerto Libre).
+Se puede instalar sin ``l10n_ve_seniat``.
+
 **Table of contents**
 
 .. contents::

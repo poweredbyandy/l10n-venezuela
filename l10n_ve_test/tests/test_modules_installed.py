@@ -50,7 +50,6 @@ MODELS = (
     "account.retention",
     "account.withholding.type",
     "l10n.ve.fiscal.machine",
-    "l10n.ve.emission.medium",
     "pos.order",
     "stock.picking",
     "sale.order",

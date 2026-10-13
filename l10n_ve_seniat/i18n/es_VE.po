@@ -362,11 +362,6 @@ msgid "Borrador"
 msgstr "Borrador"
 
 #. module: l10n_ve_seniat
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
-msgid "Buscar nombre o RIF..."
-msgstr "Buscar nombre o RIF..."
-
-#. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_l10n_ve_book_folio_void_wizard_form
 #| msgid "Cancel"
 msgid "Cancelar"
@@ -451,7 +446,6 @@ msgstr "Configuraciones fiscales usuario"
 
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_book_form
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_journal_form_inherit
 msgid "Configuración"
 msgstr "Configuración"
 
@@ -483,20 +477,9 @@ msgid "Contact"
 msgstr "Contacto"
 
 #. module: l10n_ve_seniat
-#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_emission_medium__contingency
-msgid "Contingencia"
-msgstr "Contingencia"
-
-#. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.report_invoice_document
 msgid "Contribuyente Formal"
 msgstr "Contribuyente Formal"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_control_number
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_control_number
-msgid "Control Number"
-msgstr "Control Número"
 
 #. module: l10n_ve_seniat
 #: model:ir.model,name:l10n_ve_seniat.model_account_book_document
@@ -1054,11 +1037,6 @@ msgid "Factura:"
 msgstr "Factura:"
 
 #. module: l10n_ve_seniat
-#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_emission_medium__digital
-msgid "Facturación digital"
-msgstr "Facturación digital"
-
-#. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party_enabled
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_on_behalf_of_third_party_enabled
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__l10n_ve_on_behalf_of_third_party_enabled
@@ -1089,24 +1067,10 @@ msgid "Fecha de proceso"
 msgstr "Fecha de proceso"
 
 #. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_date
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_invoice_date
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_invoice_tree
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
 msgid "Fecha del documento"
 msgstr "Fecha y hora de la factura"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_number
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_invoice_number
-msgid "Fiscal Invoice Number"
-msgstr "Número de factura fiscal"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_serial_number
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_serial_number
-msgid "Fiscal Machine Serial"
-msgstr "Serie de máquinas fiscales"
 
 #. module: l10n_ve_seniat
 #: model:ir.model,name:l10n_ve_seniat.model_account_book
@@ -1134,45 +1098,6 @@ msgstr "Seguidores (Socios)"
 #: model:ir.model.fields,help:l10n_ve_seniat.field_res_currency__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
 msgstr "Fuente awesome icono e.g. fa-tasks"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_emission_medium__free
-msgid "Forma libre (correlativo de talonario)"
-msgstr "Forma libre (correlativo de talonario)"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_journal_emission_medium
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_journal__l10n_ve_emission_medium
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_journal_emission_medium
-msgid ""
-"Forma libre: asigna correlativo desde el talonario interno. Contingencia: no"
-" usa el talonario; el N° de control se indica en la factura antes de "
-"confirmar. Máquina fiscal y facturación digital: tampoco generan correlativo"
-" automático del talonario; el N° de control debe consignarse manualmente "
-"antes de confirmar."
-msgstr ""
-"Forma libre: asigna correlativo desde el talonario interno. Contingencia: no"
-" usa el talonario; el N° de control se indica en la factura antes de "
-"confirmar. Máquina fiscal y facturación digital: tampoco generan correlativo"
-" automático del talonario; el N° de control debe consignarse manualmente "
-"antes de confirmar."
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_date
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_invoice_date
-msgid ""
-"Forma libre: se asigna al confirmar. Contingencia: indíquela antes de "
-"confirmar. Facturación digital: fecha de sincronización con la imprenta. "
-"Máquina fiscal: fecha en que se imprimió el documento."
-msgstr ""
-"Forma libre: se asigna al confirmar. Contingencia: indíquela antes de "
-"confirmar. Facturación digital: fecha de sincronización con la imprenta. "
-"Máquina fiscal: fecha en que se imprimió el documento."
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__res_partner__taxpayer_type__formal
-msgid "Formal"
-msgstr "Formal"
 
 #. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__paperformat_id
@@ -1285,18 +1210,12 @@ msgid "Impuesto"
 msgstr "Impuesto"
 
 #. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_on_behalf_of_third_party
-msgid "Indicador por cuenta de terceros"
-msgstr "Indicador por cuenta de terceros"
-
-#. module: l10n_ve_seniat
 #: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__reception_date
 #: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__reception_date
 msgid ""
-"Date when the invoice was received by the client/company. When set, "
-"payment terms and installment due dates are computed from this date "
-"instead of the invoice date."
+"Date when the invoice was received by the client/company. When set, payment "
+"terms and installment due dates are computed from this date instead of the "
+"invoice date."
 msgstr ""
 "Fecha en que el cliente o la empresa recibió la factura. Si está definida, "
 "los plazos de pago y el vencimiento de las cuotas se calculan a partir de "
@@ -1320,12 +1239,6 @@ msgid ""
 msgstr ""
 "Indique el rango global del talonario (desde / hasta). Todos los números de "
 "control deben quedar dentro de ese intervalo."
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_invoice_number
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_invoice_number
-msgid "Invoice number from the fiscal machine"
-msgstr "Número de factura de la máquina fiscal"
 
 #. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_is_follower
@@ -1496,11 +1409,6 @@ msgid "Localización"
 msgstr "Localización"
 
 #. module: l10n_ve_seniat
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_journal_form_inherit
-msgid "Límites por pedido (otros medios de emisión)"
-msgstr "Límites por pedido (otros medios de emisión)"
-
-#. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_escp_invoice_margin_lines
 msgid "Líneas de margen (factura ESC/P)"
 msgstr "Líneas de margen (factura ESC/P)"
@@ -1515,17 +1423,6 @@ msgstr ""
 "Líneas en blanco al inicio del papel continuo antes del encabezado al "
 "imprimir la factura en formato ESC/P (impresora matriz). Utilice 0 si no "
 "requiere margen superior."
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_journal__l10n_ve_emission_medium
-msgid "Medio de emisión"
-msgstr "Medio de emisión"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_journal_emission_medium
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_journal_emission_medium
-msgid "Medio de emisión (diario)"
-msgstr "Medio de emisión (diario)"
 
 #. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__message_has_error
@@ -1601,16 +1498,6 @@ msgstr "Municipio"
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__my_activity_date_deadline
 msgid "My Activity Deadline"
 msgstr "My Actividad Fecha límite"
-
-#. module: l10n_ve_seniat
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
-msgid "Máquina Fiscal"
-msgstr "Máquina Fiscal"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__account_journal__l10n_ve_emission_medium__fiscal_machine
-msgid "Máquina fiscal"
-msgstr "Máquina fiscal"
 
 #. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__l10n_ve_max_invoice_lines
@@ -2064,11 +1951,6 @@ msgid "N° Control:"
 msgstr "N°Control:"
 
 #. module: l10n_ve_seniat
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
-msgid "N° Factura"
-msgstr "N° Factura"
-
-#. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book_document__l10n_ve_control_number
 msgid "N° de control"
 msgstr "N° de control"
@@ -2081,11 +1963,6 @@ msgid ""
 msgstr ""
 "Obligación Art. 32 PA00071: Entregar copia certificada al cliente a más "
 "tardar el"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__res_partner__taxpayer_type__ordinary
-msgid "Ordinary"
-msgstr "Ordinario"
 
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_payment_form_l10n_ve
@@ -2159,8 +2036,6 @@ msgid "Plazo entrega copia certificada"
 msgstr "Plazo entrega copia certificada"
 
 #. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_third_party_partner_id
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_third_party_partner_id
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
 msgid "Por cuenta de Terceros"
 msgstr "Por cuenta de Terceros"
@@ -2259,8 +2134,8 @@ msgstr "Usar fecha de recepción en facturas de proveedor"
 #: model:ir.model.fields,help:l10n_ve_seniat.field_res_company__l10n_ve_reception_date_payment_term_customer
 #: model:ir.model.fields,help:l10n_ve_seniat.field_res_config_settings__l10n_ve_reception_date_payment_term_customer
 msgid ""
-"When enabled, payment terms and installment due dates on customer "
-"invoices start from the reception date."
+"When enabled, payment terms and installment due dates on customer invoices "
+"start from the reception date."
 msgstr ""
 "Si está activo, los plazos de pago y el vencimiento de las cuotas en "
 "facturas de cliente se calculan a partir de la fecha de recepción."
@@ -2269,8 +2144,8 @@ msgstr ""
 #: model:ir.model.fields,help:l10n_ve_seniat.field_res_company__l10n_ve_reception_date_payment_term_vendor
 #: model:ir.model.fields,help:l10n_ve_seniat.field_res_config_settings__l10n_ve_reception_date_payment_term_vendor
 msgid ""
-"When enabled, payment terms and installment due dates on vendor "
-"bills start from the reception date."
+"When enabled, payment terms and installment due dates on vendor bills start "
+"from the reception date."
 msgstr ""
 "Si está activo, los plazos de pago y el vencimiento de las cuotas en "
 "facturas de proveedor se calculan a partir de la fecha de recepción."
@@ -2278,20 +2153,20 @@ msgstr ""
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
 msgid ""
-"En facturas de cliente, los plazos de pago y las cuotas se calculan desde "
-"la fecha de recepción."
+"En facturas de cliente, los plazos de pago y las cuotas se calculan desde la"
+" fecha de recepción."
 msgstr ""
-"En facturas de cliente, los plazos de pago y las cuotas se calculan desde "
-"la fecha de recepción."
+"En facturas de cliente, los plazos de pago y las cuotas se calculan desde la"
+" fecha de recepción."
 
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
 msgid ""
-"En facturas de proveedor, los plazos de pago y las cuotas se calculan "
-"desde la fecha de recepción."
+"En facturas de proveedor, los plazos de pago y las cuotas se calculan desde "
+"la fecha de recepción."
 msgstr ""
-"En facturas de proveedor, los plazos de pago y las cuotas se calculan "
-"desde la fecha de recepción."
+"En facturas de proveedor, los plazos de pago y las cuotas se calculan desde "
+"la fecha de recepción."
 
 #. module: l10n_ve_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
@@ -2331,23 +2206,6 @@ msgid "Report Action"
 msgstr "Acción de reporte"
 
 #. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_report_z
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_move__l10n_ve_report_z
-msgid "Report Z Number"
-msgstr "Reporte Z Número"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_report_z
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_report_z
-msgid "Report Z number from the fiscal machine"
-msgstr "Reportar número Z de la máquina fiscal"
-
-#. module: l10n_ve_seniat
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
-msgid "Reporte Z"
-msgstr "Reporte Z"
-
-#. module: l10n_ve_seniat
 #: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_reports
 msgid "Reports"
 msgstr "Reportes"
@@ -2360,7 +2218,6 @@ msgstr "Responsable Usuario"
 #. module: l10n_ve_seniat
 #: model:ir.ui.menu,name:l10n_ve_seniat.menu_seniat_root
 #: model:res.groups,name:l10n_ve_seniat.group_seniat
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_account_journal_form_inherit
 msgid "SENIAT"
 msgstr "SENIAT"
 
@@ -2488,17 +2345,6 @@ msgid "Sequence"
 msgstr "Secuencia"
 
 #. module: l10n_ve_seniat
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.view_move_form
-msgid "Serial"
-msgstr "Serial"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_serial_number
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_serial_number
-msgid "Serial number of the fiscal machine"
-msgstr "Número de serie de la máquina fiscal."
-
-#. module: l10n_ve_seniat
 #: model:ir.model,name:l10n_ve_seniat.model_ir_actions_server
 msgid "Server Action"
 msgstr "Acción del servidor"
@@ -2570,11 +2416,6 @@ msgid ""
 msgstr ""
 "Solo un administrador contable puede modificar o eliminar correlativos del "
 "talonario."
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields.selection,name:l10n_ve_seniat.selection__res_partner__taxpayer_type__special
-msgid "Special"
-msgstr "Especial"
 
 #. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_account_book__number_from
@@ -2683,11 +2524,7 @@ msgid "Tax ID"
 msgstr "NIF"
 
 #. module: l10n_ve_seniat
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_company__taxpayer_type
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_config_settings__taxpayer_type
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__taxpayer_type
-#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_users__taxpayer_type
-#: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_company_form_view_seniat
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
 msgid "Taxpayer Type"
 msgstr "Tipo de contribuyente"
@@ -2876,18 +2713,6 @@ msgstr "Venezuela - Retenciones e IGTF"
 #: model_terms:ir.ui.view,arch_db:l10n_ve_seniat.res_config_settings_l10n_ve_seniat
 msgid "Venezuela - Tax Configuration"
 msgstr "Venezuela - Impuesto Configuración"
-
-#. module: l10n_ve_seniat
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_bank_statement_line__l10n_ve_on_behalf_of_third_party
-#: model:ir.model.fields,help:l10n_ve_seniat.field_account_move__l10n_ve_on_behalf_of_third_party
-msgid ""
-"Verdadero si hay un contacto en Por cuenta de Terceros en facturas de "
-"cliente. Según Art. 11 PA00071, esas operaciones deben emitirse en forma "
-"libre."
-msgstr ""
-"Verdadero si hay un contacto en Por cuenta de Terceros en facturas de "
-"cliente. Según Art. 11 PA00071, esas operaciones deben emitirse en forma "
-"libre."
 
 #. module: l10n_ve_seniat
 #: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_currency__website_message_ids

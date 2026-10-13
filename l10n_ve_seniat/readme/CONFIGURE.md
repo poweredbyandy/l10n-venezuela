@@ -3,14 +3,13 @@
 Medios de emisión
 -----------------
 
-1. Vaya a **Contabilidad → Configuración → Ajustes**.
-2. En el bloque **Venezuela**, seleccione los
-   **Medios de emisión** de la compañía (forma libre, máquina fiscal y/o
-   facturación digital).
-3. Guarde los ajustes.
+1. Vaya a **Contabilidad → Configuración → Diarios** y abra un diario de
+   ventas.
+2. Seleccione el **Medio de emisión** (forma libre, contingencia, máquina
+   fiscal o facturación digital) y complete los datos que pida el medio.
+3. Guarde el diario.
 
-También puede gestionar el catálogo desde **SENIAT → Localización →
-Medios de emisión**, y ver los medios asignados en **SENIAT → Empresas**.
+La compañía usa los medios de todos sus diarios de ventas activos.
 
 Fecha de recepción
 ------------------

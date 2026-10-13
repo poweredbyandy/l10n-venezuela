@@ -1,21 +1,10 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
-ALIQUOT_TYPE_SELECTION = [
-    ("exempt", "E - Exento"),
-    ("general", "G - General"),
-    ("reduced", "R - Reducido"),
-    ("extend", "A - Extendida"),
-]
-
 
 class AccountTaxGroup(models.Model):
     _inherit = "account.tax.group"
 
-    l10n_ve_aliquot_type = fields.Selection(
-        selection=ALIQUOT_TYPE_SELECTION,
-        string="Alícuota SENIAT",
-    )
     l10n_ve_exclude_from_reports = fields.Boolean(
         string="No incluir en reportes",
         default=False,
