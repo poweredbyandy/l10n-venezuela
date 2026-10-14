@@ -142,3 +142,73 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         self.assertTrue(
             any(line.get("name") == outbound_method.name for line in expense_methods)
         )
+
+    def _create_credit_invoice(self, move_type, amount, invoice_date="2025-01-15"):
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": move_type,
+                "partner_id": self.partner_a.id,
+                "invoice_date": invoice_date,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Venta a credito",
+                            "price_unit": amount,
+                            "tax_ids": [Command.clear()],
+                        }
+                    )
+                ],
+            }
+        )
+        invoice.action_post()
+        return invoice
+
+    def test_credit_invoices_are_listed_outside_grand_total(self):
+        customer_invoice = self._create_credit_invoice("out_invoice", 300.0)
+        vendor_bill = self._create_credit_invoice("in_invoice", 120.0)
+        self._create_credit_invoice("out_invoice", 80.0, invoice_date="2025-02-10")
+        lines, _options = self._get_report_lines()
+
+        grand_total = [
+            line
+            for line in lines
+            if line.get("name") == "Total" and line.get("level") == 0
+        ]
+        self.assertAlmostEqual(self._get_line_amount(grand_total[0]), 500.0)
+
+        credit_methods = [
+            line
+            for line in lines
+            if line.get("name") == "Crédito" and line.get("level") == 2
+        ]
+        self.assertEqual(len(credit_methods), 2)
+        self.assertEqual(
+            sorted(self._get_line_amount(line) for line in credit_methods),
+            [-120.0, 300.0],
+        )
+
+        handler = self.env["account.daily.payments.report.handler.oca"]
+        credit_moves = self.env["account.move"]
+        for line in lines:
+            if line.get("caret_options") == "daily_payments_credit_invoice":
+                credit_moves |= handler._daily_payments_get_move_from_line_id(
+                    line["id"]
+                )
+        self.assertEqual(credit_moves, customer_invoice | vendor_bill)
+
+        credit_total = [line for line in lines if line.get("name") == "Total crédito"]
+        self.assertAlmostEqual(self._get_line_amount(credit_total[0]), 180.0)
+
+    def test_paid_invoices_are_not_listed_as_credit(self):
+        invoice = self._create_credit_invoice("out_invoice", 200.0)
+        self.env["account.payment.register"].with_context(
+            active_model="account.move", active_ids=invoice.ids
+        ).create({"payment_date": "2025-01-16"})._create_payments()
+        lines, _options = self._get_report_lines()
+        self.assertFalse(
+            [
+                line
+                for line in lines
+                if line.get("caret_options") == "daily_payments_credit_invoice"
+            ]
+        )

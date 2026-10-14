@@ -21,3 +21,4 @@ To review payments:
 #. Open **Pagos por diario** to review totals by journal and payment method.
 #. Expand a payment method to display its registered and pending transactions, or collapse it to display only its consolidated total.
 #. Review **Ingresos** and **Egresos** as fixed sections. Each section lists its payment methods (for example **Pago móvil** under income and **Transferencia** under expense). Only payment methods can be expanded or collapsed. The **Total** line remains the net of both.
+#. Review **Facturas a crédito** after the **Total** line. It lists the posted customer invoices and vendor bills dated in the report period that are still unpaid or partially paid, under the informative payment method **Crédito**. Each invoice shows its amount due. Customer documents appear under **Ingresos** and vendor documents under **Egresos**. The **Total crédito** line is not added to the report **Total**.

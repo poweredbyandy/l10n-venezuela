@@ -8,6 +8,13 @@ from odoo.exceptions import UserError
 
 from odoo.addons.web.controllers.utils import clean_action
 
+CREDIT_INVOICE_FLOW_KINDS = {
+    "out_invoice": "income",
+    "out_refund": "income",
+    "in_invoice": "expense",
+    "in_refund": "expense",
+}
+
 
 class DailyPaymentsReportCustomHandler(models.AbstractModel):
     _name = "account.daily.payments.report.handler.oca"
@@ -274,6 +281,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             **base,
             "account.move": list(base.get("account.move", [])) + [extra],
             "account.move.line": list(base.get("account.move.line", [])) + [extra],
+            "daily_payments_credit_invoice": list(base.get("account.move", [])),
         }
 
     def caret_option_daily_payments_open_invoices(self, options, action_param):
@@ -864,6 +872,157 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 columns.append(report._build_column_dict(None, column, options=options))
         return columns
 
+    def _get_credit_invoices(self, company_ids, date_from, date_to):
+        return self.env["account.move"].search(
+            [
+                ("move_type", "in", list(CREDIT_INVOICE_FLOW_KINDS)),
+                ("company_id", "in", company_ids),
+                ("state", "=", "posted"),
+                ("payment_state", "in", ("not_paid", "partial")),
+                ("invoice_date", ">=", date_from),
+                ("invoice_date", "<=", date_to),
+            ],
+            order="invoice_date asc, name asc, id asc",
+        )
+
+    def _get_credit_invoice_report_amount(self, invoice, options):
+        return self._amount_to_report_currency(
+            invoice.amount_residual_signed,
+            invoice.company_id,
+            options,
+            invoice.invoice_date,
+        )
+
+    def _append_credit_invoice_lines(
+        self, lines, report, options, company_ids, date_from, date_to
+    ):
+        invoices = self._get_credit_invoices(company_ids, date_from, date_to)
+        lines_by_flow = defaultdict(list)
+        totals_by_flow = defaultdict(lambda: defaultdict(float))
+        credit_totals = defaultdict(float)
+        for invoice in invoices:
+            amount = self._get_credit_invoice_report_amount(invoice, options)
+            if self._is_report_amount_zero(amount, options):
+                continue
+            flow_kind = CREDIT_INVOICE_FLOW_KINDS[invoice.move_type]
+            for col_group_key in options["column_groups"]:
+                totals_by_flow[flow_kind][col_group_key] += amount
+                credit_totals[col_group_key] += amount
+            lines_by_flow[flow_kind].append((invoice, amount))
+        if not lines_by_flow:
+            return
+
+        lines.append(
+            (
+                0,
+                {
+                    "id": report._get_generic_line_id(
+                        None, None, markup="daily_pay_credit_header"
+                    ),
+                    "name": _("Facturas a crédito"),
+                    "columns": self._build_row_columns(report, options, {}),
+                    "level": 0,
+                    "unfoldable": False,
+                },
+            )
+        )
+        for flow_kind, flow_name in (
+            ("income", _("Ingresos")),
+            ("expense", _("Egresos")),
+        ):
+            if not lines_by_flow[flow_kind]:
+                continue
+            flow_line_id = report._get_generic_line_id(
+                None, None, markup=f"daily_pay_credit_{flow_kind}"
+            )
+            self._append_named_total_line(
+                lines,
+                report,
+                options,
+                flow_line_id,
+                flow_name,
+                totals_by_flow[flow_kind],
+                1,
+            )
+            method_line_id = report._get_generic_line_id(
+                None,
+                None,
+                markup=f"daily_pay_payment_method_credit_{flow_kind}",
+                parent_line_id=flow_line_id,
+            )
+            self._append_named_total_line(
+                lines,
+                report,
+                options,
+                method_line_id,
+                _("Crédito"),
+                totals_by_flow[flow_kind],
+                2,
+                unfoldable=True,
+                unfolded=(
+                    method_line_id in options["unfolded_lines"] or options["unfold_all"]
+                ),
+                parent_id=flow_line_id,
+            )
+            section_line_id = report._get_generic_line_id(
+                None,
+                None,
+                markup=f"daily_pay_section_credit_{flow_kind}",
+                parent_line_id=method_line_id,
+            )
+            lines.append(
+                (
+                    0,
+                    {
+                        "id": section_line_id,
+                        "name": _("Facturas pendientes de pago"),
+                        "columns": self._build_row_columns(report, options, {}),
+                        "level": 3,
+                        "unfoldable": False,
+                        "parent_id": method_line_id,
+                    },
+                )
+            )
+            for invoice, amount in lines_by_flow[flow_kind]:
+                lines.append(
+                    (
+                        0,
+                        {
+                            "id": report._get_generic_line_id(
+                                "account.move",
+                                invoice.id,
+                                markup="daily_pay_credit_invoice",
+                                parent_line_id=section_line_id,
+                            ),
+                            "name": invoice.name or invoice.display_name,
+                            "columns": self._build_row_columns(
+                                report,
+                                options,
+                                {
+                                    "line_date": invoice.invoice_date,
+                                    "invoice_documents": invoice.ref or "",
+                                    "partner": invoice.partner_id.display_name or "",
+                                    "amount": amount,
+                                },
+                            ),
+                            "level": 4,
+                            "unfoldable": False,
+                            "parent_id": section_line_id,
+                            "caret_options": "daily_payments_credit_invoice",
+                        },
+                    )
+                )
+        self._append_named_total_line(
+            lines,
+            report,
+            options,
+            report._get_generic_line_id(None, None, markup="daily_pay_credit_total"),
+            _("Total crédito"),
+            credit_totals,
+            0,
+            css_class="total",
+        )
+
     def _dynamic_lines_generator(  # noqa: C901
         self, report, options, all_column_groups_expression_totals, warnings=None
     ):
@@ -1230,6 +1389,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             totals_by_group,
             0,
             css_class="total",
+        )
+        self._append_credit_invoice_lines(
+            lines, report, options, company_ids, date_from, date_to
         )
 
         return lines
