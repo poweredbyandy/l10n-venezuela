@@ -75,3 +75,51 @@ class TestAgedPartnerDocumentLabel(TestAccountReportsCommon):
         bill.action_post()
         names = self._document_line_names(self.payable_report, "2025-03-12")
         self.assertIn("F-8841 / 00-00009999", names)
+
+    def _post_move(self, move_type, partner, date, account_key):
+        move = self.env["account.move"].create(
+            {
+                "move_type": move_type,
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.from_string(date),
+                "date": fields.Date.from_string(date),
+                "ref": "VAT-TEST",
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Línea",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                            "account_id": self.company_data[account_key].id,
+                            "tax_ids": [],
+                        }
+                    )
+                ],
+            }
+        )
+        move.action_post()
+        return move
+
+    def test_receivable_partner_line_shows_vat(self):
+        self.partner_a.vat = "J123456789"
+        self._post_move(
+            "out_invoice", self.partner_a, "2025-04-01", "default_account_revenue"
+        )
+        names = self._document_line_names(self.receivable_report, "2025-04-01")
+        self.assertIn(f"J123456789 - {self.partner_a.display_name}", names)
+
+    def test_payable_partner_line_shows_vat(self):
+        self.partner_b.vat = "V12345678"
+        self._post_move(
+            "in_invoice", self.partner_b, "2025-04-02", "default_account_expense"
+        )
+        names = self._document_line_names(self.payable_report, "2025-04-02")
+        self.assertIn(f"V12345678 - {self.partner_b.display_name}", names)
+
+    def test_partner_line_without_vat_keeps_name(self):
+        self.partner_a.vat = False
+        self._post_move(
+            "out_invoice", self.partner_a, "2025-04-03", "default_account_revenue"
+        )
+        names = self._document_line_names(self.receivable_report, "2025-04-03")
+        self.assertIn(self.partner_a.display_name, names)

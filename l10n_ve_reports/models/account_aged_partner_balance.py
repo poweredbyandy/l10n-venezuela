@@ -80,27 +80,6 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
                     )
         return result
 
-    def _custom_line_postprocessor(self, report, options, lines):
-        partner_lines_map = {}
-
-        # Sort line dicts by partner
-        for line in lines:
-            model, model_id = report._get_model_info_from_id(line["id"])
-            if model == "res.partner":
-                partner_lines_map[model_id] = line
-
-        if partner_lines_map:
-            for partner, line_dict in zip(
-                self.env["res.partner"].browse(partner_lines_map),
-                partner_lines_map.values(),
-                strict=False,
-            ):
-                line_dict["trust"] = partner.with_company(
-                    partner.company_id or self.env.company
-                ).trust
-
-        return lines
-
     def _report_custom_engine_aged_receivable(
         self,
         expressions,
@@ -605,13 +584,27 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
 
     def _custom_line_postprocessor(self, report, options, lines):
         lines = super()._custom_line_postprocessor(report, options, lines)
+        partner_lines = []
+        partner_ids = []
         document_lines = []
         aml_ids = []
         for line in lines:
             model, record_id = report._get_model_info_from_id(line.get("id"))
-            if model == "account.move.line" and record_id:
+            if model == "res.partner" and record_id:
+                partner_lines.append(line)
+                partner_ids.append(record_id)
+            elif model == "account.move.line" and record_id:
                 document_lines.append(line)
                 aml_ids.append(record_id)
+
+        if partner_ids:
+            partners = self.env["res.partner"].browse(partner_ids)
+            for line, partner in zip(partner_lines, partners, strict=True):
+                line["trust"] = partner.with_company(
+                    partner.company_id or self.env.company
+                ).trust
+                line["name"] = self._l10n_ve_aged_partner_label(partner, line["name"])
+
         if not aml_ids:
             return lines
 
@@ -626,6 +619,14 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
             if label:
                 line["name"] = label
         return lines
+
+    def _l10n_ve_aged_partner_label(self, partner, name):
+        """Partner name prefixed with its VAT on receivable and payable lines."""
+        vat = (partner.vat or "").strip()
+        name = (name or "").strip()
+        if not vat or vat == "/" or name.startswith(vat):
+            return name
+        return f"{vat} - {name}" if name else vat
 
     def _l10n_ve_aged_document_label(self, aml):
         """Invoice name and control number shown on receivable and payable lines."""
