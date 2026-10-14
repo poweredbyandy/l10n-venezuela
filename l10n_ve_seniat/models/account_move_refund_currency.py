@@ -656,7 +656,9 @@ class AccountMove(models.Model):
         same_currency = self.currency_id == self.reversed_entry_id.currency_id
         line_cmds = []
         for origin_line, credit_line in zip(orig_products, cred_products, strict=False):
-            sign = 1.0 if credit_line.balance >= 0.0 else -1.0
+            # out_refund is outbound: product amount_currency must follow direction_sign
+            # so amount_total stays positive. Keeping the invoice sign makes it negative.
+            sign = self.direction_sign or 1.0
             amount = (
                 company_cur.round(
                     self._l10n_ve_refund_line_target_company_subtotal(
@@ -729,9 +731,14 @@ class AccountMove(models.Model):
                     > 0
                 ):
                     target_currency = remaining_currency
-                amount_currency = target_currency * (
-                    1.0 if credit_line.amount_currency >= 0.0 else -1.0
-                )
+                amount_currency = target_currency * sign
+            elif self.currency_id != company_cur:
+                previous_sign = 1.0 if (credit_line.balance or 0.0) >= 0.0 else -1.0
+                if previous_sign != sign:
+                    amount_currency = (
+                        self.currency_id.round(abs(credit_line.amount_currency or 0.0))
+                        * sign
+                    )
             command = self._l10n_ve_align_refund_balance_cmd(
                 credit_line, amount, amount_currency=amount_currency
             )
@@ -739,11 +746,45 @@ class AccountMove(models.Model):
                 line_cmds.append(command)
         return line_cmds
 
+    def _l10n_ve_refund_product_base_amount(self, move, taxes=None):
+        """Sum product subtotals, optionally limited to lines that use ``taxes``."""
+        amount = 0.0
+        for line in move.invoice_line_ids:
+            if line.display_type != "product":
+                continue
+            if move._l10n_ve_is_product_discount_invoice_line(line):
+                continue
+            if taxes and not (line.tax_ids & taxes):
+                continue
+            amount += abs(line.price_subtotal or 0.0)
+        return move.currency_id.round(amount)
+
+    def _l10n_ve_refund_discount_line_scale(self, origin_line):
+        """Share of the origin discount that belongs to the products still credited.
+
+        A partial credit note used to copy the whole invoice discount. That line is
+        larger than the remaining product and drives ``amount_total`` negative.
+        """
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        taxes = self.env["account.tax"]
+        if "l10n_ve_global_discount_tax_ids" in origin_line._fields:
+            taxes = origin_line.l10n_ve_global_discount_tax_ids
+        origin_base = self._l10n_ve_refund_product_base_amount(origin, taxes)
+        credit_base = self._l10n_ve_refund_product_base_amount(self, taxes)
+        if not origin_base:
+            origin_base = self._l10n_ve_refund_product_base_amount(origin)
+            credit_base = self._l10n_ve_refund_product_base_amount(self)
+        if self.currency_id.is_zero(origin_base):
+            return 0.0
+        return min(max(credit_base / origin_base, 0.0), 1.0)
+
     def _l10n_ve_align_refund_discount_balance_cmds(self):
         company_cur = self.company_currency_id
         same_currency = self.currency_id == self.reversed_entry_id.currency_id
         line_cmds = []
         origin = self.reversed_entry_id
+        partial = not self._l10n_ve_refund_is_full_origin_line_mirror()
         for discount_type in ("rounding", "discount", "global_discount"):
             orig_discounts = origin.line_ids.filtered(
                 lambda line, discount_type=discount_type: (
@@ -759,18 +800,45 @@ class AccountMove(models.Model):
                 for origin_line, credit_line in zip(
                     orig_discounts, cred_discounts, strict=False
                 ):
-                    sign = 1.0 if credit_line.balance >= 0.0 else -1.0
+                    scale = 1.0
+                    if partial and discount_type in ("discount", "global_discount"):
+                        scale = self._l10n_ve_refund_discount_line_scale(origin_line)
+                        sign = -(self.direction_sign or 1.0)
+                    else:
+                        sign = 1.0 if credit_line.balance >= 0.0 else -1.0
                     amount = (
                         company_cur.round(
-                            self._l10n_ve_company_subtotal_from_origin_line(origin_line)
+                            abs(
+                                self._l10n_ve_company_subtotal_from_origin_line(
+                                    origin_line
+                                )
+                                or 0.0
+                            )
+                            * scale
                         )
                         * sign
                     )
                     amount_currency = None
                     if same_currency:
-                        amount_currency = self.currency_id.round(
-                            abs(origin_line.amount_currency)
-                        ) * (1.0 if credit_line.amount_currency >= 0.0 else -1.0)
+                        amount_currency = (
+                            self.currency_id.round(
+                                abs(origin_line.amount_currency or 0.0) * scale
+                            )
+                            * sign
+                        )
+                    elif partial and discount_type in (
+                        "discount",
+                        "global_discount",
+                    ):
+                        if self.currency_id == company_cur:
+                            amount_currency = amount
+                        else:
+                            amount_currency = (
+                                self.currency_id.round(
+                                    abs(credit_line.amount_currency or 0.0) * scale
+                                )
+                                * sign
+                            )
                     command = self._l10n_ve_align_refund_balance_cmd(
                         credit_line, amount, amount_currency=amount_currency
                     )
@@ -789,6 +857,27 @@ class AccountMove(models.Model):
                         )
         return line_cmds
 
+    def _l10n_ve_align_refund_partial_tax_sign_cmds(self):
+        """Keep tax lines on the same side as the product on a partial credit note.
+
+        The form shows ``abs(amount_total)``. Posting rejects that total when the
+        tax line still has the invoice sign.
+        """
+        sign = self.direction_sign or 1.0
+        company_cur = self.company_currency_id
+        currency = self.currency_id
+        line_cmds = []
+        for tax_line in self.line_ids.filtered(lambda line: line.display_type == "tax"):
+            amount = company_cur.round(abs(tax_line.balance or 0.0)) * sign
+            amount_currency = currency.round(abs(tax_line.amount_currency or 0.0))
+            amount_currency *= sign
+            command = self._l10n_ve_align_refund_balance_cmd(
+                tax_line, amount, amount_currency=amount_currency
+            )
+            if command:
+                line_cmds.append(command)
+        return line_cmds
+
     def _l10n_ve_align_refund_company_amounts_on_move(self):
         self.ensure_one()
         if not self._l10n_ve_align_refund_should_pair_origin():
@@ -803,15 +892,18 @@ class AccountMove(models.Model):
             orig_products, cred_products
         )
         line_cmds.extend(self._l10n_ve_align_refund_discount_balance_cmds())
+        full_mirror = self._l10n_ve_align_refund_is_full_origin_mirror(
+            orig_products, cred_products
+        )
+        if not full_mirror:
+            line_cmds.extend(self._l10n_ve_align_refund_partial_tax_sign_cmds())
         if line_cmds:
             self.with_context(
                 skip_invoice_sync=True,
                 check_move_validity=False,
             ).write({"line_ids": line_cmds})
             self._l10n_ve_resync_refund_payment_term_after_tax_align()
-        if self._l10n_ve_align_refund_is_full_origin_mirror(
-            orig_products, cred_products
-        ):
+        if full_mirror:
             self._l10n_ve_copy_origin_tax_company_amounts_on_move()
         else:
             self._l10n_ve_cap_refund_company_amount_to_remaining()
