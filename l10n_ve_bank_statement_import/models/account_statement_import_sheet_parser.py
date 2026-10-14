@@ -386,7 +386,7 @@ class AccountStatementImportSheetParser(models.TransientModel):
         if isinstance(csv_or_xlsx, tuple):
             numrows = csv_or_xlsx[1].max_row
         else:
-            numrows = len(str(data_file.strip()).split("\n"))
+            numrows = len(data_file.strip().splitlines())
 
         label_line = mapping.header_lines_skip_count
         footer_line = numrows - mapping.footer_lines_skip_count

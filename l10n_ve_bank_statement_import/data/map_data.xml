@@ -176,15 +176,15 @@
         <field name="file_encoding">utf-8</field>
         <field name="delimiter">tab</field>
         <field name="quotechar">"</field>
-        <field name="timestamp_format">%d/%m/%Y</field>
+        <field name="timestamp_format">%d/%m/%Y %H:%M:%S.%f</field>
         <field name="amount_type">distinct_credit_debit</field>
-        <field name="timestamp_column">Fecha</field>
+        <field name="timestamp_column">Fecha,Hora</field>
         <field name="reference_column">Referencia</field>
         <field name="description_column">Descripción</field>
         <field name="notes_column">Tip. Operación</field>
-        <field name="amount_debit_column">Debe</field>
-        <field name="amount_credit_column">Haber</field>
-        <field name="amount_inverse_sign" eval="True" />
+        <field name="amount_debit_column">Haber</field>
+        <field name="amount_credit_column">Debe</field>
+        <field name="amount_inverse_sign" eval="False" />
         <field name="balance_column">Saldo</field>
         <field name="skip_empty_lines">True</field>
     </record>
