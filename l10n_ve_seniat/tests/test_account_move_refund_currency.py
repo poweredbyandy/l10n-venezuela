@@ -450,6 +450,50 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         credit.action_post()
         self.assertEqual(credit.state, "posted")
 
+    def test_partial_refund_scales_discount_instead_of_copying_invoice(self):
+        date_invoice = fields.Date.to_date("2026-07-15")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=100.0)
+        invoice = self._create_usd_invoice(date_invoice, (100.0, 9.50), post=False)
+        revenue = self.company_data["default_account_revenue"]
+        discount_type = "discount"
+        self.env["account.move.line"].with_context(
+            check_move_validity=False,
+            skip_invoice_sync=True,
+            l10n_ve_skip_exempt_tax_line=True,
+            l10n_ve_skip_discount_refresh=True,
+        ).create(
+            {
+                "move_id": invoice.id,
+                "display_type": discount_type,
+                "name": "Descuento global",
+                "account_id": revenue.id,
+                "amount_currency": 10.95,
+                "balance": 1095.0,
+            }
+        )
+        invoice.action_post()
+        invoice.l10n_ve_invoice_original_printed = True
+        credit = self._reverse_invoice(invoice, reason="NC descuento parcial")
+        drop = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+            and not float_compare(line.price_unit, 100.0, precision_digits=2)
+        )
+        self.assertTrue(drop)
+        drop.with_context(l10n_ve_skip_discount_refresh=True).unlink()
+        credit._l10n_ve_align_refund_company_amounts_to_origin()
+        discount_lines = credit.line_ids.filtered(
+            lambda line: line.display_type == discount_type
+        )
+        self.assertTrue(discount_lines)
+        discount_amount = invoice.currency_id.round(
+            abs(sum(discount_lines.mapped("amount_currency")))
+        )
+        self.assertAlmostEqual(discount_amount, 0.95, delta=0.02)
+        self.assertGreater(credit.amount_total, 0.0)
+        credit.action_post()
+        self.assertEqual(credit.state, "posted")
+        self.assertGreater(credit.amount_total, 0.0)
+
     def test_partial_price_manual_refund_converts_scaled_company_amounts(self):
         date_invoice = fields.Date.to_date("2026-07-14")
         self._ensure_usd_rate(date_invoice, inverse_company_rate=100.0)
@@ -1344,6 +1388,66 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
                 invoice.currency_id.round(abs(credit.amount_untaxed)),
                 places=2,
             )
+
+    def test_partial_credit_note_with_global_discount_posts(self):
+        if not self._loyalty_installed():
+            self.skipTest("l10n_ve_loyalty no instalado")
+        date_invoice = fields.Date.to_date("2026-10-09")
+        self._ensure_usd_rate(date_invoice, inverse_company_rate=875.6505)
+        self.env.company.account_discount_expense_allocation_id = self.company_data[
+            "default_account_expense"
+        ]
+        self.env.user.write(
+            {
+                "groups_id": [
+                    Command.link(
+                        self.env.ref("l10n_ve_loyalty.group_l10n_ve_global_discount").id
+                    )
+                ]
+            }
+        )
+        invoice = self._create_usd_invoice(date_invoice, (100.0, 9.50), post=False)
+        reason = self.env["l10n.ve.discount.reason"].search([], limit=1)
+        if not reason:
+            reason = self.env["l10n.ve.discount.reason"].create(
+                {"name": "Descuento prueba NC parcial"}
+            )
+        self.env["l10n.ve.account.move.discount"].create(
+            {
+                "move_id": invoice.id,
+                "reason_id": reason.id,
+                "discount_type": "percentage",
+                "discount_percentage": 0.10,
+                "amount": 1.0,
+            }
+        )
+        invoice.action_post()
+        invoice.l10n_ve_invoice_original_printed = True
+        credit = self._reverse_invoice(invoice, reason="NC parcial con descuento")
+        drop = credit.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+            and not float_compare(line.price_unit, 100.0, precision_digits=2)
+        )
+        self.assertTrue(drop)
+        drop.unlink()
+        credit._l10n_ve_align_refund_company_amounts_to_origin()
+        currency = credit.currency_id
+        discount_lines = credit.line_ids.filtered(
+            lambda line: line.display_type in ("discount", "global_discount")
+        )
+        discount_amount = currency.round(
+            abs(sum(discount_lines.mapped("amount_currency")))
+        )
+        self.assertAlmostEqual(discount_amount, 0.95, delta=0.02)
+        self.assertGreater(credit.amount_total, 0.0)
+        self.assertAlmostEqual(
+            currency.round(credit.amount_total),
+            currency.round(9.50 * 0.9 * 1.16),
+            delta=0.05,
+        )
+        credit.action_post()
+        self.assertEqual(credit.state, "posted")
+        self.assertGreater(credit.amount_total, 0.0)
 
     def test_mirror_installments_with_uneven_qty(self):
         term = self.env["account.payment.term"].create(
