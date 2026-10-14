@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="account_payment_closing_view_list" model="ir.ui.view">
+        <field name="name">account.payment.closing.list</field>
+        <field name="model">account.payment.closing</field>
+        <field name="arch" type="xml">
+            <list
+                decoration-muted="state == 'cancel'"
+                decoration-info="state == 'draft'"
+            >
+                <field name="name" />
+                <field name="date" />
+                <field name="deposit_date" />
+                <field name="journal_id" />
+                <field
+                    name="payment_method_line_ids"
+                    widget="many2many_tags"
+                    optional="show"
+                />
+                <field name="payment_count" string="Payments" />
+                <field name="currency_id" column_invisible="True" />
+                <field name="amount_total" sum="Total" />
+                <field name="is_matched" widget="boolean" optional="show" />
+                <field
+                    name="company_id"
+                    groups="base.group_multi_company"
+                    optional="hide"
+                />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-info="state == 'draft'"
+                    decoration-success="state == 'posted'"
+                />
+            </list>
+        </field>
+    </record>
+
+    <record id="account_payment_closing_view_form" model="ir.ui.view">
+        <field name="name">account.payment.closing.form</field>
+        <field name="model">account.payment.closing</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_search_payments"
+                        string="Search Payments"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'draft' or payment_ids"
+                        data-hotkey="s"
+                    />
+                    <button
+                        name="action_search_payments"
+                        string="Search Payments"
+                        type="object"
+                        invisible="state != 'draft' or not payment_ids"
+                        data-hotkey="s"
+                    />
+                    <button
+                        name="action_post"
+                        string="Post"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'draft' or not payment_ids"
+                        data-hotkey="v"
+                    />
+                    <button
+                        name="action_draft"
+                        string="Reset to Draft"
+                        type="object"
+                        invisible="state == 'draft'"
+                        data-hotkey="w"
+                    />
+                    <button
+                        name="action_cancel"
+                        string="Cancel"
+                        type="object"
+                        invisible="state != 'draft'"
+                        data-hotkey="x"
+                    />
+                    <field
+                        name="state"
+                        widget="statusbar"
+                        statusbar_visible="draft,posted"
+                    />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_open_payments"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-money"
+                            invisible="not payment_count"
+                        >
+                            <field
+                                name="payment_count"
+                                widget="statinfo"
+                                string="Payments"
+                            />
+                        </button>
+                        <button
+                            name="action_open_move"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-bars"
+                            invisible="not move_id"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Journal Entry</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget
+                        name="web_ribbon"
+                        title="Matched"
+                        bg_color="text-bg-success"
+                        invisible="not is_matched"
+                    />
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="journal_id" readonly="state != 'draft'" />
+                            <field name="date" readonly="state != 'draft'" />
+                            <field name="deposit_date" readonly="state != 'draft'" />
+                            <field
+                                name="payment_method_line_ids"
+                                widget="many2many_tags"
+                                readonly="state != 'draft'"
+                                options="{'no_create': True}"
+                            />
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1" />
+                            <field name="amount_total" />
+                            <field
+                                name="outstanding_account_id"
+                                readonly="state != 'draft'"
+                                invisible="not payment_ids"
+                            />
+                            <field name="move_id" invisible="not move_id" />
+                            <field
+                                name="closing_line_id"
+                                invisible="not closing_line_id"
+                            />
+                            <field name="is_matched" invisible="state != 'posted'" />
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                                readonly="state != 'draft'"
+                            />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Payments" name="payments">
+                            <field name="payment_ids" readonly="1">
+                                <list>
+                                    <field name="date" />
+                                    <field name="name" />
+                                    <field name="partner_id" />
+                                    <field name="payment_method_line_id" />
+                                    <field name="memo" optional="show" />
+                                    <field name="payment_reference" optional="hide" />
+                                    <field name="currency_id" column_invisible="True" />
+                                    <field
+                                        name="amount_signed"
+                                        string="Amount"
+                                        sum="Total"
+                                    />
+                                    <field
+                                        name="state"
+                                        widget="badge"
+                                        optional="hide"
+                                    />
+                                    <button
+                                        name="action_remove_from_closing"
+                                        type="object"
+                                        icon="fa-times"
+                                        title="Remove from closing"
+                                        column_invisible="parent.state != 'draft'"
+                                    />
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+    <record id="account_payment_closing_view_search" model="ir.ui.view">
+        <field name="name">account.payment.closing.search</field>
+        <field name="model">account.payment.closing</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="journal_id" />
+                <field name="payment_ids" string="Payment" />
+                <filter
+                    string="Draft"
+                    name="draft"
+                    domain="[('state', '=', 'draft')]"
+                />
+                <filter
+                    string="Posted"
+                    name="posted"
+                    domain="[('state', '=', 'posted')]"
+                />
+                <separator />
+                <filter
+                    string="Pending Bank Match"
+                    name="unmatched"
+                    domain="[('state', '=', 'posted'), ('is_matched', '=', False)]"
+                />
+                <separator />
+                <filter string="Date" name="date" date="date" />
+                <filter
+                    string="Bank Credit Date"
+                    name="deposit_date"
+                    date="deposit_date"
+                />
+                <group expand="0" string="Group By">
+                    <filter
+                        string="Journal"
+                        name="group_journal"
+                        context="{'group_by': 'journal_id'}"
+                    />
+                    <filter
+                        string="Date"
+                        name="group_date"
+                        context="{'group_by': 'date'}"
+                    />
+                    <filter
+                        string="Status"
+                        name="group_state"
+                        context="{'group_by': 'state'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_payment_closing_action" model="ir.actions.act_window">
+        <field name="name">Terminal Closings</field>
+        <field name="res_model">account.payment.closing</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a terminal closing</p>
+            <p>
+                Group the payments of a card terminal for one day into a single
+                journal item, ready to be matched with the bank transaction.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="account_payment_closing_menu"
+        action="account_payment_closing_action"
+        parent="account.menu_finance_receivables"
+        sequence="16"
+    />
+</odoo>

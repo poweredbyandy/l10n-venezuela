@@ -1,0 +1,543 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_payment_closing
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-14 22:24+0000\n"
+"PO-Revision-Date: 2026-10-14 22:24+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+msgid "<span class=\"o_stat_text\">Journal Entry</span>"
+msgstr "<span class=\"o_stat_text\">Asiento contable</span>"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__outstanding_account_id
+msgid "Account of the single open line matched with the bank transaction."
+msgstr ""
+"Cuenta de la única línea abierta que se concilia con el movimiento bancario."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_needaction
+msgid "Action Needed"
+msgstr "Acción requerida"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_ids
+msgid "Activities"
+msgstr "Actividades"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Decoración de excepción de actividad"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_state
+msgid "Activity State"
+msgstr "Estado de la actividad"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Ícono del tipo de actividad"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "Add at least one payment before posting the closing."
+msgstr "Agregue al menos un pago antes de publicar el cierre."
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+msgid "Amount"
+msgstr "Monto"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__amount_total
+msgid "Amount Total"
+msgstr "Monto total"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_attachment_count
+msgid "Attachment Count"
+msgstr "Número de adjuntos"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__deposit_date
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Bank Credit Date"
+msgstr "Fecha de abono"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields.selection,name:l10n_ve_payment_closing.selection__account_payment_closing__state__cancel
+msgid "Cancelled"
+msgstr "Cancelado"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid ""
+"Closing %(name)s is already matched with a bank transaction. Unreconcile it "
+"first."
+msgstr ""
+"El cierre %(name)s ya está conciliado con un movimiento bancario. Rompa la "
+"conciliación primero."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__closing_line_id
+msgid "Closing Item"
+msgstr "Apunte del cierre"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.actions.act_window,help:l10n_ve_payment_closing.account_payment_closing_action
+msgid "Create a terminal closing"
+msgstr "Cree un cierre de punto de venta"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__currency_id
+msgid "Currency"
+msgstr "Moneda"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__date
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Date"
+msgstr "Fecha"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__date
+msgid "Date of the payments included in the closing."
+msgstr "Fecha de los pagos incluidos en el cierre."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__deposit_date
+msgid ""
+"Date the bank credits the closing. The journal entry uses this date so it "
+"matches the bank transaction."
+msgstr ""
+"Fecha en que el banco abona el cierre. El asiento contable usa esta fecha "
+"para coincidir con el movimiento bancario."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__display_name
+msgid "Display Name"
+msgstr "Nombre para mostrar"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields.selection,name:l10n_ve_payment_closing.selection__account_payment_closing__state__draft
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Draft"
+msgstr "Borrador"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_follower_ids
+msgid "Followers"
+msgstr "Seguidores"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Seguidores (contactos)"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "Ícono de Font Awesome, por ejemplo, fa-tasks"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Group By"
+msgstr "Agrupar por"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.actions.act_window,help:l10n_ve_payment_closing.account_payment_closing_action
+msgid ""
+"Group the payments of a card terminal for one day into a single\n"
+"                journal item, ready to be matched with the bank transaction."
+msgstr ""
+"Agrupe los pagos de un punto de venta de un día en un solo\n"
+"                apunte contable, listo para conciliar con el movimiento bancario."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__has_message
+msgid "Has Message"
+msgstr "Tiene mensaje"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__id
+msgid "ID"
+msgstr "ID"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_exception_icon
+msgid "Icon"
+msgstr "Ícono"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Ícono que indica una actividad de excepción."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si está marcado, hay nuevos mensajes que requieren su atención."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__message_has_error
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si está marcado, algunos mensajes tienen un error de entrega."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_is_follower
+msgid "Is Follower"
+msgstr "Es seguidor"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__journal_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Journal"
+msgstr "Diario"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__move_id
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__closing_line_id
+msgid "Journal item left open to be matched with the bank transaction."
+msgstr ""
+"Apunte contable que queda abierto para conciliar con el movimiento bancario."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__payment_method_line_ids
+msgid "Leave empty to include every payment method of the journal."
+msgstr "Déjelo vacío para incluir todos los métodos de pago del diario."
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+msgid "Matched"
+msgstr "Conciliado"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__is_matched
+msgid "Matched With Bank"
+msgstr "Conciliado con el banco"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_has_error
+msgid "Message Delivery error"
+msgstr "Error de entrega del mensaje"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_ids
+msgid "Messages"
+msgstr "Mensajes"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "Fecha límite de mi actividad"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__name
+msgid "Name"
+msgstr "Nombre"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Fecha límite de la siguiente actividad"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_summary
+msgid "Next Activity Summary"
+msgstr "Resumen de la siguiente actividad"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_type_id
+msgid "Next Activity Type"
+msgstr "Tipo de la siguiente actividad"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "No pending payments were found for %(journal)s on %(date)s."
+msgstr "No se encontraron pagos pendientes para %(journal)s el %(date)s."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Número de acciones"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_has_error_counter
+msgid "Number of errors"
+msgstr "Número de errores"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Número de mensajes que requieren una acción"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Número de mensajes con error de entrega"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "Only draft closings can be posted."
+msgstr "Solo se pueden publicar cierres en borrador."
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "Only draft closings can search payments."
+msgstr "Solo los cierres en borrador pueden buscar pagos."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__outstanding_account_id
+msgid "Outstanding Account"
+msgstr "Cuenta de pagos pendientes"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Payment"
+msgstr "Pago"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__payment_count
+msgid "Payment Count"
+msgstr "Número de pagos"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__payment_method_line_ids
+msgid "Payment Methods"
+msgstr "Métodos de pago"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model,name:l10n_ve_payment_closing.model_account_payment_closing
+msgid "Payment Terminal Closing"
+msgstr "Cierre de punto de venta"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+#: model:ir.model,name:l10n_ve_payment_closing.model_account_payment
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__payment_ids
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_list
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment.py:0
+msgid "Payments can only be removed from draft closings."
+msgstr "Solo se pueden quitar pagos de cierres en borrador."
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Pending Bank Match"
+msgstr "Pendiente de conciliar con el banco"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+msgid "Post"
+msgstr "Publicar"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields.selection,name:l10n_ve_payment_closing.selection__account_payment_closing__state__posted
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Posted"
+msgstr "Publicado"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+msgid "Remove from closing"
+msgstr "Quitar del cierre"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "Reset the closing to draft before cancelling it."
+msgstr "Restablezca el cierre a borrador antes de cancelarlo."
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+msgid "Reset to Draft"
+msgstr "Restablecer a borrador"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__activity_user_id
+msgid "Responsible User"
+msgstr "Usuario responsable"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Error de entrega del SMS"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+msgid "Search Payments"
+msgstr "Buscar pagos"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "Set the outstanding account of the closing."
+msgstr "Indique la cuenta de pagos pendientes del cierre."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__state
+msgid "State"
+msgstr "Estado"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_search
+msgid "Status"
+msgstr "Estado"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Estado basado en las actividades\n"
+"Vencida: la fecha límite ya pasó\n"
+"Hoy: la fecha de la actividad es hoy\n"
+"Planificada: actividades futuras."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment__closing_id
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.view_account_payment_search
+msgid "Terminal Closing"
+msgstr "Cierre de punto de venta"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.actions.act_window,name:l10n_ve_payment_closing.account_payment_closing_action
+#: model:ir.ui.menu,name:l10n_ve_payment_closing.account_payment_closing_menu
+msgid "Terminal Closings"
+msgstr "Cierres de punto de venta"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "The bank credit date cannot be before the closing date."
+msgstr "La fecha de abono no puede ser anterior a la fecha del cierre."
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "The closing total cannot be zero."
+msgstr "El total del cierre no puede ser cero."
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "The outstanding account %(accounts)s must allow reconciliation."
+msgstr ""
+"La cuenta de pagos pendientes %(accounts)s debe permitir conciliación."
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid ""
+"These payments are no longer pending and cannot be closed:\n"
+"%(payments)s"
+msgstr ""
+"Estos pagos ya no están pendientes y no se pueden incluir en el cierre:\n"
+"%(payments)s"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment.py:0
+msgid ""
+"These payments belong to a posted terminal closing. Reset the closing to draft first:\n"
+"%(payments)s"
+msgstr ""
+"Estos pagos pertenecen a un cierre de punto de venta publicado. Restablezca primero el cierre a borrador:\n"
+"%(payments)s"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_form
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.account_payment_closing_view_list
+msgid "Total"
+msgstr "Total"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "Tipo de actividad de excepción en el registro."
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,field_description:l10n_ve_payment_closing.field_account_payment_closing__website_message_ids
+msgid "Website Messages"
+msgstr "Mensajes del sitio web"
+
+#. module: l10n_ve_payment_closing
+#: model:ir.model.fields,help:l10n_ve_payment_closing.field_account_payment_closing__website_message_ids
+msgid "Website communication history"
+msgstr "Historial de comunicación del sitio web"
+
+#. module: l10n_ve_payment_closing
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payment_closing.view_account_payment_search
+msgid "Without Terminal Closing"
+msgstr "Sin cierre de punto de venta"
+
+#. module: l10n_ve_payment_closing
+#. odoo-python
+#: code:addons/l10n_ve_payment_closing/models/account_payment_closing.py:0
+msgid "You cannot delete a posted closing."
+msgstr "No puede eliminar un cierre publicado."

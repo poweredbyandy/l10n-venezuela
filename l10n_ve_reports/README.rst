@@ -58,6 +58,13 @@ Export the report to PDF or XLSX using the standard report actions.
 Each book only includes posted movements on the default liquidity
 account of the selected journals.
 
+To review receivables and payables by journal:
+
+#. Open **🇻🇪 Aged Receivable** or **🇻🇪 Aged Payable**. #. Use the
+**Journals** filter to select one or more journals. #. The aging buckets
+and the audit of each cell only include items from the selected
+journals. With no journal selected, all journals are included.
+
 To review payments:
 
 #. Go to **Accounting > SENIAT > Reports**. #. Open **Reporte X** to
@@ -70,7 +77,13 @@ display only its consolidated total. #. Review **Ingresos** and
 **Egresos** as fixed sections. Each section lists its payment methods
 (for example **Pago móvil** under income and **Transferencia** under
 expense). Only payment methods can be expanded or collapsed. The
-**Total** line remains the net of both.
+**Total** line remains the net of both. #. Review **Facturas a crédito**
+after the **Total** line. It lists the posted customer invoices and
+vendor bills dated in the report period that are still unpaid or
+partially paid, under the informative payment method **Crédito**. Each
+invoice shows its amount due. Customer documents appear under
+**Ingresos** and vendor documents under **Egresos**. The **Total
+crédito** line is not added to the report **Total**.
 
 Bug Tracker
 ===========
