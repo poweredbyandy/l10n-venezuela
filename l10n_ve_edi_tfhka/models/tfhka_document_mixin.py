@@ -1,6 +1,7 @@
 import re
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class L10nVeEdiTfhkaDocumentMixin(models.AbstractModel):
@@ -43,3 +44,32 @@ class L10nVeEdiTfhkaDocumentMixin(models.AbstractModel):
         if env == "0":
             return f"{yyyymm}{int(seq_int):06d}"
         return f"{yyyymm}{env}{int(seq_int):05d}"
+
+    @api.model
+    def _tfhka_is_foreign_buyer(self, partner):
+        country = partner.country_id if partner else False
+        return bool(country) and country.code != "VE"
+
+    @api.model
+    def _tfhka_get_foreign_buyer_identification(self, partner):
+        id_type = re.sub(
+            r"[^0-9A-Z]", "", (partner.l10n_ve_edi_tfhka_foreign_id_type or "").upper()
+        )[:3]
+        number = re.sub(r"[^0-9A-Za-z\-]", "", partner.vat or "").upper()
+        country_code = (partner.country_id.code or "").upper()
+        if country_code and number.startswith(country_code):
+            number = number[len(country_code) :]
+        return id_type, number[:19]
+
+    @api.model
+    def _tfhka_check_foreign_buyer_identification(self, partner):
+        id_type, number = self._tfhka_get_foreign_buyer_identification(partner)
+        if not id_type or not number:
+            raise UserError(
+                _(
+                    "El comprador %(partner)s no está domiciliado en Venezuela. "
+                    "Indique en el contacto el tipo de identificación extranjera "
+                    "(TFHKA), por ejemplo RUT o NIT, y el número en el NIF."
+                )
+                % {"partner": partner.display_name}
+            )

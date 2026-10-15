@@ -21,6 +21,16 @@
                     name="l10n_ve_edi_tfhka_environment_digit"
                     invisible="l10n_ve_edi_provider != 'tfhka'"
                 />
+                <button
+                    name="action_l10n_ve_edi_tfhka_numeration"
+                    string="Numeración TFHKA"
+                    type="object"
+                    class="btn-link"
+                    icon="fa-list-ol"
+                    colspan="2"
+                    invisible="l10n_ve_edi_provider != 'tfhka' or not id"
+                    groups="account.group_account_manager"
+                />
             </xpath>
         </field>
     </record>

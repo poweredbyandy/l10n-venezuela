@@ -9,6 +9,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import float_round
 
 from odoo.addons.l10n_ve_edi.models.edi_mixin import STATE_SENT
 
@@ -535,7 +536,46 @@ class AccountMove(models.Model):
         self.ensure_one()
         if self._tfhka_get_document_type() == "01":
             return "01"
+        if self._tfhka_is_igtf_debit_note():
+            return "98"
         return "02"
+
+    def _tfhka_is_igtf_debit_note(self):
+        self.ensure_one()
+        igtf_account = self.company_id.l10n_ve_igtf_account_id
+        if not self.debit_origin_id or not igtf_account:
+            return False
+        lines = self._tfhka_get_line_items()
+        return bool(lines) and all(line.account_id == igtf_account for line in lines)
+
+    def _tfhka_get_igtf_debit_note_totals(self):
+        self.ensure_one()
+        percent = self.company_id.l10n_ve_igtf_percent or 0.0
+        if not percent:
+            raise UserError(
+                _(
+                    "Configure el porcentaje de IGTF de la empresa para emitir "
+                    "la nota de débito por IGTF."
+                )
+            )
+        comp_cur = self.company_id.currency_id
+        usd = self.env.ref("base.USD")
+        base_ves = comp_cur.round(abs(self.amount_untaxed_signed) * 100.0 / percent)
+        if self.currency_id == usd:
+            base_usd = usd.round(abs(self.amount_untaxed) * 100.0 / percent)
+        else:
+            base_usd = usd.round(
+                comp_cur._convert(
+                    base_ves,
+                    usd,
+                    self.company_id,
+                    self.invoice_date or self.date or fields.Date.context_today(self),
+                )
+            )
+        return {
+            "totalIGTF": self._l10n_ve_edi_format_decimal(base_usd),
+            "totalIGTF_VES": self._l10n_ve_edi_format_decimal(base_ves),
+        }
 
     def _tfhka_get_currency_code(self):
         self.ensure_one()
@@ -755,17 +795,46 @@ class AccountMove(models.Model):
             not tids and abs(float(tax_group_dict.get("tax_amount", 0.0) or 0.0)) > 0.0
         )
 
+    def _tfhka_get_line_price_breakdown(self, line):
+        """Return the line amounts declared to TFHKA.
+
+        TFHKA only accepts two decimals in ``precioUnitario`` and recomputes
+        ``precioAntesDescuento`` and ``precioItem`` from it, so the rounding
+        difference against the Odoo subtotal is declared as discount.
+        """
+        self.ensure_one()
+        cur = self.currency_id
+        quantity = line.quantity
+        subtotal = cur.round(line.price_subtotal)
+        unit_price = float_round(line.price_unit, precision_digits=2)
+        if cur.compare_amounts(unit_price * quantity, subtotal) < 0:
+            unit_price = float_round(
+                line.price_unit, precision_digits=2, rounding_method="UP"
+            )
+        before_discount = cur.round(unit_price * quantity)
+        return {
+            "unit_price": unit_price,
+            "before_discount": before_discount,
+            "discount": cur.round(before_discount - subtotal),
+            "subtotal": subtotal,
+        }
+
     def _tfhka_line_discount_and_count(self):
+        """Return item count, global discount and subtotal before it.
+
+        TFHKA reads ``totalDescuento`` as a document level discount and
+        ``subtotalAntesDescuento`` as the sum of ``precioItem``. Line
+        discounts already live in each ``precioItem``.
+        """
         self.ensure_one()
         cur = self.currency_id
         line_items = self._tfhka_get_line_items()
-        total_desc = 0.0
-        subtotal_antes = 0.0
-        for line in line_items:
-            brutto = cur.round(line.price_unit * line.quantity)
-            ps = cur.round(line.price_subtotal)
-            total_desc = cur.round(total_desc + cur.round(brutto - ps))
-            subtotal_antes = cur.round(subtotal_antes + brutto)
+        subtotal_antes = cur.round(
+            sum(cur.round(ps) for ps in line_items.mapped("price_subtotal"))
+        )
+        total_desc = cur.round(subtotal_antes - abs(self.amount_untaxed))
+        if cur.compare_amounts(total_desc, 0.0) < 0:
+            total_desc = 0.0
         return len(line_items), total_desc, subtotal_antes
 
     def _tfhka_sum_buckets_base_tax(self, buckets, cur):
@@ -1265,8 +1334,7 @@ class AccountMove(models.Model):
         gravado = 0.0
         exento = 0.0
         total_iva = 0.0
-        total_desc = 0.0
-        subtotal_antes = 0.0
+        _count, total_desc, subtotal_antes = self._tfhka_line_discount_and_count()
         buckets = defaultdict(lambda: {"base": 0.0, "tax": 0.0})
         sum_price_total = 0.0
 
@@ -1274,9 +1342,6 @@ class AccountMove(models.Model):
             ps = cur.round(line.price_subtotal)
             pt = cur.round(line.price_total)
             iva = cur.round(pt - ps)
-            brutto = cur.round(line.price_unit * line.quantity)
-            total_desc = cur.round(total_desc + cur.round(brutto - ps))
-            subtotal_antes = cur.round(subtotal_antes + brutto)
             sum_price_total = cur.round(sum_price_total + pt)
 
             code = self._tfhka_get_line_tax_code(line)
@@ -1409,6 +1474,31 @@ class AccountMove(models.Model):
                 }
             )
         return rows or None
+
+    def _tfhka_has_foreign_buyer(self):
+        self.ensure_one()
+        if self.journal_id.l10n_ve_edi_provider != "tfhka":
+            return False
+        return self.env["l10n_ve.edi.tfhka.document.mixin"]._tfhka_is_foreign_buyer(
+            self._l10n_ve_edi_get_buyer_partner()
+        )
+
+    def _l10n_ve_edi_get_buyer_identification(self):
+        identification = super()._l10n_ve_edi_get_buyer_identification()
+        if not self._tfhka_has_foreign_buyer():
+            return identification
+        return self.env[
+            "l10n_ve.edi.tfhka.document.mixin"
+        ]._tfhka_get_foreign_buyer_identification(self._l10n_ve_edi_get_buyer_partner())
+
+    def _l10n_ve_edi_validate_parties_identification(self):
+        if self._tfhka_has_foreign_buyer():
+            self.env[
+                "l10n_ve.edi.tfhka.document.mixin"
+            ]._tfhka_check_foreign_buyer_identification(
+                self._l10n_ve_edi_get_buyer_partner()
+            )
+        return super()._l10n_ve_edi_validate_parties_identification()
 
     def _tfhka_build_comprador(self):
         buyer = self._l10n_ve_edi_get_buyer_partner()
@@ -1884,10 +1974,9 @@ class AccountMove(models.Model):
         sa = payload["subtotal_antes_descuento"]
         if inv_cur == comp_cur:
             return td, sa
-        return (
-            comp_cur.round(inv_cur._convert(td, comp_cur, self.company_id, date)),
-            comp_cur.round(inv_cur._convert(sa, comp_cur, self.company_id, date)),
-        )
+        td_comp = comp_cur.round(inv_cur._convert(td, comp_cur, self.company_id, date))
+        sa_comp = comp_cur.round(payload["comp"]["subtotal"] + td_comp)
+        return td_comp, sa_comp
 
     def _tfhka_convert_inv_totals_to_company(self, inv):
         self.ensure_one()
@@ -1994,6 +2083,8 @@ class AccountMove(models.Model):
             "montoTotalOTI": monto_total_oti_key,
             "montoTotalIVAyOTI": monto_total_ivayoti_key,
         }
+        if self._tfhka_is_igtf_debit_note():
+            data.update(self._tfhka_get_igtf_debit_note_totals())
         self._tfhka_log_totales_tfhka_debug(
             payload, igtf, monto_total_ivayoti_key, has_igtf
         )
@@ -2109,6 +2200,8 @@ class AccountMove(models.Model):
             "montoTotalOTI": monto_total_oti_key,
             "montoTotalIVAyOTI": monto_total_ivayoti_key,
         }
+        if self._tfhka_is_igtf_debit_note():
+            data.update(self._tfhka_get_igtf_debit_note_totals())
         return data
 
     def _tfhka_build_info_adicional(self):
@@ -2123,9 +2216,10 @@ class AccountMove(models.Model):
         if product:
             plu = (product.barcode or product.default_code or "")[:60]
         qty = line.quantity
-        pu = line.price_unit
-        brutto = pu * qty
-        discount_monto = brutto - line.price_subtotal
+        breakdown = self._tfhka_get_line_price_breakdown(line)
+        pu = breakdown["unit_price"]
+        brutto = breakdown["before_discount"]
+        discount_monto = breakdown["discount"]
         pu_con_desc = pu * (1 - (line.discount or 0) / 100.0) if line.discount else pu
         return {
             "numeroLinea": str(index),
@@ -2145,7 +2239,7 @@ class AccountMove(models.Model):
             "descripcionBonificacion": None,
             "descuentoMonto": self._l10n_ve_edi_format_decimal(discount_monto),
             "recargoMonto": self._l10n_ve_edi_format_decimal(0.0),
-            "precioItem": self._l10n_ve_edi_format_decimal(line.price_subtotal),
+            "precioItem": self._l10n_ve_edi_format_decimal(breakdown["subtotal"]),
             "precioAntesDescuento": self._l10n_ve_edi_format_decimal(brutto),
             "codigoImpuesto": tax_code,
             "tasaIVA": self._tfhka_format_tasa_iva(tax_rate),
@@ -2206,8 +2300,10 @@ class AccountMove(models.Model):
         except UserError as exc:
             msg = str(exc)
             self._tfhka_log_emision_failure_analysis(payload, prepared, msg)
-            if "TFHKA codigo 201" in msg or (
-                "TFHKA codigo 203" in msg and "MontoTotalIVAyOTI" in msg
+            if (
+                "TFHKA codigo 201" in msg
+                or "TFHKA codigo 99." in msg
+                or ("TFHKA codigo 203" in msg and "MontoTotalIVAyOTI" in msg)
             ):
                 try:
                     fallback = self._tfhka_fetch_existing_document_data(

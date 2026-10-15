@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="l10n_ve_edi_tfhka_numeration_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n_ve_edi_tfhka.numeration.wizard.form</field>
+        <field name="model">l10n_ve_edi_tfhka.numeration.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <div
+                    class="alert alert-success"
+                    role="alert"
+                    invisible="numeration_state not in ('available', 'assigned')"
+                >
+                    <field name="numeration_state" nolabel="1" />
+                </div>
+                <div
+                    class="alert alert-warning"
+                    role="alert"
+                    invisible="numeration_state != 'missing'"
+                >
+                    TFHKA no tiene numeración disponible para este tipo de documento y serie.
+                </div>
+                <group>
+                    <group>
+                        <field name="journal_id" options="{'no_create': True}" />
+                        <field name="document_type" />
+                        <field name="serie" />
+                    </group>
+                    <group>
+                        <field name="period_date" />
+                        <field name="number_start" />
+                        <field name="number_end" />
+                    </group>
+                </group>
+                <group invisible="not result_message">
+                    <field name="result_message" nolabel="1" colspan="2" />
+                </group>
+                <footer>
+                    <button
+                        name="action_query"
+                        string="Consultar"
+                        type="object"
+                        class="btn-secondary"
+                    />
+                    <button
+                        name="action_query_and_assign"
+                        string="Consultar y asignar si no existe"
+                        type="object"
+                        class="btn-primary"
+                        confirm="Si TFHKA no tiene numeración disponible se asignará el rango indicado. ¿Continuar?"
+                    />
+                    <button string="Cerrar" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

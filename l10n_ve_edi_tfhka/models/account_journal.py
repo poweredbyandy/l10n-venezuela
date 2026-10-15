@@ -1,3 +1,5 @@
+import re
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -62,3 +64,21 @@ class AccountJournal(models.Model):
         return self.env[
             "l10n_ve.edi.tfhka.document.mixin"
         ]._tfhka_normalize_environment_digit(self.l10n_ve_edi_tfhka_environment_digit)
+
+    def _tfhka_get_serie(self):
+        self.ensure_one()
+        raw = self.l10n_ve_edi_tfhka_serie or ""
+        if not raw.strip() and "series_correlative" in self._fields:
+            raw = self.series_correlative or ""
+        return re.sub(r"[^0-9A-Za-z]", "", raw.strip())[:20]
+
+    def action_l10n_ve_edi_tfhka_numeration(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Numeración TFHKA"),
+            "res_model": "l10n_ve_edi_tfhka.numeration.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_journal_id": self.id},
+        }

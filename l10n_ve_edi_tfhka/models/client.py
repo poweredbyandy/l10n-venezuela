@@ -62,6 +62,10 @@ HTTP_ERROR_MESSAGES = {
 }
 
 API_ERROR_MESSAGES = {
+    99: (
+        "Envio repetido en poco tiempo: TFHKA no proceso el documento. "
+        "Reintente en unos minutos."
+    ),
     100: "Error en el procesamiento de documentos (insercion en base de datos).",
     200: "Documento procesado exitosamente.",
     201: "Documento duplicado.",
@@ -190,6 +194,16 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
         vals = data.get(KEY_VALIDACIONES)
         if isinstance(vals, list) and vals:
             blob += " " + self._join_validaciones(vals).lower()
+        if "disponibilidad de números de control" in blob or (
+            "disponibilidad de numeros de control" in blob
+        ):
+            return (
+                "\n\n"
+                "Acción sugerida: su contribuyente no tiene números de control "
+                "cargados en The Factory HKA. Solicite a HKA o a su distribuidor "
+                "la carga de un lote de números de control y vuelva a asignar "
+                "el rango desde el diario (botón Numeración TFHKA)."
+            )
         if "rango de numeración" in blob or "rango de numeracion" in blob:
             return (
                 "\n\n"
@@ -197,8 +211,9 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
                 "numeración activo para su contribuyente, tipo de documento "
                 "(factura/ND/NC), establecimiento y serie que coincidan con lo "
                 "que envía Odoo (campos serie y sucursal en el payload; "
-                "sucursal se configura en el diario TFHKA). Asigne rangos en "
-                "el portal TFHKA o con su distribuidor HKA; si la serie en "
+                "sucursal se configura en el diario TFHKA). Asigne rangos desde "
+                "el diario (botón Numeración TFHKA), en el portal TFHKA o con "
+                "su distribuidor HKA; si la serie en "
                 "Odoo (diario o prefijo del nombre) no coincide con la "
                 "registrada en HKA, también puede fallar. Ambiente demo: use "
                 "credenciales y datos de prueba que tengan numeración de "
@@ -265,10 +280,6 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
         if code in allowed:
             return
         detail = self._extract_error_message(data)
-        if code == 99 and detail:
-            normalized = detail.lower()
-            if "ya ha sido enviado previamente" in normalized:
-                return
         message = (
             API_ERROR_MESSAGES.get(code) or "Codigo de respuesta API no documentado."
         )
@@ -398,13 +409,14 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
         )
 
     @api.model
-    def query_numerations(self, payload, token, timeout=None):
+    def query_numerations(self, payload, token, timeout=None, extra_success_codes=None):
         return self._request(
             METHOD_POST,
             PATH_CONSULTA_NUMERACIONES,
             payload=payload,
             token=token,
             timeout=timeout,
+            extra_success_codes=extra_success_codes,
         )
 
     @api.model

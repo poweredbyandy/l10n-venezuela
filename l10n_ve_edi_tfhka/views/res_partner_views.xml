@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_partner_form" model="ir.ui.view">
+        <field name="name">res.partner.form.l10n.ve.edi.tfhka</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="after">
+                <field
+                    name="l10n_ve_edi_tfhka_foreign_id_type"
+                    invisible="not country_id or country_code == 'VE'"
+                    placeholder="RUT, NIT, PAS..."
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

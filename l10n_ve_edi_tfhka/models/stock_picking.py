@@ -156,6 +156,32 @@ class StockPicking(models.Model):
         self.ensure_one()
         return self._l10n_ve_edi_get_edi_journal()
 
+    def _tfhka_has_foreign_buyer(self):
+        self.ensure_one()
+        journal = self._tfhka_get_reference_journal()
+        if not journal or journal.l10n_ve_edi_provider != "tfhka":
+            return False
+        return self.env["l10n_ve.edi.tfhka.document.mixin"]._tfhka_is_foreign_buyer(
+            self._l10n_ve_edi_get_buyer_partner()
+        )
+
+    def _l10n_ve_edi_get_buyer_identification(self):
+        identification = super()._l10n_ve_edi_get_buyer_identification()
+        if not self._tfhka_has_foreign_buyer():
+            return identification
+        return self.env[
+            "l10n_ve.edi.tfhka.document.mixin"
+        ]._tfhka_get_foreign_buyer_identification(self._l10n_ve_edi_get_buyer_partner())
+
+    def _l10n_ve_edi_validate_parties_identification(self):
+        if self._tfhka_has_foreign_buyer():
+            self.env[
+                "l10n_ve.edi.tfhka.document.mixin"
+            ]._tfhka_check_foreign_buyer_identification(
+                self._l10n_ve_edi_get_buyer_partner()
+            )
+        return super()._l10n_ve_edi_validate_parties_identification()
+
     def _tfhka_serie_from_journal(self, journal):
         if not journal:
             return ""
