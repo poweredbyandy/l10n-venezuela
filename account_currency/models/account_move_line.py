@@ -17,9 +17,13 @@ class AccountMoveLine(models.Model):
         precompute=True,
         readonly=False,
     )
-    price_unit_company_currency = fields.Monetary(
+    # Float (not Monetary): keep full precision so unit × qty equals the
+    # company subtotal; Monetary would round the unit to currency decimals
+    # and break that identity for fractional unit prices.
+    price_unit_company_currency = fields.Float(
+        string="Unit Price in Company Currency",
         compute="_compute_price_unit_company_currency",
-        currency_field="company_currency_id",
+        digits=(16, 6),
     )
     manually_price_subtotal_currency = fields.Boolean(
         string="Manual Subtotal in Company Currency",
@@ -52,11 +56,33 @@ class AccountMoveLine(models.Model):
                 continue
             line.price_subtotal_currency = line._l10n_ve_company_currency_subtotal()
 
-    @api.depends("price_unit", "currency_rate", "currency_id", "company_currency_id")
+    @api.depends(
+        "price_unit",
+        "quantity",
+        "discount",
+        "price_subtotal_currency",
+        "currency_rate",
+        "currency_id",
+        "company_currency_id",
+    )
     def _compute_price_unit_company_currency(self):
+        """Company unit price aligned with the displayed company subtotal.
+
+        Derive from ``price_subtotal_currency / (qty * (1 - discount%))`` so
+        unit × quantity matches the line company subtotal clients verify by
+        hand, instead of converting the unrounded foreign ``price_unit``.
+        """
         for line in self:
             if line.currency_id == line.company_currency_id or not line.currency_rate:
                 line.price_unit_company_currency = line.price_unit
+                continue
+            qty = line.quantity or 0.0
+            discount_factor = 1.0 - ((line.discount or 0.0) / 100.0)
+            base_qty = qty * discount_factor
+            if base_qty and line.price_subtotal_currency:
+                line.price_unit_company_currency = (
+                    line.price_subtotal_currency / base_qty
+                )
                 continue
             line.price_unit_company_currency = line.price_unit / line.currency_rate
 
@@ -129,6 +155,12 @@ class AccountMoveLine(models.Model):
         self.manually_price_subtotal_currency = False
 
     def _l10n_ve_company_currency_subtotal(self):
+        """Company-currency subtotal from the rounded foreign amount / rate.
+
+        Keeps ``price_subtotal_currency`` aligned with the foreign
+        ``price_subtotal`` customers see, instead of converting the unrounded
+        ``price_unit * quantity`` residual.
+        """
         self.ensure_one()
         if (
             self.move_id.move_type not in INVOICE_MOVE_TYPES

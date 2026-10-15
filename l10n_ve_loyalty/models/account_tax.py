@@ -45,6 +45,130 @@ class AccountTax(models.Model):
         )
 
     @api.model
+    def _l10n_ve_document_product_subtotal_company(self, document):
+        """Sum product-line company subtotals shown before global discount.
+
+        Keeps the tax-totals "Subtotal" in company currency equal to the sum of
+        invoice/order line company amounts the user sees above the footer.
+        Excludes discount-product lines so the gross is pre-discount.
+        """
+        company_currency = document.company_id.currency_id
+        if document._name == "account.move":
+            lines = document.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product"
+            )
+            if hasattr(document, "_l10n_ve_get_product_discount_lines"):
+                lines -= document._l10n_ve_get_product_discount_lines()
+            if not lines or "price_subtotal_currency" not in lines._fields:
+                return None
+            return company_currency.round(sum(lines.mapped("price_subtotal_currency")))
+        if document._name == "sale.order":
+            lines = document.order_line.filtered(lambda line: not line.display_type)
+            if not lines or "price_subtotal_currency" not in lines._fields:
+                return None
+            return company_currency.round(sum(lines.mapped("price_subtotal_currency")))
+        return None
+
+    @api.model
+    def _l10n_ve_company_global_discount_amount(
+        self, document, subtotal_gross, global_discount_lines
+    ):
+        """Apply global discounts on the company-currency gross (Bs).
+
+        Percentage discounts use the company gross so ``gross - discount`` and
+        ``gross * %`` stay consistent in Bs. Fixed amounts are converted from
+        document currency with the document rate.
+        """
+        company_currency = document.company_id.currency_id
+        running = subtotal_gross
+        total = 0.0
+        for line in global_discount_lines:
+            if float_is_zero(running, precision_rounding=company_currency.rounding):
+                break
+            if line.get("discount_type") == "percentage" and line.get(
+                "discount_percentage"
+            ):
+                amount = company_currency.round(
+                    running * line["discount_percentage"]
+                )
+            else:
+                amount = self._l10n_ve_amount_currency_to_company(
+                    document, line.get("amount") or 0.0
+                )
+                amount = min(amount, running)
+            if float_is_zero(amount, precision_rounding=company_currency.rounding):
+                continue
+            total = company_currency.round(total + amount)
+            running = company_currency.round(running - amount)
+        return total
+
+    @api.model
+    def _l10n_ve_realign_company_tax_totals_after_discount(
+        self, document, totals, subtotal_gross, global_discount_amount
+    ):
+        """Force company base/tax/total to follow gross - discount in Bs."""
+        company_currency = document.company_id.currency_id
+        new_base = company_currency.round(subtotal_gross - global_discount_amount)
+        old_base = totals.get("base_amount") or 0.0
+        if float_is_zero(old_base, precision_rounding=company_currency.rounding):
+            return totals
+
+        subtotals = []
+        tax_amount = 0.0
+        for subtotal in totals.get("subtotals") or []:
+            subtotal = dict(subtotal)
+            tax_groups = []
+            subtotal_tax = 0.0
+            subtotal_base = 0.0
+            for group in subtotal.get("tax_groups") or []:
+                group = dict(group)
+                group_old_base = group.get("base_amount") or 0.0
+                if float_is_zero(
+                    old_base, precision_rounding=company_currency.rounding
+                ):
+                    group_new_base = new_base
+                else:
+                    group_new_base = company_currency.round(
+                        new_base * group_old_base / old_base
+                    )
+                group_base_currency = group.get("base_amount_currency") or 0.0
+                group_tax_currency = group.get("tax_amount_currency") or 0.0
+                tax_ids = group.get("involved_tax_ids") or []
+                percent = 0.0
+                if tax_ids:
+                    taxes = self.browse(tax_ids).flatten_taxes_hierarchy()
+                    percent = sum(
+                        tax.amount
+                        for tax in taxes
+                        if tax.amount_type == "percent"
+                    ) / 100.0
+                if not percent and group_base_currency:
+                    percent = group_tax_currency / group_base_currency
+                elif not percent and group_old_base:
+                    percent = (group.get("tax_amount") or 0.0) / group_old_base
+                group_tax = company_currency.round(group_new_base * percent)
+                group["base_amount"] = group_new_base
+                group["tax_amount"] = group_tax
+                if group.get("display_base_amount") not in (None, False):
+                    group["display_base_amount"] = group_new_base
+                tax_groups.append(group)
+                subtotal_tax = company_currency.round(subtotal_tax + group_tax)
+                subtotal_base = company_currency.round(
+                    subtotal_base + group_new_base
+                )
+            subtotal["tax_groups"] = tax_groups
+            subtotal["base_amount"] = subtotal_base or new_base
+            subtotal["tax_amount"] = subtotal_tax
+            subtotals.append(subtotal)
+            tax_amount = company_currency.round(tax_amount + subtotal_tax)
+
+        totals["subtotals"] = subtotals
+        totals["base_amount"] = new_base
+        totals["tax_amount"] = tax_amount
+        totals["total_amount"] = company_currency.round(new_base + tax_amount)
+        return totals
+
+    @api.model
     def _l10n_ve_build_discount_totals_result(
         self,
         document,
@@ -70,12 +194,30 @@ class AccountTax(models.Model):
                 "subtotal_gross": base_amount,
                 "subtotal_gross_foreign": base_amount_foreign or 0.0,
                 "global_discount_lines": [],
+                "realign_company_tax_totals": False,
             }
 
         company = document.company_id
-        global_discount_amount = self._l10n_ve_amount_currency_to_company(
-            document, global_discount_amount_currency
+        company_currency = company.currency_id
+        product_subtotal_company = self._l10n_ve_document_product_subtotal_company(
+            document
         )
+        realign_company_tax_totals = False
+        if product_subtotal_company is not None:
+            # Company footer: apply % / fixed on the Bs gross (sum of lines),
+            # then realign base/tax so gross - discount = base and IVA tracks it.
+            subtotal_gross = product_subtotal_company
+            global_discount_amount = self._l10n_ve_company_global_discount_amount(
+                document, subtotal_gross, global_discount_lines
+            )
+            realign_company_tax_totals = document.currency_id != company_currency
+        else:
+            global_discount_amount = self._l10n_ve_amount_currency_to_company(
+                document, global_discount_amount_currency
+            )
+            subtotal_gross = company_currency.round(
+                base_amount + global_discount_amount
+            )
 
         global_discount_amount_foreign = 0.0
         if document._name == "account.move":
@@ -94,7 +236,6 @@ class AccountTax(models.Model):
             )
 
         subtotal_gross_currency = base_amount_currency + global_discount_amount_currency
-        subtotal_gross = company.currency_id.round(base_amount + global_discount_amount)
         overall_percentage = False
         percentage_lines = [
             line
@@ -126,6 +267,7 @@ class AccountTax(models.Model):
             "subtotal_gross_foreign": (base_amount_foreign or 0.0)
             + global_discount_amount_foreign,
             "global_discount_lines": global_discount_lines,
+            "realign_company_tax_totals": realign_company_tax_totals,
         }
 
     @api.model
@@ -158,6 +300,13 @@ class AccountTax(models.Model):
         totals["l10n_ve_global_discount_percentage"] = discount_totals[
             "global_discount_percentage"
         ]
+        if discount_totals.get("realign_company_tax_totals"):
+            totals = self._l10n_ve_realign_company_tax_totals_after_discount(
+                document,
+                totals,
+                discount_totals["subtotal_gross"],
+                discount_totals["global_discount_amount"],
+            )
         can_manage = self.env.user.has_group(
             "l10n_ve_loyalty.group_l10n_ve_global_discount"
         )

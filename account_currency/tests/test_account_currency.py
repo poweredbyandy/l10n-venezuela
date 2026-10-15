@@ -45,12 +45,64 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         self.assertAlmostEqual(line.price_unit_company_currency, 50.0)
         self.assertAlmostEqual(invoice._l10n_ve_to_company_abs_amount(), 50.0)
 
+    def test_company_currency_uses_rounded_foreign_subtotal(self):
+        """Company amounts follow round(foreign) / rate, not unrounded unit*qty."""
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": "2024-01-10",
+                "currency_id": self.foreign_currency.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Fractional unit price",
+                            "quantity": 32.0,
+                            "price_unit": 4.473315,
+                            "tax_ids": [(6, 0, [])],
+                        },
+                    )
+                ],
+            }
+        )
+        line = invoice.invoice_line_ids
+        rate = invoice.invoice_currency_rate
+        expected_company = invoice.company_currency_id.round(line.price_subtotal / rate)
+        unrounded_foreign = line.price_unit * line.quantity
+        unexpected_from_unrounded = invoice.company_currency_id.round(
+            unrounded_foreign / rate
+        )
+
+        self.assertAlmostEqual(line.price_subtotal, 143.15)
+        self.assertNotAlmostEqual(
+            expected_company, unexpected_from_unrounded, places=2
+        )
+        self.assertAlmostEqual(line.price_subtotal_currency, expected_company, places=2)
+        self.assertAlmostEqual(abs(line.balance), expected_company, places=2)
+        self.assertAlmostEqual(abs(line.amount_currency), line.price_subtotal, places=2)
+        self.assertAlmostEqual(
+            line.price_unit_company_currency * line.quantity,
+            line.price_subtotal_currency,
+            places=2,
+        )
+        invoice.action_post()
+        self.assertAlmostEqual(abs(line.balance), expected_company, places=2)
+        self.assertAlmostEqual(abs(line.amount_currency), line.price_subtotal, places=2)
+
     def test_company_currency_price_unit_ignores_discount(self):
         invoice = self._create_invoice()
         line = invoice.invoice_line_ids
         line.discount = 10.0
         self.assertAlmostEqual(line.price_subtotal_currency, 45.0)
+        # Unit stays pre-discount so unit × qty × (1 - discount%) = subtotal.
         self.assertAlmostEqual(line.price_unit_company_currency, 50.0)
+        self.assertAlmostEqual(
+            line.price_unit_company_currency * line.quantity * 0.9,
+            line.price_subtotal_currency,
+            places=2,
+        )
 
     def test_manual_company_currency_subtotal(self):
         invoice = self._create_invoice()

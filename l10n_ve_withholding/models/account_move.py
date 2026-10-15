@@ -600,3 +600,15 @@ class AccountMoveRetention(models.Model):
         if payment.get("is_retention", False):
             return False
         return True
+
+    def js_assign_outstanding_line(self, line_id):
+        """Skip FX difference when assigning a retention payment outstanding line.
+
+        Withholdings must keep the invoice rate; a later accounting/reception
+        date must not create exchange difference entries.
+        """
+        line = self.env["account.move.line"].browse(line_id)
+        payment = line.move_id.origin_payment_id
+        if payment and payment.is_retention:
+            self = self.with_context(no_exchange_difference=True)
+        return super().js_assign_outstanding_line(line_id)
