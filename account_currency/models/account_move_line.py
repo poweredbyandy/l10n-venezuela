@@ -129,6 +129,12 @@ class AccountMoveLine(models.Model):
         self.manually_price_subtotal_currency = False
 
     def _l10n_ve_company_currency_subtotal(self):
+        """Company-currency subtotal from the rounded foreign amount / rate.
+
+        Keeps ``price_subtotal_currency`` aligned with the foreign
+        ``price_subtotal`` customers see, instead of converting the unrounded
+        ``price_unit * quantity`` residual.
+        """
         self.ensure_one()
         if (
             self.move_id.move_type not in INVOICE_MOVE_TYPES

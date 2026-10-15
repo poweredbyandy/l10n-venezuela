@@ -328,7 +328,107 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
         self.assertAlmostEqual(line.price_subtotal_currency, 200.0, places=2)
         self.assertAlmostEqual(line.price_unit_company_currency, 200.0, places=2)
         self.assertAlmostEqual(
-            move.tax_totals["l10n_ve_global_discount_amount"], 20.0, places=2
+            move.tax_totals["l10n_ve_subtotal_gross"],
+            line.price_subtotal_currency,
+            places=2,
+        )
+        self.assertAlmostEqual(
+            move.tax_totals["l10n_ve_global_discount_amount"],
+            move.tax_totals["l10n_ve_subtotal_gross"]
+            - move.tax_totals["base_amount"],
+            places=2,
+        )
+
+    def test_subtotal_gross_company_matches_sum_of_product_lines(self):
+        """Footer company subtotal before discount equals sum of line Bs."""
+        company_currency = self.env.company.currency_id
+        usd = self.env.ref("base.USD")
+        foreign = usd if company_currency != usd else self.env.ref("base.EUR")
+        foreign.write({"active": True})
+        journal = self.company_data["default_journal_sale"]
+        self._l10n_ve_configure_journal_free(journal)
+        invoice_date = fields.Date.today()
+        self.env["res.currency.rate"].search(
+            [
+                ("currency_id", "=", foreign.id),
+                ("company_id", "=", self.env.company.id),
+                ("name", "=", invoice_date),
+            ]
+        ).unlink()
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": foreign.id,
+                "company_id": self.env.company.id,
+                "name": invoice_date,
+                "inverse_company_rate": 879.1225,
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_ve.id,
+                "journal_id": journal.id,
+                "currency_id": foreign.id,
+                "invoice_date": invoice_date,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "PW20TT",
+                            "quantity": 32.0,
+                            "price_unit": 4.473315,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                Command.set(
+                                    [self.company_data["default_tax_sale"].id]
+                                )
+                            ],
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "name": "T16EPR-U15",
+                            "quantity": 32.0,
+                            "price_unit": 2.09142,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                Command.set(
+                                    [self.company_data["default_tax_sale"].id]
+                                )
+                            ],
+                        }
+                    ),
+                ],
+            }
+        )
+        lines = move.invoice_line_ids
+        expected_gross = company_currency.round(
+            sum(lines.mapped("price_subtotal_currency"))
+        )
+        self._add_global_discount(
+            move,
+            "Descuento 20%",
+            move.currency_id.round(sum(lines.mapped("price_subtotal")) * 0.20),
+            discount_type="percentage",
+            discount_percentage=0.20,
+        )
+        tax_totals = move.tax_totals
+        self.assertAlmostEqual(
+            tax_totals["l10n_ve_subtotal_gross"], expected_gross, places=2
+        )
+        self.assertAlmostEqual(
+            tax_totals["l10n_ve_subtotal_gross_currency"],
+            sum(lines.mapped("price_subtotal")),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            tax_totals["l10n_ve_subtotal_gross"]
+            - tax_totals["l10n_ve_global_discount_amount"],
+            tax_totals["base_amount"],
+            places=2,
         )
 
     def _ensure_sale_discount_product(self, name):

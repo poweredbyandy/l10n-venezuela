@@ -45,6 +45,28 @@ class AccountTax(models.Model):
         )
 
     @api.model
+    def _l10n_ve_document_product_subtotal_company(self, document):
+        """Sum product-line company subtotals shown before global discount.
+
+        Keeps the tax-totals "Subtotal" in company currency equal to the sum of
+        invoice/order line company amounts the user sees above the footer.
+        """
+        company_currency = document.company_id.currency_id
+        if document._name == "account.move":
+            lines = document.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product"
+            )
+            if not lines or "price_subtotal_currency" not in lines._fields:
+                return None
+            return company_currency.round(sum(lines.mapped("price_subtotal_currency")))
+        if document._name == "sale.order":
+            lines = document.order_line.filtered(lambda line: not line.display_type)
+            if not lines or "price_subtotal_currency" not in lines._fields:
+                return None
+            return company_currency.round(sum(lines.mapped("price_subtotal_currency")))
+        return None
+
+    @api.model
     def _l10n_ve_build_discount_totals_result(
         self,
         document,
@@ -73,9 +95,24 @@ class AccountTax(models.Model):
             }
 
         company = document.company_id
-        global_discount_amount = self._l10n_ve_amount_currency_to_company(
-            document, global_discount_amount_currency
+        company_currency = company.currency_id
+        product_subtotal_company = self._l10n_ve_document_product_subtotal_company(
+            document
         )
+        if product_subtotal_company is not None:
+            # Align footer company subtotal with sum of product lines, then
+            # derive the discount so: gross - discount = post-discount base.
+            subtotal_gross = product_subtotal_company
+            global_discount_amount = company_currency.round(
+                subtotal_gross - base_amount
+            )
+        else:
+            global_discount_amount = self._l10n_ve_amount_currency_to_company(
+                document, global_discount_amount_currency
+            )
+            subtotal_gross = company_currency.round(
+                base_amount + global_discount_amount
+            )
 
         global_discount_amount_foreign = 0.0
         if document._name == "account.move":
@@ -94,7 +131,6 @@ class AccountTax(models.Model):
             )
 
         subtotal_gross_currency = base_amount_currency + global_discount_amount_currency
-        subtotal_gross = company.currency_id.round(base_amount + global_discount_amount)
         overall_percentage = False
         percentage_lines = [
             line
