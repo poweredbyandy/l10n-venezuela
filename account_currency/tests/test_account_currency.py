@@ -82,6 +82,11 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         self.assertAlmostEqual(line.price_subtotal_currency, expected_company, places=2)
         self.assertAlmostEqual(abs(line.balance), expected_company, places=2)
         self.assertAlmostEqual(abs(line.amount_currency), line.price_subtotal, places=2)
+        self.assertAlmostEqual(
+            line.price_unit_company_currency * line.quantity,
+            line.price_subtotal_currency,
+            places=2,
+        )
         invoice.action_post()
         self.assertAlmostEqual(abs(line.balance), expected_company, places=2)
         self.assertAlmostEqual(abs(line.amount_currency), line.price_subtotal, places=2)
@@ -91,7 +96,13 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         line = invoice.invoice_line_ids
         line.discount = 10.0
         self.assertAlmostEqual(line.price_subtotal_currency, 45.0)
+        # Unit stays pre-discount so unit × qty × (1 - discount%) = subtotal.
         self.assertAlmostEqual(line.price_unit_company_currency, 50.0)
+        self.assertAlmostEqual(
+            line.price_unit_company_currency * line.quantity * 0.9,
+            line.price_subtotal_currency,
+            places=2,
+        )
 
     def test_manual_company_currency_subtotal(self):
         invoice = self._create_invoice()
