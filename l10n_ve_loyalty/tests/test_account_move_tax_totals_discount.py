@@ -332,10 +332,14 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
             line.price_subtotal_currency,
             places=2,
         )
+        # Fixed 10 in foreign currency → company via inverse rate (2.0).
         self.assertAlmostEqual(
-            move.tax_totals["l10n_ve_global_discount_amount"],
+            move.tax_totals["l10n_ve_global_discount_amount"], 20.0, places=2
+        )
+        self.assertAlmostEqual(
             move.tax_totals["l10n_ve_subtotal_gross"]
-            - move.tax_totals["base_amount"],
+            - move.tax_totals["l10n_ve_global_discount_amount"],
+            move.tax_totals["base_amount"],
             places=2,
         )
 
@@ -424,10 +428,23 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
             sum(lines.mapped("price_subtotal")),
             places=2,
         )
+        expected_discount = company_currency.round(expected_gross * 0.20)
+        self.assertAlmostEqual(
+            tax_totals["l10n_ve_global_discount_amount"],
+            expected_discount,
+            places=2,
+        )
         self.assertAlmostEqual(
             tax_totals["l10n_ve_subtotal_gross"]
             - tax_totals["l10n_ve_global_discount_amount"],
             tax_totals["base_amount"],
+            places=2,
+        )
+        self.assertAlmostEqual(
+            tax_totals["total_amount"],
+            company_currency.round(
+                tax_totals["base_amount"] + tax_totals["tax_amount"]
+            ),
             places=2,
         )
 
