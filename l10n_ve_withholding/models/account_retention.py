@@ -1117,17 +1117,24 @@ class AccountRetention(models.Model):
             )
         return lines[0]
 
+    def _reconcile_retention_payment_line(self, payment, account_type):
+        """Reconcile retention payment without generating exchange differences.
+
+        Retention amounts already follow the invoice rate/base. When the
+        accounting date (e.g. reception/payment date) differs from the invoice
+        rate date, standard reconciliation would otherwise create an FX
+        difference entry that must not apply to withholdings.
+        """
+        line_to_reconcile = self._get_line_to_reconcile(payment, account_type)
+        payment.retention_line_ids.move_id.with_context(
+            no_exchange_difference=True,
+        ).js_assign_outstanding_line(line_to_reconcile.id)
+
     def _reconcile_supplier_payment(self, payment):
-        line_to_reconcile = self._get_line_to_reconcile(payment, "liability_payable")
-        payment.retention_line_ids.move_id.js_assign_outstanding_line(
-            line_to_reconcile.id
-        )
+        self._reconcile_retention_payment_line(payment, "liability_payable")
 
     def _reconcile_customer_payment(self, payment):
-        line_to_reconcile = self._get_line_to_reconcile(payment, "asset_receivable")
-        payment.retention_line_ids.move_id.js_assign_outstanding_line(
-            line_to_reconcile.id
-        )
+        self._reconcile_retention_payment_line(payment, "asset_receivable")
 
     @api.model
     def compute_retention_lines_data(self, invoice_id, payment=None):
