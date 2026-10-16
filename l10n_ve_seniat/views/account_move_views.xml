@@ -610,4 +610,31 @@
             name="context"
         >{'search_default_out_refund': 1, 'default_move_type': 'out_refund', 'display_account_trust': True, 'create': False}</field>
     </record>
+
+    <record id="view_account_invoice_filter" model="ir.ui.view">
+        <field name="name">account.invoice.select.l10n.ve.seniat</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter" />
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='name'][1]" position="attributes">
+                <attribute name="filter_domain">[
+                    '|', '|', '|', '|', '|',
+                    ('name', 'ilike', self), ('invoice_origin', 'ilike', self),
+                    ('ref', 'ilike', self), ('payment_reference', 'ilike', self),
+                    ('partner_id', 'child_of', self),
+                    ('l10n_ve_invoice_number', 'ilike', self)]</attribute>
+            </xpath>
+            <xpath
+                expr="//search/field[@name='name'][not(@filter_domain)]"
+                position="attributes"
+            >
+                <attribute
+                    name="filter_domain"
+                >['|', ('name', 'ilike', self), ('l10n_ve_invoice_number', 'ilike', self)]</attribute>
+            </xpath>
+            <field name="payment_reference" position="after">
+                <field name="l10n_ve_invoice_number" string="N° Factura" />
+            </field>
+        </field>
+    </record>
 </odoo>

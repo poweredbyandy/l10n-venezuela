@@ -25,6 +25,13 @@ L10N_VE_CANCEL_REASON_MOVE_TYPES = (
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    @property
+    def _rec_names_search(self):
+        names = list(super()._rec_names_search or ["name"])
+        if "l10n_ve_invoice_number" not in names:
+            names.append("l10n_ve_invoice_number")
+        return names
+
     seniat_invoice_tag = fields.Html(
         string="SENIAT Invoice Tag",
         readonly=True,
@@ -1108,6 +1115,7 @@ class AccountMove(models.Model):
         string="Fiscal Invoice Number",
         copy=False,
         tracking=True,
+        index="trigram",
         help="Invoice number from the fiscal machine",
     )
     l10n_ve_report_z = fields.Char(

@@ -152,6 +152,13 @@ Fecha de recepción y vencimientos
 Ejemplo: factura del 1 de enero, recepción el 5 de enero y pago a 30
 días → vencimiento el 4 de febrero.
 
+Buscar por número de máquina fiscal
+-----------------------------------
+
+En el listado de facturas, la misma búsqueda del número (``name``)
+también localiza el documento por el **N° Factura** de la máquina fiscal.
+Escriba ese número como si buscara el número de la factura.
+
 Bug Tracker
 ===========
 

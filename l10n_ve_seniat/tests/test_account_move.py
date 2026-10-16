@@ -1883,6 +1883,27 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertIn('name="l10n_ve_report_z"', list_arch)
         self.assertIn('name="l10n_ve_serial_number"', list_arch)
 
+    def test_invoice_search_finds_fiscal_machine_invoice_number(self):
+        number = "FM-SEARCH-42"
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        move.l10n_ve_invoice_number = number
+        found = self.env["account.move"].search(
+            [("l10n_ve_invoice_number", "ilike", number)]
+        )
+        self.assertIn(move, found)
+        by_name = self.env["account.move"].name_search(name=number)
+        self.assertIn(move.id, [row[0] for row in by_name])
+        self.assertIn(
+            move,
+            self.env["account.move"].search([("display_name", "ilike", number)]),
+        )
+        arch = self.env.ref("account.view_account_invoice_filter").get_combined_arch()
+        self.assertIn("('l10n_ve_invoice_number', 'ilike', self)", arch)
+        self.assertIn('name="l10n_ve_invoice_number"', arch)
+        self.assertIn('string="N° Factura"', arch)
+
     def test_posted_invoice_date_editable_for_billing_administrator(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)
