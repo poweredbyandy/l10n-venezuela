@@ -44,12 +44,17 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         )
         cls.deposit_move.action_post()
 
-    def _get_report_lines(self, date_from="2025-01-01", date_to="2025-01-31"):
+    def _get_report_lines(
+        self, date_from="2025-01-01", date_to="2025-01-31", extra_options=None
+    ):
+        default_options = {"unfold_all": True}
+        if extra_options:
+            default_options.update(extra_options)
         options = self._generate_options(
             self.report,
             date_from,
             date_to,
-            default_options={"unfold_all": True},
+            default_options=default_options,
         )
         options = self._update_multi_selector_filter(
             options, "journals", self.bank_journal.ids
@@ -212,3 +217,98 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
                 if line.get("caret_options") == "daily_payments_credit_invoice"
             ]
         )
+
+    def _credit_invoice_lines(self, lines):
+        return [
+            line
+            for line in lines
+            if line.get("caret_options") == "daily_payments_credit_invoice"
+        ]
+
+    def _reconcile_partial_payment(self, invoice, amount, is_retention):
+        journal = self.env["account.journal"].create(
+            {
+                "name": "Diario retencion pagos",
+                "type": "bank",
+                "code": "RTDP" if is_retention else "PYDP",
+                "company_id": invoice.company_id.id,
+            }
+        )
+        payment_type = (
+            "inbound"
+            if invoice.is_sale_document(include_receipts=True)
+            else "outbound"
+        )
+        method_lines = (
+            journal.inbound_payment_method_line_ids
+            if payment_type == "inbound"
+            else journal.outbound_payment_method_line_ids
+        )
+        payment = self.env["account.payment"].create(
+            {
+                "amount": amount,
+                "payment_type": payment_type,
+                "partner_type": "customer" if payment_type == "inbound" else "supplier",
+                "date": "2025-01-16",
+                "journal_id": journal.id,
+                "partner_id": invoice.partner_id.id,
+                "payment_method_line_id": method_lines[:1].id,
+                "is_retention": is_retention,
+            }
+        )
+        payment.action_post()
+        account_type = (
+            "asset_receivable"
+            if invoice.is_sale_document(include_receipts=True)
+            else "liability_payable"
+        )
+        lines = (invoice | payment.move_id).line_ids.filtered(
+            lambda line: line.account_id.account_type == account_type
+            and not line.reconciled
+        )
+        lines.reconcile()
+        return payment
+
+    def test_retention_partial_keeps_full_amount_as_credit(self):
+        invoice = self._create_credit_invoice("out_invoice", 200.0)
+        self._reconcile_partial_payment(invoice, 16.0, is_retention=True)
+        self.assertEqual(invoice.payment_state, "partial")
+        self.assertAlmostEqual(invoice.amount_residual, 184.0)
+
+        lines, _options = self._get_report_lines()
+        credit_lines = self._credit_invoice_lines(lines)
+        self.assertEqual(len(credit_lines), 1)
+        self.assertAlmostEqual(self._get_line_amount(credit_lines[0]), 200.0)
+
+        grand_total = [
+            line
+            for line in lines
+            if line.get("name") == "Total" and line.get("level") == 0
+        ]
+        self.assertAlmostEqual(self._get_line_amount(grand_total[0]), 500.0)
+
+    def test_real_partial_payment_reduces_credit_amount(self):
+        invoice = self._create_credit_invoice("out_invoice", 200.0)
+        self._reconcile_partial_payment(invoice, 16.0, is_retention=True)
+        self._reconcile_partial_payment(invoice, 50.0, is_retention=False)
+        self.assertEqual(invoice.payment_state, "partial")
+
+        lines, _options = self._get_report_lines()
+        credit_lines = self._credit_invoice_lines(lines)
+        self.assertEqual(len(credit_lines), 1)
+        self.assertAlmostEqual(self._get_line_amount(credit_lines[0]), 150.0)
+
+    def test_credit_invoices_can_be_hidden(self):
+        self._create_credit_invoice("out_invoice", 300.0)
+        lines, options = self._get_report_lines(
+            extra_options={"daily_payments_show_credit_invoices": False}
+        )
+        self.assertFalse(options["daily_payments_show_credit_invoices"])
+        self.assertFalse(self._credit_invoice_lines(lines))
+        self.assertFalse([line for line in lines if line.get("name") == "Total crédito"])
+        grand_total = [
+            line
+            for line in lines
+            if line.get("name") == "Total" and line.get("level") == 0
+        ]
+        self.assertAlmostEqual(self._get_line_amount(grand_total[0]), 500.0)

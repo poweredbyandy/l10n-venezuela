@@ -44,6 +44,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         options["daily_payments_date_type"] = previous_options.get(
             "daily_payments_date_type", "payment"
         )
+        options["daily_payments_show_credit_invoices"] = previous_options.get(
+            "daily_payments_show_credit_invoices", True
+        )
 
         if previous_options.get("is_opening_report"):
             today = fields.Date.context_today(report)
@@ -91,6 +94,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         if date_type not in ("payment", "validation"):
             return "payment"
         return date_type
+
+    def _show_credit_invoices(self, options):
+        return bool(options.get("daily_payments_show_credit_invoices", True))
 
     def _get_move_display_report_amount(self, move, journal, options, conv_date):
         balance = self._get_move_report_amount(move, journal)
@@ -885,9 +891,40 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             order="invoice_date asc, name asc, id asc",
         )
 
+    def _get_retention_reconciled_company_amount(self, invoice):
+        """Company amount already settled by a withholding.
+
+        Signed like ``amount_residual_signed``. A retención pays the tax, so
+        it must not reduce the amount still reported as credit.
+        """
+        lines = invoice.line_ids.filtered(
+            lambda line: line.account_id.account_type
+            in ("asset_receivable", "liability_payable")
+        )
+        if not lines:
+            return 0.0
+        sign = 1.0 if invoice.move_type in ("out_invoice", "in_refund") else -1.0
+        amount = 0.0
+        partials = lines.matched_debit_ids | lines.matched_credit_ids
+        for partial in partials:
+            if partial.debit_move_id in lines:
+                counterpart = partial.credit_move_id
+            else:
+                counterpart = partial.debit_move_id
+            payment = counterpart.move_id.origin_payment_id
+            if payment and payment.is_retention:
+                amount += partial.amount
+        return sign * amount
+
+    def _get_credit_invoice_company_amount(self, invoice):
+        return (
+            invoice.amount_residual_signed
+            + self._get_retention_reconciled_company_amount(invoice)
+        )
+
     def _get_credit_invoice_report_amount(self, invoice, options):
         return self._amount_to_report_currency(
-            invoice.amount_residual_signed,
+            self._get_credit_invoice_company_amount(invoice),
             invoice.company_id,
             options,
             invoice.invoice_date,
@@ -1390,8 +1427,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             0,
             css_class="total",
         )
-        self._append_credit_invoice_lines(
-            lines, report, options, company_ids, date_from, date_to
-        )
+        if self._show_credit_invoices(options):
+            self._append_credit_invoice_lines(
+                lines, report, options, company_ids, date_from, date_to
+            )
 
         return lines

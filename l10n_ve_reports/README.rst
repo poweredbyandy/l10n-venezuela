@@ -80,10 +80,14 @@ expense). Only payment methods can be expanded or collapsed. The
 **Total** line remains the net of both. #. Review **Facturas a crédito**
 after the **Total** line. It lists the posted customer invoices and
 vendor bills dated in the report period that are still unpaid or
-partially paid, under the informative payment method **Crédito**. Each
-invoice shows its amount due. Customer documents appear under
-**Ingresos** and vendor documents under **Egresos**. The **Total
-crédito** line is not added to the report **Total**.
+partially paid, under the informative payment method **Crédito**.
+Customer documents appear under **Ingresos** and vendor documents under
+**Egresos**. The **Total crédito** line is not added to the report
+**Total**. A withholding that only settles the tax keeps the invoice on
+credit. The amount adds that withholding back, so the tax payment does
+not reduce the credit figure. A real payment does reduce it. Open
+**Options** and uncheck **Facturas a crédito** to hide that section. It
+is shown by default.
 
 Bug Tracker
 ===========
