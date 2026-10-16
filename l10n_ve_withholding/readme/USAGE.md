@@ -42,3 +42,16 @@ Pago de retenciones de clientes desde el registro de pago
 4. Indique la fecha y el número de comprobante (14 dígitos) y confirme.
 5. Si desmarca **Pago de retención** (o cambia el tipo) se descartan el tipo,
    el comprobante y las líneas cargadas, y el pago vuelve a ser un pago normal.
+
+Restablecer una retención a borrador
+------------------------------------
+
+1. Abra una retención emitida o anulada, de cliente o de proveedor (IVA, ISLR
+   o municipal).
+2. Pulse **Convert to draft**. Los pagos de la retención vuelven a borrador y
+   se desconcilian. El número de comprobante se conserva.
+3. Puede corregir la retención y pulsar **Approve** para emitirla de nuevo con
+   el mismo número.
+4. Si en borrador borra el número de una retención de proveedor, al emitirla
+   otra vez el sistema toma el último comprobante de ese tipo y asigna el
+   siguiente. La secuencia queda alineada con ese último número.

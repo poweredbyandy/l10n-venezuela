@@ -6,6 +6,7 @@ from . import test_retention_iva_debit_note
 from . import test_retention_municipal
 from . import test_retention_no_exchange_diff
 from . import test_retention_payment_outstanding
+from . import test_retention_reset_draft
 from . import test_retention_taxable_base
 from . import test_retention_voucher_text
 from . import test_type_person

@@ -672,7 +672,25 @@ class AccountRetention(models.Model):
             payment._l10n_ve_ensure_retention_outstanding_account()
 
     def action_draft(self):
-        self.write({"state": "draft"})
+        """Return an emitted or cancelled retention to draft so it can be emitted again.
+
+        Payments go back to draft and their reconciliation is removed. The voucher
+        number is kept, so emitting again does not consume another sequence value
+        unless that number is cleared first.
+        """
+        for retention in self.filtered(lambda record: record.state != "draft"):
+            payments = retention.payment_ids
+            if payments:
+                payments.move_id.line_ids.remove_move_reconcile()
+                payments_to_draft = payments.filtered(
+                    lambda payment: payment.state != "draft"
+                    or payment.move_id.state in ("posted", "cancel")
+                )
+                if payments_to_draft:
+                    payments_to_draft.with_context(
+                        skip_is_manually_modified=True
+                    ).action_draft()
+            retention.write({"state": "draft"})
 
     def _validate_iva_checklist_before_post(self):
         for retention in self.filtered(lambda r: r.type_retention == "iva"):
@@ -858,18 +876,69 @@ class AccountRetention(models.Model):
             "l10n_ve_withholding.retention_voucher_action"
         ).report_action(self, config=False)
 
+    def _retention_control_index(self, number):
+        """Return the counter stored after the YYYYMM prefix of a voucher number."""
+        if not number:
+            return 0
+        digits = "".join(character for character in number if character.isdigit())
+        if len(digits) <= 6:
+            return 0
+        return int(digits[6:])
+
+    def _retention_control_sequence(self):
+        self.ensure_one()
+        if self.type_retention == "iva":
+            sequence = self.get_sequence_iva_retention()
+        elif self.type_retention == "islr":
+            sequence = self.get_sequence_islr_retention()
+        else:
+            sequence = self.get_sequence_municipal_retention()
+        return sequence[:1]
+
+    def _sync_retention_control_sequence(self, sequence):
+        """Align the sequence with the last supplier voucher of this type.
+
+        The next value is always the highest counter already stored plus one.
+        A deleted or recreated sequence therefore continues from the last
+        voucher instead of restarting at 1.
+        """
+        self.ensure_one()
+        sequence.ensure_one()
+        self.env.cr.execute(
+            "SELECT id FROM ir_sequence WHERE id = %s FOR UPDATE",
+            [sequence.id],
+        )
+        sequence.invalidate_recordset(["number_next", "number_next_actual"])
+        issued = self.search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("type_retention", "=", self.type_retention),
+                ("type", "in", ("in_invoice", "in_refund", "in_debit")),
+                ("number", "!=", False),
+                ("id", "!=", self.id),
+            ]
+        )
+        last_index = 0
+        for issued_retention in issued:
+            last_index = max(
+                last_index, self._retention_control_index(issued_retention.number)
+            )
+        next_number = last_index + 1
+        sequence.invalidate_recordset(["number_next", "number_next_actual"])
+        if sequence.number_next_actual != next_number:
+            sequence.sudo().number_next_actual = next_number
+
     def _set_sequence(self):
-        for retention in self.filtered(lambda r: not r.number):
-            sequence_number = ""
-            if retention.type_retention == "iva":
-                sequence_number = retention.get_sequence_iva_retention().next_by_id()
-            elif retention.type_retention == "islr":
-                sequence_number = retention.get_sequence_islr_retention().next_by_id()
-            else:
-                sequence_number = (
-                    retention.get_sequence_municipal_retention().next_by_id()
-                )
-            correlative = f"{retention.date_accounting.year}{retention.date_accounting.month:02d}{sequence_number}"  # noqa: E501
+        for retention in self.filtered(lambda record: not record.number):
+            sequence = retention._retention_control_sequence()
+            retention._sync_retention_control_sequence(sequence)
+            sequence_number = sequence.next_by_id()
+            sequence.invalidate_recordset(["number_next", "number_next_actual"])
+            correlative = (
+                f"{retention.date_accounting.year}"
+                f"{retention.date_accounting.month:02d}"
+                f"{sequence_number}"
+            )
             retention.name = correlative
             retention.number = correlative
 

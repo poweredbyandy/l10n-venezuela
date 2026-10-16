@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 
-from odoo import _, fields, models
+from odoo import _, models
 from odoo.tools.misc import format_date
 
 
@@ -41,12 +41,6 @@ class SalesBookReportCustomHandler(models.AbstractModel):
             }
 
         multiplier = -1 if move.move_type == "out_refund" else 1
-        date_from_str = options.get("date", {}).get("date_from")
-        date_to_str = options.get("date", {}).get("date_to")
-
-        date_from = fields.Date.to_date(date_from_str) if date_from_str else None
-        date_to = fields.Date.to_date(date_to_str) if date_to_str else None
-
         ret_lines = (
             move.retention_iva_line_ids.filtered(
                 lambda x: x.retention_id.state == "emitted"
@@ -69,13 +63,8 @@ class SalesBookReportCustomHandler(models.AbstractModel):
             if not retention:
                 continue
 
-            # Check if retention date is within the report date range
-            if date_from and retention.date_accounting:
-                if (
-                    retention.date_accounting < date_from
-                    or retention.date_accounting > date_to
-                ):
-                    continue
+            if self._l10n_ve_skip_retention_line(retention, options, "sale"):
+                continue
 
             if ret_vals["date_retention"]:
                 # If we already have a date, append the new one (comma-separated)
@@ -124,8 +113,14 @@ class SalesBookReportCustomHandler(models.AbstractModel):
             move = move_data["move"]
 
             tax_values = self._calculate_tax_values(move)
+            if self._l10n_ve_move_outside_book_period(move, options):
+                tax_values = self._l10n_ve_init_tax_values_result(
+                    move.company_id, "sale"
+                )
+                igtf_amount = 0.0
+            else:
+                igtf_amount = self._get_move_igtf_amount(move)
             retention_values = self._get_retention_iva_values(move, options)
-            igtf_amount = self._get_move_igtf_amount(move)
 
             line_columns = []
             for column in options["columns"]:
@@ -570,6 +565,13 @@ class SalesBookReportCustomHandler(models.AbstractModel):
         moves = self.env["account.move"].search(
             domain, order="invoice_date asc, id asc"
         )
+        moves = self._l10n_ve_extend_moves_with_period_retentions(
+            moves,
+            report,
+            options,
+            "sale",
+            ["out_invoice", "out_refund"],
+        )
 
         return [{"move": move} for move in moves]
 
@@ -660,7 +662,11 @@ class SalesBookReportCustomHandler(models.AbstractModel):
     def _generate_resume_lines(self, report, options, moves_data):
         resume_lines = []
 
-        moves = [m["move"] for m in moves_data]
+        moves = [
+            move_data["move"]
+            for move_data in moves_data
+            if not self._l10n_ve_move_outside_book_period(move_data["move"], options)
+        ]
         company = self.env.company
 
         resume_data = self._calculate_resume_data(moves, company)

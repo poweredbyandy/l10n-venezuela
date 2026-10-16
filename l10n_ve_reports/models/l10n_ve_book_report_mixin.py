@@ -1,4 +1,4 @@
-from odoo import models
+from odoo import fields, models
 
 
 class L10nVeBookReportMixin(models.AbstractModel):
@@ -250,6 +250,89 @@ class L10nVeBookReportMixin(models.AbstractModel):
         total = tax_totals.get("total_amount", 0.0)
         total = tax_totals.get("l10n_ve_igtf_total_without_igtf", total)
         return total * multiplier
+
+    def _l10n_ve_book_date_bounds(self, options):
+        date_values = options.get("date", {})
+        date_from = date_values.get("date_from")
+        date_to = date_values.get("date_to")
+        return (
+            fields.Date.to_date(date_from) if date_from else None,
+            fields.Date.to_date(date_to) if date_to else None,
+        )
+
+    def _l10n_ve_date_outside_book_period(self, cmp_date, date_from, date_to):
+        if not cmp_date:
+            return False
+        if date_from and cmp_date < date_from:
+            return True
+        if date_to and cmp_date > date_to:
+            return True
+        return False
+
+    def _l10n_ve_move_outside_book_period(self, move, options):
+        if not move.date:
+            return True
+        date_from, date_to = self._l10n_ve_book_date_bounds(options)
+        return self._l10n_ve_date_outside_book_period(move.date, date_from, date_to)
+
+    def _l10n_ve_skip_retention_line(self, retention, options, book_type):
+        date_from, date_to = self._l10n_ve_book_date_bounds(options)
+        if retention.date_accounting and self._l10n_ve_date_outside_book_period(
+            retention.date_accounting, date_from, date_to
+        ):
+            return True
+        if book_type == "purchase" and (
+            not retention.date
+            or self._l10n_ve_date_outside_book_period(
+                retention.date, date_from, date_to
+            )
+        ):
+            return True
+        return False
+
+    def _l10n_ve_book_company_ids(self, options):
+        multi_company = options.get("multi_company", [])
+        if multi_company:
+            return [
+                company["id"]
+                for company in multi_company
+                if company.get("selected")
+            ]
+        return [self.env.company.id]
+
+    def _l10n_ve_extend_moves_with_period_retentions(
+        self, moves, report, options, book_type, move_types
+    ):
+        if "account.retention" not in self.env:
+            return moves
+        date_from, date_to = self._l10n_ve_book_date_bounds(options)
+        if not date_from or not date_to:
+            return moves
+        field_date = "date" if book_type == "purchase" else "date_accounting"
+        retentions = self.env["account.retention"].search(
+            [
+                (field_date, ">=", date_from),
+                (field_date, "<=", date_to),
+                ("type", "in", move_types),
+                ("type_retention", "=", "iva"),
+                ("state", "=", "emitted"),
+                ("company_id", "in", self._l10n_ve_book_company_ids(options)),
+            ]
+        )
+        extra_moves = retentions.retention_line_ids.move_id.filtered(
+            lambda move: move.state in ("posted", "cancel")
+            and move.move_type in move_types
+        )
+        selected_journal_ids = [
+            journal["id"] for journal in report._get_options_journals(options)
+        ]
+        if selected_journal_ids:
+            extra_moves = extra_moves.filtered(
+                lambda move: move.journal_id.id in selected_journal_ids
+            )
+        return (moves | extra_moves).sorted(
+            key=lambda move: (move.invoice_date or move.date, move.id)
+        )
 
     def _l10n_ve_init_tax_values_result(self, company, book_type):
         default_rates = self._l10n_ve_get_default_tax_rates(company, book_type)

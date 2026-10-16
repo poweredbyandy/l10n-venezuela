@@ -150,6 +150,130 @@ class TestBookReportSummary(TestAccountReportsCommon):
                 self.assertAlmostEqual(values["total_exempt"], 50.0)
                 self.assertAlmostEqual(values["total_taxed"], 50.0)
 
+    def _create_emitted_iva_retention(
+        self, move, voucher_date, accounting_date, amount, number
+    ):
+        journal = self.company_data["default_journal_bank"]
+        if move.is_purchase_document(include_receipts=True):
+            payment_type = "outbound"
+            partner_type = "supplier"
+            method = journal.outbound_payment_method_line_ids[:1]
+        else:
+            payment_type = "inbound"
+            partner_type = "customer"
+            method = journal.inbound_payment_method_line_ids[:1]
+        self.env["account.retention"].create(
+            {
+                "type_retention": "iva",
+                "type": move.move_type,
+                "partner_id": move.partner_id.id,
+                "company_id": move.company_id.id,
+                "date": voucher_date,
+                "date_accounting": accounting_date,
+                "state": "emitted",
+                "number": number,
+                "payment_ids": [
+                    Command.create(
+                        {
+                            "amount": amount,
+                            "payment_type": payment_type,
+                            "partner_type": partner_type,
+                            "partner_id": move.partner_id.id,
+                            "journal_id": journal.id,
+                            "payment_method_line_id": method.id,
+                            "date": accounting_date,
+                            "is_retention": True,
+                        }
+                    )
+                ],
+                "retention_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Retencion IVA",
+                            "move_id": move.id,
+                            "invoice_amount": move.amount_untaxed,
+                            "invoice_total": move.amount_total,
+                            "retention_amount": amount,
+                            "iva_amount": amount,
+                            "related_percentage_tax_base": 100.0,
+                        }
+                    )
+                ],
+            }
+        )
+        move.iva_voucher_number = number
+
+    def _book_move_line(self, lines, move):
+        names = {name for name in (move.name, move.ref) if name}
+        return next(line for line in lines if line.get("name") in names)
+
+    def test_sales_book_shows_retention_on_its_accounting_date(self):
+        invoice = self._post_book_document(
+            "out_invoice", 100.0, self.sale_general_tax, "00-RET"
+        )
+        self._create_emitted_iva_retention(
+            invoice, "2017-02-10", "2017-02-10", 16.0, "20170200000099"
+        )
+        report = self.env.ref("l10n_ve_reports.sales_book_report")
+
+        january_lines = report._get_lines(
+            self._generate_options(report, "2017-01-01", "2017-01-31")
+        )
+        january_line = self._book_move_line(january_lines, invoice)
+        self.assertAlmostEqual(
+            self._get_column_value(january_line, "tax_base_general_aliquot"), 100.0
+        )
+        self.assertAlmostEqual(
+            self._get_column_value(january_line, "iva_retained") or 0.0, 0.0
+        )
+
+        february_lines = report._get_lines(
+            self._generate_options(report, "2017-02-01", "2017-02-28")
+        )
+        february_line = self._book_move_line(february_lines, invoice)
+        self.assertEqual(
+            self._get_column_value(february_line, "number_retention"),
+            "20170200000099",
+        )
+        self.assertAlmostEqual(
+            self._get_column_value(february_line, "iva_retained"), 16.0
+        )
+        self.assertAlmostEqual(
+            self._get_column_value(february_line, "tax_base_general_aliquot") or 0.0,
+            0.0,
+        )
+        self.assertAlmostEqual(
+            self._get_column_value(february_line, "total_sales_iva") or 0.0, 0.0
+        )
+        summary = self._get_summary_line(report, february_lines, "general")
+        self.assertAlmostEqual(
+            self._get_column_value(summary, "tax_base_general_aliquot") or 0.0, 0.0
+        )
+
+    def test_purchase_book_shows_retention_on_voucher_date(self):
+        bill = self._post_book_document(
+            "in_invoice", 100.0, self.purchase_general_tax, "00-RET-P"
+        )
+        self._create_emitted_iva_retention(
+            bill, "2017-02-10", "2017-02-10", 16.0, "20170200000098"
+        )
+        report = self.env.ref("l10n_ve_reports.purchases_book_report")
+        february_lines = report._get_lines(
+            self._generate_options(report, "2017-02-01", "2017-02-28")
+        )
+        february_line = self._book_move_line(february_lines, bill)
+        self.assertEqual(
+            self._get_column_value(february_line, "number_retention"),
+            "20170200000098",
+        )
+        self.assertAlmostEqual(
+            self._get_column_value(february_line, "iva_retained"), 16.0
+        )
+        self.assertAlmostEqual(
+            self._get_column_value(february_line, "tax_base_general_aliquot") or 0.0,
+            0.0,
+        )
+
     def test_sales_book_ignores_groups_excluded_from_reports(self):
         excluded_group = self._create_ve_tax_group(
             "Fuera de libros", l10n_ve_exclude_from_reports=True

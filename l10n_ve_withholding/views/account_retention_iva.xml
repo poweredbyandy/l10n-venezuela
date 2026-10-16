@@ -11,7 +11,8 @@
                         name="action_draft"
                         type="object"
                         string="Convert to draft"
-                        invisible="type != 'out_invoice' or state != 'cancel'"
+                        invisible="state not in ('emitted', 'cancel')"
+                        confirm="Are you sure you want to reset this voucher to draft? The associated accounting entries will return to draft and you can emit it again."
                     />
                     <button
                         name="action_post"
@@ -67,7 +68,7 @@
                             <field
                                 name="number"
                                 force_save="1"
-                                readonly="type == 'in_invoice' or state in ['emitted', 'cancel']"
+                                readonly="state in ('emitted', 'cancel')"
                                 required="type == 'out_invoice'"
                             />
                             <field
