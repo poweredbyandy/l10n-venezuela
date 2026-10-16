@@ -5,29 +5,40 @@
         <field name="inherit_id" ref="account.view_account_payment_register_form" />
         <field name="arch" type="xml">
             <field name="journal_id" position="attributes">
-                <attribute name="readonly">not edit_retention_fields</attribute>
+                <attribute name="readonly">is_retention</attribute>
+                <attribute name="force_save">1</attribute>
             </field>
             <field name="journal_id" position="before">
                 <field name="is_retention" invisible="not is_out_invoice" />
+                <field
+                    name="retention_type"
+                    invisible="not is_retention"
+                    required="is_retention"
+                />
+            </field>
+            <field name="payment_method_line_id" position="attributes">
+                <attribute name="readonly">is_retention</attribute>
+                <attribute name="force_save">1</attribute>
             </field>
             <field name="amount" position="attributes">
-                <attribute name="readonly">is_retention == True</attribute>
+                <attribute name="readonly">is_retention</attribute>
+                <attribute name="force_save">1</attribute>
             </field>
             <field name="currency_id" position="attributes">
-                <attribute name="readonly">is_retention == True</attribute>
+                <attribute name="readonly">is_retention</attribute>
             </field>
             <group name="group2" position="after">
                 <!-- Invisible fields -->
                 <field name="edit_retention_fields" invisible="1" />
                 <field name="is_out_invoice" invisible="1" />
                 <field name="journal_id" invisible="1" />
-                <div invisible="not is_retention">
+                <div invisible="not is_retention or not retention_type">
                     <label for="voucher_date" />
                     <field name="voucher_date" required="is_retention == True" />
                     <label for="retention_ref" />
                     <field name="retention_ref" required="is_retention == True" />
                 </div>
-                <notebook invisible="not is_retention">
+                <notebook invisible="not is_retention or not retention_type">
                     <page name="retention_lines" string="Retention lines">
                         <field name="retention_line_ids" nolabel="1">
                             <list editable="bottom">
@@ -39,16 +50,43 @@
                                 />
                                 <field name="name" />
                                 <field name="move_id" />
-                                <field name="aliquot" />
+                                <!-- ISLR -->
+                                <field
+                                    name="payment_concept_id"
+                                    column_invisible="parent.retention_type != 'islr'"
+                                    required="parent.retention_type == 'islr'"
+                                />
+                                <!-- Municipal -->
+                                <field
+                                    name="economic_activity_id"
+                                    column_invisible="parent.retention_type != 'municipal'"
+                                    required="parent.retention_type == 'municipal'"
+                                />
+                                <field
+                                    name="aliquot"
+                                    column_invisible="parent.retention_type == 'islr'"
+                                    readonly="parent.retention_type == 'municipal'"
+                                    force_save="1"
+                                />
                                 <field
                                     name="related_percentage_tax_base"
+                                    column_invisible="parent.retention_type == 'municipal'"
                                     optional="hide"
                                 />
                                 <!-- Amounts -->
                                 <field name="invoice_total" widget="monetary" />
                                 <field name="invoice_amount" widget="monetary" />
-                                <field name="iva_amount" widget="monetary" />
-                                <field name="retention_amount" widget="monetary" />
+                                <field
+                                    name="iva_amount"
+                                    widget="monetary"
+                                    column_invisible="parent.retention_type != 'iva'"
+                                />
+                                <field
+                                    name="retention_amount"
+                                    widget="monetary"
+                                    readonly="parent.retention_type == 'iva'"
+                                    force_save="1"
+                                />
                             </list>
                         </field>
                     </page>
