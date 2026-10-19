@@ -169,6 +169,50 @@ class AccountTax(models.Model):
         return totals
 
     @api.model
+    def _l10n_ve_uses_legacy_company_discount_totals(self, document):
+        return (
+            document._name == "account.move"
+            and document.l10n_ve_legacy_company_discount_totals
+            and document.currency_id != document.company_id.currency_id
+        )
+
+    @api.model
+    def _l10n_ve_align_company_base_to_accounting(self, document, totals, new_base):
+        company_currency = document.company_id.currency_id
+        delta = company_currency.round(new_base - (totals.get("base_amount") or 0.0))
+        if float_is_zero(delta, precision_rounding=company_currency.rounding):
+            return totals
+
+        subtotals = []
+        for subtotal in totals.get("subtotals") or []:
+            subtotal = dict(subtotal)
+            tax_groups = [dict(group) for group in subtotal.get("tax_groups") or []]
+            weights = [group.get("base_amount") or 0.0 for group in tax_groups]
+            parts = document._l10n_ve_split_amount_by_weights(
+                delta, weights, currency=company_currency
+            )
+            for group, part in zip(tax_groups, parts, strict=False):
+                group["base_amount"] = company_currency.round(
+                    (group.get("base_amount") or 0.0) + part
+                )
+                if group.get("display_base_amount") not in (None, False):
+                    group["display_base_amount"] = company_currency.round(
+                        group["display_base_amount"] + part
+                    )
+            subtotal["tax_groups"] = tax_groups
+            subtotal["base_amount"] = company_currency.round(
+                (subtotal.get("base_amount") or 0.0) + delta
+            )
+            subtotals.append(subtotal)
+
+        totals["subtotals"] = subtotals
+        totals["base_amount"] = new_base
+        totals["total_amount"] = company_currency.round(
+            (totals.get("total_amount") or 0.0) + delta
+        )
+        return totals
+
+    @api.model
     def _l10n_ve_build_discount_totals_result(
         self,
         document,
@@ -203,7 +247,18 @@ class AccountTax(models.Model):
             document
         )
         realign_company_tax_totals = False
-        if product_subtotal_company is not None:
+        accounting_company_base = None
+        if product_subtotal_company is not None and (
+            self._l10n_ve_uses_legacy_company_discount_totals(document)
+        ):
+            subtotal_gross = product_subtotal_company
+            accounting_company_base = company_currency.round(
+                abs(document.amount_untaxed_signed)
+            )
+            global_discount_amount = company_currency.round(
+                subtotal_gross - accounting_company_base
+            )
+        elif product_subtotal_company is not None:
             # Company footer: apply % / fixed on the Bs gross (sum of lines),
             # then realign base/tax so gross - discount = base and IVA tracks it.
             subtotal_gross = product_subtotal_company
@@ -268,6 +323,7 @@ class AccountTax(models.Model):
             + global_discount_amount_foreign,
             "global_discount_lines": global_discount_lines,
             "realign_company_tax_totals": realign_company_tax_totals,
+            "accounting_company_base": accounting_company_base,
         }
 
     @api.model
@@ -306,6 +362,12 @@ class AccountTax(models.Model):
                 totals,
                 discount_totals["subtotal_gross"],
                 discount_totals["global_discount_amount"],
+            )
+        elif discount_totals.get("accounting_company_base") is not None:
+            totals = self._l10n_ve_align_company_base_to_accounting(
+                document,
+                totals,
+                discount_totals["accounting_company_base"],
             )
         can_manage = self.env.user.has_group(
             "l10n_ve_loyalty.group_l10n_ve_global_discount"

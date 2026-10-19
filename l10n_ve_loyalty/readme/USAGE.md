@@ -15,6 +15,17 @@ Por eso, si eligió **con impuesto**, Odoo convierte el monto a base imponible
 antes de enviarlo a la impresora (p. ej. `10` con IVA 16% → `~8,62`), para que
 el ticket fiscal coincida con los totales del documento.
 
+## Totales en moneda de la compañía
+
+En facturas en divisa, el descuento porcentual en Bs se calcula sobre el
+subtotal bruto en Bs, y la base y el IVA se recalculan a partir de ese
+resultado.
+
+Las facturas confirmadas antes de la versión `18.0.1.0.34` quedan marcadas
+con **Totales de descuento según asiento**. En ellas, la base, el descuento y
+el total en Bs salen del asiento contable, como se mostraban e imprimían
+antes.
+
 ## Descuento post-factura
 
 En facturas de cliente confirmadas (VE), use el botón **Descuento** del

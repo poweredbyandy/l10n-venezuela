@@ -657,6 +657,109 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
             places=2,
         )
 
+    def _create_foreign_invoice_with_percentage_discount(self):
+        company_currency = self.env.company.currency_id
+        usd = self.env.ref("base.USD")
+        foreign = usd if company_currency != usd else self.env.ref("base.EUR")
+        foreign.write({"active": True})
+        journal = self.company_data["default_journal_sale"]
+        self._l10n_ve_configure_journal_free(journal)
+        invoice_date = fields.Date.today()
+        self.env["res.currency.rate"].search(
+            [
+                ("currency_id", "=", foreign.id),
+                ("company_id", "=", self.env.company.id),
+                ("name", "=", invoice_date),
+            ]
+        ).unlink()
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": foreign.id,
+                "company_id": self.env.company.id,
+                "name": invoice_date,
+                "inverse_company_rate": 860.1753,
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_ve.id,
+                "journal_id": journal.id,
+                "currency_id": foreign.id,
+                "invoice_date": invoice_date,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Product line",
+                            "quantity": 4.0,
+                            "price_unit": 28.52,
+                            "account_id": self.company_data[
+                                "default_account_revenue"
+                            ].id,
+                            "tax_ids": [
+                                Command.set(
+                                    [self.company_data["default_tax_sale"].id]
+                                )
+                            ],
+                        }
+                    ),
+                ],
+            }
+        )
+        self._add_global_discount(
+            move,
+            "Descuento 10%",
+            move.currency_id.round(move.amount_untaxed * 0.10),
+            discount_type="percentage",
+            discount_percentage=0.10,
+        )
+        return move
+
+    def test_new_foreign_invoice_applies_percentage_on_company_gross(self):
+        move = self._create_foreign_invoice_with_percentage_discount()
+        company_currency = move.company_currency_id
+        tax_totals = move.tax_totals
+        self.assertFalse(move.l10n_ve_legacy_company_discount_totals)
+        self.assertAlmostEqual(
+            tax_totals["l10n_ve_global_discount_amount"],
+            company_currency.round(tax_totals["l10n_ve_subtotal_gross"] * 0.10),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            tax_totals["base_amount"],
+            tax_totals["l10n_ve_subtotal_gross"]
+            - tax_totals["l10n_ve_global_discount_amount"],
+            places=2,
+        )
+
+    def test_legacy_foreign_invoice_company_totals_follow_accounting(self):
+        move = self._create_foreign_invoice_with_percentage_discount()
+        move.l10n_ve_legacy_company_discount_totals = True
+        copied = move.copy()
+        self.assertFalse(copied.l10n_ve_legacy_company_discount_totals)
+        tax_totals = move.tax_totals
+        self.assertAlmostEqual(
+            tax_totals["base_amount"], abs(move.amount_untaxed_signed), places=2
+        )
+        self.assertAlmostEqual(
+            tax_totals["tax_amount"], abs(move.amount_tax_signed), places=2
+        )
+        self.assertAlmostEqual(
+            tax_totals["total_amount"], abs(move.amount_total_signed), places=2
+        )
+        self.assertAlmostEqual(
+            tax_totals["l10n_ve_subtotal_gross"]
+            - tax_totals["l10n_ve_global_discount_amount"],
+            tax_totals["base_amount"],
+            places=2,
+        )
+        group_bases = sum(
+            group["base_amount"]
+            for subtotal in tax_totals["subtotals"]
+            for group in subtotal["tax_groups"]
+        )
+        self.assertAlmostEqual(group_bases, tax_totals["base_amount"], places=2)
+
 
 @tagged("post_install", "-at_install")
 class TestAccountMoveGlobalDiscountJournalLines(L10nVeLoyaltyCommon):

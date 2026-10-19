@@ -195,6 +195,14 @@ class AccountMove(models.Model):
         copy=False,
         ondelete="restrict",
     )
+    l10n_ve_legacy_company_discount_totals = fields.Boolean(
+        string="Totales de descuento según asiento",
+        copy=False,
+        readonly=True,
+        help="Documentos confirmados antes del cálculo del descuento global sobre "
+        "el bruto en moneda de la compañía. Sus totales en moneda de la compañía "
+        "siguen la base del asiento contable.",
+    )
     l10n_ve_show_post_discount_action = fields.Boolean(
         compute="_compute_l10n_ve_show_post_discount_action",
     )
@@ -309,6 +317,7 @@ class AccountMove(models.Model):
         "l10n_ve_global_discount_ids",
         "l10n_ve_global_discount_ids.amount",
         "invoice_line_ids.product_id",
+        "l10n_ve_legacy_company_discount_totals",
     )
     def _compute_tax_totals(self):
         res = super()._compute_tax_totals()
