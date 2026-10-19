@@ -108,8 +108,11 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         )
 
     def _get_move_pending_report_amount(self, move, journal, options, conv_date):
+        company_currency = journal.company_id.currency_id
         bal = self._get_move_outstanding_balance_company(move, journal)
-        if journal.company_id.currency_id.is_zero(bal):
+        if company_currency.is_zero(bal):
+            bal = self._get_move_outstanding_residual_company(move, journal)
+        if company_currency.is_zero(bal):
             bal = self._get_move_report_amount(move, journal)
         return self._amount_to_report_currency(
             bal,
@@ -267,15 +270,45 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             )
         return False
 
-    def _get_move_outstanding_balance_company(self, move, journal):
-        accounts = (
+    def _get_journal_outstanding_accounts(self, journal):
+        return (
             journal._get_journal_inbound_outstanding_payment_accounts()
             + journal._get_journal_outbound_outstanding_payment_accounts()
         )
+
+    def _get_move_outstanding_lines(self, move, journal):
+        accounts = self._get_journal_outstanding_accounts(journal)
         if not accounts:
-            return 0.0
-        lines = move.line_ids.filtered(lambda line: line.account_id in accounts)
-        return sum(lines.mapped("balance"))
+            return self.env["account.move.line"]
+        return move.line_ids.filtered(lambda line: line.account_id in accounts)
+
+    def _get_move_outstanding_balance_company(self, move, journal):
+        return sum(self._get_move_outstanding_lines(move, journal).mapped("balance"))
+
+    def _get_move_outstanding_residual_company(self, move, journal):
+        """Open company amount still waiting on the outstanding accounts.
+
+        A terminal closing nets the outstanding accounts to zero: each payment
+        is reversed and one line stays open for the bank deposit. The amount
+        to report is that open residual.
+        """
+        lines = self._get_move_outstanding_lines(move, journal).filtered(
+            lambda line: not line.reconciled
+        )
+        return sum(lines.mapped("amount_residual"))
+
+    def _uses_open_outstanding_residual(self, move, journal):
+        company_currency = journal.company_id.currency_id
+        balance = self._get_move_outstanding_balance_company(move, journal)
+        if not company_currency.is_zero(balance):
+            return False
+        residual = self._get_move_outstanding_residual_company(move, journal)
+        return not company_currency.is_zero(residual)
+
+    def _get_pending_move_name(self, move, journal):
+        if self._uses_open_outstanding_residual(move, journal) and move.ref:
+            return move.ref
+        return move.name or move.display_name
 
     def _caret_options_initializer(self):
         base = self.env["account.report"]._caret_options_initializer_default()
@@ -407,11 +440,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         payment = self.env["account.payment"].search(
             [("move_id", "=", move.id)], limit=1
         )
-        if payment:
+        payments = payment or self._get_payments_reconciled_with_move(move)
+        if payments:
             return (
-                payment.invoice_ids
-                | payment.reconciled_invoice_ids
-                | payment.reconciled_bill_ids
+                payments.invoice_ids
+                | payments.reconciled_invoice_ids
+                | payments.reconciled_bill_ids
             )
         return self.env["account.move"]
 
@@ -673,10 +707,22 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             )
         return items
 
+    def _get_payments_reconciled_with_move(self, move):
+        payments = self.env["account.payment"]
+        for line in move.line_ids:
+            for other in line._all_reconciled_lines():
+                payment = other.payment_id
+                if payment and other.move_id != move:
+                    payments |= payment
+        return payments
+
     def _get_move_payment_method_line(self, move):
         payment = self._get_move_payment(move)
         if payment:
             return payment.payment_method_line_id
+        methods = self._get_payments_reconciled_with_move(move).payment_method_line_id
+        if len(methods) == 1:
+            return methods
         return self.env["account.payment.method.line"]
 
     def _get_aml_payment_method_line(self, aml):
@@ -745,6 +791,37 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         if amount < 0:
             return "expense"
         return None
+
+    def _add_line_class(self, line, css_class):
+        classes = (line.get("class") or "").split()
+        if css_class not in classes:
+            classes.append(css_class)
+        line["class"] = " ".join(classes)
+
+    def _line_markup(self, line):
+        last_level = (line.get("id") or "").split("|")[-1]
+        return last_level.split("~")[0]
+
+    def _line_keeps_plain_background(self, line):
+        if "total" in (line.get("class") or "").split():
+            return True
+        return self._line_markup(line) in {
+            "daily_pay_journal_income",
+            "daily_pay_journal_expense",
+            "daily_pay_credit_income",
+            "daily_pay_credit_expense",
+        }
+
+    def _tag_lines(self, lines, css_class):
+        for _sequence, line in lines:
+            if self._line_keeps_plain_background(line):
+                continue
+            self._add_line_class(line, css_class)
+
+    def _journal_report_class(self, journal):
+        if journal.type == "cash":
+            return "o_daily_pay_cash"
+        return "o_daily_pay_bank"
 
     def _append_named_total_line(
         self,
@@ -891,16 +968,17 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             order="invoice_date asc, name asc, id asc",
         )
 
-    def _get_retention_reconciled_company_amount(self, invoice):
+    def _get_retention_reconciled_company_amount(self, invoice, lines=None):
         """Company amount already settled by a withholding.
 
         Signed like ``amount_residual_signed``. A retención pays the tax, so
         it must not reduce the amount still reported as credit.
         """
-        lines = invoice.line_ids.filtered(
-            lambda line: line.account_id.account_type
-            in ("asset_receivable", "liability_payable")
-        )
+        if lines is None:
+            lines = invoice.line_ids.filtered(
+                lambda line: line.account_id.account_type
+                in ("asset_receivable", "liability_payable")
+            )
         if not lines:
             return 0.0
         sign = 1.0 if invoice.move_type in ("out_invoice", "in_refund") else -1.0
@@ -930,24 +1008,131 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             invoice.invoice_date,
         )
 
-    def _append_credit_invoice_lines(
-        self, lines, report, options, company_ids, date_from, date_to
-    ):
-        invoices = self._get_credit_invoices(company_ids, date_from, date_to)
+    def _get_credit_invoice_line_values(self, invoice, amount):
+        return {
+            "line_date": invoice.invoice_date,
+            "invoice_documents": invoice.ref or "",
+            "partner": invoice.partner_id.display_name or "",
+            "amount": amount,
+        }
+
+    def _sum_credit_amounts(self, options, invoice_amounts):
+        totals = defaultdict(float)
+        amount = sum(value for _invoice, value in invoice_amounts)
+        for col_group_key in options["column_groups"]:
+            totals[col_group_key] = amount
+        return totals
+
+    def _get_credit_invoice_method_groups(self, invoices, options):
+        """Payment-method buckets inside Facturas a crédito.
+
+        Each group is one unfoldable method under Ingresos or Egresos.
+        """
         lines_by_flow = defaultdict(list)
-        totals_by_flow = defaultdict(lambda: defaultdict(float))
-        credit_totals = defaultdict(float)
         for invoice in invoices:
             amount = self._get_credit_invoice_report_amount(invoice, options)
             if self._is_report_amount_zero(amount, options):
                 continue
             flow_kind = CREDIT_INVOICE_FLOW_KINDS[invoice.move_type]
-            for col_group_key in options["column_groups"]:
-                totals_by_flow[flow_kind][col_group_key] += amount
-                credit_totals[col_group_key] += amount
             lines_by_flow[flow_kind].append((invoice, amount))
-        if not lines_by_flow:
+        groups = []
+        for flow_kind in ("income", "expense"):
+            if not lines_by_flow[flow_kind]:
+                continue
+            groups.append(
+                {
+                    "flow_kind": flow_kind,
+                    "name": _("Crédito"),
+                    "markup": f"daily_pay_payment_method_credit_{flow_kind}",
+                    "section_name": _("Facturas pendientes de pago"),
+                    "section_markup": f"daily_pay_section_credit_{flow_kind}",
+                    "lines": lines_by_flow[flow_kind],
+                }
+            )
+        return groups
+
+    def _append_credit_invoice_method_group(
+        self, lines, report, options, flow_line_id, group
+    ):
+        method_line_id = report._get_generic_line_id(
+            None,
+            None,
+            markup=group["markup"],
+            parent_line_id=flow_line_id,
+        )
+        self._append_named_total_line(
+            lines,
+            report,
+            options,
+            method_line_id,
+            group["name"],
+            self._sum_credit_amounts(options, group["lines"]),
+            2,
+            unfoldable=True,
+            unfolded=(
+                method_line_id in options["unfolded_lines"] or options["unfold_all"]
+            ),
+            parent_id=flow_line_id,
+        )
+        section_line_id = report._get_generic_line_id(
+            None,
+            None,
+            markup=group["section_markup"],
+            parent_line_id=method_line_id,
+        )
+        lines.append(
+            (
+                0,
+                {
+                    "id": section_line_id,
+                    "name": group["section_name"],
+                    "columns": self._build_row_columns(report, options, {}),
+                    "level": 3,
+                    "unfoldable": False,
+                    "parent_id": method_line_id,
+                },
+            )
+        )
+        for invoice, amount in group["lines"]:
+            lines.append(
+                (
+                    0,
+                    {
+                        "id": report._get_generic_line_id(
+                            "account.move",
+                            invoice.id,
+                            markup="daily_pay_credit_invoice",
+                            parent_line_id=section_line_id,
+                        ),
+                        "name": invoice.name or invoice.display_name,
+                        "columns": self._build_row_columns(
+                            report,
+                            options,
+                            self._get_credit_invoice_line_values(invoice, amount),
+                        ),
+                        "level": 4,
+                        "unfoldable": False,
+                        "parent_id": section_line_id,
+                        "caret_options": "daily_payments_credit_invoice",
+                    },
+                )
+            )
+
+    def _append_credit_invoice_lines(
+        self, lines, report, options, company_ids, date_from, date_to
+    ):
+        invoices = self._get_credit_invoices(company_ids, date_from, date_to)
+        groups = self._get_credit_invoice_method_groups(invoices, options)
+        if not groups:
             return
+
+        totals_by_flow = defaultdict(lambda: defaultdict(float))
+        credit_totals = defaultdict(float)
+        for group in groups:
+            group_totals = self._sum_credit_amounts(options, group["lines"])
+            for col_group_key, amount in group_totals.items():
+                totals_by_flow[group["flow_kind"]][col_group_key] += amount
+                credit_totals[col_group_key] += amount
 
         lines.append(
             (
@@ -967,7 +1152,8 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             ("income", _("Ingresos")),
             ("expense", _("Egresos")),
         ):
-            if not lines_by_flow[flow_kind]:
+            flow_groups = [group for group in groups if group["flow_kind"] == flow_kind]
+            if not flow_groups:
                 continue
             flow_line_id = report._get_generic_line_id(
                 None, None, markup=f"daily_pay_credit_{flow_kind}"
@@ -981,73 +1167,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 totals_by_flow[flow_kind],
                 1,
             )
-            method_line_id = report._get_generic_line_id(
-                None,
-                None,
-                markup=f"daily_pay_payment_method_credit_{flow_kind}",
-                parent_line_id=flow_line_id,
-            )
-            self._append_named_total_line(
-                lines,
-                report,
-                options,
-                method_line_id,
-                _("Crédito"),
-                totals_by_flow[flow_kind],
-                2,
-                unfoldable=True,
-                unfolded=(
-                    method_line_id in options["unfolded_lines"] or options["unfold_all"]
-                ),
-                parent_id=flow_line_id,
-            )
-            section_line_id = report._get_generic_line_id(
-                None,
-                None,
-                markup=f"daily_pay_section_credit_{flow_kind}",
-                parent_line_id=method_line_id,
-            )
-            lines.append(
-                (
-                    0,
-                    {
-                        "id": section_line_id,
-                        "name": _("Facturas pendientes de pago"),
-                        "columns": self._build_row_columns(report, options, {}),
-                        "level": 3,
-                        "unfoldable": False,
-                        "parent_id": method_line_id,
-                    },
-                )
-            )
-            for invoice, amount in lines_by_flow[flow_kind]:
-                lines.append(
-                    (
-                        0,
-                        {
-                            "id": report._get_generic_line_id(
-                                "account.move",
-                                invoice.id,
-                                markup="daily_pay_credit_invoice",
-                                parent_line_id=section_line_id,
-                            ),
-                            "name": invoice.name or invoice.display_name,
-                            "columns": self._build_row_columns(
-                                report,
-                                options,
-                                {
-                                    "line_date": invoice.invoice_date,
-                                    "invoice_documents": invoice.ref or "",
-                                    "partner": invoice.partner_id.display_name or "",
-                                    "amount": amount,
-                                },
-                            ),
-                            "level": 4,
-                            "unfoldable": False,
-                            "parent_id": section_line_id,
-                            "caret_options": "daily_payments_credit_invoice",
-                        },
-                    )
+            for group in flow_groups:
+                self._append_credit_invoice_method_group(
+                    lines, report, options, flow_line_id, group
                 )
         self._append_named_total_line(
             lines,
@@ -1262,7 +1384,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                                 move.id,
                                 markup="daily_pay_bank_pending",
                             ),
-                            "name": move.name or move.display_name,
+                            "name": self._get_pending_move_name(move, journal),
                             "columns": self._build_row_columns(
                                 report,
                                 options,
@@ -1339,6 +1461,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             if not method_groups:
                 continue
 
+            journal_line_start = len(lines)
             lines.append(
                 (
                     0,
@@ -1416,6 +1539,9 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 1,
                 css_class="total",
             )
+            self._tag_lines(
+                lines[journal_line_start:], self._journal_report_class(journal)
+            )
 
         self._append_named_total_line(
             lines,
@@ -1428,8 +1554,10 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             css_class="total",
         )
         if self._show_credit_invoices(options):
+            credit_line_start = len(lines)
             self._append_credit_invoice_lines(
                 lines, report, options, company_ids, date_from, date_to
             )
+            self._tag_lines(lines[credit_line_start:], "o_daily_pay_credit")
 
         return lines

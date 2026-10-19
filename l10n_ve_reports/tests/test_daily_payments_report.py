@@ -147,6 +147,14 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         self.assertTrue(
             any(line.get("name") == outbound_method.name for line in expense_methods)
         )
+        self.assertTrue(
+            any("o_daily_pay_bank" in (line.get("class") or "") for line in lines)
+        )
+        for line in lines:
+            if line.get("name") in ("Ingresos", "Egresos") or "total" in (
+                line.get("class") or ""
+            ).split():
+                self.assertNotIn("o_daily_pay_bank", line.get("class") or "")
 
     def _create_credit_invoice(self, move_type, amount, invoice_date="2025-01-15"):
         invoice = self.env["account.move"].create(
@@ -203,6 +211,15 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
 
         credit_total = [line for line in lines if line.get("name") == "Total crédito"]
         self.assertAlmostEqual(self._get_line_amount(credit_total[0]), 180.0)
+        credit_header = [
+            line for line in lines if line.get("name") == "Facturas a crédito"
+        ]
+        self.assertIn("o_daily_pay_credit", credit_header[0].get("class") or "")
+        for line in lines:
+            if line.get("name") in ("Ingresos", "Egresos") or "total" in (
+                line.get("class") or ""
+            ).split():
+                self.assertNotIn("o_daily_pay_credit", line.get("class") or "")
 
     def test_paid_invoices_are_not_listed_as_credit(self):
         invoice = self._create_credit_invoice("out_invoice", 200.0)
@@ -297,6 +314,72 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         credit_lines = self._credit_invoice_lines(lines)
         self.assertEqual(len(credit_lines), 1)
         self.assertAlmostEqual(self._get_line_amount(credit_lines[0]), 150.0)
+
+    def test_closing_open_line_replaces_reconciled_payments(self):
+        method = self.bank_journal.inbound_payment_method_line_ids[:1]
+        self.assertTrue(method)
+        payment = self.env["account.payment"].create(
+            {
+                "amount": 400.0,
+                "payment_type": "inbound",
+                "partner_type": "customer",
+                "date": "2025-01-12",
+                "journal_id": self.bank_journal.id,
+                "partner_id": self.partner_a.id,
+                "payment_method_line_id": method.id,
+            }
+        )
+        payment.action_post()
+        outstanding = payment.outstanding_account_id
+        liquidity = payment.move_id.line_ids.filtered(
+            lambda line: line.account_id == outstanding and not line.reconciled
+        )
+        closing_move = self.env["account.move"].create(
+            {
+                "move_type": "entry",
+                "date": "2025-01-12",
+                "journal_id": self.bank_journal.id,
+                "ref": "CIERRE/0001",
+                "line_ids": [
+                    Command.create(
+                        {
+                            "name": "Pago agrupado",
+                            "account_id": outstanding.id,
+                            "debit": 0.0,
+                            "credit": 400.0,
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "name": "CIERRE/0001",
+                            "account_id": outstanding.id,
+                            "debit": 400.0,
+                            "credit": 0.0,
+                        }
+                    ),
+                ],
+            }
+        )
+        closing_move.action_post()
+        counterpart = closing_move.line_ids.filtered(lambda line: line.credit)
+        (liquidity | counterpart).reconcile()
+
+        lines, _options = self._get_report_lines()
+        closing_lines = [line for line in lines if line.get("name") == "CIERRE/0001"]
+        self.assertEqual(len(closing_lines), 1)
+        self.assertAlmostEqual(self._get_line_amount(closing_lines[0]), 400.0)
+        self.assertFalse([line for line in lines if line.get("name") == payment.name])
+        income = [
+            line
+            for line in lines
+            if line.get("name") == "Ingresos" and line.get("level") == 1
+        ]
+        self.assertAlmostEqual(self._get_line_amount(income[0]), 900.0)
+        method_lines = [
+            line for line in lines if line.get("name") == method.name
+        ]
+        self.assertTrue(method_lines)
+        self.assertAlmostEqual(self._get_line_amount(method_lines[0]), 400.0)
 
     def test_credit_invoices_can_be_hidden(self):
         self._create_credit_invoice("out_invoice", 300.0)

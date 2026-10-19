@@ -17,7 +17,7 @@
     }
 
     .o_table {
-        font-size: 0.7rem;
+        font-size: 0.9rem;
         padding: 8px;
         margin: 0 0 12px;
         table-layout: fixed;
@@ -38,7 +38,7 @@
                 white-space: normal;
                 overflow-wrap: break-word;
                 vertical-align: bottom;
-                font-size: 0.65rem;
+                font-size: 0.8rem;
             }
         }
 
@@ -69,6 +69,21 @@
 
             tr.total > td {
                 border-top: 1px solid #495057;
+            }
+
+            tr.o_daily_pay_cash > td {
+                background-color: #e5f6ec;
+                color: #000;
+            }
+
+            tr.o_daily_pay_bank > td {
+                background-color: #e7f1ff;
+                color: #000;
+            }
+
+            tr.o_daily_pay_credit > td {
+                background-color: #fff1e6;
+                color: #000;
             }
         }
     }

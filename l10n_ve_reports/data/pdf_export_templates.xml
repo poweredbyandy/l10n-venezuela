@@ -413,9 +413,13 @@
                 t-set="o_overflow"
                 t-value="(' o_overflow_name' if len(line.get('name') or '') > 42 else '')"
             />
+            <t
+                t-set="o_line_class"
+                t-value="(' ' + line.get('class')) if line.get('class') else ''"
+            />
 
             <tr
-                t-att-class="o_line_level + o_bold + o_overflow"
+                t-att-class="o_line_level + o_bold + o_overflow + o_line_class"
                 name="pdf_export_main_table_body_lines_tr"
             >
                 <td t-att-colspan="line.get('colspan', '1')" class="o_line_name_level">

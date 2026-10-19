@@ -1,3 +1,27 @@
-.daily_payments_report tr.total > td {
-    border-top: 1px solid $o-gray-700;
+.daily_payments_report {
+    .table {
+        font-size: 1rem;
+    }
+
+    table > tbody > tr.o_daily_pay_cash > td,
+    table.striped > tbody > tr.o_daily_pay_cash > td:nth-child(n) {
+        background-color: #e5f6ec;
+        color: #000;
+    }
+
+    table > tbody > tr.o_daily_pay_bank > td,
+    table.striped > tbody > tr.o_daily_pay_bank > td:nth-child(n) {
+        background-color: #e7f1ff;
+        color: #000;
+    }
+
+    table > tbody > tr.o_daily_pay_credit > td,
+    table.striped > tbody > tr.o_daily_pay_credit > td:nth-child(n) {
+        background-color: #fff1e6;
+        color: #000;
+    }
+
+    tr.total > td {
+        border-top: 1px solid $o-gray-700;
+    }
 }
