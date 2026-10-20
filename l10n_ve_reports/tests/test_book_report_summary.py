@@ -1,6 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.tests import tagged
 
 from .common import TestAccountReportsCommon
@@ -286,3 +286,51 @@ class TestBookReportSummary(TestAccountReportsCommon):
         self.assertAlmostEqual(values["total_exempt"], 0.0)
         self.assertAlmostEqual(values["base_general"], 0.0)
         self.assertAlmostEqual(values["amount_general"], 0.0)
+
+    def test_sales_book_general_base_follows_tax_lines(self):
+        foreign = self.env.ref("base.EUR")
+        foreign.active = True
+        invoice_date = fields.Date.from_string("2017-01-15")
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": foreign.id,
+                "company_id": self.env.company.id,
+                "name": invoice_date,
+                "inverse_company_rate": 876.7976,
+            }
+        )
+        move = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": invoice_date,
+                "date": invoice_date,
+                "currency_id": foreign.id,
+                "l10n_ve_control_number": "00-FX",
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Book line",
+                            "quantity": 3.0,
+                            "price_unit": 28.931271,
+                            "tax_ids": [Command.set(self.sale_general_tax.ids)],
+                        }
+                    )
+                ],
+            }
+        )
+        move.action_post()
+        tax_lines = move.line_ids.filtered("tax_line_id")
+        values = self.env[
+            "account.sales.book.report.handler.oca"
+        ]._calculate_tax_values(move)
+        self.assertAlmostEqual(
+            values["base_general"],
+            abs(sum(tax_lines.mapped("tax_base_amount"))),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            values["amount_general"],
+            abs(sum(tax_lines.mapped("balance"))),
+            places=2,
+        )

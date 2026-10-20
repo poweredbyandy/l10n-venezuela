@@ -1,3 +1,8 @@
+En el **Libro de Ventas** y el **Libro de Compras**, la base y el IVA de
+cada alícuota salen de las líneas de impuesto del asiento publicado
+(`tax_base_amount` y el saldo). Los documentos en borrador no entran al
+libro. Así el periodo coincide con lo contabilizado y con lo impreso.
+
 To generate the auxiliary liquidity books:
 
 #. Go to **Accounting > SENIAT > Reports**.

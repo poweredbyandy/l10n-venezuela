@@ -315,23 +315,26 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         self.assertEqual(len(credit_lines), 1)
         self.assertAlmostEqual(self._get_line_amount(credit_lines[0]), 150.0)
 
-    def test_closing_open_line_replaces_reconciled_payments(self):
+    def test_closing_shows_detailed_payments(self):
         method = self.bank_journal.inbound_payment_method_line_ids[:1]
         self.assertTrue(method)
-        payment = self.env["account.payment"].create(
-            {
-                "amount": 400.0,
-                "payment_type": "inbound",
-                "partner_type": "customer",
-                "date": "2025-01-12",
-                "journal_id": self.bank_journal.id,
-                "partner_id": self.partner_a.id,
-                "payment_method_line_id": method.id,
-            }
+        payments = self.env["account.payment"].create(
+            [
+                {
+                    "amount": amount,
+                    "payment_type": "inbound",
+                    "partner_type": "customer",
+                    "date": "2025-01-12",
+                    "journal_id": self.bank_journal.id,
+                    "partner_id": self.partner_a.id,
+                    "payment_method_line_id": method.id,
+                }
+                for amount in (250.0, 150.0)
+            ]
         )
-        payment.action_post()
-        outstanding = payment.outstanding_account_id
-        liquidity = payment.move_id.line_ids.filtered(
+        payments.action_post()
+        outstanding = payments.outstanding_account_id
+        liquidity = payments.move_id.line_ids.filtered(
             lambda line: line.account_id == outstanding and not line.reconciled
         )
         closing_move = self.env["account.move"].create(
@@ -346,7 +349,15 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
                             "name": "Pago agrupado",
                             "account_id": outstanding.id,
                             "debit": 0.0,
-                            "credit": 400.0,
+                            "credit": 250.0,
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "name": "Pago agrupado",
+                            "account_id": outstanding.id,
+                            "debit": 0.0,
+                            "credit": 150.0,
                         }
                     ),
                     Command.create(
@@ -361,23 +372,28 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
             }
         )
         closing_move.action_post()
-        counterpart = closing_move.line_ids.filtered(lambda line: line.credit)
-        (liquidity | counterpart).reconcile()
+        counterparts = closing_move.line_ids.filtered(lambda line: line.credit)
+        (liquidity | counterparts).reconcile()
 
         lines, _options = self._get_report_lines()
-        closing_lines = [line for line in lines if line.get("name") == "CIERRE/0001"]
-        self.assertEqual(len(closing_lines), 1)
-        self.assertAlmostEqual(self._get_line_amount(closing_lines[0]), 400.0)
-        self.assertFalse([line for line in lines if line.get("name") == payment.name])
+        self.assertFalse([line for line in lines if line.get("name") == "CIERRE/0001"])
+        detail_lines = [
+            line
+            for line in lines
+            if line.get("name") in payments.move_id.mapped("name")
+        ]
+        self.assertEqual(len(detail_lines), 2)
+        self.assertEqual(
+            sorted(self._get_line_amount(line) for line in detail_lines),
+            [150.0, 250.0],
+        )
         income = [
             line
             for line in lines
             if line.get("name") == "Ingresos" and line.get("level") == 1
         ]
         self.assertAlmostEqual(self._get_line_amount(income[0]), 900.0)
-        method_lines = [
-            line for line in lines if line.get("name") == method.name
-        ]
+        method_lines = [line for line in lines if line.get("name") == method.name]
         self.assertTrue(method_lines)
         self.assertAlmostEqual(self._get_line_amount(method_lines[0]), 400.0)
 

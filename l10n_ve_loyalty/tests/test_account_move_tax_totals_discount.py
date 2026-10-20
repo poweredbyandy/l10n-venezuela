@@ -428,7 +428,9 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
             sum(lines.mapped("price_subtotal")),
             places=2,
         )
-        expected_discount = company_currency.round(expected_gross * 0.20)
+        expected_discount = company_currency.round(
+            expected_gross - abs(move.amount_untaxed_signed)
+        )
         self.assertAlmostEqual(
             tax_totals["l10n_ve_global_discount_amount"],
             expected_discount,
@@ -715,20 +717,23 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
         )
         return move
 
-    def test_new_foreign_invoice_applies_percentage_on_company_gross(self):
+    def test_new_foreign_invoice_company_totals_follow_accounting(self):
         move = self._create_foreign_invoice_with_percentage_discount()
-        company_currency = move.company_currency_id
-        tax_totals = move.tax_totals
         self.assertFalse(move.l10n_ve_legacy_company_discount_totals)
+        tax_totals = move.tax_totals
         self.assertAlmostEqual(
-            tax_totals["l10n_ve_global_discount_amount"],
-            company_currency.round(tax_totals["l10n_ve_subtotal_gross"] * 0.10),
-            places=2,
+            tax_totals["base_amount"], abs(move.amount_untaxed_signed), places=2
         )
         self.assertAlmostEqual(
-            tax_totals["base_amount"],
+            tax_totals["tax_amount"], abs(move.amount_tax_signed), places=2
+        )
+        self.assertAlmostEqual(
+            tax_totals["total_amount"], abs(move.amount_total_signed), places=2
+        )
+        self.assertAlmostEqual(
             tax_totals["l10n_ve_subtotal_gross"]
             - tax_totals["l10n_ve_global_discount_amount"],
+            tax_totals["base_amount"],
             places=2,
         )
 
@@ -759,6 +764,23 @@ class TestAccountMoveTaxTotalsGlobalDiscount(L10nVeLoyaltyCommon):
             for group in subtotal["tax_groups"]
         )
         self.assertAlmostEqual(group_bases, tax_totals["base_amount"], places=2)
+
+    def test_foreign_invoice_without_discount_follows_tax_lines(self):
+        move = self._create_foreign_invoice_with_percentage_discount()
+        move.l10n_ve_global_discount_ids.unlink()
+        tax_lines = move.line_ids.filtered("tax_line_id")
+        tax_totals = move.tax_totals
+        group = tax_totals["subtotals"][0]["tax_groups"][0]
+        self.assertAlmostEqual(
+            group["base_amount"],
+            abs(sum(tax_lines.mapped("tax_base_amount"))),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            group["tax_amount"],
+            abs(sum(tax_lines.mapped("balance"))),
+            places=2,
+        )
 
 
 @tagged("post_install", "-at_install")

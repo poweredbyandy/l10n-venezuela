@@ -214,9 +214,57 @@ class L10nVeBookReportMixin(models.AbstractModel):
 
         options["columns"] = result
 
+    def _l10n_ve_accounting_amounts_for_tax_group(self, move, tax_group_id):
+        if not move or not tax_group_id or tax_group_id == -1:
+            return None
+        company_currency = move.company_currency_id
+        tax_lines = move.line_ids.filtered(
+            lambda line: line.tax_line_id
+            and line.tax_line_id.tax_group_id.id == tax_group_id
+        )
+        if tax_lines:
+            return {
+                "base_amount": company_currency.round(
+                    abs(sum(tax_lines.mapped("tax_base_amount")))
+                ),
+                "tax_amount": company_currency.round(
+                    abs(sum(tax_lines.mapped("balance")))
+                ),
+            }
+        base_lines = move.line_ids.filtered(
+            lambda line: line.display_type in ("product", "global_discount")
+            and tax_group_id in line.tax_ids.tax_group_id.ids
+        )
+        if not base_lines:
+            return None
+        return {
+            "base_amount": company_currency.round(
+                abs(sum(base_lines.mapped("balance")))
+            ),
+            "tax_amount": 0.0,
+        }
+
+    def _l10n_ve_book_tax_info_from_accounting(self, move, tax_info):
+        info = dict(tax_info)
+        amounts = self._l10n_ve_accounting_amounts_for_tax_group(move, info.get("id"))
+        if amounts:
+            info["base_amount"] = amounts["base_amount"]
+            info["tax_amount"] = amounts["tax_amount"]
+        return info
+
     def _l10n_ve_apply_tax_values_from_config(
-        self, result, tax_config, tax_info, tax_type, company, book_type, multiplier
+        self,
+        result,
+        tax_config,
+        tax_info,
+        tax_type,
+        company,
+        book_type,
+        multiplier,
+        move=None,
     ):
+        if move:
+            tax_info = self._l10n_ve_book_tax_info_from_accounting(move, tax_info)
         base = (
             tax_info.get("base_amount", tax_info.get("base_amount_currency", 0.0))
             * multiplier

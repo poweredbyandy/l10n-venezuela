@@ -405,3 +405,107 @@ class AccountMove(models.Model):
         ):
             return origin_pu
         return origin_pu * (credit_line.price_unit / origin_line.price_unit)
+
+    def _l10n_ve_expected_native_company_tax_amount(self):
+        self.ensure_one()
+        base_lines, _tax_lines = self._get_rounded_base_and_tax_lines(
+            round_from_tax_lines=False
+        )
+        totals = self.env["account.tax"]._get_tax_totals_summary(
+            base_lines=base_lines,
+            currency=self.currency_id,
+            company=self.company_id,
+            cash_rounding=self.invoice_cash_rounding_id,
+        )
+        return abs(totals.get("tax_amount") or 0.0)
+
+    def _l10n_ve_needs_native_company_tax_realign(self):
+        self.ensure_one()
+        if self.state != "posted":
+            return False
+        if self.move_type not in ("out_invoice", "out_refund"):
+            return False
+        if not self.currency_id or self.currency_id == self.company_currency_id:
+            return False
+        if self.currency_id.is_zero(self.amount_tax):
+            return False
+        if self.inalterable_hash or self.need_cancel_request:
+            return False
+        return bool(
+            float_compare(
+                abs(self.amount_tax_signed),
+                self._l10n_ve_expected_native_company_tax_amount(),
+                precision_rounding=self.company_currency_id.rounding,
+            )
+        )
+
+    def _l10n_ve_payment_term_counterpart_line_ids(self):
+        self.ensure_one()
+        own_ids = set(self.line_ids.ids)
+        counterpart_ids = []
+        term_lines = self.line_ids.filtered(
+            lambda aml: aml.display_type == "payment_term"
+        )
+        for line in term_lines:
+            for partial in line.matched_credit_ids:
+                other = partial.credit_move_id
+                if other.id not in own_ids:
+                    counterpart_ids.append(other.id)
+            for partial in line.matched_debit_ids:
+                other = partial.debit_move_id
+                if other.id not in own_ids:
+                    counterpart_ids.append(other.id)
+        return counterpart_ids
+
+    def _l10n_ve_fiscal_print_values(self):
+        self.ensure_one()
+        values = {"name": self.name}
+        for field_name in (
+            "l10n_ve_invoice_number",
+            "l10n_ve_invoice_original_printed",
+            "l10n_ve_serial_number",
+            "l10n_ve_report_z",
+        ):
+            if field_name in self._fields:
+                values[field_name] = self[field_name]
+        return values
+
+    def _l10n_ve_restore_fiscal_print_values(self, values):
+        self.ensure_one()
+        restore = {
+            field_name: value
+            for field_name, value in values.items()
+            if field_name in self._fields and self[field_name] != value
+        }
+        if restore:
+            self.write(restore)
+
+    def _l10n_ve_reattach_outstanding_lines(self, line_ids):
+        self.ensure_one()
+        for line_id in line_ids:
+            if self.company_currency_id.is_zero(self.amount_residual_signed):
+                break
+            line = self.env["account.move.line"].browse(line_id)
+            if not line.exists() or line.reconciled:
+                continue
+            self.js_assign_outstanding_line(line.id)
+
+    def _l10n_ve_realign_posted_native_company_tax(self):
+        self.ensure_one()
+        if not self._l10n_ve_needs_native_company_tax_realign():
+            return False
+        counterpart_ids = self._l10n_ve_payment_term_counterpart_line_ids()
+        fiscal_values = self._l10n_ve_fiscal_print_values()
+        self.with_context(
+            force_draft=True,
+            tracking_disable=True,
+            mail_notrack=True,
+        ).button_draft()
+        self._l10n_ve_restore_fiscal_print_values(fiscal_values)
+        self.with_context(
+            install_mode=True,
+            tracking_disable=True,
+            mail_notrack=True,
+        ).action_post()
+        self._l10n_ve_reattach_outstanding_lines(counterpart_ids)
+        return True

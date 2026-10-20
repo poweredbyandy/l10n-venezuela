@@ -310,6 +310,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             return move.ref
         return move.name or move.display_name
 
+    def _get_closing_detail_payments(self, move, journal):
+        if not self._uses_open_outstanding_residual(move, journal):
+            return self.env["account.payment"]
+        payments = self._get_payments_reconciled_with_move(move)
+        return payments.sorted(lambda pay: (pay.date, pay.name or "", pay.id))
+
     def _caret_options_initializer(self):
         base = self.env["account.report"]._caret_options_initializer_default()
         extra = {
@@ -679,6 +685,20 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 "pending",
             )
         for move in pending_posted_moves:
+            detail_payments = self._get_closing_detail_payments(move, journal)
+            if detail_payments:
+                for payment in detail_payments:
+                    payment_date = self._get_move_display_date(
+                        payment.move_id, date_type
+                    )
+                    _append_move_item(
+                        payment.move_id,
+                        self._get_move_display_report_amount(
+                            payment.move_id, journal, options, payment_date
+                        ),
+                        "pending",
+                    )
+                continue
             display_date = self._get_move_display_date(move, date_type)
             _append_move_item(
                 move,
@@ -1360,6 +1380,62 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     m.name or "",
                 )
             ):
+                detail_payments = self._get_closing_detail_payments(move, journal)
+                if detail_payments:
+                    for payment in detail_payments:
+                        payment_move = payment.move_id
+                        payment_date = self._get_move_display_date(
+                            payment_move, date_type
+                        )
+                        payment_amount = self._get_move_display_report_amount(
+                            payment_move, journal, options, payment_date
+                        )
+                        if self._is_report_amount_zero(payment_amount, options):
+                            continue
+                        payment_flow = self._get_report_amount_flow_kind(
+                            payment_amount, move=payment_move
+                        )
+                        if not payment_flow:
+                            continue
+                        payment_group = _get_method_group(
+                            payment.payment_method_line_id,
+                            payment_flow,
+                        )
+                        _add_amount_to_totals(payment_group, payment_amount)
+                        payment_group["pending_lines"].append(
+                            (
+                                0,
+                                {
+                                    "id": report._get_generic_line_id(
+                                        "account.move",
+                                        payment_move.id,
+                                        markup="daily_pay_closing_detail",
+                                    ),
+                                    "name": payment_move.name
+                                    or payment_move.display_name,
+                                    "columns": self._build_row_columns(
+                                        report,
+                                        options,
+                                        {
+                                            "line_date": payment_date,
+                                            "invoice_documents": self._format_invoice_documents_label(  # noqa: E501
+                                                payment_move
+                                            ),
+                                            "partner": (
+                                                payment.partner_id.display_name
+                                                if payment.partner_id
+                                                else ""
+                                            ),
+                                            "amount": payment_amount,
+                                        },
+                                    ),
+                                    "level": 3,
+                                    "unfoldable": False,
+                                    "caret_options": "account.move",
+                                },
+                            )
+                        )
+                    continue
                 display_date = self._get_move_display_date(move, date_type)
                 amt = self._get_move_pending_report_amount(
                     move, journal, options, display_date

@@ -651,6 +651,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
                             company,
                             "sale",
                             multiplier,
+                            move=move,
                         )
                         break
 

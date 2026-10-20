@@ -22,12 +22,12 @@ class AccountTax(models.Model):
 
     @api.model
     def _add_tax_details_in_base_line(self, base_line, company, rounding_method=None):
-        """Convert company amounts from the rounded foreign subtotal.
+        """Convert the company line base from the rounded foreign subtotal.
 
         Standard Odoo converts ``price_unit * qty`` (unrounded foreign) with the
         rate, so company-currency line balances can disagree with
-        ``round(foreign_subtotal) / rate``. Align company raw amounts to the
-        foreign monetary amounts customers see on the invoice.
+        ``round(foreign_subtotal) / rate``. Only the excluded base is aligned.
+        Tax amounts stay as Odoo computed them.
         """
         super()._add_tax_details_in_base_line(
             base_line, company, rounding_method=rounding_method
@@ -55,11 +55,14 @@ class AccountTax(models.Model):
         tax_details["raw_total_excluded"] = to_company(
             tax_details["raw_total_excluded_currency"]
         )
-        tax_details["raw_total_included"] = to_company(
-            tax_details["raw_total_included_currency"]
-        )
         for tax_data in tax_details.get("taxes_data") or []:
-            tax_data["raw_tax_amount"] = to_company(tax_data["raw_tax_amount_currency"])
             tax_data["raw_base_amount"] = to_company(
                 tax_data["raw_base_amount_currency"]
             )
+        tax_details["raw_total_included"] = company_currency.round(
+            tax_details["raw_total_excluded"]
+            + sum(
+                tax_data["raw_tax_amount"]
+                for tax_data in tax_details.get("taxes_data") or []
+            )
+        )

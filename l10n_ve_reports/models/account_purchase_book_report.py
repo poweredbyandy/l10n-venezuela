@@ -481,29 +481,16 @@ class PurchaseBookReportCustomHandler(models.AbstractModel):
 
                 for ttype, tg_id in tax_config.items():
                     if tg_id == tax_group_id:
-                        base = (
-                            tax_info.get(
-                                "base_amount", tax_info.get("base_amount_currency", 0.0)
-                            )
-                            * multiplier
+                        self._l10n_ve_apply_tax_values_from_config(
+                            result,
+                            tax_config,
+                            tax_info,
+                            ttype,
+                            company,
+                            "purchase",
+                            multiplier,
+                            move=move,
                         )
-                        amount = (
-                            tax_info.get(
-                                "tax_amount", tax_info.get("tax_amount_currency", 0.0)
-                            )
-                            * multiplier
-                        )
-                        if ttype == "exempt":
-                            result["total_exempt"] += base
-                        elif ttype == "general":
-                            result["base_general"] = base
-                            result["amount_general"] = amount
-                        elif ttype == "reduced":
-                            result["base_reduced"] = base
-                            result["amount_reduced"] = amount
-                        elif ttype == "extend":
-                            result["base_extend"] = base
-                            result["amount_extend"] = amount
                         break
 
         result["total_taxed"] = self._l10n_ve_document_total_amount(

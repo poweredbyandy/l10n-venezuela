@@ -339,6 +339,7 @@ class SalesBookFiscalMachineReportCustomHandler(models.AbstractModel):
                             company,
                             "sale",
                             multiplier,
+                            move=move,
                         )
                         break
 

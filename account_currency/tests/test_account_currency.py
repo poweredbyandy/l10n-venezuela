@@ -4,6 +4,7 @@ from odoo import fields
 from odoo.tests import Form, tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.addons.account_currency.hooks import realign_posted_foreign_company_tax
 
 
 @tagged("post_install", "-at_install")
@@ -203,6 +204,157 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         self.assertAlmostEqual(refund.invoice_currency_rate, 2.0)
         refund.refresh_invoice_currency_rate()
         self.assertAlmostEqual(refund.invoice_currency_rate, 2.0)
+
+    def _corrupt_posted_company_tax(self, invoice, extra=5.31):
+        tax_line = invoice.line_ids.filtered("tax_line_id")[:1]
+        term_line = invoice.line_ids.filtered(
+            lambda aml: aml.display_type == "payment_term"
+        )[:1]
+        self.assertTrue(tax_line and term_line)
+        extra = invoice.company_currency_id.round(extra)
+        self.env.cr.execute(
+            """
+            UPDATE account_move_line
+               SET balance = balance + %s,
+                   debit = debit + %s
+             WHERE id = %s
+            """,
+            (extra, extra, term_line.id),
+        )
+        self.env.cr.execute(
+            """
+            UPDATE account_move_line
+               SET balance = balance - %s,
+                   credit = credit + %s
+             WHERE id = %s
+            """,
+            (extra, extra, tax_line.id),
+        )
+        invoice.invalidate_recordset()
+        invoice.line_ids.invalidate_recordset()
+        self.env.add_to_compute(invoice._fields["amount_tax_signed"], invoice)
+        self.env.add_to_compute(invoice._fields["amount_total_signed"], invoice)
+        invoice.flush_recordset(["amount_tax_signed", "amount_total_signed"])
+
+    def _sale_percent_tax(self, amount):
+        country = self.env.company.account_fiscal_country_id
+        tax_group = self.env["account.tax.group"].create(
+            {
+                "name": "Test IVA",
+                "company_id": self.env.company.id,
+                "country_id": country.id,
+            }
+        )
+        return self.percent_tax(
+            amount,
+            type_tax_use="sale",
+            tax_group_id=tax_group.id,
+            country_id=country.id,
+        )
+
+    def _create_foreign_taxed_invoice(self, currency, tax):
+        return self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": "2026-10-20",
+                "date": "2026-10-20",
+                "currency_id": currency.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Line A",
+                            "quantity": 1.0,
+                            "price_unit": 8.29,
+                            "tax_ids": [(6, 0, tax.ids)],
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Line B",
+                            "quantity": 1.0,
+                            "price_unit": 8.86,
+                            "tax_ids": [(6, 0, tax.ids)],
+                        },
+                    ),
+                ],
+            }
+        )
+
+    def test_migration_realigns_posted_tax_from_rounded_foreign(self):
+        currency = self.setup_other_currency(
+            "CAD", rates=[("2026-10-20", 0.001133945)]
+        )
+        tax = self._sale_percent_tax(16)
+        invoice = self._create_foreign_taxed_invoice(currency, tax)
+        invoice.action_post()
+        expected_tax = invoice._l10n_ve_expected_native_company_tax_amount()
+        self._corrupt_posted_company_tax(invoice)
+        wrong_tax = abs(invoice.amount_tax_signed)
+        self.assertTrue(invoice._l10n_ve_needs_native_company_tax_realign())
+        self.assertNotAlmostEqual(wrong_tax, expected_tax, places=2)
+
+        payment = (
+            self.env["account.payment.register"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create({})
+            ._create_payments()
+        )
+        payment_state = payment.state
+        payment_amount = payment.amount
+
+        fixed, skipped, failed = realign_posted_foreign_company_tax(
+            self.env, invoice
+        )
+        self.assertEqual(fixed, 1)
+        self.assertEqual(skipped, 0)
+        self.assertEqual(failed, 0)
+        self.assertFalse(invoice._l10n_ve_needs_native_company_tax_realign())
+        self.assertAlmostEqual(
+            abs(invoice.amount_tax_signed), expected_tax, places=2
+        )
+        self.assertEqual(invoice.state, "posted")
+        self.assertEqual(payment.state, payment_state)
+        self.assertAlmostEqual(payment.amount, payment_amount, places=2)
+        self.assertNotEqual(payment.state, "draft")
+
+    def test_migration_skips_already_aligned_invoice(self):
+        currency = self.setup_other_currency(
+            "CAD", rates=[("2026-10-20", 0.001133945)]
+        )
+        tax = self._sale_percent_tax(16)
+        invoice = self._create_foreign_taxed_invoice(currency, tax)
+        invoice.action_post()
+        payment = (
+            self.env["account.payment.register"]
+            .with_context(active_model="account.move", active_ids=invoice.ids)
+            .create({})
+            ._create_payments()
+        )
+        payment_state = payment.state
+        partials = invoice.line_ids.mapped(
+            "matched_credit_ids"
+        ) | invoice.line_ids.mapped("matched_debit_ids")
+        partial_ids = set(partials.ids)
+        tax_before = abs(invoice.amount_tax_signed)
+
+        fixed, skipped, failed = realign_posted_foreign_company_tax(
+            self.env, invoice
+        )
+        self.assertEqual(fixed, 0)
+        self.assertEqual(skipped, 1)
+        self.assertEqual(failed, 0)
+        self.assertAlmostEqual(abs(invoice.amount_tax_signed), tax_before, places=2)
+        self.assertEqual(payment.state, payment_state)
+        self.assertNotEqual(payment.state, "draft")
+        remaining = invoice.line_ids.mapped(
+            "matched_credit_ids"
+        ) | invoice.line_ids.mapped("matched_debit_ids")
+        self.assertEqual(set(remaining.ids), partial_ids)
 
 
 @tagged("post_install", "-at_install")
