@@ -2,6 +2,10 @@ En el **Libro de Ventas** y el **Libro de Compras**, la base y el IVA de
 cada alícuota salen de las líneas de impuesto del asiento publicado
 (`tax_base_amount` y el saldo). Los documentos en borrador no entran al
 libro. Así el periodo coincide con lo contabilizado y con lo impreso.
+Al actualizar el módulo, las facturas ya publicadas alinean
+`tax_base_amount` con la base en moneda compañía que ya mostraba
+`tax_totals`. No se republica ni se toca el cobro. El IVA del libro
+sigue siendo el del apunte, no el 16 % recalculado sobre la base.
 
 To generate the auxiliary liquidity books:
 

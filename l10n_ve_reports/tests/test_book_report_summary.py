@@ -3,6 +3,8 @@
 from odoo import Command, fields
 from odoo.tests import tagged
 
+from odoo.addons.l10n_ve_reports.hooks import align_posted_tax_base_to_tax_totals
+
 from .common import TestAccountReportsCommon
 
 
@@ -334,3 +336,36 @@ class TestBookReportSummary(TestAccountReportsCommon):
             abs(sum(tax_lines.mapped("balance"))),
             places=2,
         )
+
+    def test_posted_tax_base_aligns_to_tax_totals(self):
+        move = self._post_book_document(
+            "out_invoice", 100.0, self.sale_general_tax, "00-ALIGN"
+        )
+        tax_line = move.line_ids.filtered("tax_line_id")[:1]
+        self.assertTrue(tax_line)
+        target = abs(
+            next(
+                tax_group.get("base_amount") or 0.0
+                for subtotal in (move.tax_totals or {}).get("subtotals") or []
+                for tax_group in subtotal.get("tax_groups") or []
+                if tax_group.get("id") == self.general_tax_group.id
+            )
+        )
+        self.env.cr.execute(
+            """
+            UPDATE account_move_line
+               SET tax_base_amount = tax_base_amount + 0.04
+             WHERE id = %s
+            """,
+            (tax_line.id,),
+        )
+        tax_line.invalidate_recordset(["tax_base_amount"])
+        self.assertNotAlmostEqual(abs(tax_line.tax_base_amount), target, places=2)
+        updated, _skipped = align_posted_tax_base_to_tax_totals(self.env, move)
+        self.assertEqual(updated, 1)
+        tax_line.invalidate_recordset(["tax_base_amount"])
+        self.assertAlmostEqual(abs(tax_line.tax_base_amount), target, places=2)
+        values = self.env[
+            "account.sales.book.report.handler.oca"
+        ]._calculate_tax_values(move)
+        self.assertAlmostEqual(values["base_general"], target, places=2)
