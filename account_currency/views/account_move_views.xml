@@ -65,19 +65,11 @@
             >
                 <field
                     name="price_subtotal_currency"
+                    readonly="1"
                     column_invisible="parent.currency_id == parent.company_currency_id"
                 />
                 <field name="warning_rate_difference" column_invisible="1" />
                 <field name="has_rate_difference" column_invisible="1" />
-                <field name="manually_price_subtotal_currency" column_invisible="1" />
-                <button
-                    name="reset_price_subtotal_currency"
-                    string="Reset"
-                    type="object"
-                    icon="fa-refresh"
-                    invisible="not has_rate_difference"
-                    column_invisible="not parent.lines_with_rate_difference"
-                />
                 <field
                     name="currency_rate"
                     string="Exchange Rate"

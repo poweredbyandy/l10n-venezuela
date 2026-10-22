@@ -17,9 +17,12 @@ el ticket fiscal coincida con los totales del documento.
 
 ## Totales en moneda de la compañía
 
-En facturas en divisa, la base, el IVA y el descuento en Bs de `tax_totals`
+En facturas, la base, el IVA y el descuento en Bs de `tax_totals`
 siguen el asiento contable. Así la impresión, la contabilidad y el libro de
-ventas muestran el mismo monto.
+ventas muestran el mismo monto, y en cada moneda se cumple que el subtotal
+bruto menos el descuento global da la base imponible, y que la base más el
+IVA da el total. El porcentaje de descuento se aplica una sola vez, en la
+moneda del documento; los Bs no se recalculan con el porcentaje.
 
 Las facturas confirmadas antes de la versión `18.0.1.0.34` quedan marcadas
 con **Totales de descuento según asiento**. Conservan el cálculo con el que

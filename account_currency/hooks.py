@@ -131,60 +131,11 @@ def recompute_price_subtotal_currency(env):
         [
             ("move_id.move_type", "in", _INVOICE_MOVE_TYPES),
             ("display_type", "=", "product"),
-            ("manually_price_subtotal_currency", "=", False),
         ]
     )
     env.add_to_compute(lines._fields["price_subtotal_currency"], lines)
     lines.flush_recordset(["price_subtotal_currency"])
     _logger.info("Recomputed price_subtotal_currency on %s lines", len(lines))
-
-
-def realign_posted_foreign_company_tax(env, moves=None):
-    if moves is None:
-        env.cr.execute(
-            """
-            SELECT move.id
-              FROM account_move AS move
-              JOIN res_company AS company
-                ON company.id = move.company_id
-             WHERE move.state = 'posted'
-               AND move.move_type IN ('out_invoice', 'out_refund')
-               AND move.currency_id IS DISTINCT FROM company.currency_id
-               AND COALESCE(move.amount_tax, 0.0) != 0.0
-               AND COALESCE(move.inalterable_hash, '') = ''
-            """
-        )
-        moves = env["account.move"].browse([row[0] for row in env.cr.fetchall()])
-    else:
-        moves = moves.filtered(
-            lambda move: move.state == "posted"
-            and move.move_type in ("out_invoice", "out_refund")
-            and move.currency_id
-            and move.currency_id != move.company_currency_id
-            and not move.currency_id.is_zero(move.amount_tax)
-            and not move.inalterable_hash
-        )
-    fixed = skipped = failed = 0
-    for move in moves:
-        try:
-            with env.cr.savepoint():
-                if move._l10n_ve_realign_posted_native_company_tax():
-                    fixed += 1
-                else:
-                    skipped += 1
-        except Exception:
-            _logger.exception(
-                "account_currency: could not realign company tax on %s",
-                move.name,
-            )
-            failed += 1
-    _logger.info(
-        "account_currency: realigned company tax on %s invoices, skipped %s, failed %s",
-        fixed,
-        skipped,
-        failed,
-    )
-    return fixed, skipped, failed
 
 
 def post_init_hook(env):

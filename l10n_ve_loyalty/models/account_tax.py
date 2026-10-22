@@ -340,9 +340,7 @@ class AccountTax(models.Model):
         )
         realign_company_tax_totals = False
         accounting_company_base = None
-        if product_subtotal_company is not None and (
-            self._l10n_ve_uses_accounting_company_totals(document)
-        ):
+        if product_subtotal_company is not None and document._name == "account.move":
             subtotal_gross = product_subtotal_company
             accounting_company_base = company_currency.round(
                 abs(document.amount_untaxed_signed)
@@ -446,7 +444,10 @@ class AccountTax(models.Model):
         totals["l10n_ve_global_discount_percentage"] = discount_totals[
             "global_discount_percentage"
         ]
-        if discount_totals.get("realign_company_tax_totals"):
+        if (
+            discount_totals.get("realign_company_tax_totals")
+            and document._name != "account.move"
+        ):
             totals = self._l10n_ve_realign_company_tax_totals_after_discount(
                 document,
                 totals,
