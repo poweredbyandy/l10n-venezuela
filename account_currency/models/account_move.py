@@ -397,3 +397,36 @@ class AccountMove(models.Model):
         ):
             return origin_pu
         return origin_pu * (credit_line.price_unit / origin_line.price_unit)
+
+    def _prepare_product_base_line_for_taxes_computation(self, product_line):
+        base_line = super()._prepare_product_base_line_for_taxes_computation(
+            product_line
+        )
+        self._l10n_ve_apply_rounded_foreign_price_unit(product_line, base_line)
+        return base_line
+
+    def _l10n_ve_apply_rounded_foreign_price_unit(self, product_line, base_line):
+        """Use currency-rounded foreign subtotal for tax/balance conversion.
+
+        Fiscal machines print ``round(USD) / rate`` as the Bs base and then
+        ``round(base_bs * tax%, 2)``. Odoo native tax uses the unrounded
+        ``price_unit``, so ``price_unit / rate`` diverges from
+        ``round(price_unit) / rate`` when the unit has many decimals.
+        """
+        if self.env.context.get("l10n_ve_unrounded_tax_base"):
+            return
+        if not self.is_invoice(include_receipts=True):
+            return
+        if self.currency_id == self.company_currency_id:
+            return
+        if product_line.display_type not in ("product", "cogs"):
+            return
+        currency = base_line.get("currency_id") or self.currency_id
+        quantity = base_line.get("quantity") or 0.0
+        discount_factor = 1.0 - ((base_line.get("discount") or 0.0) / 100.0)
+        if not quantity or discount_factor <= 0.0:
+            return
+        foreign_subtotal = currency.round(
+            (product_line.price_unit or 0.0) * quantity * discount_factor
+        )
+        base_line["price_unit"] = foreign_subtotal / quantity / discount_factor
