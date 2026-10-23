@@ -315,7 +315,7 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         self.assertEqual(len(credit_lines), 1)
         self.assertAlmostEqual(self._get_line_amount(credit_lines[0]), 150.0)
 
-    def test_closing_shows_detailed_payments(self):
+    def _create_terminal_closing(self, amounts, payment_date, deposit_date, ref):
         method = self.bank_journal.inbound_payment_method_line_ids[:1]
         self.assertTrue(method)
         payments = self.env["account.payment"].create(
@@ -324,12 +324,12 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
                     "amount": amount,
                     "payment_type": "inbound",
                     "partner_type": "customer",
-                    "date": "2025-01-12",
+                    "date": payment_date,
                     "journal_id": self.bank_journal.id,
                     "partner_id": self.partner_a.id,
                     "payment_method_line_id": method.id,
                 }
-                for amount in (250.0, 150.0)
+                for amount in amounts
             ]
         )
         payments.action_post()
@@ -337,44 +337,45 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         liquidity = payments.move_id.line_ids.filtered(
             lambda line: line.account_id == outstanding and not line.reconciled
         )
+        total = sum(amounts)
         closing_move = self.env["account.move"].create(
             {
                 "move_type": "entry",
-                "date": "2025-01-12",
+                "date": deposit_date,
                 "journal_id": self.bank_journal.id,
-                "ref": "CIERRE/0001",
+                "ref": ref,
                 "line_ids": [
                     Command.create(
                         {
                             "name": "Pago agrupado",
                             "account_id": outstanding.id,
                             "debit": 0.0,
-                            "credit": 250.0,
+                            "credit": amount,
                         }
-                    ),
+                    )
+                    for amount in amounts
+                ]
+                + [
                     Command.create(
                         {
-                            "name": "Pago agrupado",
+                            "name": ref,
                             "account_id": outstanding.id,
-                            "debit": 0.0,
-                            "credit": 150.0,
-                        }
-                    ),
-                    Command.create(
-                        {
-                            "name": "CIERRE/0001",
-                            "account_id": outstanding.id,
-                            "debit": 400.0,
+                            "debit": total,
                             "credit": 0.0,
                         }
-                    ),
+                    )
                 ],
             }
         )
         closing_move.action_post()
         counterparts = closing_move.line_ids.filtered(lambda line: line.credit)
         (liquidity | counterparts).reconcile()
+        return payments, closing_move, method
 
+    def test_closing_shows_detailed_payments(self):
+        payments, _closing_move, method = self._create_terminal_closing(
+            (250.0, 150.0), "2025-01-12", "2025-01-12", "CIERRE/0001"
+        )
         lines, _options = self._get_report_lines()
         self.assertFalse([line for line in lines if line.get("name") == "CIERRE/0001"])
         detail_lines = [
@@ -396,6 +397,49 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         method_lines = [line for line in lines if line.get("name") == method.name]
         self.assertTrue(method_lines)
         self.assertAlmostEqual(self._get_line_amount(method_lines[0]), 400.0)
+
+    def test_closing_details_follow_payment_date_not_deposit(self):
+        payments, closing_move, method = self._create_terminal_closing(
+            (250.0, 150.0), "2025-01-12", "2025-01-13", "CIERRE/0002"
+        )
+        lines_payment_day, _options = self._get_report_lines(
+            date_from="2025-01-12",
+            date_to="2025-01-12",
+            extra_options={"daily_payments_date_type": "payment"},
+        )
+        detail_lines = [
+            line
+            for line in lines_payment_day
+            if line.get("name") in payments.move_id.mapped("name")
+        ]
+        self.assertEqual(len(detail_lines), 2)
+        self.assertEqual(
+            sorted(self._get_line_amount(line) for line in detail_lines),
+            [150.0, 250.0],
+        )
+        self.assertFalse(
+            [line for line in lines_payment_day if line.get("name") == "CIERRE/0002"]
+        )
+        method_lines = [
+            line for line in lines_payment_day if line.get("name") == method.name
+        ]
+        self.assertAlmostEqual(self._get_line_amount(method_lines[0]), 400.0)
+
+        lines_deposit_day, _options = self._get_report_lines(
+            date_from="2025-01-13",
+            date_to="2025-01-13",
+            extra_options={"daily_payments_date_type": "payment"},
+        )
+        self.assertFalse(
+            [
+                line
+                for line in lines_deposit_day
+                if line.get("name") in payments.move_id.mapped("name")
+            ]
+        )
+        self.assertFalse(
+            [line for line in lines_deposit_day if line.get("name") == closing_move.ref]
+        )
 
     def test_credit_invoices_can_be_hidden(self):
         self._create_credit_invoice("out_invoice", 300.0)

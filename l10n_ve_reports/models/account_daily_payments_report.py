@@ -311,10 +311,78 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         return move.name or move.display_name
 
     def _get_closing_detail_payments(self, move, journal):
-        if not self._uses_open_outstanding_residual(move, journal):
+        if not self._is_terminal_closing_move(move, journal):
             return self.env["account.payment"]
         payments = self._get_payments_reconciled_with_move(move)
         return payments.sorted(lambda pay: (pay.date, pay.name or "", pay.id))
+
+    def _is_terminal_closing_move(self, move, journal):
+        """Journal entry that groups POS/terminal payments for bank deposit.
+
+        The closing move itself is dated with the bank credit date, so the
+        daily report must list the underlying payments on their own dates
+        instead of this aggregate entry.
+        """
+        if move.origin_payment_id or move.statement_line_id:
+            return False
+        if not self._get_move_outstanding_lines(move, journal):
+            return False
+        Closing = self.env.get("account.payment.closing")
+        if Closing is not None and Closing.sudo().search_count(
+            [("move_id", "=", move.id), ("state", "=", "posted")]
+        ):
+            return True
+        return bool(self._get_payments_reconciled_with_move(move))
+
+    def _is_move_absorbed_by_terminal_closing(self, move, journal):
+        """Payment entry cleared by a terminal closing (no open residual left)."""
+        if self._is_move_bank_liquidity_registered(move, journal):
+            return False
+        if self._bank_move_has_pending_bridge_residual(move, journal):
+            return False
+        outstanding = self._get_move_outstanding_lines(move, journal)
+        if not outstanding:
+            return False
+        company_currency = journal.company_id.currency_id
+        if not company_currency.is_zero(sum(outstanding.mapped("amount_residual"))):
+            return False
+        payment = self._get_move_payment(move)
+        if (
+            payment
+            and "closing_id" in payment._fields
+            and payment.closing_id.state == "posted"
+        ):
+            return True
+        for line in outstanding:
+            for other in line._all_reconciled_lines():
+                if other.move_id != move and self._is_terminal_closing_move(
+                    other.move_id, journal
+                ):
+                    return True
+        return False
+
+    def _split_pending_and_closed_payment_moves(self, posted_moves, journal):
+        registered_moves = posted_moves.filtered(
+            lambda move, j=journal: self._is_move_bank_liquidity_registered(move, j)
+        )
+        pending_posted_moves = (posted_moves - registered_moves).filtered(
+            lambda move, j=journal: self._bank_move_has_pending_bridge_residual(move, j)
+        )
+        closing_moves = pending_posted_moves.filtered(
+            lambda move, j=journal: self._is_terminal_closing_move(move, j)
+        )
+        pending_posted_moves -= closing_moves
+        closed_payment_moves = (
+            posted_moves - registered_moves - closing_moves
+        ).filtered(
+            lambda move, j=journal: self._is_move_absorbed_by_terminal_closing(move, j)
+        )
+        return (
+            registered_moves,
+            pending_posted_moves,
+            closed_payment_moves,
+            closing_moves,
+        )
 
     def _caret_options_initializer(self):
         base = self.env["account.report"]._caret_options_initializer_default()
@@ -636,12 +704,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         posted_moves = self._get_posted_moves_by_date(
             journal, company_ids, date_from, date_to, date_type
         )
-        registered_moves = posted_moves.filtered(
-            lambda move, j=journal: self._is_move_bank_liquidity_registered(move, j)
-        )
-        pending_posted_moves = (posted_moves - registered_moves).filtered(
-            lambda move, j=journal: self._bank_move_has_pending_bridge_residual(move, j)
-        )
+        (
+            registered_moves,
+            pending_posted_moves,
+            closed_payment_moves,
+            closing_moves,
+        ) = self._split_pending_and_closed_payment_moves(posted_moves, journal)
         draft_moves = self._get_draft_moves(
             journal, company_ids, date_from, date_to, date_type
         )
@@ -650,7 +718,10 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             company_ids,
             date_from,
             date_to,
-            registered_moves.ids + pending_posted_moves.ids,
+            registered_moves.ids
+            + pending_posted_moves.ids
+            + closed_payment_moves.ids
+            + closing_moves.ids,
             date_type,
         )
 
@@ -684,21 +755,16 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 ),
                 "pending",
             )
+        for move in closed_payment_moves:
+            display_date = self._get_move_display_date(move, date_type)
+            _append_move_item(
+                move,
+                self._get_move_display_report_amount(
+                    move, journal, options, display_date
+                ),
+                "pending",
+            )
         for move in pending_posted_moves:
-            detail_payments = self._get_closing_detail_payments(move, journal)
-            if detail_payments:
-                for payment in detail_payments:
-                    payment_date = self._get_move_display_date(
-                        payment.move_id, date_type
-                    )
-                    _append_move_item(
-                        payment.move_id,
-                        self._get_move_display_report_amount(
-                            payment.move_id, journal, options, payment_date
-                        ),
-                        "pending",
-                    )
-                continue
             display_date = self._get_move_display_date(move, date_type)
             _append_move_item(
                 move,
@@ -1256,12 +1322,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             posted_moves = self._get_posted_moves_by_date(
                 journal, company_ids, date_from, date_to, date_type
             )
-            registered_moves = posted_moves.filtered(
-                lambda m, j=journal: self._is_move_bank_liquidity_registered(m, j)
-            )
-            pending_posted_bank_moves = (posted_moves - registered_moves).filtered(
-                lambda m, j=journal: self._bank_move_has_pending_bridge_residual(m, j)
-            )
+            (
+                registered_moves,
+                pending_posted_bank_moves,
+                closed_payment_moves,
+                closing_moves,
+            ) = self._split_pending_and_closed_payment_moves(posted_moves, journal)
             moves_by_date = defaultdict(list)
             for move in registered_moves:
                 moves_by_date[self._get_move_display_date(move, date_type)].append(move)
@@ -1318,7 +1384,10 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 journal, company_ids, date_from, date_to, date_type
             )
             exclude_move_ids_for_outstanding = (
-                registered_moves.ids + pending_posted_bank_moves.ids
+                registered_moves.ids
+                + pending_posted_bank_moves.ids
+                + closed_payment_moves.ids
+                + closing_moves.ids
             )
             outstanding_amls = self._get_outstanding_amls(
                 journal,
@@ -1374,68 +1443,62 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     )
                 )
 
+            for move in closed_payment_moves.sorted(
+                lambda m, dtp=date_type: (
+                    self._get_move_display_date(m, dtp),
+                    m.name or "",
+                )
+            ):
+                display_date = self._get_move_display_date(move, date_type)
+                amt = self._get_move_display_report_amount(
+                    move, journal, options, display_date
+                )
+                if self._is_report_amount_zero(amt, options):
+                    continue
+                flow_kind = self._get_report_amount_flow_kind(amt, move=move)
+                if not flow_kind:
+                    continue
+                method_group = _get_method_group(
+                    self._get_move_payment_method_line(move),
+                    flow_kind,
+                )
+                _add_amount_to_totals(method_group, amt)
+                partner_label = move.partner_id.display_name if move.partner_id else ""
+                method_group["pending_lines"].append(
+                    (
+                        0,
+                        {
+                            "id": report._get_generic_line_id(
+                                "account.move",
+                                move.id,
+                                markup="daily_pay_closing_detail",
+                            ),
+                            "name": move.name or move.display_name,
+                            "columns": self._build_row_columns(
+                                report,
+                                options,
+                                {
+                                    "line_date": display_date,
+                                    "invoice_documents": self._format_invoice_documents_label(  # noqa: E501
+                                        move
+                                    ),
+                                    "partner": partner_label,
+                                    "amount": amt,
+                                },
+                            ),
+                            "level": 3,
+                            "unfoldable": False,
+                            "caret_options": "account.move",
+                        },
+                    )
+                )
+
             for move in pending_posted_bank_moves.sorted(
                 lambda m, dtp=date_type: (
                     self._get_move_display_date(m, dtp),
                     m.name or "",
                 )
             ):
-                detail_payments = self._get_closing_detail_payments(move, journal)
-                if detail_payments:
-                    for payment in detail_payments:
-                        payment_move = payment.move_id
-                        payment_date = self._get_move_display_date(
-                            payment_move, date_type
-                        )
-                        payment_amount = self._get_move_display_report_amount(
-                            payment_move, journal, options, payment_date
-                        )
-                        if self._is_report_amount_zero(payment_amount, options):
-                            continue
-                        payment_flow = self._get_report_amount_flow_kind(
-                            payment_amount, move=payment_move
-                        )
-                        if not payment_flow:
-                            continue
-                        payment_group = _get_method_group(
-                            payment.payment_method_line_id,
-                            payment_flow,
-                        )
-                        _add_amount_to_totals(payment_group, payment_amount)
-                        payment_group["pending_lines"].append(
-                            (
-                                0,
-                                {
-                                    "id": report._get_generic_line_id(
-                                        "account.move",
-                                        payment_move.id,
-                                        markup="daily_pay_closing_detail",
-                                    ),
-                                    "name": payment_move.name
-                                    or payment_move.display_name,
-                                    "columns": self._build_row_columns(
-                                        report,
-                                        options,
-                                        {
-                                            "line_date": payment_date,
-                                            "invoice_documents": self._format_invoice_documents_label(  # noqa: E501
-                                                payment_move
-                                            ),
-                                            "partner": (
-                                                payment.partner_id.display_name
-                                                if payment.partner_id
-                                                else ""
-                                            ),
-                                            "amount": payment_amount,
-                                        },
-                                    ),
-                                    "level": 3,
-                                    "unfoldable": False,
-                                    "caret_options": "account.move",
-                                },
-                            )
-                        )
-                    continue
                 display_date = self._get_move_display_date(move, date_type)
                 amt = self._get_move_pending_report_amount(
                     move, journal, options, display_date
