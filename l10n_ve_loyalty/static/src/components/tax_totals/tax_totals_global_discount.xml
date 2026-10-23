@@ -54,9 +54,10 @@
                 </td>
                 <td class="o_list_monetary">
                     <span
+                        name="l10n_ve_subtotal_gross_currency"
+                        class="o_list_monetary"
                         style="white-space: nowrap; font-weight: bold;"
-                        dir="ltr"
-                        t-out="formatMonetary(totals.l10n_ve_subtotal_gross_currency)"
+                        t-out="formatGlobalDiscountAmount(totals.l10n_ve_subtotal_gross_currency || 0)"
                     />
                 </td>
                 <td
@@ -64,9 +65,10 @@
                     class="o_list_monetary ps-5"
                 >
                     <span
+                        name="l10n_ve_subtotal_gross"
+                        class="o_list_monetary"
                         style="white-space: nowrap; font-weight: bold;"
-                        dir="ltr"
-                        t-out="formatGlobalDiscountAmount(totals.l10n_ve_subtotal_gross, true)"
+                        t-out="formatGlobalDiscountAmount(totals.l10n_ve_subtotal_gross || 0, true)"
                     />
                 </td>
             </tr>
@@ -99,16 +101,16 @@
                 </td>
                 <td class="o_tax_group">
                     <span
-                        class="o_tax_group_amount_value o_list_monetary"
-                        dir="ltr"
-                        t-out="formatMonetary(-totals.l10n_ve_global_discount_amount_currency)"
+                        name="l10n_ve_global_discount_currency"
+                        class="o_list_monetary"
+                        t-out="formatGlobalDiscountAmount(-(totals.l10n_ve_global_discount_amount_currency || 0))"
                     />
                 </td>
                 <td t-if="totals.display_in_company_currency" class="o_tax_group ps-5">
                     <span
-                        class="o_tax_group_amount_value o_list_monetary"
-                        dir="ltr"
-                        t-out="formatGlobalDiscountAmount(-totals.l10n_ve_global_discount_amount, true)"
+                        name="l10n_ve_global_discount_company"
+                        class="o_list_monetary"
+                        t-out="formatGlobalDiscountAmount(-(totals.l10n_ve_global_discount_amount || 0), true)"
                     />
                 </td>
             </tr>

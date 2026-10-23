@@ -1444,15 +1444,14 @@ class AccountMove(models.Model):
                     "tax_ids": tuple(sorted(taxes.ids)),
                 }
             )
+            balance = self.company_id.currency_id.round(-sign * total_for_taxes / rate)
             needed[key_discount] = {
                 "display_type": "global_discount",
                 "name": self._l10n_ve_global_discount_allocation_line_name(taxes),
                 "account_id": discount_account.id,
                 "tax_ids": [Command.clear()],
                 "amount_currency": self.currency_id.round(-sign * total_for_taxes),
-                "balance": self.company_id.currency_id.round(
-                    -sign * total_for_taxes / rate
-                ),
+                "balance": balance,
                 "l10n_ve_global_discount_line": True,
                 "l10n_ve_global_discount_tax_ids": [Command.set(taxes.ids)],
             }

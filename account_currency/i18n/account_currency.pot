@@ -234,7 +234,7 @@ msgstr ""
 
 #. module: account_currency
 #: model:ir.model.fields,field_description:account_currency.field_account_move_line__price_unit_company_currency
-msgid "Price Unit Company Currency"
+msgid "Unit Price in Company Currency"
 msgstr ""
 
 #. module: account_currency

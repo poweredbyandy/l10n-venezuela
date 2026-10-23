@@ -60,6 +60,26 @@
                 <attribute name="decoration-danger">warning_rate_difference</attribute>
             </xpath>
             <xpath
+                expr="//field[@name='invoice_line_ids']//list//field[@name='price_unit']"
+                position="after"
+            >
+                <field
+                    name="price_unit_company_currency"
+                    readonly="1"
+                    column_invisible="parent.currency_id == parent.company_currency_id"
+                />
+            </xpath>
+            <xpath
+                expr="//field[@name='invoice_line_ids']//form//field[@name='price_unit']"
+                position="after"
+            >
+                <field
+                    name="price_unit_company_currency"
+                    readonly="1"
+                    invisible="parent.currency_id == parent.company_currency_id"
+                />
+            </xpath>
+            <xpath
                 expr="//field[@name='invoice_line_ids']//list//field[@name='price_subtotal']"
                 position="after"
             >

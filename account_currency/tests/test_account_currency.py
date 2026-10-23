@@ -213,7 +213,6 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
             )
 
 
-
 @tagged("post_install", "-at_install")
 class TestResCurrencyRate(AccountTestInvoicingCommon):
     def test_rate_change_is_tracked(self):

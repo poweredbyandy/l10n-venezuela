@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models
-from odoo.tools import float_compare
+from odoo.tools import float_compare, float_round
 
 INVOICE_MOVE_TYPES = ("out_invoice", "in_invoice", "out_refund", "in_refund")
 
@@ -19,7 +19,7 @@ class AccountMoveLine(models.Model):
     price_unit_company_currency = fields.Float(
         string="Unit Price in Company Currency",
         compute="_compute_price_unit_company_currency",
-        digits=(16, 6),
+        digits="Product Price",
     )
     manually_price_subtotal_currency = fields.Boolean(
         string="Manual Subtotal in Company Currency",
@@ -59,19 +59,24 @@ class AccountMoveLine(models.Model):
         "company_currency_id",
     )
     def _compute_price_unit_company_currency(self):
+        prec = self.env["decimal.precision"].precision_get("Product Price")
         for line in self:
             if line.currency_id == line.company_currency_id or not line.currency_rate:
-                line.price_unit_company_currency = line.price_unit
+                line.price_unit_company_currency = float_round(
+                    line.price_unit or 0.0, precision_digits=prec
+                )
                 continue
             qty = line.quantity or 0.0
             discount_factor = 1.0 - ((line.discount or 0.0) / 100.0)
             base_qty = qty * discount_factor
             if base_qty and line.price_subtotal_currency:
-                line.price_unit_company_currency = (
-                    line.price_subtotal_currency / base_qty
+                line.price_unit_company_currency = float_round(
+                    line.price_subtotal_currency / base_qty, precision_digits=prec
                 )
                 continue
-            line.price_unit_company_currency = line.price_unit / line.currency_rate
+            line.price_unit_company_currency = float_round(
+                (line.price_unit or 0.0) / line.currency_rate, precision_digits=prec
+            )
 
     @api.depends("currency_rate", "move_id.invoice_currency_rate")
     def _compute_warning_rate_difference(self):
@@ -110,10 +115,14 @@ class AccountMoveLine(models.Model):
             or self.display_type != "product"
         ):
             return 0.0
-        base_line = self.move_id._prepare_product_base_line_for_taxes_computation(self)
-        self.env["account.tax"]._add_tax_details_in_base_line(
-            base_line, self.company_id
+        foreign_subtotal = self.currency_id.round(
+            (self.price_unit or 0.0)
+            * (self.quantity or 0.0)
+            * (1.0 - (self.discount or 0.0) / 100.0)
         )
-        return self.company_currency_id.round(
-            base_line["tax_details"]["raw_total_excluded"]
-        )
+        if self.currency_id == self.company_currency_id:
+            return self.company_currency_id.round(foreign_subtotal)
+        rate = self.move_id.invoice_currency_rate or self.currency_rate or 0.0
+        if not rate:
+            return 0.0
+        return self.company_currency_id.round(foreign_subtotal / rate)

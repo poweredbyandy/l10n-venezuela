@@ -193,7 +193,7 @@ class AccountMove(models.Model):
 
     def _l10n_ve_fiscal_serial_line_price_unit_for_print(self, line):
         self.ensure_one()
-        return line.price_unit_company_currency
+        return line.price_unit_company_currency or 0.0
 
     def _l10n_ve_fiscal_serial_global_discount_amount(self):
         self.ensure_one()

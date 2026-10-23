@@ -143,29 +143,30 @@ class AccountMove(models.Model):
     def _compute_tax_totals(self):
         res = super()._compute_tax_totals()
         for move in self:
-            if move.country_code != "VE" or not move.tax_totals:
+            if not move.tax_totals:
                 continue
             totals = dict(move.tax_totals)
-            totals["same_tax_base"] = False
-            company_currency = move.company_currency_id
-            totals["display_in_company_currency"] = bool(
-                move.currency_id
-                and company_currency
-                and move.currency_id != company_currency
-            )
-            if company_currency and not totals.get("company_currency_id"):
-                totals["company_currency_id"] = company_currency.id
-            for subtotal in totals.get("subtotals", []):
-                for tax_group in subtotal.get("tax_groups", []):
-                    if tax_group.get("display_base_amount_currency") is False:
-                        tax_group["display_base_amount_currency"] = tax_group.get(
-                            "base_amount_currency", 0.0
-                        )
-                    if tax_group.get("display_base_amount") in (False, None):
-                        tax_group["display_base_amount"] = tax_group.get(
-                            "base_amount", 0.0
-                        )
-            move.tax_totals = totals
+            if move.country_code == "VE":
+                totals["same_tax_base"] = False
+                company_currency = move.company_currency_id
+                totals["display_in_company_currency"] = bool(
+                    move.currency_id
+                    and company_currency
+                    and move.currency_id != company_currency
+                )
+                if company_currency and not totals.get("company_currency_id"):
+                    totals["company_currency_id"] = company_currency.id
+                for subtotal in totals.get("subtotals", []):
+                    for tax_group in subtotal.get("tax_groups", []):
+                        if tax_group.get("display_base_amount_currency") is False:
+                            tax_group["display_base_amount_currency"] = tax_group.get(
+                                "base_amount_currency", 0.0
+                            )
+                        if tax_group.get("display_base_amount") in (False, None):
+                            tax_group["display_base_amount"] = tax_group.get(
+                                "base_amount", 0.0
+                            )
+                move.tax_totals = totals
         return res
 
     @api.constrains("invoice_currency_rate")
