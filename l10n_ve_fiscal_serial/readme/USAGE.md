@@ -45,3 +45,16 @@ Consulte los eventos en **SENIAT → Máquinas Fiscales → Auditoría fiscal se
 eventos por `session_id` y permite filtrar por usuario, tipo de evento, máquina o factura.
 
 Desde la ficha de una máquina fiscal puede abrir su historial con el botón **Auditoría**.
+
+Ajuste histórico vs máquina fiscal (shell)
+------------------------------------------
+
+Tras actualizar `l10n_ve_fiscal_serial`, desde `odoo-bin shell`:
+
+.. code-block:: python
+
+    from odoo.addons.l10n_ve_fiscal_serial.tools import run_fiscal_audit_align
+    run_fiscal_audit_align(env, apply=False)  # dry-run
+    run_fiscal_audit_align(env, apply=True)   # aplicar
+
+No es un migration: no se ejecuta solo al hacer `-u`.
