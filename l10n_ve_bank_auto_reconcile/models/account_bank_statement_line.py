@@ -1,51 +1,72 @@
 # Copyright 2026 andyengit
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-import logging
-import time
-
-from odoo import _, api, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
-_logger = logging.getLogger(__name__)
-
-BATCH_LINE_LIMIT = 25
-BATCH_SECONDS = 30
-JOB_CHANNEL = "root"
-JOB_PRIORITY = 20
-BUSY_JOB_STATES = ("wait_dependencies", "pending", "enqueued", "started")
+from .l10n_ve_bank_reconcile_queue import BATCH_LINE_LIMIT
 
 
 class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
 
+    in_auto_reconcile_queue = fields.Boolean(
+        string="En cola de conciliación",
+        store=False,
+        search="_search_in_auto_reconcile_queue",
+    )
+
     def action_queue_ref_auto_reconcile(self):
-        """Queue reference matching for the open bank. Does not touch the cron."""
+        """Queue pending lines and run the module cron when the queue already exists."""
         lines = self._pending_reference_reconcile_lines()
         if not lines:
             raise UserError(_("No hay líneas de extracto pendientes en este banco."))
         journals = lines.journal_id
+        queue = self.env["l10n.ve.bank.reconcile.queue"]
+        added_count = 0
+        queue_was_busy = False
         for company in lines.company_id:
             company_lines = lines.filtered(
                 lambda line, company=company: line.company_id == company
             )
-            self._check_reference_reconcile_not_running(company)
-            self._enqueue_reference_reconcile(company, company_lines.ids)
+            company_queue = queue.search([("company_id", "=", company.id)])
+            if company_queue:
+                queue_was_busy = True
+            queued_line_ids = set(company_queue.mapped("statement_line_id").ids)
+            new_lines = company_lines.filtered(
+                lambda line, queued_line_ids=queued_line_ids: line.id not in queued_line_ids
+            )
+            if new_lines:
+                queue.create(
+                    [{"statement_line_id": line.id} for line in new_lines]
+                )
+                added_count += len(new_lines)
+        if queue.search_count([("company_id", "in", lines.company_id.ids)]):
+            queue._trigger_next_batch()
+        if queue_was_busy:
+            queue._cron_process_queue()
+        if added_count:
+            message = _(
+                "Se encolaron %(count)s líneas (%(journals)s). Cada tanda procesa "
+                "%(batch)s líneas o 30 segundos. Use Ver cola para ver las pendientes."
+            ) % {
+                "count": added_count,
+                "journals": ", ".join(journals.mapped("display_name")),
+                "batch": BATCH_LINE_LIMIT,
+            }
+            title = _("Conciliación encolada")
+        else:
+            message = _(
+                "La cola ya tenía las líneas pendientes. Se ejecutó una tanda "
+                "del cron de conciliación."
+            )
+            title = _("Conciliación en curso")
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": _("Conciliación encolada"),
-                "message": _(
-                    "Se encolaron %(count)s líneas (%(journals)s). "
-                    "Cada tanda procesa 25 líneas o 30 segundos, y la siguiente "
-                    "empieza al terminar la anterior. No queda programado: "
-                    "solo corre al pulsar este botón."
-                )
-                % {
-                    "count": len(lines),
-                    "journals": ", ".join(journals.mapped("display_name")),
-                },
+                "title": title,
+                "message": message,
                 "type": "success",
                 "sticky": False,
             },
@@ -66,85 +87,48 @@ class AccountBankStatementLine(models.Model):
             domain.append(("journal_id", "=", journal_id))
         return self.search(domain, order="date, id")
 
-    def _check_reference_reconcile_not_running(self, company):
-        busy = (
-            self.env["queue.job"]
-            .sudo()
-            .search_count(
-                [
-                    ("identity_key", "=", self._reference_reconcile_identity(company)),
-                    ("state", "in", list(BUSY_JOB_STATES)),
-                ]
-            )
+    def _queued_reference_reconcile_entries(self, journal_id=False):
+        domain = []
+        if journal_id:
+            domain.append(("journal_id", "=", journal_id))
+        return self.env["l10n.ve.bank.reconcile.queue"].search(domain)
+
+    def _open_reconcile_journal_id(self):
+        journal_id = self.env.context.get("default_journal_id") or self.env.context.get(
+            "search_default_journal_id"
         )
-        if busy:
-            raise UserError(
-                _("Ya hay una conciliación automática en curso para este banco.")
-            )
+        if journal_id:
+            return int(journal_id)
+        if len(self.journal_id) == 1:
+            return self.journal_id.id
+        return False
 
-    def _reference_reconcile_identity(self, company):
-        return "l10n_ve_bank_auto_reconcile:%s" % company.id
-
-    def _enqueue_reference_reconcile(self, company, line_ids):
-        description = _("Conciliar %(company)s (%(count)s líneas)") % {
-            "company": company.display_name,
-            "count": len(line_ids),
-        }
-        self.env["account.bank.statement.line"].with_delay(
-            channel=JOB_CHANNEL,
-            priority=JOB_PRIORITY,
-            identity_key=self._reference_reconcile_identity(company),
-            description=description,
-        ).job_reconcile_reference_batch(line_ids, company.id)
-
-    @api.model
-    def job_reconcile_reference_batch(self, line_ids, company_id):
-        """Reconcile one slice, then queue the rest. Stops at 25 lines or 30 seconds."""
-        lines = self.search(
-            [
-                ("id", "in", list(line_ids)),
-                ("is_reconciled", "=", False),
-                ("state", "!=", "cancel"),
-            ],
-            order="date, id",
-        )
-        started = time.monotonic()
-        processed_ids = []
-        reconciled_count = 0
-        for line in lines:
-            if (
-                len(processed_ids) >= BATCH_LINE_LIMIT
-                or time.monotonic() - started >= BATCH_SECONDS
-            ):
-                break
-            try:
-                with self.env.cr.savepoint():
-                    if line._reconcile_by_bank_reference():
-                        reconciled_count += 1
-            except UserError as error:
-                _logger.info(
-                    "Statement line %s left for manual reconciliation: %s",
-                    line.id,
-                    error,
-                )
-            processed_ids.append(line.id)
-        remaining_ids = [line.id for line in lines if line.id not in set(processed_ids)]
-        if remaining_ids:
-            company = self.env["res.company"].browse(company_id)
-            self._enqueue_reference_reconcile(company, remaining_ids)
-        _logger.info(
-            "Bank reference reconcile batch company %s: processed %s, "
-            "reconciled %s, remaining %s",
-            company_id,
-            len(processed_ids),
-            reconciled_count,
-            len(remaining_ids),
+    def action_open_reference_reconcile_queue(self):
+        """Open the statement lines waiting in this module's queue."""
+        journal_id = self._open_reconcile_journal_id()
+        entries = self._queued_reference_reconcile_entries(journal_id=journal_id)
+        queue_view = self.env.ref(
+            "l10n_ve_bank_auto_reconcile.l10n_ve_bank_reconcile_queue_view_list"
         )
         return {
-            "processed": len(processed_ids),
-            "reconciled": reconciled_count,
-            "remaining": len(remaining_ids),
+            "type": "ir.actions.act_window",
+            "name": _("Cola de conciliación (%s)") % len(entries),
+            "res_model": "l10n.ve.bank.reconcile.queue",
+            "view_mode": "list,form",
+            "views": [(queue_view.id, "list"), (False, "form")],
+            "domain": [("id", "in", entries.ids)],
+            "context": {"create": False},
         }
+
+    def _search_in_auto_reconcile_queue(self, operator, value):
+        line_ids = (
+            self.env["l10n.ve.bank.reconcile.queue"].search([]).statement_line_id.ids
+        )
+        if (operator == "=" and value) or (operator == "!=" and not value):
+            return [("id", "in", line_ids)]
+        if operator in ("=", "!="):
+            return [("id", "not in", line_ids)]
+        return [("id", "in", [])]
 
     def _reference_reconcile_models(self):
         self.ensure_one()
@@ -170,7 +154,7 @@ class AccountBankStatementLine(models.Model):
         """Match one statement line with the reference rule and validate a unique hit.
 
         The reconcile model keeps auto-validate off, so the daily cron does not
-        pick this up. Validation happens only inside this button job.
+        pick this up. Validation happens only for lines sitting in this queue.
         """
         self.ensure_one()
         if self.is_reconciled:

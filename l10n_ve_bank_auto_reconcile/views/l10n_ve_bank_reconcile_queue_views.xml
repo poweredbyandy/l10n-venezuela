@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="l10n_ve_bank_reconcile_queue_view_list" model="ir.ui.view">
+        <field name="name">l10n.ve.bank.reconcile.queue.list</field>
+        <field name="model">l10n.ve.bank.reconcile.queue</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="statement_date" />
+                <field name="journal_id" />
+                <field name="payment_ref" />
+                <field name="partner_id" />
+                <field name="amount" />
+                <field name="currency_id" column_invisible="1" />
+                <field name="company_id" groups="base.group_multi_company" optional="hide" />
+                <field name="statement_line_id" optional="hide" />
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_ve_bank_reconcile_queue_view_form" model="ir.ui.view">
+        <field name="name">l10n.ve.bank.reconcile.queue.form</field>
+        <field name="model">l10n.ve.bank.reconcile.queue</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <sheet>
+                    <group>
+                        <field name="statement_date" />
+                        <field name="journal_id" />
+                        <field name="payment_ref" />
+                        <field name="partner_id" />
+                        <field name="amount" />
+                        <field name="currency_id" invisible="1" />
+                        <field name="company_id" groups="base.group_multi_company" />
+                        <field name="statement_line_id" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_ve_bank_reconcile_queue_view_search" model="ir.ui.view">
+        <field name="name">l10n.ve.bank.reconcile.queue.search</field>
+        <field name="model">l10n.ve.bank.reconcile.queue</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="payment_ref" />
+                <field name="partner_id" />
+                <field name="journal_id" />
+                <filter
+                    name="group_journal"
+                    string="Diario"
+                    context="{'group_by': 'journal_id'}"
+                />
+            </search>
+        </field>
+    </record>
+</odoo>
