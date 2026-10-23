@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-name="l10n_ve_tax_totals_manual.EditableMonetary">
+        <t t-if="props.editable and !props.readonly">
+            <t t-if="state.editing">
+                <span class="o_tax_group_edit_input">
+                    <input
+                        type="text"
+                        t-ref="input"
+                        class="o_input o_field_float o_field_number"
+                        t-on-change.prevent="commit"
+                        t-on-blur="commit"
+                    />
+                </span>
+            </t>
+            <t t-else="">
+                <span class="o_tax_group_edit" t-on-click.stop.prevent="startEdit">
+                    <span
+                        class="o_tax_group_amount_value o_list_monetary"
+                        dir="ltr"
+                        t-att-style="props.style"
+                        t-att-name="props.name"
+                    >
+                        <i class="fa fa-pencil me-2" />
+                        <t t-out="formatted" />
+                    </span>
+                </span>
+            </t>
+        </t>
+        <t t-else="">
+            <span
+                class="o_list_monetary"
+                dir="ltr"
+                t-att-style="props.style"
+                t-att-name="props.name"
+                t-out="formatted"
+            />
+        </t>
+    </t>
+
+    <t t-inherit="account.TaxGroupComponent" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='!props.isReadonly']" position="attributes">
+            <attribute
+                name="t-if"
+            >!props.isReadonly and props.totals.can_edit_tax_totals != false</attribute>
+        </xpath>
+        <xpath
+            expr="//span[hasclass('o_account_currency_company_tax')]"
+            position="replace"
+        >
+            <EditableMonetary
+                value="props.taxGroup.tax_amount || 0.0"
+                currencyId="props.totals.company_currency_id"
+                readonly="props.isReadonly"
+                editable="props.totals.can_edit_tax_totals"
+                name="'tax_group_company'"
+                onChange.bind="onCompanyTaxChange"
+            />
+        </xpath>
+    </t>
+
+    <t t-inherit="account.TaxTotalsField" t-inherit-mode="extension">
+        <xpath expr="//TaxGroupComponent" position="attributes">
+            <attribute name="onManualEdit.bind">onTaxGroupManualEdit</attribute>
+        </xpath>
+        <xpath
+            expr="//span[hasclass('o_account_currency_company_subtotal')]"
+            position="replace"
+        >
+            <EditableMonetary
+                value="subtotal.base_amount || 0"
+                currencyId="totals.company_currency_id"
+                readonly="readonly"
+                editable="totals.can_edit_tax_totals"
+                style="'white-space: nowrap; font-weight: bold;'"
+                name="'subtotal_company'"
+                onChange="(value) => this.onManualAmount('subtotal_company', value, subtotal.name)"
+            />
+        </xpath>
+        <xpath expr="//span[@t-att-name='subtotal.name']" position="replace">
+            <EditableMonetary
+                value="subtotal.base_amount_currency || 0"
+                currencyId="totals.currency_id"
+                readonly="readonly"
+                editable="totals.can_edit_tax_totals"
+                style="'white-space: nowrap; font-weight: bold;'"
+                name="subtotal.name"
+                onChange="(value) => this.onManualAmount('subtotal_currency', value, subtotal.name)"
+            />
+        </xpath>
+        <xpath
+            expr="//span[hasclass('o_account_currency_company_total')]"
+            position="replace"
+        >
+            <EditableMonetary
+                value="totals.total_amount || 0"
+                currencyId="totals.company_currency_id"
+                readonly="readonly"
+                editable="totals.can_edit_tax_totals"
+                style="'font-size: 1.3em; font-weight: bold; white-space: nowrap;'"
+                name="'amount_total_company'"
+                onChange="(value) => this.onManualAmount('total_company', value)"
+            />
+        </xpath>
+        <xpath expr="//span[@name='amount_total']" position="replace">
+            <EditableMonetary
+                value="totals.total_amount_currency || 0"
+                currencyId="totals.currency_id"
+                readonly="readonly"
+                editable="totals.can_edit_tax_totals"
+                style="'font-size: 1.3em; font-weight: bold; white-space: nowrap;'"
+                name="'amount_total'"
+                onChange="(value) => this.onManualAmount('total_currency', value)"
+            />
+        </xpath>
+        <xpath
+            expr="//span[@name='l10n_ve_subtotal_gross_currency']"
+            position="replace"
+        >
+            <EditableMonetary
+                value="totals.l10n_ve_subtotal_gross_currency || 0"
+                currencyId="totals.currency_id"
+                readonly="readonly"
+                editable="totals.can_edit_tax_totals"
+                style="'white-space: nowrap; font-weight: bold;'"
+                name="'l10n_ve_subtotal_gross_currency'"
+                onChange="(value) => this.onManualAmount('gross_currency', value)"
+            />
+        </xpath>
+        <xpath expr="//span[@name='l10n_ve_subtotal_gross']" position="replace">
+            <EditableMonetary
+                value="totals.l10n_ve_subtotal_gross || 0"
+                currencyId="totals.company_currency_id"
+                readonly="readonly"
+                editable="totals.can_edit_tax_totals"
+                style="'white-space: nowrap; font-weight: bold;'"
+                name="'l10n_ve_subtotal_gross'"
+                onChange="(value) => this.onManualAmount('gross_company', value)"
+            />
+        </xpath>
+        <xpath
+            expr="//span[@name='l10n_ve_global_discount_currency']"
+            position="replace"
+        >
+            <EditableMonetary
+                value="-(totals.l10n_ve_global_discount_amount_currency || 0)"
+                currencyId="totals.currency_id"
+                readonly="readonly"
+                editable="totals.can_edit_tax_totals"
+                name="'l10n_ve_global_discount_currency'"
+                onChange="(value) => this.onManualAmount('discount_currency', value)"
+            />
+        </xpath>
+        <xpath
+            expr="//span[@name='l10n_ve_global_discount_company']"
+            position="replace"
+        >
+            <EditableMonetary
+                value="-(totals.l10n_ve_global_discount_amount || 0)"
+                currencyId="totals.company_currency_id"
+                readonly="readonly"
+                editable="totals.can_edit_tax_totals"
+                name="'l10n_ve_global_discount_company'"
+                onChange="(value) => this.onManualAmount('discount_company', value)"
+            />
+        </xpath>
+    </t>
+</templates>

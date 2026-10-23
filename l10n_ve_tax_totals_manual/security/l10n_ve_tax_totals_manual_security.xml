@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="group_l10n_ve_tax_totals_manual" model="res.groups">
+        <field name="name">Editar totales de la factura</field>
+        <field
+            name="category_id"
+            ref="l10n_ve_seniat.module_category_l10n_ve_seniat_access"
+        />
+        <field
+            name="comment"
+        >Permite corregir los montos del bloque de totales en facturas en borrador, en la moneda del documento y en la de la compañía.</field>
+        <field
+            name="users"
+            eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"
+        />
+    </record>
+</odoo>
