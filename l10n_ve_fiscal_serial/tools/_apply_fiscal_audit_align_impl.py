@@ -671,25 +671,47 @@ if DATE_TO:
     domain.append(("invoice_date", "<=", DATE_TO))
 
 moves = env["account.move"].search(domain, order="invoice_date, name")
+total = len(moves)
 print(
     "Modo: %s | facturas candidatas: %s"
-    % ("APPLY" if APPLY else "DRY-RUN", len(moves))
+    % ("APPLY" if APPLY else "DRY-RUN", total)
 )
 
 results = []
 errors = []
 skipped_no_audit = 0
-for move in moves:
+for idx, move in enumerate(moves, start=1):
+    remaining = total - idx
+    print(
+        "[%s/%s] faltan=%s | %s"
+        % (idx, total, remaining, move.name),
+        flush=True,
+    )
     audit_lines = _audit_product_lines(move)
     if not audit_lines:
         skipped_no_audit += 1
+        print(
+            "[%s/%s] faltan=%s | %s skip=sin_auditoria"
+            % (idx, total, remaining, move.name),
+            flush=True,
+        )
         continue
     try:
         with env.cr.savepoint():
-            results.append(_align_move(move, audit_lines, dry_run=not APPLY))
+            row = _align_move(move, audit_lines, dry_run=not APPLY)
+            results.append(row)
+            print(
+                "[%s/%s] faltan=%s | %s action=%s"
+                % (idx, total, remaining, move.name, row.get("action")),
+                flush=True,
+            )
     except Exception as exc:
         errors.append({"name": move.name, "error": str(exc)})
-        print("ERROR %s: %s" % (move.name, exc))
+        print(
+            "[%s/%s] faltan=%s | ERROR %s: %s"
+            % (idx, total, remaining, move.name, exc),
+            flush=True,
+        )
 
 by_action = defaultdict(int)
 by_catalog = defaultdict(int)
