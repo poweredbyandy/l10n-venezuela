@@ -233,6 +233,11 @@ msgid "Number of messages with delivery error"
 msgstr ""
 
 #. module: account_currency
+#: model:ir.model.fields,field_description:account_currency.field_account_move_line__price_total_currency
+msgid "Company Total"
+msgstr ""
+
+#. module: account_currency
 #: model:ir.model.fields,field_description:account_currency.field_account_move_line__price_unit_company_currency
 msgid "Unit Price in Company Currency"
 msgstr ""

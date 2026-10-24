@@ -75,6 +75,46 @@ Las facturas afectadas se identifican priorizando el número de control,
 la referencia del proveedor o el número de factura fiscal, seguido por
 el número interno del asiento entre paréntesis.
 
+Pago de retenciones de clientes desde el registro de pago
+---------------------------------------------------------
+
+1. En una factura de cliente publicada, pulse **Pagar** (Registrar
+   pago).
+
+2. Marque **Pago de retención**. Se habilita el campo **Tipo de
+   retención** con las opciones **ISLR**, **IVA** y **Municipal**.
+
+3. Al elegir el tipo se asigna el diario de retención de cliente que
+   corresponde (el diario, el método de pago y el monto quedan
+   bloqueados) y se cargan las líneas de retención de la factura:
+
+   - **ISLR**: elija el concepto de pago e indique el monto retenido de
+     cada línea.
+   - **IVA**: el monto retenido se calcula solo (IVA de la factura por
+     el porcentaje de retención del contacto).
+   - **Municipal**: se propone la actividad económica del cliente (puede
+     cambiarse) e indique el monto retenido de cada línea.
+
+4. Indique la fecha y el número de comprobante (14 dígitos) y confirme.
+
+5. Si desmarca **Pago de retención** (o cambia el tipo) se descartan el
+   tipo, el comprobante y las líneas cargadas, y el pago vuelve a ser un
+   pago normal.
+
+Restablecer una retención a borrador
+------------------------------------
+
+1. Abra una retención emitida o anulada, de cliente o de proveedor (IVA,
+   ISLR o municipal).
+2. Pulse **Convert to draft**. Los pagos de la retención vuelven a
+   borrador y se desconcilian. El número de comprobante se conserva.
+3. Puede corregir la retención y pulsar **Approve** para emitirla de
+   nuevo con el mismo número.
+4. Si en borrador borra el número de una retención de proveedor, al
+   emitirla otra vez el sistema toma el último comprobante de ese tipo y
+   asigna el siguiente. La secuencia queda alineada con ese último
+   número.
+
 Bug Tracker
 ===========
 

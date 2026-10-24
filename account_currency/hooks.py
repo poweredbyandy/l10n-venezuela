@@ -14,6 +14,7 @@ _MOVE_FIELDS = (
 )
 _MOVE_LINE_FIELDS = (
     "price_subtotal_currency",
+    "price_total_currency",
     "price_unit_company_currency",
     "manually_price_subtotal_currency",
     "warning_rate_difference",

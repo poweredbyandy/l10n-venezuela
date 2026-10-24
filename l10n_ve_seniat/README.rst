@@ -37,8 +37,8 @@ como de proveedor (``out_invoice`` / ``in_invoice``).
 Los descuentos globales y post-factura están en el módulo opcional
 ``l10n_ve_loyalty``.
 
-Permite configurar por compañía los medios de emisión de facturas y
-otros documentos (forma libre, máquina fiscal y facturación digital).
+El medio de emisión se configura en cada diario de ventas (forma libre,
+contingencia, máquina fiscal o facturación digital).
 
 Los reportes nativos de facturas omiten el encabezado del diseño
 seleccionado. El título muestra únicamente el nombre del documento y los
@@ -66,21 +66,21 @@ Configure
 Medios de emisión
 -----------------
 
-1. Vaya a **Contabilidad → Configuración → Ajustes**.
-2. En el bloque **Venezuela**, seleccione los **Medios de emisión** de
-   la compañía (forma libre, máquina fiscal y/o facturación digital).
-3. Guarde los ajustes.
+1. Vaya a **Contabilidad → Configuración → Diarios**.
+2. Abra un diario de ventas y, en el bloque Venezuela / SENIAT, elija el
+   **Medio de emisión** (forma libre, contingencia, máquina fiscal o
+   facturación digital).
+3. Guarde el diario.
 
-También puede gestionar el catálogo desde **SENIAT → Localización →
-Medios de emisión**, y ver los medios asignados en **SENIAT →
-Empresas**.
+La compañía detecta qué medios están en uso a partir de esos diarios
+(menús, columnas del listado y systray de máquina fiscal).
 
 Fecha de recepción
 ------------------
 
-En el mismo bloque **Venezuela** de los ajustes de Contabilidad puede
-activar por separado el uso de la fecha de recepción como inicio de los
-plazos de pago en facturas de cliente y/o de proveedor.
+En el bloque **Venezuela** de los ajustes de Contabilidad puede activar
+por separado el uso de la fecha de recepción como inicio de los plazos
+de pago en facturas de cliente y/o de proveedor.
 
 Usage
 =====
@@ -91,9 +91,9 @@ Usage
 Medios de emisión
 -----------------
 
-En **SENIAT → Empresas** el kanban muestra los medios de emisión
-asignados a cada compañía. La selección se realiza en los ajustes de
-Contabilidad (véase la sección de configuración).
+Configure el medio en cada diario de ventas. Las validaciones al
+confirmar facturas, las columnas del listado y los menús SENIAT dependen
+de ese valor del diario (véase la sección de configuración).
 
 Notas de crédito y débito
 -------------------------
@@ -156,8 +156,8 @@ Buscar por número de máquina fiscal
 -----------------------------------
 
 En el listado de facturas, la misma búsqueda del número (``name``)
-también localiza el documento por el **N° Factura** de la máquina fiscal.
-Escriba ese número como si buscara el número de la factura.
+también localiza el documento por el **N° Factura** de la máquina
+fiscal. Escriba ese número como si buscara el número de la factura.
 
 Bug Tracker
 ===========

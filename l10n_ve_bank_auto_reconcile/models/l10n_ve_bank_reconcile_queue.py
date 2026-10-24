@@ -4,7 +4,7 @@
 import logging
 import time
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -72,7 +72,10 @@ class L10nVeBankReconcileQueue(models.Model):
 
     @api.model
     def _process_company_batch(self, company):
-        """Reconcile up to BATCH_LINE_LIMIT lines or 30 seconds, then drop them from the queue."""
+        """Reconcile a batch of queue lines then remove them.
+
+        Processes up to BATCH_LINE_LIMIT lines or 30 seconds of work.
+        """
         entries = self.with_company(company).search(
             [("company_id", "=", company.id)],
             order="statement_date, id",

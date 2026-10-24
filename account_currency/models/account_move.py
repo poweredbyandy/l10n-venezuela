@@ -11,7 +11,9 @@ class AccountMove(models.Model):
     l10n_ve_inverse_rate = fields.Float(
         string="Tasa de Cambio Inversa",
         compute="_compute_l10n_ve_inverse_rate",
+        inverse="_inverse_l10n_ve_inverse_rate",
         store=True,
+        readonly=False,
         help=(
             "Tasa de cambio inversa (inverse_rate) de la moneda de la factura "
             "para la fecha de la factura"
@@ -121,6 +123,28 @@ class AccountMove(models.Model):
             rate = move.invoice_currency_rate or 0.0
             move.l10n_ve_inverse_rate = (1.0 / rate) if rate else 0.0
 
+    def _inverse_l10n_ve_inverse_rate(self):
+        # The document rate is applied in write(), after the invoice line
+        # sync. Doing it here is overwritten when that sync restores the
+        # previous rate.
+        return
+
+    def _l10n_ve_apply_inverse_rate(self):
+        for move in self:
+            if (
+                not move.currency_id
+                or not move.company_currency_id
+                or move.currency_id == move.company_currency_id
+            ):
+                continue
+            inverse = move.l10n_ve_inverse_rate or 0.0
+            if not inverse:
+                continue
+            rate = 1.0 / inverse
+            if not float_compare(move.invoice_currency_rate, rate, precision_digits=12):
+                continue
+            move.invoice_currency_rate = rate
+
     @api.depends("line_ids.has_rate_difference")
     def _compute_lines_with_rate_difference(self):
         for move in self:
@@ -187,8 +211,11 @@ class AccountMove(models.Model):
         return records
 
     def write(self, vals):
+        inverse_edit = "l10n_ve_inverse_rate" in vals
         vals = self._l10n_ve_drop_invalid_invoice_currency_rate_from_vals(vals)
         res = super().write(vals)
+        if inverse_edit:
+            self._l10n_ve_apply_inverse_rate()
         self._l10n_ve_ensure_draft_invoice_currency_rate()
         if not self.env.context.get("l10n_ve_skip_refund_rate_lock") and {
             "invoice_date",

@@ -55,7 +55,7 @@ export class EditableMonetary extends Component {
         }
         this.state.done = true;
         const previous = this.props.value || 0;
-        let newValue;
+        let newValue = previous;
         try {
             newValue = parseFloat(this.input.el.value);
         } catch {

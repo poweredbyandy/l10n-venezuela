@@ -82,10 +82,7 @@ class ResCurrency(models.Model):
                 from_currency, to_currency, company=company, date=date
             )
 
-        if (
-            from_currency != company_currency
-            and to_currency != company_currency
-        ):
+        if from_currency != company_currency and to_currency != company_currency:
             from_index = from_currency._get_index_rate(company, date)
             to_index = to_currency._get_index_rate(company, date)
             if from_index and to_index:
@@ -94,9 +91,9 @@ class ResCurrency(models.Model):
                 from_currency, to_currency, company=company, date=date
             )
 
-        if (
-            to_currency == company_currency
-            and from_currency not in (company_currency, index_currency)
+        if to_currency == company_currency and from_currency not in (
+            company_currency,
+            index_currency,
         ):
             from_index = from_currency._get_index_rate(company, date)
             if from_index and not from_currency._has_native_rate(company, date):
@@ -105,9 +102,9 @@ class ResCurrency(models.Model):
                 )
                 return from_index * index_to_company
 
-        if (
-            from_currency == company_currency
-            and to_currency not in (company_currency, index_currency)
+        if from_currency == company_currency and to_currency not in (
+            company_currency,
+            index_currency,
         ):
             to_index = to_currency._get_index_rate(company, date)
             if to_index and not to_currency._has_native_rate(company, date):
@@ -143,7 +140,7 @@ class ResCurrency(models.Model):
                 ("inverse_rate", _("Unit per %s", index_name)),
             ):
                 nodes = arch.xpath(
-                    "//page[@name='rate_index']//list//field[@name='%s']" % fname
+                    f"//page[@name='rate_index']//list//field[@name='{fname}']"
                 )
                 for node in nodes:
                     node.set("string", label)

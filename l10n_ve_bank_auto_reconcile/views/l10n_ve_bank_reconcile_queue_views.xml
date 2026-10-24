@@ -11,7 +11,11 @@
                 <field name="partner_id" />
                 <field name="amount" />
                 <field name="currency_id" column_invisible="1" />
-                <field name="company_id" groups="base.group_multi_company" optional="hide" />
+                <field
+                    name="company_id"
+                    groups="base.group_multi_company"
+                    optional="hide"
+                />
                 <field name="statement_line_id" optional="hide" />
             </list>
         </field>

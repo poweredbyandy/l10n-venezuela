@@ -342,9 +342,7 @@ class L10nVeBookReportMixin(models.AbstractModel):
         multi_company = options.get("multi_company", [])
         if multi_company:
             return [
-                company["id"]
-                for company in multi_company
-                if company.get("selected")
+                company["id"] for company in multi_company if company.get("selected")
             ]
         return [self.env.company.id]
 

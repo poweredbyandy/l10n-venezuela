@@ -11,10 +11,6 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.company.partner_id.write({"vat": "J123456789"})
-        digital_medium = cls.env.ref("l10n_ve_seniat.emission_medium_digital_billing")
-        cls.company.write(
-            {"l10n_ve_emission_medium_ids": [(6, 0, [digital_medium.id])]}
-        )
         cls.tfhka_journal = (
             cls.env["account.journal"]
             .with_company(cls.company)

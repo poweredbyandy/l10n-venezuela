@@ -21,10 +21,6 @@ class TestL10nVeEdiIgtfAutoSend(TestL10nVeIgtfCommon):
             raise SkipTest("Requires an EDI provider module (l10n_ve_edi_tfhka)")
         cls.company.l10n_ve_igtf_allow_invoice_accrual = True
         cls.company.partner_id.write({"vat": "J123456789"})
-        digital_medium = cls.env.ref("l10n_ve_seniat.emission_medium_digital_billing")
-        cls.company.write(
-            {"l10n_ve_emission_medium_ids": [(6, 0, [digital_medium.id])]}
-        )
         cls.sale_journal.write(
             {
                 "l10n_ve_emission_medium": "digital",

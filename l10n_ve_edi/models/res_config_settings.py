@@ -8,11 +8,13 @@ class ResConfigSettings(models.TransientModel):
         compute="_compute_l10n_ve_has_digital_billing_emission",
     )
 
-    @api.depends("l10n_ve_emission_medium_ids", "l10n_ve_emission_medium_ids.code")
+    @api.depends("company_id")
     def _compute_l10n_ve_has_digital_billing_emission(self):
         for settings in self:
-            codes = set(settings.l10n_ve_emission_medium_ids.mapped("code"))
-            settings.l10n_ve_has_digital_billing_emission = "digital_billing" in codes
+            company = settings.company_id
+            settings.l10n_ve_has_digital_billing_emission = bool(
+                company and company._l10n_ve_has_emission_medium("digital_billing")
+            )
 
     l10n_ve_edi_iva_supplier_retention_provider = fields.Selection(
         related="company_id.iva_supplier_retention_journal_id.l10n_ve_edi_provider",

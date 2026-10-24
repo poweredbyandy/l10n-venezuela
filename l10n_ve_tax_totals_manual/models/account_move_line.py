@@ -39,7 +39,7 @@ class AccountMoveLine(models.Model):
         manual_lines = self.filtered("l10n_ve_manual_untaxed_company_active")
         for line in manual_lines:
             line.price_subtotal_currency = line.l10n_ve_manual_untaxed_company
-        super(
+        return super(
             AccountMoveLine, self - manual_lines
         )._compute_price_subtotal_currency()
 
@@ -51,10 +51,9 @@ class AccountMoveLine(models.Model):
                 yield
 
     def write(self, vals):
-        if (
-            {"price_unit", "quantity", "discount"} & set(vals)
-            and not self.env.context.get("l10n_ve_keep_manual_tax_totals")
-        ):
+        if {"price_unit", "quantity", "discount"} & set(
+            vals
+        ) and not self.env.context.get("l10n_ve_keep_manual_tax_totals"):
             vals = dict(vals)
             vals.setdefault("l10n_ve_manual_untaxed_currency_active", False)
             vals.setdefault("l10n_ve_manual_untaxed_company_active", False)

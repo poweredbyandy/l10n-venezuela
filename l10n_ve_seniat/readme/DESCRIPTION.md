@@ -6,8 +6,8 @@ proveedor (`out_invoice` / `in_invoice`).
 
 Los descuentos globales y post-factura están en el módulo opcional `l10n_ve_loyalty`.
 
-Permite configurar por compañía los medios de emisión de facturas y otros
-documentos (forma libre, máquina fiscal y facturación digital).
+El medio de emisión se configura en cada diario de ventas (forma libre,
+contingencia, máquina fiscal o facturación digital).
 
 Los reportes nativos de facturas omiten el encabezado del diseño seleccionado.
 El título muestra únicamente el nombre del documento y los totales omiten el

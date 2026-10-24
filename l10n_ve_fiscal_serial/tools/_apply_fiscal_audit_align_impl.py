@@ -189,11 +189,13 @@ def _fix_move_imbalance(move):
     if not sink:
         sink = move.line_ids.filtered("tax_line_id")[:1]
     if not sink:
-        sink = move.line_ids.filtered(
-            lambda line: line.display_type == "payment_term"
-        )[:1]
+        sink = move.line_ids.filtered(lambda line: line.display_type == "payment_term")[
+            :1
+        ]
     if not sink:
-        raise ValueError("Asiento desbalanceado sin línea para ajustar en %s" % move.name)
+        raise ValueError(
+            f"Asiento desbalanceado sin línea para ajustar en {move.name}"
+        )
     new_balance = company_currency.round(sink.balance - imbalance)
     if new_balance < 0:
         _aml_write(
@@ -217,9 +219,7 @@ def _fix_move_imbalance(move):
     move.invalidate_recordset()
     left = company_currency.round(sum(move.line_ids.mapped("balance")))
     if not float_is_zero(left, precision_rounding=company_currency.rounding):
-        raise ValueError(
-            "No se pudo balancear %s (resto %s)" % (move.name, left)
-        )
+        raise ValueError(f"No se pudo balancear {move.name} (resto {left})")
 
 
 def _sync_product_company_amounts(move):
@@ -253,7 +253,10 @@ def _sync_product_company_amounts(move):
 
 def _is_exchange_move(move):
     company = move.company_id
-    if company.currency_exchange_journal_id and move.journal_id == company.currency_exchange_journal_id:
+    if (
+        company.currency_exchange_journal_id
+        and move.journal_id == company.currency_exchange_journal_id
+    ):
         return True
     if move.journal_id.code == "EXCH":
         return True
@@ -262,13 +265,17 @@ def _is_exchange_move(move):
 
 
 def _payment_term_counterparts(move):
-    term_lines = move.line_ids.filtered(lambda line: line.display_type == "payment_term")
+    term_lines = move.line_ids.filtered(
+        lambda line: line.display_type == "payment_term"
+    )
     counterparts = env["account.move.line"]
     for line in term_lines:
         counterparts |= line.matched_debit_ids.mapped("debit_move_id")
         counterparts |= line.matched_credit_ids.mapped("credit_move_id")
     # Quedarnos con cobros reales (no asientos EXCH que Odoo borra al desconciliar).
-    counterparts = counterparts.filtered(lambda line: not _is_exchange_move(line.move_id))
+    counterparts = counterparts.filtered(
+        lambda line: not _is_exchange_move(line.move_id)
+    )
     return term_lines, counterparts
 
 
@@ -368,17 +375,15 @@ def _create_and_reconcile_difference(move, term_open):
     journal = _exchange_journal(company)
     if not journal:
         raise ValueError(
-            "Sin diario de diferencia en cambio / EXCH en %s" % company.display_name
+            f"Sin diario de diferencia en cambio / EXCH en {company.display_name}"
         )
     if not company.income_currency_exchange_account_id:
         raise ValueError(
-            "Falta cuenta de ganancia por diferencia en cambio en %s"
-            % company.display_name
+            f"Falta cuenta de ganancia por diferencia en cambio en {company.display_name}"
         )
     if not company.expense_currency_exchange_account_id:
         raise ValueError(
-            "Falta cuenta de pérdida por diferencia en cambio en %s"
-            % company.display_name
+            f"Falta cuenta de pérdida por diferencia en cambio en {company.display_name}"
         )
 
     diff_moves = env["account.move"]
@@ -406,9 +411,9 @@ def _create_and_reconcile_difference(move, term_open):
             else company.expense_currency_exchange_account_id
         )
         label = (
-            "Ganancia por diferencia fiscal %s" % move.name
+            f"Ganancia por diferencia fiscal {move.name}"
             if gain
-            else "Pérdida por diferencia fiscal %s" % move.name
+            else f"Pérdida por diferencia fiscal {move.name}"
         )
         # Igual que account.move.line._prepare_exchange_difference_move_vals
         ar_vals = {
@@ -555,8 +560,7 @@ def _align_move(move, audit_lines, dry_run=True):
         counterparts = env["account.move.line"].browse(counterpart_ids).exists()
         if not counterparts:
             raise ValueError(
-                "Se perdieron contrapartidas de cobro al desconciliar %s; abortado"
-                % move.name
+                f"Se perdieron contrapartidas de cobro al desconciliar {move.name}; abortado"
             )
 
     tax_lines = move.line_ids.filtered("tax_line_id")
@@ -586,7 +590,9 @@ def _align_move(move, audit_lines, dry_run=True):
     tax_lines = move.line_ids.filtered("tax_line_id")
     _scale_balances(tax_lines, printed_tax)
     _scale_tax_base(tax_lines, printed_base)
-    term_lines = move.line_ids.filtered(lambda line: line.display_type == "payment_term")
+    term_lines = move.line_ids.filtered(
+        lambda line: line.display_type == "payment_term"
+    )
     _scale_balances(term_lines, printed_total)
     _fix_move_imbalance(move)
     _sync_product_company_amounts(move)
@@ -672,10 +678,7 @@ if DATE_TO:
 
 moves = env["account.move"].search(domain, order="invoice_date, name")
 total = len(moves)
-print(
-    "Modo: %s | facturas candidatas: %s"
-    % ("APPLY" if APPLY else "DRY-RUN", total)
-)
+print("Modo: {} | facturas candidatas: {}".format("APPLY" if APPLY else "DRY-RUN", total))
 
 results = []
 errors = []
@@ -683,16 +686,14 @@ skipped_no_audit = 0
 for idx, move in enumerate(moves, start=1):
     remaining = total - idx
     print(
-        "[%s/%s] faltan=%s | %s"
-        % (idx, total, remaining, move.name),
+        f"[{idx}/{total}] faltan={remaining} | {move.name}",
         flush=True,
     )
     audit_lines = _audit_product_lines(move)
     if not audit_lines:
         skipped_no_audit += 1
         print(
-            "[%s/%s] faltan=%s | %s skip=sin_auditoria"
-            % (idx, total, remaining, move.name),
+            f"[{idx}/{total}] faltan={remaining} | {move.name} skip=sin_auditoria",
             flush=True,
         )
         continue
@@ -701,15 +702,13 @@ for idx, move in enumerate(moves, start=1):
             row = _align_move(move, audit_lines, dry_run=not APPLY)
             results.append(row)
             print(
-                "[%s/%s] faltan=%s | %s action=%s"
-                % (idx, total, remaining, move.name, row.get("action")),
+                "[{}/{}] faltan={} | {} action={}".format(idx, total, remaining, move.name, row.get("action")),
                 flush=True,
             )
     except Exception as exc:
         errors.append({"name": move.name, "error": str(exc)})
         print(
-            "[%s/%s] faltan=%s | ERROR %s: %s"
-            % (idx, total, remaining, move.name, exc),
+            f"[{idx}/{total}] faltan={remaining} | ERROR {move.name}: {exc}",
             flush=True,
         )
 
@@ -724,15 +723,10 @@ for row in results:
         if row.get("diff_entry"):
             by_diff[row["diff_entry"]] += 1
         print(
-            "%(name)s fiscal=%(fiscal)s pay=%(payment_state)s residual=%(residual).2f "
-            "paid_like=%(paid_like)s odoo=%(current_total).2f printed=%(printed_total).2f "
-            "delta=%(delta_total)+.2f action=%(action)s diff=%(diff_entry)s"
-            % row
-            + (
-                (" exch=%s" % row["diff_move"])
-                if row.get("diff_move")
-                else ""
-            )
+            "{name} fiscal={fiscal} pay={payment_state} residual={residual:.2f} "
+            "paid_like={paid_like} odoo={current_total:.2f} printed={printed_total:.2f} "
+            "delta={delta_total:+.2f} action={action} diff={diff_entry}".format(**row)
+            + ((" exch={}".format(row["diff_move"])) if row.get("diff_move") else "")
         )
 
 print("---")
@@ -742,7 +736,7 @@ print("mal catalogo (pagado= paid|in_payment residual 0):", dict(by_catalog))
 print("asiento diferencia previsto:", dict(by_diff))
 print("errores:", len(errors))
 for row in errors[:20]:
-    print("  %(name)s: %(error)s" % row)
+    print("  {name}: {error}".format(**row))
 if APPLY:
     env.cr.commit()
     print("CONFIRMADO (commit)")

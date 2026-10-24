@@ -17,7 +17,10 @@
                 >
                     <div class="content-group">
                         <div class="row mt16">
-                            <label for="currency_index_id" class="col-lg-3 o_light_label" />
+                            <label
+                                for="currency_index_id"
+                                class="col-lg-3 o_light_label"
+                            />
                             <field
                                 name="currency_index_id"
                                 options="{'no_create_edit': True, 'no_open': True}"

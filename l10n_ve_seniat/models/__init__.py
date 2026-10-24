@@ -3,8 +3,8 @@ from . import template_ve
 from . import res_partner
 from . import res_users
 from . import account_tax_group
+from . import account_journal
 from . import res_company
-from . import l10n_ve_emission_medium
 from . import res_config_settings
 from . import account_book
 from . import l10n_ve_book_folio_void
@@ -14,8 +14,5 @@ from . import account_move_reversal
 from . import account_debit_note
 from . import l10n_ve_invoice_cancel_reason
 from . import account_move_line
-from . import account_journal
 from . import account_payment
 from . import ir_actions_report
-from . import ir_http
-from . import ir_ui_menu

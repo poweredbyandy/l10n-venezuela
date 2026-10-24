@@ -42,7 +42,10 @@
         t-inherit="l10n_ve_reports.AccountReportFilterExtraOptions"
         t-inherit-mode="extension"
     >
-        <xpath expr="//t[@t-if=&quot;controller.filters.show_all&quot;]" position="after">
+        <xpath
+            expr="//t[@t-if=&quot;controller.filters.show_all&quot;]"
+            position="after"
+        >
             <t t-if="'daily_payments_show_credit_invoices' in controller.options">
                 <DropdownItem
                     class="{ 'selected': controller.options.daily_payments_show_credit_invoices }"

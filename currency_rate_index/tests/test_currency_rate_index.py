@@ -235,9 +235,7 @@ class TestCurrencyRateIndex(TransactionCase):
             )
 
     def test_inverse_rate_mirrors_rate(self):
-        rate = self.RateIndex.search(
-            [("currency_id", "=", self.yen.id)], limit=1
-        )
+        rate = self.RateIndex.search([("currency_id", "=", self.yen.id)], limit=1)
         self.assertAlmostEqual(rate.rate, 0.0067, places=6)
         self.assertAlmostEqual(rate.inverse_rate, 1.0 / 0.0067, places=4)
 
@@ -256,9 +254,7 @@ class TestCurrencyRateIndex(TransactionCase):
         self.assertEqual(amount, 50.0)
 
     def test_write_inverse_rate_updates_rate(self):
-        rate = self.RateIndex.search(
-            [("currency_id", "=", self.usdt.id)], limit=1
-        )
+        rate = self.RateIndex.search([("currency_id", "=", self.usdt.id)], limit=1)
         rate.inverse_rate = 1.25
         self.assertAlmostEqual(rate.rate, 0.8, places=6)
         amount = self.usdt._convert(100.0, self.usd, self.company, self.date)
@@ -471,7 +467,7 @@ class TestCurrencyRateIndex(TransactionCase):
             {
                 "partner_id": partner.id,
                 "currency_id": self.cny.id,
-                "date_order": "%s 10:00:00" % self.date,
+                "date_order": f"{self.date} 10:00:00",
                 "order_line": [
                     (
                         0,
@@ -482,7 +478,7 @@ class TestCurrencyRateIndex(TransactionCase):
                             "product_qty": 1.0,
                             "price_unit": 100.0,
                             "product_uom": product.uom_id.id,
-                            "date_planned": "%s 10:00:00" % self.date,
+                            "date_planned": f"{self.date} 10:00:00",
                         },
                     )
                 ],
@@ -500,4 +496,3 @@ class TestCurrencyRateIndex(TransactionCase):
             self.ves, self.cny, self.company, self.date
         )
         self.assertAlmostEqual(order.currency_rate, expected, places=6)
-

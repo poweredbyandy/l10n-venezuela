@@ -14,3 +14,9 @@ class L10nVeLoyaltyCommon(L10nVeSeniatCommon):
                 cls.env.ref("l10n_ve_loyalty.group_l10n_ve_global_discount").id
             )
         ]
+        sale_price_group = cls.env.ref(
+            "pba_sale_price_group.group_pba_edit_sale_price",
+            raise_if_not_found=False,
+        )
+        if sale_price_group:
+            cls.env.user.write({"groups_id": [(4, sale_price_group.id)]})

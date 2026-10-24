@@ -657,7 +657,8 @@ class AccountMove(models.Model):
         line_cmds = []
         for origin_line, credit_line in zip(orig_products, cred_products, strict=False):
             # out_refund is outbound: product amount_currency must follow direction_sign
-            # so amount_total stays positive. Keeping the invoice sign makes it negative.
+            # so amount_total stays positive. Keeping the invoice sign
+            # makes it negative.
             sign = self.direction_sign or 1.0
             amount = (
                 company_cur.round(

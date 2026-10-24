@@ -111,9 +111,7 @@ class ResCurrencyRateIndex(models.Model):
     def _check_rate(self):
         for rate in self:
             if rate.rate <= 0:
-                raise ValidationError(
-                    _("The index rate must be strictly positive.")
-                )
+                raise ValidationError(_("The index rate must be strictly positive."))
 
     @api.constrains("company_id", "currency_id")
     def _check_company_index_currency(self):
@@ -222,9 +220,7 @@ class ResCurrencyRateIndex(models.Model):
         if moves:
             moves._compute_expected_currency_rate()
             moves._compute_invoice_currency_rate()
-            moves.flush_recordset(
-                ["expected_currency_rate", "invoice_currency_rate"]
-            )
+            moves.flush_recordset(["expected_currency_rate", "invoice_currency_rate"])
         if "purchase.order" not in self.env:
             return
         orders = self.env["purchase.order"].search(
@@ -262,9 +258,7 @@ class ResCurrencyRateIndex(models.Model):
             names = {
                 "index_currency_name": company.currency_index_id.name or "Index",
                 "rate_currency_name": (
-                    self.env["res.currency"]
-                    .browse(self._context.get("active_id"))
-                    .name
+                    self.env["res.currency"].browse(self._context.get("active_id")).name
                     or "Unit"
                 ),
             }
@@ -285,7 +279,7 @@ class ResCurrencyRateIndex(models.Model):
                 ),
             ]
             for name, label in labels:
-                node = arch.find("./field[@name='%s']" % name)
+                node = arch.find(f"./field[@name='{name}']")
                 if node is not None:
                     node.set("string", label)
         return arch, view

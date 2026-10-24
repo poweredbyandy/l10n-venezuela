@@ -62,7 +62,7 @@ class AccountMove(models.Model):
             if readonly and "l10n_ve_tax_totals_editable" not in readonly:
                 node.set(
                     "readonly",
-                    "(%s) and not l10n_ve_tax_totals_editable" % readonly,
+                    f"({readonly}) and not l10n_ve_tax_totals_editable",
                 )
             if not arch.xpath("//field[@name='l10n_ve_tax_totals_editable']"):
                 helper = etree.Element("field")
@@ -116,7 +116,7 @@ class AccountMove(models.Model):
                 continue
             seen.add(key)
             pending.append((move, edit))
-        super()._inverse_tax_totals()
+        return super()._inverse_tax_totals()
 
     def _l10n_ve_flush_pending_tax_totals_edits(self):
         pending, seen = self._l10n_ve_pending_tax_totals_state()
@@ -204,7 +204,7 @@ class AccountMove(models.Model):
         done.add(signature)
         edit = dict(edit, new_value=new_value)
         live = self._l10n_ve_live_tax_totals()
-        handler = getattr(self, "_l10n_ve_manual_edit_%s" % kind, None)
+        handler = getattr(self, f"_l10n_ve_manual_edit_{kind}", None)
         if handler:
             handler(edit, live)
         self.env.add_to_compute(self.line_ids._fields["debit"], self.line_ids)
@@ -330,7 +330,7 @@ class AccountMove(models.Model):
         if currency.is_zero(target - current):
             return
         parts = self._l10n_ve_split_manual_amount(target, amounts, currency)
-        for line, part, current_line in zip(lines, parts, amounts):
+        for line, part, current_line in zip(lines, parts, amounts, strict=False):
             if currency.is_zero(current_line):
                 continue
             line.price_unit = line.price_unit * (part / current_line)
@@ -345,7 +345,7 @@ class AccountMove(models.Model):
             parts = [currency.round(gross)] + [0.0] * (len(lines) - 1)
         else:
             parts = self._l10n_ve_split_manual_amount(gross, amounts, currency)
-        for line, part in zip(lines, parts):
+        for line, part in zip(lines, parts, strict=False):
             if currency.is_zero(line.balance):
                 line.balance = self.direction_sign * part
             elif line.balance < 0:
@@ -372,7 +372,7 @@ class AccountMove(models.Model):
         parts = self._l10n_ve_split_manual_amount(
             new_base, currents, self.company_currency_id
         )
-        for lines, part in zip(grouped.values(), parts):
+        for lines, part in zip(grouped.values(), parts, strict=False):
             total = sum(lines.mapped("tax_base_amount"))
             target = part if total >= 0 else -part
             if float_is_zero(
@@ -577,7 +577,7 @@ class AccountMove(models.Model):
         if manual_lines.filtered(lambda line: line.display_type == "product"):
             for line in self.line_ids.filtered("tax_line_id"):
                 saved_tax_base[line.id] = line.tax_base_amount
-        super()._l10n_ve_apply_tax_results_writes(tax_results, MoveLine)
+        result = super()._l10n_ve_apply_tax_results_writes(tax_results, MoveLine)
         for line in self.line_ids:
             balance = saved_balance.get(line.id)
             if balance is not None and line.balance != balance:
@@ -588,6 +588,7 @@ class AccountMove(models.Model):
             tax_base = saved_tax_base.get(line.id)
             if tax_base is not None and line.tax_base_amount != tax_base:
                 line.tax_base_amount = tax_base
+        return result
 
     def _l10n_ve_needed_global_discount_journal_values(
         self, allocations, discount_account

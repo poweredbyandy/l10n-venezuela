@@ -71,7 +71,9 @@ class TestChartTemplateVeSunaval(L10nVeSeniatCommon):
         company = self.company
         self.assertEqual(company.income_currency_exchange_account_id.code, "532980107")
         self.assertEqual(company.expense_currency_exchange_account_id.code, "432980107")
-        self.assertEqual(company.account_journal_suspense_account_id.code, "186020100001")
+        self.assertEqual(
+            company.account_journal_suspense_account_id.code, "186020100001"
+        )
         self.assertEqual(company.transfer_account_id.code, "186030100001")
         bank = self.company_data["default_journal_bank"]
         self.assertEqual(bank.default_account_id.code, "11301010101101")
@@ -89,7 +91,9 @@ class TestChartTemplateVeSunaval(L10nVeSeniatCommon):
         self.assertEqual(accounts.code, "27281010100102")
         purchase = self.company.account_purchase_tax_id.invoice_repartition_line_ids
         self.assertEqual(
-            purchase.filtered(lambda line: line.repartition_type == "tax").account_id.code,
+            purchase.filtered(
+                lambda line: line.repartition_type == "tax"
+            ).account_id.code,
             "27281010100101",
         )
 

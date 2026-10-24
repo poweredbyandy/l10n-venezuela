@@ -51,10 +51,10 @@ Ajuste histórico vs máquina fiscal (shell)
 
 Tras actualizar `l10n_ve_fiscal_serial`, desde `odoo-bin shell`:
 
-.. code-block:: python
-
-    from odoo.addons.l10n_ve_fiscal_serial.tools import run_fiscal_audit_align
-    run_fiscal_audit_align(env, apply=False)  # dry-run
-    run_fiscal_audit_align(env, apply=True)   # aplicar
+```python
+from odoo.addons.l10n_ve_fiscal_serial.tools import run_fiscal_audit_align
+run_fiscal_audit_align(env, apply=False)  # dry-run
+run_fiscal_audit_align(env, apply=True)   # aplicar
+```
 
 No es un migration: no se ejecuta solo al hacer `-u`.

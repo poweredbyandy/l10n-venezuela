@@ -1984,20 +1984,8 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertTrue(move.l10n_ve_invoice_date)
 
-    def test_post_raises_when_journal_emission_not_on_company(self):
+    def test_post_allows_empty_emission_medium(self):
         journal = self.company_data["default_journal_sale"]
-        self._l10n_ve_set_company_emission_medium_codes("fiscal_machine")
-        journal.write({"l10n_ve_emission_medium": "free"})
-        move = self.env["account.move"].create(
-            self._create_invoice_vals(self.partner_ve)
-        )
-        with self.assertRaises(ValidationError) as cm:
-            move.action_post()
-        self.assertIn("no está configurado", str(cm.exception))
-
-    def test_post_allows_empty_emission_medium_without_company_medium(self):
-        journal = self.company_data["default_journal_sale"]
-        self._l10n_ve_set_company_emission_medium_codes("fiscal_machine")
         journal.write(
             {
                 "l10n_ve_emission_medium": False,
@@ -2013,9 +2001,8 @@ class TestAccountMove(L10nVeSeniatCommon):
         move.action_post()
         self.assertEqual(move.state, "posted")
 
-    def test_post_allows_contingency_without_company_medium(self):
+    def test_post_allows_contingency_emission_medium(self):
         journal = self.company_data["default_journal_sale"]
-        self._l10n_ve_set_company_emission_medium_codes("fiscal_machine")
         journal.write(
             {
                 "l10n_ve_emission_medium": "contingency",

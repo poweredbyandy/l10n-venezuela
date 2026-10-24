@@ -19,10 +19,7 @@ const TaxGroupComponent = TaxTotalsComponent.components.TaxGroupComponent;
 if (TaxGroupComponent) {
     patch(TaxGroupComponent.prototype, {
         formatMonetaryCompany(value) {
-            return formatCompanyAmount(
-                this.props.totals?.company_currency_id,
-                value
-            );
+            return formatCompanyAmount(this.props.totals?.company_currency_id, value);
         },
     });
 }

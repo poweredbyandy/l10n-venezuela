@@ -141,10 +141,11 @@ class AccountPaymentRegister(models.TransientModel):
         A retention is never paid in installments: the switch (that would
         replace the retention amount by the amount of the invoice) is removed.
         """
-        super()._compute_installments_switch_values()
+        result = super()._compute_installments_switch_values()
         for wizard in self.filtered("is_retention"):
             wizard.installments_switch_html = False
             wizard.installments_switch_amount = 0.0
+        return result
 
     @api.depends(
         "payment_type",

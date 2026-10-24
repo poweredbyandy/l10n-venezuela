@@ -27,6 +27,14 @@
                 </div>
                 <field name="l10n_ve_currency_rate_outdated" invisible="1" />
             </xpath>
+            <xpath
+                expr="//div[@name='currency_conversion_div']//field[@name='invoice_currency_rate']"
+                position="attributes"
+            >
+                <attribute name="readonly">
+                    state != 'draft' or move_type not in ('in_invoice', 'in_refund', 'in_receipt')
+                </attribute>
+            </xpath>
             <xpath expr="//div[@name='currency_conversion_div']" position="after">
                 <div
                     class="d-flex gap-1 text-muted mt-1"
@@ -43,7 +51,7 @@
                     <field
                         name="l10n_ve_inverse_rate"
                         digits="[12,6]"
-                        readonly="True"
+                        readonly="state != 'draft' or move_type not in ('in_invoice', 'in_refund', 'in_receipt')"
                     />
                     <field
                         name="company_currency_id"
@@ -85,17 +93,54 @@
             >
                 <field
                     name="price_subtotal_currency"
-                    readonly="1"
+                    readonly="parent.state != 'draft'"
+                    column_invisible="parent.currency_id == parent.company_currency_id"
+                />
+                <field
+                    name="price_total_currency"
+                    readonly="parent.state != 'draft'"
                     column_invisible="parent.currency_id == parent.company_currency_id"
                 />
                 <field name="warning_rate_difference" column_invisible="1" />
                 <field name="has_rate_difference" column_invisible="1" />
+                <field name="manually_price_subtotal_currency" column_invisible="1" />
+                <button
+                    name="reset_price_subtotal_currency"
+                    string="Reset"
+                    type="object"
+                    icon="fa-refresh"
+                    column_invisible="parent.currency_id == parent.company_currency_id"
+                    invisible="not manually_price_subtotal_currency or parent.state != 'draft'"
+                />
                 <field
                     name="currency_rate"
                     string="Exchange Rate"
                     optional="hide"
                     readonly="0"
                     digits="[16,16]"
+                />
+            </xpath>
+            <xpath
+                expr="//field[@name='invoice_line_ids']//form//field[@name='price_subtotal']"
+                position="after"
+            >
+                <field
+                    name="price_subtotal_currency"
+                    readonly="parent.state != 'draft'"
+                    invisible="parent.currency_id == parent.company_currency_id"
+                />
+                <field
+                    name="price_total_currency"
+                    readonly="parent.state != 'draft'"
+                    invisible="parent.currency_id == parent.company_currency_id"
+                />
+                <field name="manually_price_subtotal_currency" invisible="1" />
+                <button
+                    name="reset_price_subtotal_currency"
+                    string="Reset company currency"
+                    type="object"
+                    icon="fa-refresh"
+                    invisible="parent.currency_id == parent.company_currency_id or not manually_price_subtotal_currency or parent.state != 'draft'"
                 />
             </xpath>
         </field>

@@ -151,9 +151,10 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
             any("o_daily_pay_bank" in (line.get("class") or "") for line in lines)
         )
         for line in lines:
-            if line.get("name") in ("Ingresos", "Egresos") or "total" in (
-                line.get("class") or ""
-            ).split():
+            if (
+                line.get("name") in ("Ingresos", "Egresos")
+                or "total" in (line.get("class") or "").split()
+            ):
                 self.assertNotIn("o_daily_pay_bank", line.get("class") or "")
 
     def _create_credit_invoice(self, move_type, amount, invoice_date="2025-01-15"):
@@ -216,9 +217,10 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         ]
         self.assertIn("o_daily_pay_credit", credit_header[0].get("class") or "")
         for line in lines:
-            if line.get("name") in ("Ingresos", "Egresos") or "total" in (
-                line.get("class") or ""
-            ).split():
+            if (
+                line.get("name") in ("Ingresos", "Egresos")
+                or "total" in (line.get("class") or "").split()
+            ):
                 self.assertNotIn("o_daily_pay_credit", line.get("class") or "")
 
     def test_paid_invoices_are_not_listed_as_credit(self):
@@ -252,9 +254,7 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
             }
         )
         payment_type = (
-            "inbound"
-            if invoice.is_sale_document(include_receipts=True)
-            else "outbound"
+            "inbound" if invoice.is_sale_document(include_receipts=True) else "outbound"
         )
         method_lines = (
             journal.inbound_payment_method_line_ids
@@ -448,7 +448,9 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
         )
         self.assertFalse(options["daily_payments_show_credit_invoices"])
         self.assertFalse(self._credit_invoice_lines(lines))
-        self.assertFalse([line for line in lines if line.get("name") == "Total crédito"])
+        self.assertFalse(
+            [line for line in lines if line.get("name") == "Total crédito"]
+        )
         grand_total = [
             line
             for line in lines

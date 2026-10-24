@@ -413,7 +413,9 @@
                 expr="//div[@name='currency_conversion_div']//field[@name='invoice_currency_rate']"
                 position="attributes"
             >
-                <attribute name="readonly">True</attribute>
+                <attribute name="readonly">
+                    state != 'draft' or move_type not in ('in_invoice', 'in_refund', 'in_receipt')
+                </attribute>
             </xpath>
             <xpath expr="//page[@name='other_info']" position="inside">
                 <!-- Art. 32 PA SNAT/2011/0071: copia certificada por cuenta de terceros. -->
@@ -539,29 +541,14 @@
                     optional="show"
                     decoration-danger="1"
                     readonly="move_type in ('out_invoice', 'out_refund') and (state == 'posted' or not l10n_ve_journal_emission_medium or l10n_ve_journal_emission_medium == 'free' or l10n_ve_journal_emission_medium == 'digital')"
-                    column_invisible="
-                        'free_form' not in (context.get('l10n_ve_emission_medium_codes') or [])
-                        and 'digital_billing' not in (context.get('l10n_ve_emission_medium_codes') or [])
-                    "
                 />
                 <field
                     name="l10n_ve_invoice_number"
                     string="N° Factura"
                     optional="show"
-                    column_invisible="'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])"
                 />
-                <field
-                    name="l10n_ve_report_z"
-                    string="Reporte Z"
-                    optional="show"
-                    column_invisible="'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])"
-                />
-                <field
-                    name="l10n_ve_serial_number"
-                    string="Serial"
-                    optional="show"
-                    column_invisible="'fiscal_machine' not in (context.get('l10n_ve_emission_medium_codes') or [])"
-                />
+                <field name="l10n_ve_report_z" string="Reporte Z" optional="show" />
+                <field name="l10n_ve_serial_number" string="Serial" optional="show" />
             </xpath>
             <xpath expr="//field[@name='move_type']" position="after">
                 <field name="country_code" column_invisible="1" />

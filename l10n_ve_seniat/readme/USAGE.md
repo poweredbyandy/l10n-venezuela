@@ -3,9 +3,9 @@
 Medios de emisión
 -----------------
 
-En **SENIAT → Empresas** el kanban muestra los medios de emisión asignados
-a cada compañía. La selección se realiza en los ajustes de Contabilidad
-(véase la sección de configuración).
+Configure el medio en cada diario de ventas. Las validaciones al confirmar
+facturas, las columnas del listado y los menús SENIAT dependen de ese valor
+del diario (véase la sección de configuración).
 
 Notas de crédito y débito
 -------------------------
@@ -65,6 +65,3 @@ Buscar por número de máquina fiscal
 En el listado de facturas, la misma búsqueda del número (`name`) también
 localiza el documento por el **N° Factura** de la máquina fiscal. Escriba
 ese número como si buscara el número de la factura.
-
-
-

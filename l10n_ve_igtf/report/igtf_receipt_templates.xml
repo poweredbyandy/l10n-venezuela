@@ -31,19 +31,21 @@
             <p t-out="values['long_date']" />
             <p>
                 Hemos recibido del Cliente <span
-                    class="fw-bold"
-                    t-out="o.partner_id.name"
-                /> la cantidad de Bolívares:
+                class="fw-bold"
+                t-out="o.partner_id.name"
+            /> la cantidad de Bolívares:
                 <span class="fw-bold">****<span
-                        t-out="values['igtf_amount_company']"
-                        t-options='{"widget": "float", "precision": 2}'
-                    />*****</span>
+                t-out="values['igtf_amount_company']"
+                t-options='{"widget": "float", "precision": 2}'
+            />*****</span>
                 (<span t-out="values['amount_in_words']" />) por concepto de
                 Cancelación de IGTF del documento <span t-out="document_names" />
             </p>
 
             <table class="table table-sm table-borderless mt-4">
-                <thead style="border-top:1px solid black;border-bottom:1px solid black;">
+                <thead
+                    style="border-top:1px solid black;border-bottom:1px solid black;"
+                >
                     <tr>
                         <th>Fecha de Emisión de la Factura</th>
                         <th>Tipo</th>
@@ -88,9 +90,9 @@
                     <tr>
                         <td>
                             Monto IGTF <span
-                                t-out="values['percent']"
-                                t-options='{"widget": "float", "precision": 0}'
-                            />% <span t-out="currency_symbol" />
+                            t-out="values['percent']"
+                            t-options='{"widget": "float", "precision": 0}'
+                        />% <span t-out="currency_symbol" />
                         </td>
                         <td class="text-end">
                             <span
@@ -102,11 +104,11 @@
                     <tr class="fw-bold">
                         <td>
                             Monto Cancelado TASA BCV <span
-                                t-out="o.date.strftime('%d-%m-%Y')"
-                            /> (<span
-                                t-out="values['rate']"
-                                t-options='{"widget": "float", "precision": 2}'
-                            /> BS)
+                            t-out="o.date.strftime('%d-%m-%Y')"
+                        /> (<span
+                            t-out="values['rate']"
+                            t-options='{"widget": "float", "precision": 2}'
+                        /> BS)
                             <t t-if="o.memo">Ref <span t-out="o.memo" /></t>
                         </td>
                         <td class="text-end">

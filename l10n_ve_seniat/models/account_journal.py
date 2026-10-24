@@ -30,10 +30,15 @@ class AccountJournal(models.Model):
         ),
     )
 
+    @api.model
+    def _l10n_ve_journal_code_to_company_code(self, medium):
+        """Map journal emission medium selection to company-facing code."""
+        return VE_JOURNAL_EMISSION_TO_COMPANY_CODE.get(medium)
+
     def _l10n_ve_company_emission_medium_code(self):
-        """Map journal emission medium to company settings code, if applicable."""
+        """Map this journal emission medium to company-facing code, if any."""
         self.ensure_one()
-        return VE_JOURNAL_EMISSION_TO_COMPANY_CODE.get(self.l10n_ve_emission_medium)
+        return self._l10n_ve_journal_code_to_company_code(self.l10n_ve_emission_medium)
 
     l10n_ve_free_form_print_medium = fields.Selection(
         selection=[

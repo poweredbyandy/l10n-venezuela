@@ -34,12 +34,11 @@ class AccountBankStatementLine(models.Model):
                 queue_was_busy = True
             queued_line_ids = set(company_queue.mapped("statement_line_id").ids)
             new_lines = company_lines.filtered(
-                lambda line, queued_line_ids=queued_line_ids: line.id not in queued_line_ids
+                lambda line, queued_line_ids=queued_line_ids: line.id
+                not in queued_line_ids
             )
             if new_lines:
-                queue.create(
-                    [{"statement_line_id": line.id} for line in new_lines]
-                )
+                queue.create([{"statement_line_id": line.id} for line in new_lines])
                 added_count += len(new_lines)
         if queue.search_count([("company_id", "in", lines.company_id.ids)]):
             queue._trigger_next_batch()
@@ -167,9 +166,7 @@ class AccountBankStatementLine(models.Model):
         if not amls or len(amls) != 1:
             return False
         wizard = (
-            self.env["bank.rec.widget"]
-            .with_context(default_st_line_id=self.id)
-            .new({})
+            self.env["bank.rec.widget"].with_context(default_st_line_id=self.id).new({})
         )
         wizard._action_add_new_amls(
             amls, reco_model=matching.get("model"), allow_partial=True

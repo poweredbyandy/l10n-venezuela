@@ -3,7 +3,10 @@
     <record id="view_bank_statement_line_kanban_auto_reconcile" model="ir.ui.view">
         <field name="name">account.bank.statement.line.kanban.auto.reconcile</field>
         <field name="model">account.bank.statement.line</field>
-        <field name="inherit_id" ref="account_accountant.view_bank_statement_line_kanban_bank_rec_widget" />
+        <field
+            name="inherit_id"
+            ref="account_accountant.view_bank_statement_line_kanban_bank_rec_widget"
+        />
         <field name="arch" type="xml">
             <xpath expr="//kanban/templates" position="before">
                 <header>
@@ -30,7 +33,10 @@
     <record id="view_bank_statement_line_list_auto_reconcile" model="ir.ui.view">
         <field name="name">account.bank.statement.line.list.auto.reconcile</field>
         <field name="model">account.bank.statement.line</field>
-        <field name="inherit_id" ref="account_accountant.view_bank_statement_line_tree_bank_rec_widget" />
+        <field
+            name="inherit_id"
+            ref="account_accountant.view_bank_statement_line_tree_bank_rec_widget"
+        />
         <field name="arch" type="xml">
             <xpath expr="//list" position="inside">
                 <header>
@@ -54,10 +60,16 @@
         </field>
     </record>
 
-    <record id="account_bank_statement_line_view_search_auto_reconcile" model="ir.ui.view">
+    <record
+        id="account_bank_statement_line_view_search_auto_reconcile"
+        model="ir.ui.view"
+    >
         <field name="name">account.bank.statement.line.search.auto.reconcile</field>
         <field name="model">account.bank.statement.line</field>
-        <field name="inherit_id" ref="account_accountant.view_bank_statement_line_search_bank_rec_widget" />
+        <field
+            name="inherit_id"
+            ref="account_accountant.view_bank_statement_line_search_bank_rec_widget"
+        />
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='not_matched']" position="after">
                 <filter
@@ -73,7 +85,9 @@
         <field name="name">Cola de conciliación bancaria</field>
         <field name="model_id" ref="account.model_account_bank_statement_line" />
         <field name="state">code</field>
-        <field name="code">action = model.action_open_reference_reconcile_queue()</field>
+        <field
+            name="code"
+        >action = model.action_open_reference_reconcile_queue()</field>
     </record>
 
     <menuitem

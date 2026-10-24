@@ -47,6 +47,15 @@ expandable transaction details.
 Usage
 =====
 
+En el **Libro de Ventas** y el **Libro de Compras**, la base y el IVA de
+cada alícuota salen de las líneas de impuesto del asiento publicado
+(``tax_base_amount`` y el saldo). Los documentos en borrador no entran
+al libro. Así el periodo coincide con lo contabilizado y con lo impreso.
+Al actualizar el módulo, las facturas ya publicadas alinean
+``tax_base_amount`` con la base en moneda compañía que ya mostraba
+``tax_totals``. No se republica ni se toca el cobro. El IVA del libro
+sigue siendo el del apunte, no el 16 % recalculado sobre la base.
+
 To generate the auxiliary liquidity books:
 
 #. Go to **Accounting > SENIAT > Reports**. #. Open **Libro de Banco**
@@ -83,11 +92,11 @@ vendor bills dated in the report period that are still unpaid or
 partially paid, under the informative payment method **Crédito**.
 Customer documents appear under **Ingresos** and vendor documents under
 **Egresos**. The **Total crédito** line is not added to the report
-**Total**. A withholding that only settles the tax keeps the invoice on
-credit. The amount adds that withholding back, so the tax payment does
-not reduce the credit figure. A real payment does reduce it. Open
-**Options** and uncheck **Facturas a crédito** to hide that section. It
-is shown by default.
+**Total**. #. A withholding that only settles the tax keeps the invoice
+on credit. The amount adds that withholding back, so the tax payment
+does not reduce the credit figure. A real payment does reduce it. #.
+Open **Options** and uncheck **Facturas a crédito** to hide that
+section. It is shown by default.
 
 Bug Tracker
 ===========

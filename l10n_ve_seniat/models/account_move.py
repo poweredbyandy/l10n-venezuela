@@ -1205,30 +1205,6 @@ class AccountMove(models.Model):
             else:
                 move.l10n_ve_certified_copy_deadline = False
 
-    def _l10n_ve_emission_medium_label(self, journal, medium):
-        return dict(
-            journal._fields["l10n_ve_emission_medium"]._description_selection(self.env)
-        ).get(medium, medium)
-
-    def _l10n_ve_check_company_has_journal_medium(self, journal, medium):
-        company_medium_code = journal._l10n_ve_company_emission_medium_code()
-        if company_medium_code and not self.company_id._l10n_ve_has_emission_medium(
-            company_medium_code
-        ):
-            raise ValidationError(
-                _(
-                    "No se puede confirmar el documento “%(doc)s”. "
-                    "El diario “%(journal)s” usa el medio de emisión "
-                    "“%(medium)s”, pero ese medio no está configurado en los "
-                    "medios de emisión de la compañía."
-                )
-                % {
-                    "doc": self.name or _("Borrador"),
-                    "journal": journal.display_name,
-                    "medium": self._l10n_ve_emission_medium_label(journal, medium),
-                }
-            )
-
     def _l10n_ve_validate_emission_control_number(self, journal, medium):
         if medium == "contingency" and not self.l10n_ve_invoice_date:
             raise ValidationError(
@@ -1316,7 +1292,6 @@ class AccountMove(models.Model):
         medium = journal.l10n_ve_emission_medium
         if not medium:
             return
-        self._l10n_ve_check_company_has_journal_medium(journal, medium)
         self._l10n_ve_validate_emission_control_number(journal, medium)
 
     def _l10n_ve_validate_partner_vat_format_enabled(self):

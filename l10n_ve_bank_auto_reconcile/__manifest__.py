@@ -3,7 +3,10 @@
 
 {
     "name": "Venezuela Bank Auto Reconcile",
-    "summary": "Conciliación bancaria por referencia, en su propia cola y solo al pulsar el botón",
+    "summary": (
+        "Conciliación bancaria por referencia, en su propia cola "
+        "y solo al pulsar el botón"
+    ),
     "version": "18.0.1.2.0",
     "category": "Accounting",
     "website": "https://github.com/OCA/l10n-venezuela",

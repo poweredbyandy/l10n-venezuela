@@ -4,7 +4,6 @@ from odoo import Command, fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
-from odoo.addons.l10n_ve_loyalty.models import l10n_ve_global_discount as discount_logic
 from odoo.addons.l10n_ve_loyalty.tests.common import L10nVeLoyaltyCommon
 
 
@@ -85,7 +84,7 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
 
     def test_post_discount_creates_draft_credit_note_percentage(self):
         invoice = self._create_posted_invoice(price_unit=1000.0)
-        expected = invoice.currency_id.round(invoice.amount_untaxed * 0.1)
+        self.assertAlmostEqual(invoice.amount_untaxed, 1000.0, places=2)
         wizard = self._create_wizard(invoice, mode="percentage", percentage=0.1)
         action = wizard.action_apply_discount()
         credit = self.env["account.move"].browse(action["res_id"])
@@ -93,7 +92,7 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         self.assertEqual(credit.move_type, "out_refund")
         self.assertEqual(credit.reversed_entry_id, invoice)
         self.assertEqual(credit.l10n_ve_discount_reason_id, self.reason_early)
-        self.assertAlmostEqual(credit.amount_untaxed, expected, places=2)
+        self.assertAlmostEqual(credit.amount_untaxed, 100.0, places=2)
         self.assertTrue(credit.invoice_line_ids)
         self.assertTrue(credit.invoice_line_ids[0].tax_ids)
 
@@ -115,18 +114,13 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         self.assertAlmostEqual(credit.amount_untaxed, 150.0, places=2)
         self.assertEqual(len(invoice._l10n_ve_post_discount_credit_notes()), 2)
         self.assertAlmostEqual(
-            invoice._l10n_ve_post_discount_available_untaxed(),
-            invoice.currency_id.round(invoice.amount_untaxed - 250.0),
-            places=2,
+            invoice._l10n_ve_post_discount_available_untaxed(), 750.0, places=2
         )
 
     def test_post_discount_cannot_exceed_available(self):
         invoice = self._create_posted_invoice(price_unit=100.0)
-        wizard = self._create_wizard(
-            invoice,
-            mode="amount",
-            amount=invoice.amount_untaxed + 50.0,
-        )
+        self.assertAlmostEqual(invoice.amount_untaxed, 100.0, places=2)
+        wizard = self._create_wizard(invoice, mode="amount", amount=150.0)
         with self.assertRaises(ValidationError):
             wizard.action_apply_discount()
 
@@ -156,14 +150,14 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
             move.action_l10n_ve_open_post_discount_wizard()
 
     def test_post_discount_credit_note_lines_without_invoice_products(self):
-        sale_tax, reduced_tax = (
-            self.percent_tax(
-                amount,
-                type_tax_use="sale",
-                country_id=self.env.ref("base.ve").id,
-                price_include_override="tax_excluded",
-            )
-            for amount in (16.0, 8.0)
+        sale_tax = self.company_data["default_tax_sale"]
+        reduced_tax = self.percent_tax(
+            8.0,
+            type_tax_use="sale",
+            country_id=self.env.ref("base.ve").id,
+            company_id=self.env.company.id,
+            tax_group_id=sale_tax.tax_group_id.id,
+            price_include_override="tax_excluded",
         )
         products = self.env["product.product"]
         for name, price, tax in (
@@ -190,10 +184,14 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
                             "account_id": self.company_data[
                                 "default_account_revenue"
                             ].id,
-                            "tax_ids": [Command.set(product.taxes_id.ids)],
+                            "tax_ids": [Command.set(tax.ids)],
                         }
                     )
-                    for product in products
+                    for product, tax in zip(
+                        products,
+                        (sale_tax, reduced_tax),
+                        strict=True,
+                    )
                 ],
             }
         )
@@ -312,11 +310,7 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         self.assertEqual(credit.state, "draft")
         self.assertTrue(credit._l10n_ve_is_post_discount_credit_note())
         self.assertEqual(credit.currency_id, invoice.currency_id)
-        expected_bs = invoice._l10n_ve_post_discount_amount_in_currency(
-            10.0, invoice.company_currency_id
-        )
         self.assertAlmostEqual(credit.amount_untaxed, 10.0, places=2)
-        company_cur = invoice.company_currency_id
         credit_bs = abs(
             sum(
                 credit.line_ids.filtered(
@@ -324,9 +318,7 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
                 ).mapped("balance")
             )
         )
-        self.assertAlmostEqual(
-            company_cur.round(credit_bs), company_cur.round(expected_bs), places=2
-        )
+        self.assertAlmostEqual(credit_bs, 20.0, places=2)
         self.assertNotEqual(len(credit.invoice_line_ids), len(invoice.invoice_line_ids))
         credit.action_post()
         self.assertEqual(credit.state, "posted")
@@ -417,13 +409,10 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         )
         invoice.action_post()
         invoice.l10n_ve_invoice_original_printed = True
-        amount_bs = invoice._l10n_ve_post_discount_amount_in_currency(
-            10.0, invoice.company_currency_id
-        )
         wizard = self._create_wizard(
             invoice,
             mode="amount",
-            amount=amount_bs,
+            amount=20.0,
             discount_currency=invoice.company_currency_id,
         )
         action = wizard.action_apply_discount()
@@ -431,11 +420,8 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         self.assertEqual(credit.currency_id, invoice.currency_id)
         self.assertAlmostEqual(credit.amount_untaxed, 10.0, places=2)
         self.assertAlmostEqual(
-            invoice._l10n_ve_credit_untaxed_in_invoice_currency(credit),
-            10.0,
-            places=2,
+            invoice._l10n_ve_credit_untaxed_in_invoice_currency(credit), 10.0, places=2
         )
-        company_cur = invoice.company_currency_id
         credit_bs = abs(
             sum(
                 credit.line_ids.filtered(
@@ -443,9 +429,7 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
                 ).mapped("balance")
             )
         )
-        self.assertAlmostEqual(
-            company_cur.round(credit_bs), company_cur.round(amount_bs), places=2
-        )
+        self.assertAlmostEqual(credit_bs, 20.0, places=2)
 
     def test_post_discount_keeps_entered_company_currency_untaxed(self):
         company_ccy = self.env.company.currency_id
@@ -495,11 +479,7 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
         action = wizard.action_apply_discount()
         credit = self.env["account.move"].browse(action["res_id"])
         self.assertEqual(credit.currency_id, invoice.currency_id)
-        expected_foreign = invoice._l10n_ve_post_discount_amount_from_currency(
-            100.0, invoice.company_currency_id
-        )
-        self.assertAlmostEqual(credit.amount_untaxed, expected_foreign, places=2)
-        company_cur = invoice.company_currency_id
+        self.assertAlmostEqual(credit.amount_untaxed, 50.0, places=2)
         credit_bs = abs(
             sum(
                 credit.line_ids.filtered(
@@ -507,28 +487,23 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
                 ).mapped("balance")
             )
         )
-        self.assertAlmostEqual(company_cur.round(credit_bs), 100.0, places=2)
+        self.assertAlmostEqual(credit_bs, 100.0, places=2)
 
     def test_post_discount_fixed_amount_on_total_uses_same_base_as_draft(self):
         invoice = self._create_posted_invoice(price_unit=100.0)
-        tax = self.company_data["default_tax_sale"]
-        tax_factor = 1.0 + (tax.amount / 100.0)
-        amount_total = invoice.currency_id.round(10.0 * tax_factor)
+        self.assertAlmostEqual(invoice.amount_untaxed, 100.0, places=2)
+        self.assertAlmostEqual(invoice.amount_total, 116.0, places=2)
         wizard = self.env["l10n.ve.account.move.discount.wizard"].create(
             {
                 "move_id": invoice.id,
                 "reason_id": self.reason_early.id,
                 "discount_mode": "amount",
                 "amount_base": "total",
-                "amount": amount_total,
+                "amount": 11.60,
                 "discount_currency_id": invoice.currency_id.id,
             }
         )
-        expected_available = invoice._l10n_ve_discount_available_in_currency(
-            "total", invoice.currency_id
-        )
-        self.assertAlmostEqual(wizard.available_amount, expected_available, places=2)
-        self.assertAlmostEqual(expected_available, invoice.amount_total, places=2)
+        self.assertAlmostEqual(wizard.available_amount, 116.0, places=2)
         company_wizard = self.env["l10n.ve.account.move.discount.wizard"].create(
             {
                 "move_id": invoice.id,
@@ -538,18 +513,10 @@ class TestAccountMovePostDiscount(L10nVeLoyaltyCommon):
                 "discount_currency_id": invoice.company_currency_id.id,
             }
         )
-        self.assertAlmostEqual(
-            company_wizard.available_amount,
-            abs(invoice.amount_total_signed),
-            places=2,
-        )
-        remaining = invoice._l10n_ve_discount_remaining_subtotal_by_taxes()
-        expected_untaxed = discount_logic.l10n_ve_fixed_discount_to_untaxed(
-            invoice, amount_total, "total", remaining
-        )
+        self.assertAlmostEqual(company_wizard.available_amount, 116.0, places=2)
         action = wizard.action_apply_discount()
         credit = self.env["account.move"].browse(action["res_id"])
-        self.assertAlmostEqual(credit.amount_untaxed, expected_untaxed, delta=0.02)
+        self.assertAlmostEqual(credit.amount_untaxed, 10.0, places=2)
 
     def test_full_reversal_with_global_discount_stays_within_origin(self):
         tax_ids = [self.company_data["default_tax_sale"].id]

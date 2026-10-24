@@ -393,6 +393,14 @@ expandable transaction details.</p>
 </div>
 <div class="section" id="usage">
 <h1><a class="toc-backref" href="#toc-entry-1">Usage</a></h1>
+<p>En el <strong>Libro de Ventas</strong> y el <strong>Libro de Compras</strong>, la base y el IVA de
+cada alícuota salen de las líneas de impuesto del asiento publicado
+(<tt class="docutils literal">tax_base_amount</tt> y el saldo). Los documentos en borrador no entran
+al libro. Así el periodo coincide con lo contabilizado y con lo impreso.
+Al actualizar el módulo, las facturas ya publicadas alinean
+<tt class="docutils literal">tax_base_amount</tt> con la base en moneda compañía que ya mostraba
+<tt class="docutils literal">tax_totals</tt>. No se republica ni se toca el cobro. El IVA del libro
+sigue siendo el del apunte, no el 16 % recalculado sobre la base.</p>
 <p>To generate the auxiliary liquidity books:</p>
 <p>#. Go to <strong>Accounting &gt; SENIAT &gt; Reports</strong>. #. Open <strong>Libro de Banco</strong>
 or <strong>Libro de Caja</strong>. #. Select the date range and, if needed, filter
@@ -420,10 +428,14 @@ expense). Only payment methods can be expanded or collapsed. The
 <strong>Total</strong> line remains the net of both. #. Review <strong>Facturas a crédito</strong>
 after the <strong>Total</strong> line. It lists the posted customer invoices and
 vendor bills dated in the report period that are still unpaid or
-partially paid, under the informative payment method <strong>Crédito</strong>. Each
-invoice shows its amount due. Customer documents appear under
-<strong>Ingresos</strong> and vendor documents under <strong>Egresos</strong>. The <strong>Total
-crédito</strong> line is not added to the report <strong>Total</strong>.</p>
+partially paid, under the informative payment method <strong>Crédito</strong>.
+Customer documents appear under <strong>Ingresos</strong> and vendor documents under
+<strong>Egresos</strong>. The <strong>Total crédito</strong> line is not added to the report
+<strong>Total</strong>. #. A withholding that only settles the tax keeps the invoice
+on credit. The amount adds that withholding back, so the tax payment
+does not reduce the credit figure. A real payment does reduce it. #.
+Open <strong>Options</strong> and uncheck <strong>Facturas a crédito</strong> to hide that
+section. It is shown by default.</p>
 </div>
 <div class="section" id="bug-tracker">
 <h1><a class="toc-backref" href="#toc-entry-2">Bug Tracker</a></h1>

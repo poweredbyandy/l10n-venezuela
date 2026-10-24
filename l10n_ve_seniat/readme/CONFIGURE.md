@@ -3,18 +3,18 @@
 Medios de emisión
 -----------------
 
-1. Vaya a **Contabilidad → Configuración → Ajustes**.
-2. En el bloque **Venezuela**, seleccione los
-   **Medios de emisión** de la compañía (forma libre, máquina fiscal y/o
+1. Vaya a **Contabilidad → Configuración → Diarios**.
+2. Abra un diario de ventas y, en el bloque Venezuela / SENIAT, elija el
+   **Medio de emisión** (forma libre, contingencia, máquina fiscal o
    facturación digital).
-3. Guarde los ajustes.
+3. Guarde el diario.
 
-También puede gestionar el catálogo desde **SENIAT → Localización →
-Medios de emisión**, y ver los medios asignados en **SENIAT → Empresas**.
+La compañía detecta qué medios están en uso a partir de esos diarios (menús,
+columnas del listado y systray de máquina fiscal).
 
 Fecha de recepción
 ------------------
 
-En el mismo bloque **Venezuela** de los ajustes de Contabilidad puede activar
+En el bloque **Venezuela** de los ajustes de Contabilidad puede activar
 por separado el uso de la fecha de recepción como inicio de los plazos de pago
 en facturas de cliente y/o de proveedor.

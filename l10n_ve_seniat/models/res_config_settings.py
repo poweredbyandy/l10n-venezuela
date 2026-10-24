@@ -9,11 +9,6 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
     )
 
-    l10n_ve_emission_medium_ids = fields.Many2many(
-        related="company_id.l10n_ve_emission_medium_ids",
-        readonly=False,
-    )
-
     l10n_ve_on_behalf_of_third_party_enabled = fields.Boolean(
         related="company_id.l10n_ve_on_behalf_of_third_party_enabled",
         readonly=False,

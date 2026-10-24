@@ -20,6 +20,9 @@ exclude: |
   /tests/samples/.*|
   # Local i18n helper scripts (not part of the addons)
   (^|/)(complete_i18n|export_i18n|fix_i18n)\.py$|
+  # Shell-exec template (env/print injected by fiscal_audit_align.run_*)
+  l10n_ve_fiscal_serial/tools/_apply_fiscal_audit_align_impl\.py$|
+
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)
 default_language_version:

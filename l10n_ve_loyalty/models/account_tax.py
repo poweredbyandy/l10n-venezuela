@@ -88,9 +88,7 @@ class AccountTax(models.Model):
             if line.get("discount_type") == "percentage" and line.get(
                 "discount_percentage"
             ):
-                amount = company_currency.round(
-                    running * line["discount_percentage"]
-                )
+                amount = company_currency.round(running * line["discount_percentage"])
             else:
                 amount = self._l10n_ve_amount_currency_to_company(
                     document, line.get("amount") or 0.0
@@ -137,11 +135,10 @@ class AccountTax(models.Model):
                 percent = 0.0
                 if tax_ids:
                     taxes = self.browse(tax_ids).flatten_taxes_hierarchy()
-                    percent = sum(
-                        tax.amount
-                        for tax in taxes
-                        if tax.amount_type == "percent"
-                    ) / 100.0
+                    percent = (
+                        sum(tax.amount for tax in taxes if tax.amount_type == "percent")
+                        / 100.0
+                    )
                 if not percent and group_base_currency:
                     percent = group_tax_currency / group_base_currency
                 elif not percent and group_old_base:
@@ -153,9 +150,7 @@ class AccountTax(models.Model):
                     group["display_base_amount"] = group_new_base
                 tax_groups.append(group)
                 subtotal_tax = company_currency.round(subtotal_tax + group_tax)
-                subtotal_base = company_currency.round(
-                    subtotal_base + group_new_base
-                )
+                subtotal_base = company_currency.round(subtotal_base + group_new_base)
             subtotal["tax_groups"] = tax_groups
             subtotal["base_amount"] = subtotal_base or new_base
             subtotal["tax_amount"] = subtotal_tax

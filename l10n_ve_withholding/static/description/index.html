@@ -385,13 +385,15 @@ factura origen como documento afectado.</p>
 <li><a class="reference internal" href="#usage" id="toc-entry-1">Usage</a><ul>
 <li><a class="reference internal" href="#comprobante-de-retencion-iva-y-notas-de-debito" id="toc-entry-2">Comprobante de retención IVA y notas de débito</a></li>
 <li><a class="reference internal" href="#impresion-y-consulta-de-facturas-afectadas" id="toc-entry-3">Impresión y consulta de facturas afectadas</a></li>
+<li><a class="reference internal" href="#pago-de-retenciones-de-clientes-desde-el-registro-de-pago" id="toc-entry-4">Pago de retenciones de clientes desde el registro de pago</a></li>
+<li><a class="reference internal" href="#restablecer-una-retencion-a-borrador" id="toc-entry-5">Restablecer una retención a borrador</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-4">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-5">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-6">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-7">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-8">Maintainers</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-6">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-7">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-8">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-9">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-10">Maintainers</a></li>
 </ul>
 </li>
 </ul>
@@ -426,9 +428,48 @@ icono de enlace para abrir directamente la factura correspondiente.</li>
 la referencia del proveedor o el número de factura fiscal, seguido por
 el número interno del asiento entre paréntesis.</p>
 </div>
+<div class="section" id="pago-de-retenciones-de-clientes-desde-el-registro-de-pago">
+<h2><a class="toc-backref" href="#toc-entry-4">Pago de retenciones de clientes desde el registro de pago</a></h2>
+<ol class="arabic simple">
+<li>En una factura de cliente publicada, pulse <strong>Pagar</strong> (Registrar
+pago).</li>
+<li>Marque <strong>Pago de retención</strong>. Se habilita el campo <strong>Tipo de
+retención</strong> con las opciones <strong>ISLR</strong>, <strong>IVA</strong> y <strong>Municipal</strong>.</li>
+<li>Al elegir el tipo se asigna el diario de retención de cliente que
+corresponde (el diario, el método de pago y el monto quedan
+bloqueados) y se cargan las líneas de retención de la factura:<ul>
+<li><strong>ISLR</strong>: elija el concepto de pago e indique el monto retenido de
+cada línea.</li>
+<li><strong>IVA</strong>: el monto retenido se calcula solo (IVA de la factura por
+el porcentaje de retención del contacto).</li>
+<li><strong>Municipal</strong>: se propone la actividad económica del cliente (puede
+cambiarse) e indique el monto retenido de cada línea.</li>
+</ul>
+</li>
+<li>Indique la fecha y el número de comprobante (14 dígitos) y confirme.</li>
+<li>Si desmarca <strong>Pago de retención</strong> (o cambia el tipo) se descartan el
+tipo, el comprobante y las líneas cargadas, y el pago vuelve a ser un
+pago normal.</li>
+</ol>
+</div>
+<div class="section" id="restablecer-una-retencion-a-borrador">
+<h2><a class="toc-backref" href="#toc-entry-5">Restablecer una retención a borrador</a></h2>
+<ol class="arabic simple">
+<li>Abra una retención emitida o anulada, de cliente o de proveedor (IVA,
+ISLR o municipal).</li>
+<li>Pulse <strong>Convert to draft</strong>. Los pagos de la retención vuelven a
+borrador y se desconcilian. El número de comprobante se conserva.</li>
+<li>Puede corregir la retención y pulsar <strong>Approve</strong> para emitirla de
+nuevo con el mismo número.</li>
+<li>Si en borrador borra el número de una retención de proveedor, al
+emitirla otra vez el sistema toma el último comprobante de ese tipo y
+asigna el siguiente. La secuencia queda alineada con ese último
+número.</li>
+</ol>
+</div>
 </div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-4">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-6">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/OCA/l10n-venezuela/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -436,22 +477,22 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-5">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-7">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-6">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-8">Authors</a></h2>
 <ul class="simple">
 <li>BinauralDev</li>
 <li>Anderson Armeya</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-7">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-9">Contributors</a></h2>
 <ul class="simple">
 <li>Anderson Armeya</li>
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-8">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-10">Maintainers</a></h2>
 <p>This module is maintained by the OCA.</p>
 <a class="reference external image-reference" href="https://odoo-community.org">
 <img alt="Odoo Community Association" src="https://odoo-community.org/logo.png" />

@@ -26,7 +26,7 @@ class TestAutoReconcileBatch(AccountTestInvoicingCommon):
                 {
                     "date": "2026-09-01",
                     "journal_id": self.bank_journal.id,
-                    "payment_ref": "ref-%s" % index,
+                    "payment_ref": f"ref-{index}",
                     "amount": 10.0 + index,
                 }
                 for index in range(count)
@@ -96,7 +96,9 @@ class TestAutoReconcileBatch(AccountTestInvoicingCommon):
         lines = self._create_lines(5)
         lines.action_queue_ref_auto_reconcile()
         with (
-            patch.object(type(lines), "_reconcile_by_bank_reference", return_value=False),
+            patch.object(
+                type(lines), "_reconcile_by_bank_reference", return_value=False
+            ),
             patch.object(batch_model.time, "monotonic", side_effect=[0, 10, 40]),
         ):
             result = self.queue._process_company_batch(self.company)
@@ -117,9 +119,11 @@ class TestAutoReconcileBatch(AccountTestInvoicingCommon):
             ]
         )
         (lines | other_lines).action_queue_ref_auto_reconcile()
-        action = self.env["account.bank.statement.line"].with_context(
-            default_journal_id=self.bank_journal.id
-        ).action_open_reference_reconcile_queue()
+        action = (
+            self.env["account.bank.statement.line"]
+            .with_context(default_journal_id=self.bank_journal.id)
+            .action_open_reference_reconcile_queue()
+        )
         self.assertEqual(action["res_model"], "l10n.ve.bank.reconcile.queue")
         entries = self.queue.search(action["domain"])
         self.assertEqual(set(entries.statement_line_id.ids), set(lines.ids))
@@ -129,9 +133,9 @@ class TestAutoReconcileBatch(AccountTestInvoicingCommon):
         self.assertEqual(set(queued.ids), set((lines | other_lines).ids))
 
     def test_open_queue_is_empty_without_entries(self):
-        action = (
-            self.env["account.bank.statement.line"].action_open_reference_reconcile_queue()
-        )
+        action = self.env[
+            "account.bank.statement.line"
+        ].action_open_reference_reconcile_queue()
         self.assertEqual(action["domain"], [("id", "in", [])])
 
     def test_button_without_journal_raises(self):

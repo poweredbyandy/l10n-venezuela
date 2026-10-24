@@ -382,13 +382,14 @@ fiscales, consola de depuración por máquina y registro de auditoría
 <li><a class="reference internal" href="#metodos-de-pago-fiscales-en-cobros-y-pagos" id="toc-entry-3">Métodos de pago fiscales en cobros y pagos</a></li>
 <li><a class="reference internal" href="#consola-de-depuracion" id="toc-entry-4">Consola de depuración</a></li>
 <li><a class="reference internal" href="#auditoria-fiscal-serial" id="toc-entry-5">Auditoría fiscal serial</a></li>
+<li><a class="reference internal" href="#ajuste-historico-vs-maquina-fiscal-shell" id="toc-entry-6">Ajuste histórico vs máquina fiscal (shell)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-6">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-7">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-8">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-9">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-10">Maintainers</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-7">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-8">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-9">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-10">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-11">Maintainers</a></li>
 </ul>
 </li>
 </ul>
@@ -447,9 +448,19 @@ filtrar por usuario, tipo de evento, máquina o factura.</p>
 <p>Desde la ficha de una máquina fiscal puede abrir su historial con el
 botón <strong>Auditoría</strong>.</p>
 </div>
+<div class="section" id="ajuste-historico-vs-maquina-fiscal-shell">
+<h2><a class="toc-backref" href="#toc-entry-6">Ajuste histórico vs máquina fiscal (shell)</a></h2>
+<p>Tras actualizar <tt class="docutils literal">l10n_ve_fiscal_serial</tt>, desde <tt class="docutils literal"><span class="pre">odoo-bin</span> shell</tt>:</p>
+<pre class="code python literal-block">
+<span class="kn">from</span><span class="w"> </span><span class="nn">odoo.addons.l10n_ve_fiscal_serial.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_fiscal_audit_align</span><span class="w">
+</span><span class="n">run_fiscal_audit_align</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># dry-run</span><span class="w">
+</span><span class="n">run_fiscal_audit_align</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># aplicar</span>
+</pre>
+<p>No es un migration: no se ejecuta solo al hacer <tt class="docutils literal"><span class="pre">-u</span></tt>.</p>
+</div>
 </div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-6">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-7">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/OCA/l10n-venezuela/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -457,21 +468,21 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-7">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-8">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-8">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-9">Authors</a></h2>
 <ul class="simple">
 <li>andyengit</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-9">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-10">Contributors</a></h2>
 <ul class="simple">
 <li>andyengit</li>
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-10">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-11">Maintainers</a></h2>
 <p>This module is maintained by the OCA.</p>
 <a class="reference external image-reference" href="https://odoo-community.org">
 <img alt="Odoo Community Association" src="https://odoo-community.org/logo.png" />

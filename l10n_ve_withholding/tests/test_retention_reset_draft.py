@@ -34,9 +34,7 @@ class TestRetentionResetDraft(L10nVeSeniatCommon):
         cls.municipal_journal = cls._retention_journal(
             "municipal_supplier_retention_journal_id", "RMP"
         )
-        cls.env.company.municipal_customer_retention_journal_id = (
-            cls.municipal_journal
-        )
+        cls.env.company.municipal_customer_retention_journal_id = cls.municipal_journal
 
     @classmethod
     def _retention_journal(cls, company_field, code):
@@ -129,9 +127,7 @@ class TestRetentionResetDraft(L10nVeSeniatCommon):
                                 "default_account_revenue"
                             ].id,
                             "tax_ids": [
-                                Command.set(
-                                    [self.company_data["default_tax_sale"].id]
-                                )
+                                Command.set([self.company_data["default_tax_sale"].id])
                             ],
                         }
                     )
@@ -168,9 +164,7 @@ class TestRetentionResetDraft(L10nVeSeniatCommon):
         self.assertEqual(bill.iva_voucher_number, number)
         sequence.invalidate_recordset(["number_next", "number_next_actual"])
         self.assertEqual(sequence.number_next_actual, next_number)
-        self.assertTrue(
-            retention.payment_ids.move_id.line_ids.filtered("reconciled")
-        )
+        self.assertTrue(retention.payment_ids.move_id.line_ids.filtered("reconciled"))
 
     def test_cleared_supplier_number_uses_last_voucher(self):
         self.assertTrue(self.iva_journal)

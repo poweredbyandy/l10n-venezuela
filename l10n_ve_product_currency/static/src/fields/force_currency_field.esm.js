@@ -1,8 +1,5 @@
 import {registry} from "@web/core/registry";
-import {
-    Many2OneField,
-    many2OneField,
-} from "@web/views/fields/many2one/many2one_field";
+import {Many2OneField, many2OneField} from "@web/views/fields/many2one/many2one_field";
 
 export class L10nVeForceCurrencyField extends Many2OneField {
     static props = {

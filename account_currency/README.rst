@@ -35,9 +35,11 @@ is issued in another currency:
   *Recalcular tasa* button when the rate no longer matches the rate of
   the invoice date.
 - Credit notes keep the exchange rate of the invoice they reverse.
-- *Unit Price in Company Currency* and *Subtotal in Company Currency* on
-  every invoice line, following the native Odoo conversion at the invoice
-  exchange rate. The unit price is before discount.
+- *Unit Price in Company Currency*, *Subtotal in Company Currency* and
+  *Total in Company Currency* on every invoice line. The unit price is
+  before discount. Subtotal and total are editable in draft: they keep
+  the foreign amounts and adjust the line exchange rate so the company
+  balance matches.
 - Invoice totals widget with an extra column in the company currency.
 - Chatter on currencies and exchange rates. Changes of the rate are
   logged in the chatter of the exchange rate.
@@ -67,14 +69,19 @@ Usage
 
 1. Create an invoice in a currency other than the company currency.
 2. The exchange rate of the invoice date is used. Below it, the inverse
-   rate is shown.
+   rate is shown. On vendor bills and refunds in draft both the document
+   rate and the inverse rate are editable; writing one updates the
+   other. Customer invoices keep them locked when SENIAT is installed.
 3. The *Unit Price in Company Currency* column shows the unit price of
-   each line in the company currency, before discount. The *Subtotal in
-   Company Currency* column shows the line amount. Both are read-only and
-   follow the native Odoo conversion at the invoice exchange rate.
-4. The totals show an extra column with the amounts in the company
+   each line in the company currency, before discount.
+4. *Subtotal in Company Currency* and *Total in Company Currency* show
+   the line amounts at the invoice exchange rate. In draft they are
+   editable: changing either one keeps the foreign amounts and adjusts
+   the line rate so the company balance matches what you typed. Use
+   *Reset* to go back to the invoice rate.
+5. The totals show an extra column with the amounts in the company
    currency.
-5. If the rate of the invoice date changes while the invoice is in
+6. If the rate of the invoice date changes while the invoice is in
    draft, a warning appears. Click *Recalcular tasa* to apply the
    current rate.
 
