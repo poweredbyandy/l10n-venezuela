@@ -11,7 +11,7 @@ class AccountTax(models.Model):
     def _l10n_ve_get_document_currency_rate(self, document):
         if document._name == "account.move":
             return document.invoice_currency_rate or 1.0
-        if document._name == "sale.order":
+        if document._name in ("sale.order", "purchase.order"):
             return document.currency_rate or 1.0
         return 1.0
 
@@ -21,6 +21,9 @@ class AccountTax(models.Model):
             return document.invoice_date or document.date
         if document._name == "sale.order":
             return (document.date_order or fields.Datetime.now()).date()
+        if document._name == "purchase.order":
+            date_order = document.date_order or fields.Datetime.now()
+            return fields.Datetime.to_datetime(date_order).date()
         return fields.Date.context_today(self.env)
 
     @api.model
@@ -62,11 +65,32 @@ class AccountTax(models.Model):
             if not lines or "price_subtotal_currency" not in lines._fields:
                 return None
             return company_currency.round(sum(lines.mapped("price_subtotal_currency")))
-        if document._name == "sale.order":
+        if document._name in ("sale.order", "purchase.order"):
             lines = document.order_line.filtered(lambda line: not line.display_type)
-            if not lines or "price_subtotal_currency" not in lines._fields:
+            if not lines:
                 return None
-            return company_currency.round(sum(lines.mapped("price_subtotal_currency")))
+            if "price_subtotal_currency" in lines._fields:
+                return company_currency.round(
+                    sum(lines.mapped("price_subtotal_currency"))
+                )
+            if hasattr(self, "_account_currency_line_company_subtotal"):
+                return company_currency.round(
+                    sum(
+                        self._account_currency_line_company_subtotal(document, line)
+                        for line in lines
+                    )
+                )
+            rate = self._l10n_ve_get_document_currency_rate(document) or 0.0
+            if document.currency_id == company_currency:
+                return company_currency.round(sum(lines.mapped("price_subtotal")))
+            if not rate:
+                return None
+            return company_currency.round(
+                sum(
+                    company_currency.round((line.price_subtotal or 0.0) / rate)
+                    for line in lines
+                )
+            )
         return None
 
     @api.model
@@ -456,6 +480,12 @@ class AccountTax(models.Model):
                 discount_totals["accounting_company_base"],
             )
         totals = self._l10n_ve_align_tax_totals_groups_to_accounting(document, totals)
+        if (
+            document._name in ("sale.order", "purchase.order")
+            and not discount_totals.get("realign_company_tax_totals")
+            and hasattr(self, "_account_currency_align_order_tax_totals")
+        ):
+            totals = self._account_currency_align_order_tax_totals(document, totals)
         can_manage = self.env.user.has_group(
             "l10n_ve_loyalty.group_l10n_ve_global_discount"
         )

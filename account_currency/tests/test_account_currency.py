@@ -333,9 +333,20 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         self.assertAlmostEqual(abs(line_a.balance), 2.07, places=2)
         self.assertAlmostEqual(abs(line_b.balance), 2.22, places=2)
         self.assertAlmostEqual(abs(invoice.amount_untaxed_signed), 4.29, places=2)
-        # account_invoice_show_currency_rate: posted line rate = |amount|/|balance|.
-        self.assertAlmostEqual(line_a.currency_rate, 4.004830917874396, places=6)
-        self.assertAlmostEqual(line_b.currency_rate, 3.990990990990991, places=6)
+        # Without account_invoice_show_currency_rate, posted lines keep the
+        # document rate (balances already reflect per-line rounding).
+        self.assertAlmostEqual(line_a.currency_rate, 4.0, places=6)
+        self.assertAlmostEqual(line_b.currency_rate, 4.0, places=6)
+        self.assertAlmostEqual(
+            abs(line_a.amount_currency) / abs(line_a.balance),
+            4.004830917874396,
+            places=6,
+        )
+        self.assertAlmostEqual(
+            abs(line_b.amount_currency) / abs(line_b.balance),
+            3.990990990990991,
+            places=6,
+        )
 
     def test_fractional_foreign_unit_matches_machine_bs_tax(self):
         """Many USD decimals: asiento = round(USD)/tasa and IVA on that Bs base.

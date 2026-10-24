@@ -10,5 +10,7 @@ issued in another currency:
   discount. Subtotal and total are editable in draft: they keep the foreign
   amounts and adjust the line exchange rate so the company balance matches.
 - Invoice totals widget with an extra column in the company currency.
+- With `account_currency_sale` / `account_currency_purchase`, sale and purchase
+  TaxTotals company amounts use the same per-line rounding as invoices/bills.
 - Chatter on currencies and exchange rates. Changes of the rate are logged in
   the chatter of the exchange rate.
