@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="hr_payslip_payment_register_view_form" model="ir.ui.view">
+        <field name="name">hr.payslip.payment.register.form</field>
+        <field name="model">hr.payslip.payment.register</field>
+        <field name="arch" type="xml">
+            <form string="Register Payroll Payment">
+                <group>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company" />
+                        <field name="journal_id" />
+                        <field name="payment_date" />
+                    </group>
+                    <group>
+                        <field name="communication" />
+                        <field name="currency_id" invisible="1" />
+                        <field name="amount_total" />
+                    </group>
+                </group>
+                <field name="line_ids">
+                    <list editable="bottom" create="0" delete="1">
+                        <field name="payslip_id" readonly="1" force_save="1" />
+                        <field name="employee_id" />
+                        <field name="amount_residual" />
+                        <field name="amount" />
+                        <field name="currency_id" column_invisible="1" />
+                    </list>
+                </field>
+                <footer>
+                    <button
+                        name="action_create_payments"
+                        string="Create Payments"
+                        type="object"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button
+                        string="Cancel"
+                        class="btn-secondary"
+                        special="cancel"
+                        data-hotkey="x"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_payslip_payment_register" model="ir.actions.act_window">
+        <field name="name">Register Payroll Payment</field>
+        <field name="res_model">hr.payslip.payment.register</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="payroll.model_hr_payslip" />
+        <field name="binding_view_types">list,form</field>
+    </record>
+</odoo>

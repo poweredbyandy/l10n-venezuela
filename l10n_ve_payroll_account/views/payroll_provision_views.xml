@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="l10n_ve_payroll_provision_view_tree" model="ir.ui.view">
+        <field name="name">l10n_ve.payroll.provision.list</field>
+        <field name="model">l10n_ve.payroll.provision</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date" />
+                <field name="name" />
+                <field name="provision_type" />
+                <field name="employee_id" />
+                <field name="amount" />
+                <field name="state" />
+            </list>
+        </field>
+    </record>
+    <record id="l10n_ve_payroll_provision_action" model="ir.actions.act_window">
+        <field name="name">Payroll Provisions</field>
+        <field name="res_model">l10n_ve.payroll.provision</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

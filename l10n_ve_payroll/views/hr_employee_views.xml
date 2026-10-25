@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="hr_employee_view_form_l10n_ve_payroll" model="ir.ui.view">
+        <field name="name">hr.employee.form.l10n.ve.payroll</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='hr_settings']" position="after">
+                <page string="Venezuela" name="l10n_ve_payroll">
+                    <group>
+                        <group>
+                            <field name="l10n_ve_worker_type" />
+                            <field name="l10n_ve_workday_type" />
+                            <field name="l10n_ve_is_unionized" />
+                            <field name="l10n_ve_islr_rate" />
+                            <field name="l10n_ve_has_disability" />
+                        </group>
+                    </group>
+                    <field name="social_benefit_ids">
+                        <list>
+                            <field name="date" />
+                            <field name="name" />
+                            <field name="benefit_type" />
+                            <field name="amount" />
+                            <field name="balance" />
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

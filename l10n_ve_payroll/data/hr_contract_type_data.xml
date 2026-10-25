@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="hr_contract_type_td" model="hr.contract.type">
+        <field name="name">Full Time</field>
+        <field name="code">TD</field>
+        <field name="country_id" ref="base.ve" />
+    </record>
+    <record id="hr_contract_type_ti" model="hr.contract.type">
+        <field name="name">Indefinite Term</field>
+        <field name="code">TI</field>
+        <field name="country_id" ref="base.ve" />
+    </record>
+    <record id="hr_contract_type_od" model="hr.contract.type">
+        <field name="name">Fixed Work</field>
+        <field name="code">OD</field>
+        <field name="country_id" ref="base.ve" />
+    </record>
+</odoo>

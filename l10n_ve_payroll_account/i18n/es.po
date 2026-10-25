@@ -1,0 +1,189 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_payroll_account
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-24 23:39+0000\n"
+"PO-Revision-Date: 2026-10-24 23:39+0000\n"
+"Last-Translator: andyengit <anderson.armeya@gmail.com>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__amount
+msgid "Amount"
+msgstr "Monto"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__l10n_ve_payroll_provision__state__cancelled
+msgid "Cancelled"
+msgstr "Cancelado"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__currency_id
+msgid "Currency"
+msgstr "Moneda"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__date
+msgid "Date"
+msgstr "Fecha"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__l10n_ve_payroll_provision__state__draft
+msgid "Draft"
+msgstr "Borrador"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__employee_id
+msgid "Employee"
+msgstr "Empleado"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__id
+msgid "ID"
+msgstr "ID"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__l10n_ve_payroll_provision__provision_type__leave
+msgid "Leave"
+msgstr "Vacaciones"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__l10n_ve_payroll_provision__provision_type__meal
+msgid "Meal Allowance"
+msgstr "Bono de alimentación"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__move_id
+msgid "Move"
+msgstr "Asiento"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__name
+msgid "Name"
+msgstr "Nombre"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,help:l10n_ve_payroll_account.field_hr_payslip_line__l10n_ve_account_code_debit
+#: model:ir.model.fields,help:l10n_ve_payroll_account.field_hr_salary_rule__l10n_ve_account_code_debit
+msgid "Optional chart code hint for post-init mapping (e.g. 2103020)."
+msgstr "Código contable opcional para mapeo post-instalación (p. ej. 2103020)."
+
+#. module: l10n_ve_payroll_account
+#: model:ir.actions.act_window,name:l10n_ve_payroll_account.l10n_ve_payroll_provision_action
+msgid "Payroll Provisions"
+msgstr "Provisiones de nómina"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__l10n_ve_payroll_provision__state__posted
+msgid "Posted"
+msgstr "Publicado"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__l10n_ve_payroll_provision__provision_type__profit_sharing
+msgid "Profit Sharing"
+msgstr "Utilidades"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__provision_type
+msgid "Provision Type"
+msgstr "Tipo de provisión"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_hr_payslip_line__l10n_ve_account_code_credit
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_hr_salary_rule__l10n_ve_account_code_credit
+msgid "SENIAT Credit Account Code"
+msgstr "Código cuenta crédito SENIAT"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_hr_payslip_line__l10n_ve_account_code_debit
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_hr_salary_rule__l10n_ve_account_code_debit
+msgid "SENIAT Debit Account Code"
+msgstr "Código cuenta débito SENIAT"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model,name:l10n_ve_payroll_account.model_hr_salary_rule
+msgid "Salary Rule"
+msgstr "Regla salarial"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__l10n_ve_payroll_provision__provision_type__social_benefit
+msgid "Social Benefit"
+msgstr "Prestación social"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_l10n_ve_payroll_provision__state
+msgid "State"
+msgstr "Estado"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model,name:l10n_ve_payroll_account.model_l10n_ve_payroll_provision
+msgid "Venezuelan Payroll Provision"
+msgstr "Provisión de nómina venezolana"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__hr_payslip__l10n_ve_payment_state__in_payment
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll_account.hr_payslip_view_form_payment
+msgid "In Payment"
+msgstr "En proceso de pago"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__hr_payslip__l10n_ve_payment_state__not_paid
+msgid "Not Paid"
+msgstr "No pagado"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__hr_payslip__l10n_ve_payment_state__paid
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll_account.hr_payslip_view_form_payment
+msgid "Paid"
+msgstr "Pagado"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields,field_description:l10n_ve_payroll_account.field_hr_payslip__l10n_ve_payment_state
+msgid "Payment Status"
+msgstr "Estado de pago"
+
+#. module: l10n_ve_payroll_account
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_account.selection__hr_payslip__l10n_ve_payment_state__reversed
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll_account.hr_payslip_view_form_payment
+msgid "Reversed"
+msgstr "Revertido"
+

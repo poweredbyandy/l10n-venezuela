@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="l10n_ve_payroll_declaration_export_view_form" model="ir.ui.view">
+        <field name="name">l10n_ve.payroll.declaration.export.form</field>
+        <field name="model">l10n_ve.payroll.declaration.export</field>
+        <field name="arch" type="xml">
+            <form string="Export Declaration">
+                <group>
+                    <field name="declaration_type" />
+                    <field name="date_from" />
+                    <field name="date_to" />
+                    <field name="company_id" groups="base.group_multi_company" />
+                    <field name="file_name" invisible="not file_data" />
+                    <field name="file_data" filename="file_name" invisible="not file_data" />
+                </group>
+                <footer>
+                    <button name="action_export" type="object" string="Export" class="oe_highlight" />
+                    <button string="Close" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="l10n_ve_payroll_declaration_export_action" model="ir.actions.act_window">
+        <field name="name">Payroll Declarations</field>
+        <field name="res_model">l10n_ve.payroll.declaration.export</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

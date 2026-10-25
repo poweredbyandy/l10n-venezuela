@@ -1,0 +1,1 @@
+Complements account_currency / SENIAT; does not replace RT or BW Enterprise modules.\n

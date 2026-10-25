@@ -1,0 +1,1 @@
+Open Payroll > VE Declarations, choose type and period, export XLSX.\n

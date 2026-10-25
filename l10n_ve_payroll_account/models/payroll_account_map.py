@@ -1,0 +1,155 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+# SENIAT CoA codes (l10n_ve_seniat chart) used by Venezuelan payroll.
+# xmlid suffix matches account.account-ve_seniat.csv where possible.
+
+PAYROLL_ACCOUNTS = {
+    "account_account_1106002": {
+        "name": "PRESTAMOS A EMPLEADOS",
+        "code": "1106002",
+        "account_type": "asset_receivable",
+        "reconcile": True,
+    },
+    "account_account_2103003": {
+        "name": "I.V.S.S APORTES EMPLEADOS",
+        "code": "2103003",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103004": {
+        "name": "F.A.O.V APORTES EMPLEADOS",
+        "code": "2103004",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103005": {
+        "name": "I.N.C.E.S APORTES EMPLEADOS",
+        "code": "2103005",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103006": {
+        "name": "I.V.S.S APORTE EMPRESA",
+        "code": "2103006",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103007": {
+        "name": "F.A.O.V. APORTE EMPRESA",
+        "code": "2103007",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103008": {
+        "name": "I.N.C.E.S APORTE EMPRESA",
+        "code": "2103008",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103009": {
+        "name": "RETENCIONES I.S.L.R. EMPLEADOS",
+        "code": "2103009",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103012": {
+        "name": "PRESTAMOS SOBRE FIDEICOMISO",
+        "code": "2103012",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103015": {
+        "name": "PRESTACIONES SOCIALES",
+        "code": "2103015",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103016": {
+        "name": "INTERESES S/PRESTACIONES SOCIALES",
+        "code": "2103016",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103019": {
+        "name": "L.O.P.T.I. / RPE",
+        "code": "2103019",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_2103020": {
+        "name": "NOMINA POR PAGAR",
+        "code": "2103020",
+        "account_type": "liability_current",
+        "reconcile": True,
+    },
+    "account_account_2103021": {
+        "name": "PROGRAMA DE ALIMENTACION",
+        "code": "2103021",
+        "account_type": "liability_current",
+        "reconcile": False,
+    },
+    "account_account_5102001": {
+        "name": "SUELDOS Y SALARIOS EMPLEADOS",
+        "code": "5102001",
+        "account_type": "expense",
+        "reconcile": False,
+    },
+    "account_account_5102003": {
+        "name": "BONO DE ALIMENTACION EMPLEADOS",
+        "code": "5102003",
+        "account_type": "expense",
+        "reconcile": False,
+    },
+    "account_account_5102007": {
+        "name": "APORTES PATRONALES",
+        "code": "5102007",
+        "account_type": "expense",
+        "reconcile": False,
+    },
+}
+
+# rule code -> (debit xmlid suffix, credit xmlid suffix)
+RULE_ACCOUNT_MAP = {
+    "SQUIN": ("account_account_5102001", "account_account_2103020"),
+    "SSEMA": ("account_account_5102001", "account_account_2103020"),
+    "DDES": ("account_account_5102001", "account_account_2103020"),
+    "DDESS": ("account_account_5102001", "account_account_2103020"),
+    "DDESD": ("account_account_5102001", "account_account_2103020"),
+    "FERI": ("account_account_5102001", "account_account_2103020"),
+    "FERIT": ("account_account_5102001", "account_account_2103020"),
+    "DDESST": ("account_account_5102001", "account_account_2103020"),
+    "DDESDT": ("account_account_5102001", "account_account_2103020"),
+    "HED": ("account_account_5102001", "account_account_2103020"),
+    "HEN": ("account_account_5102001", "account_account_2103020"),
+    "ANTIU": ("account_account_5102001", "account_account_2103020"),
+    "ADEP": ("account_account_2103015", "account_account_2103020"),
+    "VACA": ("account_account_5102001", "account_account_2103020"),
+    "DDFVACA": ("account_account_5102001", "account_account_2103020"),
+    "BONOVACA": ("account_account_5102001", "account_account_2103020"),
+    "UTILID": ("account_account_5102001", "account_account_2103020"),
+    "BALIM": ("account_account_5102003", "account_account_2103021"),
+    "BAHE": ("account_account_5102003", "account_account_2103021"),
+    "GPSAB": ("account_account_2103015", "account_account_2103020"),
+    "GPSC": ("account_account_2103015", "account_account_2103020"),
+    "ISPS": ("account_account_2103016", "account_account_2103020"),
+    "VACAV": ("account_account_5102001", "account_account_2103020"),
+    "BONOVACAV": ("account_account_5102001", "account_account_2103020"),
+    "VACAF": ("account_account_5102001", "account_account_2103020"),
+    "BONOVACAF": ("account_account_5102001", "account_account_2103020"),
+    "UTILIDF": ("account_account_5102001", "account_account_2103020"),
+    "DESCSSO": ("account_account_2103020", "account_account_2103003"),
+    "FAOV": ("account_account_2103020", "account_account_2103004"),
+    "RPE": ("account_account_2103020", "account_account_2103019"),
+    "AUSE": ("account_account_2103020", "account_account_5102001"),
+    "ISLR": ("account_account_2103020", "account_account_2103009"),
+    "CRED": ("account_account_2103020", "account_account_1106002"),
+    "INTCRED": ("account_account_2103020", "account_account_1106002"),
+    "DANTIU": ("account_account_2103020", "account_account_5102001"),
+    "RINCES": ("account_account_2103020", "account_account_2103005"),
+    "APORSSO": ("account_account_5102007", "account_account_2103006"),
+    "AFAOV": ("account_account_5102007", "account_account_2103007"),
+    "ARPE": ("account_account_5102007", "account_account_2103019"),
+    "APORINCES": ("account_account_5102007", "account_account_2103008"),
+}
+
+VE_SENIAT_TEMPLATE_CODES = ("ve_seniat", "ve_seniat_basic", "ve_seniat_empty")

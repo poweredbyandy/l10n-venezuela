@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="hr_payslip_view_form_payment" model="ir.ui.view">
+        <field name="name">hr.payslip.form.l10n.ve.payment</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="payroll.hr_payslip_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_l10n_ve_register_payment"
+                    type="object"
+                    string="Register Payment"
+                    class="oe_highlight"
+                    invisible="state != 'done' or l10n_ve_amount_residual &lt;= 0"
+                />
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_open_l10n_ve_payment_moves"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-money"
+                    invisible="l10n_ve_payment_move_count == 0"
+                >
+                    <field
+                        name="l10n_ve_payment_move_count"
+                        widget="statinfo"
+                        string="Payments"
+                    />
+                </button>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <widget
+                    name="web_ribbon"
+                    title="Paid"
+                    invisible="l10n_ve_payment_state != 'paid'"
+                />
+                <widget
+                    name="web_ribbon"
+                    title="In Payment"
+                    invisible="l10n_ve_payment_state != 'in_payment'"
+                />
+                <widget
+                    name="web_ribbon"
+                    title="Reversed"
+                    bg_color="text-bg-danger"
+                    invisible="l10n_ve_payment_state != 'reversed'"
+                />
+                <field name="l10n_ve_payment_state" invisible="1" />
+            </xpath>
+            <xpath expr="//field[@name='paid']" position="after">
+                <field name="company_currency_id" invisible="1" />
+                <field name="l10n_ve_amount_net" />
+                <field name="l10n_ve_amount_paid" />
+                <field name="l10n_ve_amount_residual" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_payslip_view_tree_payment" model="ir.ui.view">
+        <field name="name">hr.payslip.list.l10n.ve.payment</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="payroll.hr_payslip_view_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field
+                    name="l10n_ve_payment_state"
+                    string="Payment Status"
+                    widget="badge"
+                    decoration-success="l10n_ve_payment_state == 'paid'"
+                    decoration-warning="l10n_ve_payment_state == 'in_payment'"
+                    decoration-danger="l10n_ve_payment_state == 'reversed'"
+                    decoration-muted="l10n_ve_payment_state == 'not_paid'"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_view_form_payment" model="ir.ui.view">
+        <field name="name">hr.payslip.run.form.l10n.ve.payment</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="inherit_id" ref="payroll.hr_payslip_run_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_l10n_ve_register_payment"
+                    type="object"
+                    string="Register Payment"
+                    class="oe_highlight"
+                    invisible="not slip_ids"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <menuitem
+        id="menu_l10n_ve_payroll_operations"
+        name="Operations"
+        parent="payroll.payroll_menu_root"
+        sequence="10"
+        groups="payroll.group_payroll_user"
+    />
+    <menuitem
+        id="menu_l10n_ve_payroll_employees"
+        name="Employees"
+        parent="payroll.payroll_menu_root"
+        sequence="20"
+        groups="payroll.group_payroll_user"
+    />
+    <menuitem
+        id="menu_l10n_ve_payroll_reporting"
+        name="Reporting"
+        parent="payroll.payroll_menu_root"
+        sequence="30"
+        groups="payroll.group_payroll_user"
+    />
+
+    <record id="payroll.hr_payslip_run_menu" model="ir.ui.menu">
+        <field name="name">Payslip Batches</field>
+        <field name="parent_id" ref="menu_l10n_ve_payroll_operations" />
+        <field name="sequence">10</field>
+    </record>
+    <record id="payroll.hr_payslip_menu" model="ir.ui.menu">
+        <field name="name">Payslips</field>
+        <field name="parent_id" ref="menu_l10n_ve_payroll_operations" />
+        <field name="sequence">20</field>
+    </record>
+    <record id="payroll_employee_loan.menu_payroll_employee_loan" model="ir.ui.menu">
+        <field name="name">Employee Loans</field>
+        <field name="parent_id" ref="menu_l10n_ve_payroll_operations" />
+        <field name="sequence">30</field>
+    </record>
+    <menuitem
+        id="menu_l10n_ve_payroll_social_benefit"
+        name="Social Benefits"
+        parent="menu_l10n_ve_payroll_operations"
+        action="l10n_ve_payroll_social_benefit_action"
+        sequence="40"
+    />
+    <record id="payroll_employee_loan.menu_payroll_employee_loan_root" model="ir.ui.menu">
+        <field name="active" eval="False" />
+    </record>
+
+    <menuitem
+        id="menu_l10n_ve_payroll_hr_employees"
+        name="Employees"
+        parent="menu_l10n_ve_payroll_employees"
+        action="hr.open_view_employee_list_my"
+        sequence="10"
+    />
+    <menuitem
+        id="menu_l10n_ve_payroll_hr_contracts"
+        name="Contracts"
+        parent="menu_l10n_ve_payroll_employees"
+        action="hr_contract.action_hr_contract"
+        sequence="20"
+        groups="hr_contract.group_hr_contract_manager"
+    />
+    <menuitem
+        id="menu_l10n_ve_payroll_departments"
+        name="Departments"
+        parent="menu_l10n_ve_payroll_employees"
+        action="hr.hr_department_tree_action"
+        sequence="30"
+    />
+    <menuitem
+        id="menu_l10n_ve_payroll_time_off"
+        name="Time Off"
+        parent="menu_l10n_ve_payroll_employees"
+        action="hr_holidays.hr_leave_action_action_approve_department"
+        sequence="40"
+        groups="hr_holidays.group_hr_holidays_responsible"
+    />
+
+    <menuitem
+        id="menu_l10n_ve_payroll_working_schedules"
+        name="Working Schedules"
+        parent="payroll.payroll_menu_configuration"
+        action="resource.action_resource_calendar_form"
+        sequence="5"
+        groups="payroll.group_payroll_manager"
+    />
+    <record id="payroll_employee_loan.menu_payroll_employee_loan_type" model="ir.ui.menu">
+        <field name="parent_id" ref="payroll.payroll_menu_configuration" />
+        <field name="sequence">20</field>
+    </record>
+    <record id="payroll.menu_payroll_global_settings" model="ir.ui.menu">
+        <field name="name">Payroll Settings</field>
+        <field name="sequence">0</field>
+    </record>
+</odoo>

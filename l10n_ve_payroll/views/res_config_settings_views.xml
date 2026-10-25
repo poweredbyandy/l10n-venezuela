@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_l10n_ve_payroll" model="ir.ui.view">
+        <field name="name">res.config.settings.l10n.ve.payroll</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="payroll.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='payroll']" position="inside">
+                <block
+                    title="Venezuela - Legal amounts"
+                    name="l10n_ve_payroll_legal_amounts"
+                >
+                    <setting
+                        id="l10n_ve_payroll_minimum_wage"
+                        company_dependent="1"
+                        string="Minimum wage"
+                        help="Legal monthly minimum wage in company currency (VES). Used as reference for contribution caps."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="minimum_wage"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="minimum_wage" class="col-lg-3" />
+                            </div>
+                        </div>
+                    </setting>
+                    <setting
+                        id="l10n_ve_payroll_meal_ticket"
+                        company_dependent="1"
+                        string="Meal ticket"
+                        help="Default daily meal ticket (cesta ticket) amount. Contracts can override it."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="meal_ticket_amount"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="meal_ticket_amount" class="col-lg-3" />
+                            </div>
+                        </div>
+                    </setting>
+                    <setting
+                        id="l10n_ve_payroll_profit_sharing"
+                        company_dependent="1"
+                        string="Profit sharing days"
+                        help="Default days used to compute annual profit sharing (utilidades)."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="profit_sharing_days"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="profit_sharing_days" class="col-lg-3" />
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+
+                <block
+                    title="Venezuela - Social security (SSO)"
+                    name="l10n_ve_payroll_sso"
+                >
+                    <setting
+                        id="l10n_ve_payroll_sso_rates"
+                        company_dependent="1"
+                        string="SSO rates"
+                        help="Employee withholding and employer risk contribution for IVSS (SSO)."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="sso_employee_rate"
+                                    string="Employee (%)"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="sso_employee_rate" class="col-lg-2" />
+                            </div>
+                            <div class="row mt8">
+                                <label
+                                    for="sso_employer_risk_rate"
+                                    string="Employer risk (%)"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field
+                                    name="sso_employer_risk_rate"
+                                    class="col-lg-2"
+                                />
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+
+                <block
+                    title="Venezuela - Housing fund (FAOV)"
+                    name="l10n_ve_payroll_faov"
+                >
+                    <setting
+                        id="l10n_ve_payroll_faov_rates"
+                        company_dependent="1"
+                        string="FAOV rates"
+                        help="Employee and employer contributions to BANAVIH (FAOV / LPH)."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="faov_employee_rate"
+                                    string="Employee (%)"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="faov_employee_rate" class="col-lg-2" />
+                            </div>
+                            <div class="row mt8">
+                                <label
+                                    for="faov_employer_rate"
+                                    string="Employer (%)"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="faov_employer_rate" class="col-lg-2" />
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+
+                <block
+                    title="Venezuela - Employment regime (RPE)"
+                    name="l10n_ve_payroll_rpe"
+                >
+                    <setting
+                        id="l10n_ve_payroll_rpe_rates"
+                        company_dependent="1"
+                        string="RPE rates"
+                        help="Employee and employer contributions for the employment regime (RPE)."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="rpe_employee_rate"
+                                    string="Employee (%)"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="rpe_employee_rate" class="col-lg-2" />
+                            </div>
+                            <div class="row mt8">
+                                <label
+                                    for="rpe_employer_rate"
+                                    string="Employer (%)"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="rpe_employer_rate" class="col-lg-2" />
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+
+                <block
+                    title="Venezuela - INCES and CEPP"
+                    name="l10n_ve_payroll_inces_cepp"
+                >
+                    <setting
+                        id="l10n_ve_payroll_inces"
+                        company_dependent="1"
+                        string="INCES"
+                        help="Employer contribution to INCES. Applied when the company reaches the minimum headcount."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="inces_employer_rate"
+                                    string="Employer (%)"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="inces_employer_rate" class="col-lg-2" />
+                            </div>
+                            <div class="row mt8">
+                                <label
+                                    for="inces_min_employees"
+                                    string="Minimum employees"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="inces_min_employees" class="col-lg-2" />
+                            </div>
+                        </div>
+                    </setting>
+                    <setting
+                        id="l10n_ve_payroll_cepp"
+                        company_dependent="1"
+                        string="CEPP"
+                        help="Special pension contribution rate (CEPP), used as a complementary employer parameter."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="cepp_employer_rate"
+                                    string="Employer (%)"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field name="cepp_employer_rate" class="col-lg-2" />
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+
+                <block
+                    title="Venezuela - Institutional partners"
+                    name="l10n_ve_payroll_partners"
+                >
+                    <setting
+                        id="l10n_ve_payroll_ivss"
+                        company_dependent="1"
+                        string="IVSS"
+                        help="Employer number and accounting partner for IVSS / SSO contributions."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="ivss_employer_number"
+                                    string="Employer number"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field
+                                    name="ivss_employer_number"
+                                    class="col-lg-4"
+                                    placeholder="e.g. 1234567890"
+                                />
+                            </div>
+                            <div class="row mt8">
+                                <label
+                                    for="partner_ivss_id"
+                                    string="Partner"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field
+                                    name="partner_ivss_id"
+                                    class="col-lg-4"
+                                    options="{'no_create': True}"
+                                />
+                            </div>
+                        </div>
+                    </setting>
+                    <setting
+                        id="l10n_ve_payroll_banavih"
+                        company_dependent="1"
+                        string="BANAVIH / FAOV"
+                        help="FAOV account number and accounting partner for BANAVIH contributions."
+                    >
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="faov_account_number"
+                                    string="Account number"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field
+                                    name="faov_account_number"
+                                    class="col-lg-4"
+                                    placeholder="e.g. FAOV account"
+                                />
+                            </div>
+                            <div class="row mt8">
+                                <label
+                                    for="partner_banavih_id"
+                                    string="Partner"
+                                    class="col-lg-3 o_light_label"
+                                />
+                                <field
+                                    name="partner_banavih_id"
+                                    class="col-lg-4"
+                                    options="{'no_create': True}"
+                                />
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

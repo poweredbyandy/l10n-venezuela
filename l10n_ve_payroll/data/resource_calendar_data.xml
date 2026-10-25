@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data noupdate="1">
+        <!--
+            LOTTT (Venezuela) legal working-time calendars.
+            Rest days (Sat/Sun) are NOT working attendances: payroll pays them
+            via DDESS/DDESD rules, not as WORK100.
+            Art. ~173: diurnal 8h/day 40h/week; night 7h/day 35h/week;
+            mixed 7.5h/day 37.5h/week. Weekly rest preferably Sunday.
+        -->
+        <record id="resource_calendar_ve_diurna_40h" model="resource.calendar">
+            <field name="name">VE LOTTT - Jornada diurna (40 h/sem)</field>
+            <field name="tz">America/Caracas</field>
+            <field name="company_id" eval="False" />
+            <field name="full_time_required_hours">40</field>
+            <field name="hours_per_day">8</field>
+            <field
+                name="attendance_ids"
+                eval="[(5, 0, 0)] + [
+                    (0, 0, {'name': 'Lunes manana', 'dayofweek': '0', 'day_period': 'morning', 'hour_from': 8.0, 'hour_to': 12.0, 'sequence': 10}),
+                    (0, 0, {'name': 'Lunes descanso', 'dayofweek': '0', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 11}),
+                    (0, 0, {'name': 'Lunes tarde', 'dayofweek': '0', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 17.0, 'sequence': 12}),
+                    (0, 0, {'name': 'Martes manana', 'dayofweek': '1', 'day_period': 'morning', 'hour_from': 8.0, 'hour_to': 12.0, 'sequence': 20}),
+                    (0, 0, {'name': 'Martes descanso', 'dayofweek': '1', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 21}),
+                    (0, 0, {'name': 'Martes tarde', 'dayofweek': '1', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 17.0, 'sequence': 22}),
+                    (0, 0, {'name': 'Miercoles manana', 'dayofweek': '2', 'day_period': 'morning', 'hour_from': 8.0, 'hour_to': 12.0, 'sequence': 30}),
+                    (0, 0, {'name': 'Miercoles descanso', 'dayofweek': '2', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 31}),
+                    (0, 0, {'name': 'Miercoles tarde', 'dayofweek': '2', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 17.0, 'sequence': 32}),
+                    (0, 0, {'name': 'Jueves manana', 'dayofweek': '3', 'day_period': 'morning', 'hour_from': 8.0, 'hour_to': 12.0, 'sequence': 40}),
+                    (0, 0, {'name': 'Jueves descanso', 'dayofweek': '3', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 41}),
+                    (0, 0, {'name': 'Jueves tarde', 'dayofweek': '3', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 17.0, 'sequence': 42}),
+                    (0, 0, {'name': 'Viernes manana', 'dayofweek': '4', 'day_period': 'morning', 'hour_from': 8.0, 'hour_to': 12.0, 'sequence': 50}),
+                    (0, 0, {'name': 'Viernes descanso', 'dayofweek': '4', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 51}),
+                    (0, 0, {'name': 'Viernes tarde', 'dayofweek': '4', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 17.0, 'sequence': 52}),
+                ]"
+            />
+        </record>
+
+        <record id="resource_calendar_ve_mixta_375h" model="resource.calendar">
+            <field name="name">VE LOTTT - Jornada mixta (37,5 h/sem)</field>
+            <field name="tz">America/Caracas</field>
+            <field name="company_id" eval="False" />
+            <field name="full_time_required_hours">37.5</field>
+            <field name="hours_per_day">7.5</field>
+            <field
+                name="attendance_ids"
+                eval="[(5, 0, 0)] + [
+                    (0, 0, {'name': 'Lunes manana', 'dayofweek': '0', 'day_period': 'morning', 'hour_from': 7.0, 'hour_to': 12.0, 'sequence': 10}),
+                    (0, 0, {'name': 'Lunes descanso', 'dayofweek': '0', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 11}),
+                    (0, 0, {'name': 'Lunes tarde', 'dayofweek': '0', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 15.5, 'sequence': 12}),
+                    (0, 0, {'name': 'Martes manana', 'dayofweek': '1', 'day_period': 'morning', 'hour_from': 7.0, 'hour_to': 12.0, 'sequence': 20}),
+                    (0, 0, {'name': 'Martes descanso', 'dayofweek': '1', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 21}),
+                    (0, 0, {'name': 'Martes tarde', 'dayofweek': '1', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 15.5, 'sequence': 22}),
+                    (0, 0, {'name': 'Miercoles manana', 'dayofweek': '2', 'day_period': 'morning', 'hour_from': 7.0, 'hour_to': 12.0, 'sequence': 30}),
+                    (0, 0, {'name': 'Miercoles descanso', 'dayofweek': '2', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 31}),
+                    (0, 0, {'name': 'Miercoles tarde', 'dayofweek': '2', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 15.5, 'sequence': 32}),
+                    (0, 0, {'name': 'Jueves manana', 'dayofweek': '3', 'day_period': 'morning', 'hour_from': 7.0, 'hour_to': 12.0, 'sequence': 40}),
+                    (0, 0, {'name': 'Jueves descanso', 'dayofweek': '3', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 41}),
+                    (0, 0, {'name': 'Jueves tarde', 'dayofweek': '3', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 15.5, 'sequence': 42}),
+                    (0, 0, {'name': 'Viernes manana', 'dayofweek': '4', 'day_period': 'morning', 'hour_from': 7.0, 'hour_to': 12.0, 'sequence': 50}),
+                    (0, 0, {'name': 'Viernes descanso', 'dayofweek': '4', 'day_period': 'lunch', 'hour_from': 12.0, 'hour_to': 13.0, 'sequence': 51}),
+                    (0, 0, {'name': 'Viernes tarde', 'dayofweek': '4', 'day_period': 'afternoon', 'hour_from': 13.0, 'hour_to': 15.5, 'sequence': 52}),
+                ]"
+            />
+        </record>
+
+        <record id="resource_calendar_ve_nocturna_35h" model="resource.calendar">
+            <field name="name">VE LOTTT - Jornada nocturna (35 h/sem)</field>
+            <field name="tz">America/Caracas</field>
+            <field name="company_id" eval="False" />
+            <field name="full_time_required_hours">35</field>
+            <field name="hours_per_day">7</field>
+            <field
+                name="attendance_ids"
+                eval="[(5, 0, 0)] + [
+                    (0, 0, {'name': 'Lunes nocturno', 'dayofweek': '0', 'day_period': 'morning', 'hour_from': 0.0, 'hour_to': 7.0, 'sequence': 10}),
+                    (0, 0, {'name': 'Martes nocturno', 'dayofweek': '1', 'day_period': 'morning', 'hour_from': 0.0, 'hour_to': 7.0, 'sequence': 20}),
+                    (0, 0, {'name': 'Miercoles nocturno', 'dayofweek': '2', 'day_period': 'morning', 'hour_from': 0.0, 'hour_to': 7.0, 'sequence': 30}),
+                    (0, 0, {'name': 'Jueves nocturno', 'dayofweek': '3', 'day_period': 'morning', 'hour_from': 0.0, 'hour_to': 7.0, 'sequence': 40}),
+                    (0, 0, {'name': 'Viernes nocturno', 'dayofweek': '4', 'day_period': 'morning', 'hour_from': 0.0, 'hour_to': 7.0, 'sequence': 50}),
+                ]"
+            />
+        </record>
+    </data>
+</odoo>

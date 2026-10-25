@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="payroll_employee_loan_view_form_ve_account" model="ir.ui.view">
+        <field name="name">payroll.employee.loan.form.ve.account</field>
+        <field name="model">payroll.employee.loan</field>
+        <field name="inherit_id" ref="payroll_employee_loan.payroll_employee_loan_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='disbursement_account_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+                <attribute name="required">0</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="payroll_employee_loan_type_view_form_ve_account" model="ir.ui.view">
+        <field name="name">payroll.employee.loan.type.form.ve.account</field>
+        <field name="model">payroll.employee.loan.type</field>
+        <field name="inherit_id" ref="payroll_employee_loan.payroll_employee_loan_type_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='disbursement_account_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

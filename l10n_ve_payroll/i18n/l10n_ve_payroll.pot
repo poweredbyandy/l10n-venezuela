@@ -1,0 +1,442 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_payroll
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-24 23:38+0000\n"
+"PO-Revision-Date: 2026-10-24 23:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__l10n_ve_payroll_social_benefit__benefit_type__accrual
+msgid "Accrual"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__amount
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__amount
+msgid "Amount"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,help:l10n_ve_payroll.field_res_company__inces_min_employees
+#: model:ir.model.fields,help:l10n_ve_payroll.field_res_config_settings__inces_min_employees
+msgid "Apply INCES when the company has at least this many employees."
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__partner_banavih_id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__partner_banavih_id
+msgid "BANAVIH Partner"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__balance
+msgid "Balance"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__benefit_id
+msgid "Benefit"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__benefit_type
+msgid "Benefit Type"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__cepp_employer_rate
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__cepp_employer_rate
+msgid "CEPP Employer Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__code
+msgid "Code"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model,name:l10n_ve_payroll.model_res_company
+msgid "Companies"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__company_id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__company_id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__company_id
+msgid "Company"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model,name:l10n_ve_payroll.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__hr_employee__l10n_ve_worker_type__contractor
+msgid "Contractor"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__create_uid
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__create_date
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__create_date
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__create_date
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__currency_id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__currency_id
+msgid "Currency"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__date
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__date
+msgid "Date"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__date_from
+msgid "Date From"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__days_balance
+msgid "Days Balance"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__days_earned
+msgid "Days Earned"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__days_taken
+msgid "Days Taken"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__display_name
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__display_name
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__display_name
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__hr_employee__l10n_ve_workday_type__diurnal
+msgid "Diurnal"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model,name:l10n_ve_payroll.model_hr_employee
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__employee_id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__employee_id
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__hr_employee__l10n_ve_worker_type__employee
+msgid "Employee"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__faov_account_number
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__faov_account_number
+msgid "FAOV Account Number"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__faov_employee_rate
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__faov_employee_rate
+msgid "FAOV Employee Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__faov_employer_rate
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__faov_employer_rate
+msgid "FAOV Employer Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_hr_employee__l10n_ve_has_disability
+msgid "Has Disability"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__id
+msgid "ID"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__inces_employer_rate
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__inces_employer_rate
+msgid "INCES Employer Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__inces_min_employees
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__inces_min_employees
+msgid "INCES Minimum Employees"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_hr_employee__l10n_ve_islr_rate
+msgid "ISLR Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__ivss_employer_number
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__ivss_employer_number
+msgid "IVSS Employer Number"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__partner_ivss_id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__partner_ivss_id
+msgid "IVSS Partner"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll.res_config_settings_view_form_l10n_ve_payroll
+msgid "Identifiers"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__l10n_ve_payroll_social_benefit__benefit_type__interest
+msgid "Interest"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__interest_ids
+msgid "Interests"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__hr_employee__l10n_ve_worker_type__intern
+msgid "Intern"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__write_uid
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__write_date
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__write_date
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__write_date
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,help:l10n_ve_payroll.field_res_company__minimum_wage
+#: model:ir.model.fields,help:l10n_ve_payroll.field_res_config_settings__minimum_wage
+msgid "Legal minimum wage in company currency (VES)."
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__meal_ticket_amount
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__meal_ticket_amount
+msgid "Meal Ticket Amount"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__minimum_wage
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__minimum_wage
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll.res_config_settings_view_form_l10n_ve_payroll
+msgid "Minimum Wage"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__hr_employee__l10n_ve_workday_type__mixed
+msgid "Mixed"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__name
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__name
+msgid "Name"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__hr_employee__l10n_ve_workday_type__nocturnal
+msgid "Nocturnal"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__notes
+msgid "Notes"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_rule_parameter__parameter_value
+msgid "Parameter Value"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__l10n_ve_payroll_social_benefit__benefit_type__payment
+msgid "Payment"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model,name:l10n_ve_payroll.model_hr_payslip
+msgid "Payslip"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__profit_sharing_days
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__profit_sharing_days
+msgid "Profit Sharing Days"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__rpe_employee_rate
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__rpe_employee_rate
+msgid "RPE Employee Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__rpe_employer_rate
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__rpe_employer_rate
+msgid "RPE Employer Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__rate
+msgid "Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll.res_config_settings_view_form_l10n_ve_payroll
+msgid "SSO / FAOV / RPE / INCES / CEPP"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__sso_employee_rate
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__sso_employee_rate
+msgid "SSO Employee Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_company__sso_employer_risk_rate
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_res_config_settings__sso_employer_risk_rate
+msgid "SSO Employer Risk Rate (%)"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields.selection,name:l10n_ve_payroll.selection__l10n_ve_payroll_social_benefit__benefit_type__settlement
+msgid "Settlement"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_hr_payslip__social_benefit_id
+msgid "Social Benefit Accrual"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model,name:l10n_ve_payroll.model_l10n_ve_payroll_social_benefit_interest
+msgid "Social Benefit Interest"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.actions.act_window,name:l10n_ve_payroll.l10n_ve_payroll_social_benefit_action
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_hr_employee__social_benefit_ids
+#: model:ir.ui.menu,name:l10n_ve_payroll.menu_l10n_ve_payroll_social_benefit
+msgid "Social Benefits"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__source_payslip_id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit__source_payslip_id
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_social_benefit_interest__source_payslip_id
+msgid "Source Payslip"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,help:l10n_ve_payroll.field_res_company__cepp_employer_rate
+#: model:ir.model.fields,help:l10n_ve_payroll.field_res_config_settings__cepp_employer_rate
+msgid "Special pension contribution (CEPP)."
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_hr_employee__l10n_ve_is_unionized
+msgid "Unionized"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:hr.salary.rule.category,name:l10n_ve_payroll.hr_salary_rule_category_ve_basic
+msgid "VE Basic"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:hr.salary.rule.category,name:l10n_ve_payroll.hr_salary_rule_category_ve_ded
+msgid "VE Deduction"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:hr.salary.rule.category,name:l10n_ve_payroll.hr_salary_rule_category_ve_contrib
+msgid "VE Employer Contribution"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll.hr_employee_view_form_l10n_ve_payroll
+msgid "Venezuela"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll.res_config_settings_view_form_l10n_ve_payroll
+msgid "Venezuela Payroll"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model,name:l10n_ve_payroll.model_l10n_ve_payroll_leave_history
+msgid "Venezuelan Leave History"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model,name:l10n_ve_payroll.model_l10n_ve_payroll_rule_parameter
+msgid "Venezuelan Payroll Rule Parameter"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model,name:l10n_ve_payroll.model_l10n_ve_payroll_social_benefit
+msgid "Venezuelan Social Benefit Accrual"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_hr_employee__l10n_ve_workday_type
+msgid "Workday Type"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_hr_employee__l10n_ve_worker_type
+msgid "Worker Type"
+msgstr ""
+
+#. module: l10n_ve_payroll
+#: model:ir.model.fields,field_description:l10n_ve_payroll.field_l10n_ve_payroll_leave_history__year
+msgid "Year"
+msgstr ""

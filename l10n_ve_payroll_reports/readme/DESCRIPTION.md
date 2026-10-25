@@ -1,0 +1,1 @@
+Labor declarations and reports for Venezuelan payroll (FAOV, ISLR laboral, INCES, MINTRA, CEPP).\n

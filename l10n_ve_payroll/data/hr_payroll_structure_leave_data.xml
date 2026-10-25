@@ -1,0 +1,192 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <data noupdate="1">
+    <record id="rule_dias_habiles_vacaciones" model="hr.salary.rule">
+      <field name="name">Días hábiles en vacaciones</field>
+      <field name="code">VACA</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = worked_days.VACA
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto = contract.wage
+VACA = worked_days.VACA.number_of_days if worked_days.VACA else 0
+result = (monto / 30) * VACA
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.category_asignacion"/>
+      <field name="sequence" eval="1"/>
+    </record>
+    <record id="rule_dias_desfer_vacaciones" model="hr.salary.rule">
+      <field name="name">Días de Des/Fer en vacaciones</field>
+      <field name="code">DDFVACA</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = worked_days.DDFVACA
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto = contract.wage
+DDFVACA = worked_days.DDFVACA.number_of_days if worked_days.DDFVACA else 0
+result = (monto / 30) * DDFVACA
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.category_asignacion_subsidio"/>
+      <field name="sequence" eval="2"/>
+    </record>
+    <record id="rule_bono_vacacional" model="hr.salary.rule">
+      <field name="name">Bono Vacacional</field>
+      <field name="code">BONOVACA</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto = contract.wage
+VACA = worked_days.VACA.number_of_days if worked_days.VACA else 0
+result = (monto / 30) * VACA
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.category_asignacion_bonos"/>
+      <field name="sequence" eval="2"/>
+    </record>
+    <!--    Deducciones   100 -->
+    <record id="rule_DESCSSO_vacaciones" model="hr.salary.rule">
+      <field name="name">Retención SSO</field>
+      <field name="code">DESCSSO</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = contract.withhold_sso
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto_base = categories.ASIGNA + categories.SUBS + categories.BONO
+#if monto_base &gt; (employee.company_id.minimum_wage * 5):
+# monto_base = (employee.company_id.minimum_wage * 5)
+result = ((monto_base*12)/52) * (employee.company_id.sso_employee_rate/100) * payslip.period_mondays
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_DED"/>
+      <field name="sequence" eval="100"/>
+    </record>
+    <record id="rule_FAOV_vacaciones" model="hr.salary.rule">
+      <field name="name">Retención FAOV</field>
+      <field name="code">FAOV</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = contract.withhold_faov
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BONO)) * (employee.company_id.faov_employee_rate/100)
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_DED"/>
+      <field name="sequence" eval="101"/>
+    </record>
+    <record id="rule_RPE_vacaciones" model="hr.salary.rule">
+      <field name="name">Retención RPE</field>
+      <field name="code">RPE</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = contract.withhold_rpe
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto_base = categories.ASIGNA + categories.SUBS + categories.BONO
+#if monto_base &gt; (employee.company_id.minimum_wage * 10):
+# monto_base = (employee.company_id.minimum_wage * 10)
+result = ((monto_base*12)/52) * (employee.company_id.rpe_employee_rate/100) * payslip.period_mondays
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_DED"/>
+      <field name="sequence" eval="102"/>
+    </record>
+    <!--    Aprtes de empresa   200 -->
+    <record id="rule_APORSSO_vacaciones" model="hr.salary.rule">
+      <field name="name">Aporte SSO</field>
+      <field name="code">APORSSO</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = contract.withhold_sso
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto_base = contract.wage
+#if monto_base &gt; (employee.company_id.minimum_wage * 5):
+# monto_base = (employee.company_id.minimum_wage * 5)
+result = ((monto_base*12)/52) * (employee.company_id.sso_employer_risk_rate/100) * payslip.period_mondays
+            </field>
+      <field name="appears_on_payslip">False</field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_COMP"/>
+      <field name="sequence" eval="200"/>
+    </record>
+    <record id="rule_aporte_FAOV_vacaciones" model="hr.salary.rule">
+      <field name="name">Aporte FAOV</field>
+      <field name="code">AFAOV</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = contract.withhold_faov
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BONO)) * (employee.company_id.faov_employer_rate/100)
+            </field>
+      <field name="appears_on_payslip">False</field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_COMP"/>
+      <field name="sequence" eval="201"/>
+    </record>
+    <record id="rule_RPE_empresa_vacaciones" model="hr.salary.rule">
+      <field name="name">Aporte RPE</field>
+      <field name="code">ARPE</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = contract.withhold_rpe
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto_base = contract.wage
+#if monto_base &gt; (employee.company_id.minimum_wage * 10):
+# monto_base = (employee.company_id.minimum_wage * 10)
+result = ((monto_base*12)/52) * (employee.company_id.rpe_employer_rate/100) * payslip.period_mondays
+            </field>
+      <field name="appears_on_payslip">False</field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_COMP"/>
+      <field name="sequence" eval="202"/>
+    </record>
+    <!--    Totales   300 -->
+    <record id="rule_total_ded_vacaciones" model="hr.salary.rule">
+      <field name="name">Total Deducciones</field>
+      <field name="code">TOTAL_DED</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = categories.DED
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.categoria_total_deducciones"/>
+      <field name="sequence" eval="300"/>
+    </record>
+    <record id="rule_total_asignaciones_vacaciones" model="hr.salary.rule">
+      <field name="name">Total Asignaciones</field>
+      <field name="code">TOTAL_ASIG</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BONO
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.categoria_total_asignaciones"/>
+      <field name="sequence" eval="301"/>
+    </record>
+    <record id="rule_NET_vacaciones" model="hr.salary.rule">
+      <field name="name">Total</field>
+      <field name="code">TOTAL</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = categories.BASIC + categories.ASIGNA + categories.ASIGNA + categories.BONO - categories.DED
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_NET"/>
+      <field name="sequence" eval="302"/>
+    </record>
+    <record id="structure_vacaciones" model="hr.payroll.structure">
+      <field name="name">Vacaciones</field>
+      <field name="code">LEAVE</field>
+      <field name="note">Schedule pay: annually</field>
+      <field name="rule_ids" eval="[(6, 0, [ref('l10n_ve_payroll.rule_dias_habiles_vacaciones'), ref('l10n_ve_payroll.rule_dias_desfer_vacaciones'), ref('l10n_ve_payroll.rule_bono_vacacional'), ref('l10n_ve_payroll.rule_DESCSSO_vacaciones'), ref('l10n_ve_payroll.rule_FAOV_vacaciones'), ref('l10n_ve_payroll.rule_RPE_vacaciones'), ref('l10n_ve_payroll.rule_APORSSO_vacaciones'), ref('l10n_ve_payroll.rule_aporte_FAOV_vacaciones'), ref('l10n_ve_payroll.rule_RPE_empresa_vacaciones'), ref('l10n_ve_payroll.rule_total_ded_vacaciones'), ref('l10n_ve_payroll.rule_total_asignaciones_vacaciones'), ref('l10n_ve_payroll.rule_NET_vacaciones')])]"/>
+      <field name="schedule_pay">annually</field>
+    </record>
+  </data>
+</odoo>

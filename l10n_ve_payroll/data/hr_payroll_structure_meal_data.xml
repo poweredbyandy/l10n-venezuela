@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <data noupdate="1">
+    <!--    Asignaciones    -->
+    <record id="rule_BALIM_alimentacion" model="hr.salary.rule">
+      <field name="name">Bono de alimentación</field>
+      <field name="code">BALIM</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto = employee.company_id.meal_ticket_amount if not contract.meal_allowance else contract.meal_allowance
+WORK100 = worked_days.WORK100.number_of_days if worked_days.WORK100 else 0
+DDESS = worked_days.DDESS.number_of_days if worked_days.DDESS else 0
+DDESD = worked_days.DDESD.number_of_days if worked_days.DDESD else 0
+AUSEP = worked_days.AUSEP.number_of_days if worked_days.AUSEP else 0
+dias = WORK100 + DDESS + DDESD + AUSEP
+result = (monto / 30) * dias
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.category_asignacion_bonos"/>
+      <field name="sequence" eval="1"/>
+    </record>
+    <record id="rule_BAHE_alimentacion" model="hr.salary.rule">
+      <field name="name">Bono de alimentación por HE</field>
+      <field name="code">BAHE</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+HED = worked_days.HED.number_of_hours if worked_days.HED else 0
+HEN = worked_days.HEN.number_of_hours if worked_days.HEN else 0
+horas = HED + HEN
+result = horas &gt; 0
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+monto = employee.company_id.meal_ticket_amount if not contract.meal_allowance else contract.meal_allowance
+HED = worked_days.HED.number_of_hours if worked_days.HED else 0
+HEN = worked_days.HEN.number_of_hours if worked_days.HEN else 0
+horas = HED + HEN
+result = (monto/30)/8 * horas
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.category_otros"/>
+      <field name="sequence" eval="2"/>
+    </record>
+    <!--    Totales   300 -->
+    <record id="rule_total_asignaciones_alimentacion" model="hr.salary.rule">
+      <field name="name">Total Asignaciones</field>
+      <field name="code">TOTAL_ASIG</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = categories.BASIC + categories.ASIGNA + categories.ASIGNA_INCEN + categories.BONO
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.categoria_total_asignaciones"/>
+      <field name="sequence" eval="300"/>
+    </record>
+    <record id="rule_NET_alimentaciones" model="hr.salary.rule">
+      <field name="name">Total</field>
+      <field name="code">TOTAL</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = categories.BASIC + categories.ASIGNA + categories.BONO - categories.DED
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_NET"/>
+      <field name="sequence" eval="301"/>
+    </record>
+    <record id="structure_alimentacion" model="hr.payroll.structure">
+      <field name="name">Alimentación</field>
+      <field name="code">MEAL</field>
+      <field name="note">Schedule pay: monthly</field>
+      <field name="rule_ids" eval="[(6, 0, [ref('l10n_ve_payroll.rule_BALIM_alimentacion'), ref('l10n_ve_payroll.rule_BAHE_alimentacion'), ref('l10n_ve_payroll.rule_total_asignaciones_alimentacion'), ref('l10n_ve_payroll.rule_NET_alimentaciones')])]"/>
+      <field name="schedule_pay">monthly</field>
+    </record>
+  </data>
+</odoo>

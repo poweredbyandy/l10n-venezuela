@@ -1,0 +1,148 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_ve_payroll_reports
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-24 23:39+0000\n"
+"PO-Revision-Date: 2026-10-24 23:39+0000\n"
+"Last-Translator: andyengit <anderson.armeya@gmail.com>\n"
+"Language-Team: Spanish (VE)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_reports.selection__l10n_ve_payroll_declaration_export__declaration_type__cepp
+msgid "CEPP Forma 19"
+msgstr "CEPP Forma 19"
+
+#. module: l10n_ve_payroll_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll_reports.l10n_ve_payroll_declaration_export_view_form
+msgid "Close"
+msgstr "Cerrar"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__date_from
+msgid "Date From"
+msgstr "Fecha desde"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__date_to
+msgid "Date To"
+msgstr "Fecha hasta"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__declaration_type
+msgid "Declaration Type"
+msgstr "Tipo de declaración"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: l10n_ve_payroll_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll_reports.l10n_ve_payroll_declaration_export_view_form
+msgid "Export"
+msgstr "Exportar"
+
+#. module: l10n_ve_payroll_reports
+#: model_terms:ir.ui.view,arch_db:l10n_ve_payroll_reports.l10n_ve_payroll_declaration_export_view_form
+msgid "Export Declaration"
+msgstr "Exportar declaración"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_reports.selection__l10n_ve_payroll_declaration_export__declaration_type__faov
+msgid "FAOV"
+msgstr "FAOV"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__file_data
+msgid "File Data"
+msgstr "Datos del archivo"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__file_name
+msgid "File Name"
+msgstr "Nombre de archivo"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__id
+msgid "ID"
+msgstr "ID"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_reports.selection__l10n_ve_payroll_declaration_export__declaration_type__inces
+msgid "INCES"
+msgstr "INCES"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_reports.selection__l10n_ve_payroll_declaration_export__declaration_type__islr
+msgid "ISLR Laboral"
+msgstr "ISLR laboral"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_reports.selection__l10n_ve_payroll_declaration_export__declaration_type__ivss
+msgid "IVSS / TIUNA"
+msgstr "IVSS / TIUNA"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields,field_description:l10n_ve_payroll_reports.field_l10n_ve_payroll_declaration_export__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_reports.selection__l10n_ve_payroll_declaration_export__declaration_type__mintra
+msgid "MINTRA"
+msgstr "MINTRA"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_reports.selection__l10n_ve_payroll_declaration_export__declaration_type__he
+msgid "Overtime HE"
+msgstr "Horas extras HE"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.actions.act_window,name:l10n_ve_payroll_reports.l10n_ve_payroll_declaration_export_action
+msgid "Payroll Declarations"
+msgstr "Declaraciones de nómina"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model.fields.selection,name:l10n_ve_payroll_reports.selection__l10n_ve_payroll_declaration_export__declaration_type__rnet
+msgid "RNET"
+msgstr "RNET"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.ui.menu,name:l10n_ve_payroll_reports.menu_l10n_ve_payroll_declarations
+msgid "VE Declarations"
+msgstr "Declaraciones VE"
+
+#. module: l10n_ve_payroll_reports
+#: model:ir.model,name:l10n_ve_payroll_reports.model_l10n_ve_payroll_declaration_export
+msgid "Venezuelan Payroll Declaration Export"
+msgstr "Exportación de declaración de nómina VE"
+

@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <data noupdate="1">
+    <!--    Asignaciones    -->
+    <record id="rule_UTILID_utilidades" model="hr.salary.rule">
+      <field name="name">Pago de Utilidades</field>
+      <field name="code">UTILID</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+payslip_lines = payslip.env['hr.payslip.line'].search([
+    ('slip_id.date_from', '&gt;=', payslip.date_from),
+    ('slip_id.date_to', '&lt;=', payslip.date_to),
+    ('employee_id', '=', employee.id),
+    ('code', '=', 'TOTAL_ASIG'),
+])
+base = sum(payslip_lines.mapped('total'))
+result = ((base/360) * contract.profit_sharing_days) + (inputs.MCBRUEMP.amount if inputs.MCBRUEMP else 0.0)
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.category_asignacion"/>
+      <field name="sequence" eval="10"/>
+      <field name="active">True</field>
+    </record>
+    <!--    Deducciones   100 -->
+    <record id="rule_DANTIU_utilidades" model="hr.salary.rule">
+      <field name="name">Descuento de Anticipo de Utilidades</field>
+      <field name="code">DANTIU</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+fechaToStr = str(payslip.date_to)
+mesAnioTo = fechaToStr[:7]
+anioTo = mesAnioTo[:4]
+fechaIniStr = anioTo + '-01-01'
+fechaFinStr = anioTo + '-10-30'
+anti_utilidades = payslips.sum('ANTIU', fechaIniStr , fechaFinStr)
+if anti_utilidades &gt;0:
+ result = True
+else:
+ result = False
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+fechaToStr = str(payslip.date_to)
+mesAnioTo = fechaToStr[:7]
+anioTo = mesAnioTo[:4]
+fechaIniStr = anioTo + '-01-01'
+fechaFinStr = anioTo + '-12-30'
+anti_utilidades = payslips.sum('ANTIU', fechaIniStr , fechaFinStr)
+result = anti_utilidades
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_DED"/>
+      <field name="sequence" eval="100"/>
+    </record>
+    <record id="rule_RINCES_utilidades" model="hr.salary.rule">
+      <field name="name">Retencion Inces</field>
+      <field name="code">RINCES</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = (categories.ASIGNA * 0.5)/100
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_DED"/>
+      <field name="sequence" eval="101"/>
+    </record>
+    <record id="rule_FAOV_utilidades" model="hr.salary.rule">
+      <field name="name">Retención FAOV</field>
+      <field name="code">FAOV</field>
+      <field name="condition_select">python</field>
+      <field name="condition_python">
+result = contract.withhold_faov
+            </field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BONO)) * (employee.company_id.faov_employee_rate/100)
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_DED"/>
+      <field name="sequence" eval="102"/>
+    </record>
+    <!--    Totales   300 -->
+    <record id="rule_total_asignaciones_utilidades" model="hr.salary.rule">
+      <field name="name">Total Asignaciones</field>
+      <field name="code">TOTAL_ASIG</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BONO
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.categoria_total_asignaciones"/>
+      <field name="sequence" eval="300"/>
+    </record>
+    <record id="rule_total_ded_utilidades" model="hr.salary.rule">
+      <field name="name">Total Deducciones</field>
+      <field name="code">TOTAL_DED</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = categories.DED
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.categoria_total_deducciones"/>
+      <field name="sequence" eval="301"/>
+    </record>
+    <record id="rule_NET_utilidades" model="hr.salary.rule">
+      <field name="name">Total</field>
+      <field name="code">TOTAL</field>
+      <field name="condition_select">none</field>
+      <field name="amount_select">code</field>
+      <field name="amount_python_compute">
+result = (categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BONO) - categories.DED
+            </field>
+      <field name="category_id" ref="l10n_ve_payroll.hr_salary_rule_category_NET"/>
+      <field name="sequence" eval="500"/>
+    </record>
+    <record id="rule_input_MCBRUEMP_rule_UTILID_utilidades" model="hr.rule.input">
+      <field name="name">Monto Capital bruto acreditado por la empresa</field>
+      <field name="code">MCBRUEMP</field>
+      <field name="input_id" ref="rule_UTILID_utilidades"/>
+    </record>
+    <record id="structure_utilidades" model="hr.payroll.structure">
+      <field name="name">Utilidades</field>
+      <field name="code">PROFIT</field>
+      <field name="note">Schedule pay: annually</field>
+      <field name="rule_ids" eval="[(6, 0, [ref('l10n_ve_payroll.rule_UTILID_utilidades'), ref('l10n_ve_payroll.rule_DANTIU_utilidades'), ref('l10n_ve_payroll.rule_RINCES_utilidades'), ref('l10n_ve_payroll.rule_FAOV_utilidades'), ref('l10n_ve_payroll.rule_total_asignaciones_utilidades'), ref('l10n_ve_payroll.rule_total_ded_utilidades'), ref('l10n_ve_payroll.rule_NET_utilidades')])]"/>
+      <field name="schedule_pay">annually</field>
+    </record>
+  </data>
+</odoo>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <menuitem
+        id="menu_l10n_ve_payroll_declarations"
+        name="VE Declarations"
+        parent="l10n_ve_payroll.menu_l10n_ve_payroll_reporting"
+        action="l10n_ve_payroll_declaration_export_action"
+        sequence="10"
+    />
+</odoo>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="hr_salary_rule_view_tree_ve" model="ir.ui.view">
+        <field name="name">hr.salary.rule.list.l10n.ve</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="inherit_id" ref="payroll.hr_salary_rule_view_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="replace">
+                <list>
+                    <field name="sequence" optional="hide" />
+                    <field name="code" decoration-bf="1" />
+                    <field name="name" string="Salary Rule" />
+                    <field name="struct_name" string="Salary Structure" />
+                    <field name="struct_id" column_invisible="1" />
+                    <field name="category_id" widget="badge" optional="show" />
+                    <field
+                        name="company_id"
+                        groups="base.group_multi_company"
+                        options="{'no_create': True}"
+                        optional="hide"
+                    />
+                </list>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_salary_rule_view_tree_children_ve" model="ir.ui.view">
+        <field name="name">hr.salary.rule.list.children.l10n.ve</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="inherit_id" ref="payroll.hr_salary_rule_view_tree_children" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="struct_name" string="Salary Structure" />
+                <field name="struct_id" column_invisible="1" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_salary_rule_view_search_ve" model="ir.ui.view">
+        <field name="name">hr.salary.rule.search.l10n.ve</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="inherit_id" ref="payroll.hr_salary_rule_view_search" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="code" />
+                <field name="struct_id" />
+                <field name="struct_name" />
+            </xpath>
+            <xpath expr="//filter[@name='head']" position="before">
+                <filter
+                    string="Salary Structure"
+                    name="group_struct"
+                    context="{'group_by': 'struct_id'}"
+                />
+                <filter
+                    string="Salary Rule Code"
+                    name="group_code"
+                    context="{'group_by': 'code'}"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="payroll.action_salary_rule_form" model="ir.actions.act_window">
+        <field name="context">{'search_default_group_struct': 1}</field>
+        <field name="view_id" ref="payroll.hr_salary_rule_view_tree" />
+    </record>
+
+    <!-- Children list was priority 16 and stole the default list view -->
+    <record id="payroll.hr_salary_rule_view_tree_children" model="ir.ui.view">
+        <field name="priority" eval="32" />
+    </record>
+</odoo>

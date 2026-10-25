@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="hr_contract_view_form_l10n_ve_payroll" model="ir.ui.view">
+        <field name="name">hr.contract.form.l10n.ve.payroll</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="hr_contract.hr_contract_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='salary_info']" position="after">
+                <group string="Venezuela Payroll" name="l10n_ve_payroll">
+                    <group string="Withholdings">
+                        <field name="withhold_sso" />
+                        <field name="withhold_faov" />
+                        <field name="withhold_rpe" />
+                        <field name="withhold_islr" />
+                    </group>
+                    <group string="Rates and Days">
+                        <field name="overtime_day_rate" />
+                        <field name="overtime_night_rate" />
+                        <field name="meal_allowance" />
+                        <field name="profit_sharing_days" />
+                        <field name="vacation_bonus_days" />
+                        <field name="expired_leave_days" />
+                        <field name="leave_provision_days" />
+                        <field name="seniority_years" />
+                        <field name="seniority_months" />
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
