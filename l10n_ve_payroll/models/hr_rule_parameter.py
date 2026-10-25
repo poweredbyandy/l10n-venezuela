@@ -17,6 +17,4 @@ class HrRuleParameter(models.Model):
     code = fields.Char(required=True, index=True)
     date_from = fields.Date(required=True)
     parameter_value = fields.Char(required=True)
-    company_id = fields.Many2one(
-        "res.company", default=lambda self: self.env.company
-    )
+    company_id = fields.Many2one("res.company", default=False)

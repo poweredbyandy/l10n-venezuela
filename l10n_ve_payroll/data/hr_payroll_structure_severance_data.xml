@@ -3,6 +3,7 @@
   <data noupdate="1">
     <!--    Asignaciones    -->
     <record id="rule_GPSAB_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Garantía de Prestaciones Sociales (Art 142, Literal a + b)</field>
       <field name="code">GPSAB</field>
       <field name="condition_select">none</field>
@@ -14,6 +15,7 @@ result = employee.l10n_ve_social_benefit_balance
       <field name="sequence" eval="1"/>
     </record>
     <record id="rule_GPSC_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Garantía de Prestaciones Sociales (Art 142, Literal c)</field>
       <field name="code">GPSC</field>
       <field name="condition_select">none</field>
@@ -33,6 +35,7 @@ result = monto_GPSC
       <field name="sequence" eval="2"/>
     </record>
     <record id="rule_ISPS_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Intereses Sobre Prestaciones Sociales</field>
       <field name="code">ISPS</field>
       <field name="condition_select">none</field>
@@ -44,6 +47,7 @@ result = employee.l10n_ve_social_benefit_interest_balance
       <field name="sequence" eval="3"/>
     </record>
     <record id="rule_VACAV_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Vacaciones Vencidas</field>
       <field name="code">VACAV</field>
       <field name="condition_select">python</field>
@@ -59,6 +63,7 @@ result = (monto / 30) * (worked_days.VACA.number_of_days if worked_days.VACA els
       <field name="sequence" eval="4"/>
     </record>
     <record id="rule_BONOVACAV_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Bono Vacacional Vencidos</field>
       <field name="code">BONOVACAV</field>
       <field name="condition_select">python</field>
@@ -74,6 +79,7 @@ result = (monto / 30) * (worked_days.VACA.number_of_days if worked_days.VACA els
       <field name="sequence" eval="5"/>
     </record>
     <record id="rule_dias_desfer_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días de Des/Fer en vacaciones vencidas</field>
       <field name="code">DDFVACA</field>
       <field name="condition_select">python</field>
@@ -90,6 +96,7 @@ result = (monto / 30) * DDFVACA
       <field name="sequence" eval="6"/>
     </record>
     <record id="rule_VACAF_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Vacaciones Fraccionadas</field>
       <field name="code">VACAF</field>
       <field name="condition_select">none</field>
@@ -103,6 +110,7 @@ result = (dias / 12) * contract.seniority_months * (monto / 30)
       <field name="sequence" eval="7"/>
     </record>
     <record id="rule_BONOVACAF_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Bono Vacacional Fraccionado</field>
       <field name="code">BONOVACAF</field>
       <field name="condition_select">none</field>
@@ -116,6 +124,7 @@ result = (dias / 12) * contract.seniority_months * (monto / 30)
       <field name="sequence" eval="8"/>
     </record>
     <record id="rule_UTILIDF_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Utilidades Fraccionadas</field>
       <field name="code">UTILIDF</field>
       <field name="condition_select">none</field>
@@ -130,6 +139,7 @@ result = ((contract.profit_sharing_days / 12) * contract.seniority_months) * (mo
     </record>
     <!--    Deducciones   100 -->
     <record id="rule_RINCES_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retencion Inces</field>
       <field name="code">RINCES</field>
       <field name="condition_select">none</field>
@@ -142,6 +152,7 @@ result = (UTILIDF * 0.5)/100
     </record>
     <!--    Totales   300 -->
     <record id="rule_total_asignaciones_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Asignaciones</field>
       <field name="code">TOTAL_ASIG</field>
       <field name="condition_select">none</field>
@@ -157,6 +168,7 @@ result = GPS + ISPS + VACAV_monto + BONOVACAV_monto + DDFVACA_monto + VACAF + BO
       <field name="sequence" eval="300"/>
     </record>
     <record id="rule_total_ded_liquidacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Deducciones</field>
       <field name="code">TOTAL_DED</field>
       <field name="condition_select">none</field>
@@ -168,6 +180,7 @@ result = categories.DED
       <field name="sequence" eval="301"/>
     </record>
     <record id="rule_NET_liquidaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total</field>
       <field name="code">TOTAL</field>
       <field name="condition_select">none</field>
@@ -179,6 +192,7 @@ result = TOTAL_ASIG - categories.DED
       <field name="sequence" eval="302"/>
     </record>
     <record id="structure_liquidacion" model="hr.payroll.structure">
+      <field name="company_id" eval="False"/>
       <field name="name">Liquidación</field>
       <field name="code">SEVERANCE</field>
       <field name="note">Schedule pay: annually</field>

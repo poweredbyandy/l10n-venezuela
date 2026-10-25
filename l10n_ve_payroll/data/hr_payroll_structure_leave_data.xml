@@ -2,6 +2,7 @@
 <odoo>
   <data noupdate="1">
     <record id="rule_dias_habiles_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días hábiles en vacaciones</field>
       <field name="code">VACA</field>
       <field name="condition_select">python</field>
@@ -18,6 +19,7 @@ result = (monto / 30) * VACA
       <field name="sequence" eval="1"/>
     </record>
     <record id="rule_dias_desfer_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días de Des/Fer en vacaciones</field>
       <field name="code">DDFVACA</field>
       <field name="condition_select">python</field>
@@ -34,6 +36,7 @@ result = (monto / 30) * DDFVACA
       <field name="sequence" eval="2"/>
     </record>
     <record id="rule_bono_vacacional" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Bono Vacacional</field>
       <field name="code">BONOVACA</field>
       <field name="condition_select">none</field>
@@ -48,6 +51,7 @@ result = (monto / 30) * VACA
     </record>
     <!--    Deducciones   100 -->
     <record id="rule_DESCSSO_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retención SSO</field>
       <field name="code">DESCSSO</field>
       <field name="condition_select">python</field>
@@ -65,6 +69,7 @@ result = ((monto_base*12)/52) * (employee.company_id.sso_employee_rate/100) * pa
       <field name="sequence" eval="100"/>
     </record>
     <record id="rule_FAOV_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retención FAOV</field>
       <field name="code">FAOV</field>
       <field name="condition_select">python</field>
@@ -79,6 +84,7 @@ result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.B
       <field name="sequence" eval="101"/>
     </record>
     <record id="rule_RPE_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retención RPE</field>
       <field name="code">RPE</field>
       <field name="condition_select">python</field>
@@ -97,6 +103,7 @@ result = ((monto_base*12)/52) * (employee.company_id.rpe_employee_rate/100) * pa
     </record>
     <!--    Aprtes de empresa   200 -->
     <record id="rule_APORSSO_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Aporte SSO</field>
       <field name="code">APORSSO</field>
       <field name="condition_select">python</field>
@@ -115,6 +122,7 @@ result = ((monto_base*12)/52) * (employee.company_id.sso_employer_risk_rate/100)
       <field name="sequence" eval="200"/>
     </record>
     <record id="rule_aporte_FAOV_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Aporte FAOV</field>
       <field name="code">AFAOV</field>
       <field name="condition_select">python</field>
@@ -130,6 +138,7 @@ result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.B
       <field name="sequence" eval="201"/>
     </record>
     <record id="rule_RPE_empresa_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Aporte RPE</field>
       <field name="code">ARPE</field>
       <field name="condition_select">python</field>
@@ -149,6 +158,7 @@ result = ((monto_base*12)/52) * (employee.company_id.rpe_employer_rate/100) * pa
     </record>
     <!--    Totales   300 -->
     <record id="rule_total_ded_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Deducciones</field>
       <field name="code">TOTAL_DED</field>
       <field name="condition_select">none</field>
@@ -160,6 +170,7 @@ result = categories.DED
       <field name="sequence" eval="300"/>
     </record>
     <record id="rule_total_asignaciones_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Asignaciones</field>
       <field name="code">TOTAL_ASIG</field>
       <field name="condition_select">none</field>
@@ -171,6 +182,7 @@ result = categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BON
       <field name="sequence" eval="301"/>
     </record>
     <record id="rule_NET_vacaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total</field>
       <field name="code">TOTAL</field>
       <field name="condition_select">none</field>
@@ -182,6 +194,7 @@ result = categories.BASIC + categories.ASIGNA + categories.ASIGNA + categories.B
       <field name="sequence" eval="302"/>
     </record>
     <record id="structure_vacaciones" model="hr.payroll.structure">
+      <field name="company_id" eval="False"/>
       <field name="name">Vacaciones</field>
       <field name="code">LEAVE</field>
       <field name="note">Schedule pay: annually</field>

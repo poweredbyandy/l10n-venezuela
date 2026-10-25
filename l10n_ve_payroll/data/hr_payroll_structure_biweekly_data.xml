@@ -6,6 +6,7 @@
     <!--    Reglas de nomina quincenal    -->
     <!--    Asignaciones    -->
     <record id="rule_SQUIN_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Salario básico quincenal</field>
       <field name="code">SQUIN</field>
       <field name="condition_select">none</field>
@@ -21,6 +22,7 @@ result = (monto / 30) * (WORK100 + AUSEP)
     </record>
     <!--Eleiminar regla, se ha separado en 2-->
     <record id="rule_DDESCANSO_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días descanso</field>
       <field name="code">DDES</field>
       <field name="condition_select">python</field>
@@ -37,6 +39,7 @@ result = (monto / 30) * DDESS
       <field name="sequence" eval="2"/>
     </record>
     <record id="rule_DDESCANSOS_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días descanso sábado</field>
       <field name="code">DDESS</field>
       <field name="condition_select">python</field>
@@ -53,6 +56,7 @@ result = (monto / 30) * DDESS
       <field name="sequence" eval="3"/>
     </record>
     <record id="rule_DDESCANSOD_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días descanso domingo</field>
       <field name="code">DDESD</field>
       <field name="condition_select">python</field>
@@ -69,6 +73,7 @@ result = (monto / 30) * DDESD
       <field name="sequence" eval="4"/>
     </record>
     <record id="rule_FERI_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días feriado</field>
       <field name="code">FERI</field>
       <field name="condition_select">python</field>
@@ -85,6 +90,7 @@ result = (monto / 30) * FERI
       <field name="sequence" eval="5"/>
     </record>
     <record id="rule_FERIT_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días feriado trabajado</field>
       <field name="code">FERIT</field>
       <field name="condition_select">python</field>
@@ -101,6 +107,7 @@ result = ((monto / 30) * FERIT) * 2
       <field name="sequence" eval="6"/>
     </record>
     <record id="rule_DDESST_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días sábado trabajado</field>
       <field name="code">DDESST</field>
       <field name="condition_select">python</field>
@@ -117,6 +124,7 @@ result = ((monto / 30) * DDESST) * 2
       <field name="sequence" eval="7"/>
     </record>
     <record id="rule_DDESDT_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días domingo trabajado</field>
       <field name="code">DDESDT</field>
       <field name="condition_select">python</field>
@@ -133,6 +141,7 @@ result = ((monto / 30) * DDESDT) * 2
       <field name="sequence" eval="8"/>
     </record>
     <record id="rule_HED_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Horas extras diurnas</field>
       <field name="code">HED</field>
       <field name="condition_select">python</field>
@@ -149,6 +158,7 @@ result = monto * HED
       <field name="sequence" eval="9"/>
     </record>
     <record id="rule_HEN_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Horas extras nocturnas</field>
       <field name="code">HEN</field>
       <field name="condition_select">python</field>
@@ -165,6 +175,7 @@ result = monto * HEN
       <field name="sequence" eval="10"/>
     </record>
     <record id="rule_ANTIU_utilidades_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Anticipo de Utilidades</field>
       <field name="code">ANTIU</field>
       <field name="condition_select">python</field>
@@ -183,6 +194,7 @@ result = inputs.MANTIU.amount
       <field name="sequence" eval="7"/>
     </record>
     <record id="rule_ADEP_utilidades_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Adelanto de Prestaciones</field>
       <field name="code">ADEP</field>
       <field name="condition_select">python</field>
@@ -201,6 +213,7 @@ result = inputs.ADEP.amount
     </record>
     <!--    Deducciones   100 -->
     <record id="rule_DESCSSO_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retención SSO</field>
       <field name="code">DESCSSO</field>
       <field name="condition_select">python</field>
@@ -218,6 +231,7 @@ result = ((monto_base*12)/52) * (employee.company_id.sso_employee_rate/100) * pa
       <field name="sequence" eval="100"/>
     </record>
     <record id="rule_FAOV_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retención FAOV</field>
       <field name="code">FAOV</field>
       <field name="condition_select">python</field>
@@ -232,6 +246,7 @@ result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.B
       <field name="sequence" eval="101"/>
     </record>
     <record id="rule_RPE_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retención RPE</field>
       <field name="code">RPE</field>
       <field name="condition_select">python</field>
@@ -249,6 +264,7 @@ result = ((monto_base*12)/52) * (employee.company_id.rpe_employee_rate/100) * pa
       <field name="sequence" eval="102"/>
     </record>
     <record id="rule_AUSE_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Días ausencia</field>
       <field name="code">AUSE</field>
       <field name="condition_select">python</field>
@@ -265,6 +281,7 @@ result = (monto / 30) * AUSE
       <field name="sequence" eval="103"/>
     </record>
     <record id="rule_ISRL_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Impuesto Sobre la Renta</field>
       <field name="code">ISLR</field>
       <field name="condition_select">python</field>
@@ -279,6 +296,7 @@ result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.B
       <field name="sequence" eval="104"/>
     </record>
     <record id="rule_CRED_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Cuota de Crédito</field>
       <field name="code">CRED</field>
       <field name="condition_select">python</field>
@@ -293,6 +311,7 @@ result = (inputs.LOAN.amount if inputs.LOAN else 0.0)
       <field name="sequence" eval="105"/>
     </record>
     <record id="rule_INTCRED_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Intereses Cuota de Crédito</field>
       <field name="code">INTCRED</field>
       <field name="condition_select">python</field>
@@ -308,6 +327,7 @@ result = (inputs.LOANINT.amount if inputs.LOANINT else 0.0)
     </record>
     <!--    Aprtes de empresa   200 -->
     <record id="rule_APORSSO_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Aporte SSO</field>
       <field name="code">APORSSO</field>
       <field name="condition_select">python</field>
@@ -326,6 +346,7 @@ result = ((monto_base*12)/52) * (employee.company_id.sso_employer_risk_rate/100)
       <field name="sequence" eval="200"/>
     </record>
     <record id="rule_aporte_FAOV_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Aporte FAOV</field>
       <field name="code">AFAOV</field>
       <field name="condition_select">python</field>
@@ -341,6 +362,7 @@ result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.B
       <field name="sequence" eval="201"/>
     </record>
     <record id="rule_RPE_empresa_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Aporte RPE</field>
       <field name="code">ARPE</field>
       <field name="condition_select">python</field>
@@ -359,6 +381,7 @@ result = ((monto_base*12)/52) * (employee.company_id.rpe_employer_rate/100) * pa
       <field name="sequence" eval="202"/>
     </record>
     <record id="rule_AINCE_empresa_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Aporte INCES</field>
       <field name="code">APORINCES</field>
       <field name="condition_select">python</field>
@@ -397,6 +420,7 @@ result = base * (employee.company_id.inces_employer_rate/100)
     </record>
     <!--    Totales   300 -->
     <record id="rule_total_asignaciones_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Asignaciones</field>
       <field name="code">TOTAL_ASIG</field>
       <field name="condition_select">none</field>
@@ -408,6 +432,7 @@ result = categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BON
       <field name="sequence" eval="300"/>
     </record>
     <record id="rule_total_ded_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Deducciones</field>
       <field name="code">TOTAL_DED</field>
       <field name="condition_select">none</field>
@@ -419,6 +444,7 @@ result = categories.DED
       <field name="sequence" eval="301"/>
     </record>
     <record id="rule_NET_quincenal" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total</field>
       <field name="code">TOTAL</field>
       <field name="condition_select">none</field>
@@ -450,6 +476,7 @@ result = (categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BO
       <field name="input_id" ref="rule_INTCRED_quincenal"/>
     </record>
     <record id="structure_quincenal" model="hr.payroll.structure">
+      <field name="company_id" eval="False"/>
       <field name="name">Quincenal</field>
       <field name="process_social_benefits" eval="True"/>
       <field name="code">BIWEEKLY</field>

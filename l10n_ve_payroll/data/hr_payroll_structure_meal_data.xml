@@ -3,6 +3,7 @@
   <data noupdate="1">
     <!--    Asignaciones    -->
     <record id="rule_BALIM_alimentacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Bono de alimentación</field>
       <field name="code">BALIM</field>
       <field name="condition_select">none</field>
@@ -20,6 +21,7 @@ result = (monto / 30) * dias
       <field name="sequence" eval="1"/>
     </record>
     <record id="rule_BAHE_alimentacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Bono de alimentación por HE</field>
       <field name="code">BAHE</field>
       <field name="condition_select">python</field>
@@ -42,6 +44,7 @@ result = (monto/30)/8 * horas
     </record>
     <!--    Totales   300 -->
     <record id="rule_total_asignaciones_alimentacion" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Asignaciones</field>
       <field name="code">TOTAL_ASIG</field>
       <field name="condition_select">none</field>
@@ -53,6 +56,7 @@ result = categories.BASIC + categories.ASIGNA + categories.ASIGNA_INCEN + catego
       <field name="sequence" eval="300"/>
     </record>
     <record id="rule_NET_alimentaciones" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total</field>
       <field name="code">TOTAL</field>
       <field name="condition_select">none</field>
@@ -64,6 +68,7 @@ result = categories.BASIC + categories.ASIGNA + categories.BONO - categories.DED
       <field name="sequence" eval="301"/>
     </record>
     <record id="structure_alimentacion" model="hr.payroll.structure">
+      <field name="company_id" eval="False"/>
       <field name="name">Alimentación</field>
       <field name="code">MEAL</field>
       <field name="note">Schedule pay: monthly</field>

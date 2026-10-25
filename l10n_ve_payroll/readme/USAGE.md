@@ -1,4 +1,6 @@
-1. Set the company currency to VES and fill Venezuela Payroll rates in Settings.
+1. Set the company currency to VES and fill Venezuela Payroll rates in Settings
+   (rates are per company; VE structures and salary rules are shared /
+   `company_id` empty so every company can use them).
 2. On the employee/contract, choose a LOTTT working-time calendar installed by
    this module (Settings → Employees → Working Times, or contract Working Hours):
 

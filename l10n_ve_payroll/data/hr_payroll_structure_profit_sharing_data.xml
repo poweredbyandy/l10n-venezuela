@@ -3,6 +3,7 @@
   <data noupdate="1">
     <!--    Asignaciones    -->
     <record id="rule_UTILID_utilidades" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Pago de Utilidades</field>
       <field name="code">UTILID</field>
       <field name="condition_select">none</field>
@@ -23,6 +24,7 @@ result = ((base/360) * contract.profit_sharing_days) + (inputs.MCBRUEMP.amount i
     </record>
     <!--    Deducciones   100 -->
     <record id="rule_DANTIU_utilidades" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Descuento de Anticipo de Utilidades</field>
       <field name="code">DANTIU</field>
       <field name="condition_select">python</field>
@@ -52,6 +54,7 @@ result = anti_utilidades
       <field name="sequence" eval="100"/>
     </record>
     <record id="rule_RINCES_utilidades" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retencion Inces</field>
       <field name="code">RINCES</field>
       <field name="condition_select">none</field>
@@ -63,6 +66,7 @@ result = (categories.ASIGNA * 0.5)/100
       <field name="sequence" eval="101"/>
     </record>
     <record id="rule_FAOV_utilidades" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Retención FAOV</field>
       <field name="code">FAOV</field>
       <field name="condition_select">python</field>
@@ -78,6 +82,7 @@ result = ((categories.BASIC + categories.ASIGNA + categories.SUBS + categories.B
     </record>
     <!--    Totales   300 -->
     <record id="rule_total_asignaciones_utilidades" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Asignaciones</field>
       <field name="code">TOTAL_ASIG</field>
       <field name="condition_select">none</field>
@@ -89,6 +94,7 @@ result = categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BON
       <field name="sequence" eval="300"/>
     </record>
     <record id="rule_total_ded_utilidades" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total Deducciones</field>
       <field name="code">TOTAL_DED</field>
       <field name="condition_select">none</field>
@@ -100,6 +106,7 @@ result = categories.DED
       <field name="sequence" eval="301"/>
     </record>
     <record id="rule_NET_utilidades" model="hr.salary.rule">
+      <field name="company_id" eval="False"/>
       <field name="name">Total</field>
       <field name="code">TOTAL</field>
       <field name="condition_select">none</field>
@@ -116,6 +123,7 @@ result = (categories.BASIC + categories.ASIGNA + categories.SUBS + categories.BO
       <field name="input_id" ref="rule_UTILID_utilidades"/>
     </record>
     <record id="structure_utilidades" model="hr.payroll.structure">
+      <field name="company_id" eval="False"/>
       <field name="name">Utilidades</field>
       <field name="code">PROFIT</field>
       <field name="note">Schedule pay: annually</field>

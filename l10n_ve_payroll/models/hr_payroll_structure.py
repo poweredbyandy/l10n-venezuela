@@ -6,6 +6,8 @@ from odoo import api, fields, models
 class HrPayrollStructure(models.Model):
     _inherit = "hr.payroll.structure"
 
+    company_id = fields.Many2one(required=False)
+
     process_social_benefits = fields.Boolean(
         string="Process Social Benefits",
         help="When enabled, confirmed payslips accrue social benefits (prestaciones).",

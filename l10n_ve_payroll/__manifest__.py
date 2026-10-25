@@ -2,7 +2,7 @@
 {
     "name": "Venezuela - Payroll",
     "summary": "Venezuelan payroll structures, legal rates and social benefits",
-    "version": "18.0.1.5.3",
+    "version": "18.0.1.5.4",
     "category": "Payroll",
     "website": "https://github.com/OCA/l10n-venezuela",
     "author": "andyengit, Odoo Community Association (OCA)",

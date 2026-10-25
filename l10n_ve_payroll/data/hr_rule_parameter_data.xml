@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo noupdate="1">
     <record id="param_cepp_rate" model="l10n_ve.payroll.rule.parameter">
+        <field name="company_id" eval="False"/>
         <field name="name">CEPP Employer Rate</field>
         <field name="code">CEPP_EMPLOYER_RATE</field>
         <field name="date_from">2025-01-01</field>
         <field name="parameter_value">9.0</field>
     </record>
     <record id="param_sso_employee_rate" model="l10n_ve.payroll.rule.parameter">
+        <field name="company_id" eval="False"/>
         <field name="name">SSO Employee Rate</field>
         <field name="code">SSO_EMPLOYEE_RATE</field>
         <field name="date_from">2025-01-01</field>
