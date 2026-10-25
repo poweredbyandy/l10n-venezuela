@@ -187,3 +187,83 @@ msgstr "Estado de pago"
 msgid "Reversed"
 msgstr "Revertido"
 
+#. module: auto
+msgid "Register Payroll Payment"
+msgstr "Registrar pago de nómina"
+
+#. module: auto
+msgid "Create Payments"
+msgstr "Crear pagos"
+
+#. module: auto
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: auto
+msgid "Register Payment"
+msgstr "Registrar pago"
+
+#. module: auto
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: auto
+msgid "Venezuela - Employee loans"
+msgstr "Venezuela - Préstamos a empleados"
+
+#. module: auto
+msgid "Loan receivable account"
+msgstr "Cuenta por cobrar de préstamos"
+
+#. module: auto
+msgid "SENIAT account used as debit when disbursing employee loans (default 1106002 Prestamos a empleados). Not chosen per loan."
+msgstr "Cuenta SENIAT usada como debe al desembolsar préstamos a empleados (por defecto 1106002 Préstamos a empleados). No se elige por préstamo."
+
+#. module: auto
+msgid "Amount Due"
+msgstr "Monto pendiente"
+
+#. module: auto
+msgid "Amount Paid"
+msgstr "Monto pagado"
+
+#. module: auto
+msgid "Amount to Pay"
+msgstr "Monto a pagar"
+
+#. module: auto
+msgid "Company Currency"
+msgstr "Moneda de la compañía"
+
+#. module: auto
+msgid "Loan Receivable Account"
+msgstr "Cuenta por cobrar de préstamos"
+
+#. module: auto
+msgid "Memo"
+msgstr "Memo"
+
+#. module: auto
+msgid "Net to Pay"
+msgstr "Neto a pagar"
+
+#. module: auto
+msgid "Payment Date"
+msgstr "Fecha de pago"
+
+#. module: auto
+msgid "Payment Journal"
+msgstr "Diario de pago"
+
+#. module: auto
+msgid "Payroll Payment Entries"
+msgstr "Asientos de pago de nómina"
+
+#. module: auto
+msgid "Payslip"
+msgstr "Nómina"
+
+#. module: auto
+msgid "Payslips"
+msgstr "Nóminas"
+

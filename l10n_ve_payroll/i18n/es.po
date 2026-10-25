@@ -524,3 +524,231 @@ msgstr "Estructura"
 msgid "Salary Rule Code"
 msgstr "Código de regla"
 
+#. module: auto
+msgid "Venezuela - Legal amounts"
+msgstr "Venezuela - Montos legales"
+
+#. module: auto
+msgid "Minimum wage"
+msgstr "Salario mínimo"
+
+#. module: auto
+msgid "Legal monthly minimum wage in company currency (VES). Used as reference for contribution caps."
+msgstr "Salario mínimo mensual legal en moneda de la compañía (VES). Se usa como referencia para tope de aportes."
+
+#. module: auto
+msgid "Meal ticket"
+msgstr "Cesta ticket"
+
+#. module: auto
+msgid "Default daily meal ticket (cesta ticket) amount. Contracts can override it."
+msgstr "Monto diario por defecto del cesta ticket. Los contratos pueden anularlo."
+
+#. module: auto
+msgid "Profit sharing days"
+msgstr "Días de utilidades"
+
+#. module: auto
+msgid "Default days used to compute annual profit sharing (utilidades)."
+msgstr "Días por defecto para calcular las utilidades anuales."
+
+#. module: auto
+msgid "Venezuela - Social security (SSO)"
+msgstr "Venezuela - Seguridad social (SSO)"
+
+#. module: auto
+msgid "SSO rates"
+msgstr "Tasas SSO"
+
+#. module: auto
+msgid "Employee withholding and employer risk contribution for IVSS (SSO)."
+msgstr "Retención del empleado y aporte patronal de riesgo IVSS (SSO)."
+
+#. module: auto
+msgid "Employee (%)"
+msgstr "Empleado (%)"
+
+#. module: auto
+msgid "Employer risk (%)"
+msgstr "Riesgo patronal (%)"
+
+#. module: auto
+msgid "Venezuela - Housing fund (FAOV)"
+msgstr "Venezuela - Fondo de vivienda (FAOV)"
+
+#. module: auto
+msgid "FAOV rates"
+msgstr "Tasas FAOV"
+
+#. module: auto
+msgid "Employee and employer contributions to BANAVIH (FAOV / LPH)."
+msgstr "Aportes del empleado y del patrono a BANAVIH (FAOV / LPH)."
+
+#. module: auto
+msgid "Employer (%)"
+msgstr "Patrono (%)"
+
+#. module: auto
+msgid "Venezuela - Employment regime (RPE)"
+msgstr "Venezuela - Régimen prestacional de empleo (RPE)"
+
+#. module: auto
+msgid "RPE rates"
+msgstr "Tasas RPE"
+
+#. module: auto
+msgid "Employee and employer contributions for the employment regime (RPE)."
+msgstr "Aportes del empleado y del patrono para el régimen prestacional de empleo (RPE)."
+
+#. module: auto
+msgid "Venezuela - INCES and CEPP"
+msgstr "Venezuela - INCES y CEPP"
+
+#. module: auto
+msgid "INCES"
+msgstr "INCES"
+
+#. module: auto
+msgid "Employer contribution to INCES. Applied when the company reaches the minimum headcount."
+msgstr "Aporte patronal al INCES. Se aplica cuando la compañía alcanza la nómina mínima."
+
+#. module: auto
+msgid "Minimum employees"
+msgstr "Empleados mínimos"
+
+#. module: auto
+msgid "CEPP"
+msgstr "CEPP"
+
+#. module: auto
+msgid "Special pension contribution rate (CEPP), used as a complementary employer parameter."
+msgstr "Tasa de contribución especial de pensiones (CEPP), parámetro patronal complementario."
+
+#. module: auto
+msgid "Venezuela - Institutional partners"
+msgstr "Venezuela - Contactos institucionales"
+
+#. module: auto
+msgid "IVSS"
+msgstr "IVSS"
+
+#. module: auto
+msgid "Employer number and accounting partner for IVSS / SSO contributions."
+msgstr "Número de patrono y contacto contable para aportes IVSS / SSO."
+
+#. module: auto
+msgid "Employer number"
+msgstr "Número de patrono"
+
+#. module: auto
+msgid "Partner"
+msgstr "Contacto"
+
+#. module: auto
+msgid "BANAVIH / FAOV"
+msgstr "BANAVIH / FAOV"
+
+#. module: auto
+msgid "FAOV account number and accounting partner for BANAVIH contributions."
+msgstr "Número de cuenta FAOV y contacto contable para aportes BANAVIH."
+
+#. module: auto
+msgid "Account number"
+msgstr "Número de cuenta"
+
+#. module: auto
+msgid "Non-working paid days"
+msgstr "Días no laborables pagados"
+
+#. module: auto
+msgid "Withholdings"
+msgstr "Retenciones"
+
+#. module: auto
+msgid "Rates and Days"
+msgstr "Tasas y días"
+
+#. module: auto
+msgid "Company Currency"
+msgstr "Moneda de la compañía"
+
+#. module: auto
+msgid "Day Overtime Rate"
+msgstr "Factor horas extras diurnas"
+
+#. module: auto
+msgid "Day of Week"
+msgstr "Día de la semana"
+
+#. module: auto
+msgid "Expired Leave Days"
+msgstr "Días de vacaciones vencidas"
+
+#. module: auto
+msgid "Leave Provision Days"
+msgstr "Días provisión vacaciones"
+
+#. module: auto
+msgid "Meal Allowance"
+msgstr "Bono de alimentación"
+
+#. module: auto
+msgid "Mondays in Period"
+msgstr "Lunes en el período"
+
+#. module: auto
+msgid "Night Overtime Rate"
+msgstr "Factor horas extras nocturnas"
+
+#. module: auto
+msgid "Paid Non-Working Days"
+msgstr "Días no laborables pagados"
+
+#. module: auto
+msgid "Process Social Benefits"
+msgstr "Procesar prestaciones sociales"
+
+#. module: auto
+msgid "Seniority Days"
+msgstr "Días de antigüedad"
+
+#. module: auto
+msgid "Seniority Months"
+msgstr "Meses de antigüedad"
+
+#. module: auto
+msgid "Seniority Years"
+msgstr "Años de antigüedad"
+
+#. module: auto
+msgid "Social Benefit Balance"
+msgstr "Saldo de prestaciones"
+
+#. module: auto
+msgid "Social Benefit Interest Balance"
+msgstr "Saldo intereses de prestaciones"
+
+#. module: auto
+msgid "Suggested Schedule Pay"
+msgstr "Periodicidad sugerida"
+
+#. module: auto
+msgid "Vacation Bonus Days"
+msgstr "Días de bono vacacional"
+
+#. module: auto
+msgid "Withhold FAOV"
+msgstr "Retener FAOV"
+
+#. module: auto
+msgid "Withhold ISLR"
+msgstr "Retener ISLR"
+
+#. module: auto
+msgid "Withhold RPE"
+msgstr "Retener RPE"
+
+#. module: auto
+msgid "Withhold SSO"
+msgstr "Retener SSO"
+
