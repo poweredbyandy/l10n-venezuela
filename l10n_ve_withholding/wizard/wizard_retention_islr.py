@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 from collections import OrderedDict
 from datetime import date, datetime
 from io import BytesIO
@@ -157,19 +156,7 @@ class RetentionIslrReport(models.TransientModel):
 
     @api.model
     def _format_rif_for_macro(self, partner):
-        prefix_vat = (partner.prefix_vat or "").strip().upper()
-        partner_vat = (partner.vat or "").strip().upper()
-        raw_rif = partner_vat
-        if prefix_vat and not partner_vat.startswith(prefix_vat):
-            raw_rif = f"{prefix_vat}{partner_vat}"
-
-        normalized = re.sub(r"[^A-Z0-9]", "", raw_rif)
-        if not normalized:
-            return ""
-
-        first_alpha = next((char for char in normalized if char.isalpha()), "")
-        digits = "".join(char for char in normalized if char.isdigit())
-        return f"{first_alpha}{digits}" if first_alpha else digits
+        return partner._l10n_ve_format_rif_seniat()
 
     @api.model
     def _get_retention_islr_excel_row(self, row_idx, ret_line_id):

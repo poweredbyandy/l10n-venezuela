@@ -1,3 +1,5 @@
+import re
+
 from odoo import api, fields, models
 
 
@@ -40,6 +42,28 @@ class ResPartner(models.Model):
             self.zip,
         ]
         return ", ".join(part.strip() for part in parts if part and str(part).strip())
+
+    def _l10n_ve_format_rif_seniat(self):
+        self.ensure_one()
+        prefix_vat = (self.prefix_vat or "").strip().upper()
+        partner_vat = (self.vat or "").strip().upper()
+        raw_rif = partner_vat
+        if prefix_vat and not partner_vat.startswith(prefix_vat):
+            raw_rif = f"{prefix_vat}{partner_vat}"
+
+        normalized = re.sub(r"[^A-Z0-9]", "", raw_rif)
+        if not normalized:
+            return ""
+
+        first_alpha = next((char for char in normalized if char.isalpha()), "")
+        digits = "".join(char for char in normalized if char.isdigit())
+        return f"{first_alpha}{digits}" if first_alpha else digits
+
+    @api.model
+    def _l10n_ve_sql_rif_seniat(self, partner_alias="p"):
+        return f"""UPPER(
+            REGEXP_REPLACE(COALESCE({partner_alias}.vat, ''), '[^A-Za-z0-9]', '', 'g')
+        )"""
 
     @api.model
     def _l10n_ve_get_islr_applicable_type_person_ids(self):

@@ -139,7 +139,7 @@ class ArcvReport(models.TransientModel):
                 "street2": self.partner_id.street2,
                 "address": self.partner_id._l10n_ve_fiscal_address(),
                 "phone": self.partner_id.phone,
-                "vat": f"{self.partner_id.prefix_vat}-{self.partner_id.vat}",
+                "vat": self.partner_id._l10n_ve_format_rif_seniat(),
             },
             "retentions": retentions_data,
         }

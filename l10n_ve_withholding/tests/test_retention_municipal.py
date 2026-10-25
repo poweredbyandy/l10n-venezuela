@@ -322,6 +322,20 @@ class TestRetentionMunicipal(L10nVeSeniatCommon):
         with self.assertRaises(MissingError):
             wizard.print_xlsx()
 
+    def test_municipal_xlsx_report_rif_without_duplicated_prefix(self):
+        bill = self._create_vendor_bill()
+        self._add_municipal_line(bill)
+        bill.action_post()
+        wizard = self.env["municipal.retention.xlsx.report"].create(
+            {
+                "date_start": self.test_date,
+                "date_end": self.test_date,
+            }
+        )
+        table = wizard._get_xlsx_municipal_retention_report()
+        self.assertFalse(table.empty)
+        self.assertEqual(table.iloc[0]["R.I.F."], "J998877665")
+
     def test_municipal_patent_wizard_creation(self):
         wizard = self.env["municipal.retention.patent.report"].create(
             {

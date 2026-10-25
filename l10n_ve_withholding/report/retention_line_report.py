@@ -47,15 +47,16 @@ class RetentionLineReport(models.Model):
             rl.invoice_amount AS invoice_amount,
             rl.retention_amount AS retention_amount,
         """
+        partner_rif_sql = self.env["res.partner"]._l10n_ve_sql_rif_seniat("p")
 
         return (
-            """
+            f"""
                 rl.id,
                 row_number() OVER () AS number_count,
                 EXTRACT(YEAR FROM r.date)::VARCHAR AS year,
                 EXTRACT(MONTH FROM r.date)::VARCHAR AS month,
                 r.number AS voucher,
-                CONCAT(p.prefix_vat, '-', p.vat) AS vat,
+                {partner_rif_sql} AS vat,
                 p.name AS partner,
                 i.ref AS invoice_number,
                 i.l10n_ve_control_number AS invoice_correlative,
@@ -64,7 +65,7 @@ class RetentionLineReport(models.Model):
                 rl.aliquot::VARCHAR AS raw_aliquot,
                 w.value::VARCHAR AS raw_retention_percentage,"""
             + amounts_query
-            + """
+            + f"""
                 r.state AS state,
                 r.type AS type,
                 (

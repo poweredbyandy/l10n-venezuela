@@ -111,7 +111,7 @@ class MunicipalRetentionXlsx(models.AbstractModel):
             "A17",
             bold,
             "NUMERO DE REGISTRO ÚNICO DE INFORMACIÓN FISCAL: ",
-            str(retention.partner_id.prefix_vat) + str(retention.partner_id.vat),
+            retention.partner_id._l10n_ve_format_rif_seniat(),
         )
         worksheet2.write("G17", "Periodo Fiscal", boldWithBorder)
         worksheet2.write("G18", "Año:", boldWithBorder)

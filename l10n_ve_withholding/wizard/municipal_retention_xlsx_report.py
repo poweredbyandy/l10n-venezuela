@@ -213,9 +213,7 @@ class MunicipalRetentionXlsxReport(models.TransientModel):
                     "%d-%m-%Y"
                 )
                 rows["Contribuyente"] = retention.partner_id.name
-                rows["R.I.F."] = str(retention.partner_id.prefix_vat) + str(
-                    retention.partner_id.vat
-                )
+                rows["R.I.F."] = retention.partner_id._l10n_ve_format_rif_seniat()
                 rows["Domicilio Fiscal"] = retention.partner_id.street
                 rows["Descripcion del Documento"] = (
                     retention_line.move_id.ref or retention_line.move_id.name

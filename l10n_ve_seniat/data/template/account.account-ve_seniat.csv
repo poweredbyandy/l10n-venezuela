@@ -15,6 +15,7 @@
 "account_account_1105012","MERCANCIA EN TRANSITOS","1105012","asset_current","True"
 "account_account_1105013","PUBLICIDAD","1105013","asset_current","True"
 "account_account_1106001","CUENTAS POR COBRAR CLIENTES","1106001","asset_receivable","True"
+"account_account_1106002","PRESTAMOS A EMPLEADOS","1106002","asset_receivable","True"
 "account_account_1107001","I.V.A. CREDITO FISCAL","1107001","asset_current","True"
 "account_account_1107002","I.V.A. CREDITO FISCAL IMPORTACION","1107002","asset_current","True"
 "account_account_1107004","I.S.L.R. RETENIDO","1107004","liability_current","True"

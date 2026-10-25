@@ -131,6 +131,14 @@ class TestRetentionIvaDebitNote(L10nVeSeniatCommon):
         self.assertEqual(data[0]["Tipo de documento"], "01")
         self.assertEqual(data[0]["Número del documento afectado"], "0")
 
+    def test_retention_iva_txt_supplier_rif_without_duplicated_prefix(self):
+        bill = self._create_vendor_bill(ref="FAC-RET-RIF")
+        retention = self._create_iva_retention_for_move(bill)
+        wizard = self.env["wizard.retention.iva"].create({})
+        data = wizard._retention_iva(retention)
+        self.assertEqual(data[0]["RIF de proveedor"], "J556677889")
+        self.assertEqual(self.supplier.prefix_vat, "J")
+
     def test_retention_exposes_affected_invoice_reference_and_action(self):
         bill = self._create_vendor_bill(ref="FAC-RET-003")
         retention = self._create_iva_retention_for_move(bill)
