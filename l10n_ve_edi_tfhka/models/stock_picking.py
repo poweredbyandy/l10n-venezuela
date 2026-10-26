@@ -80,6 +80,8 @@ class StockPicking(models.Model):
         "picking_type_code",
         "l10n_ve_edi_send_state",
         "company_id",
+        "company_id.l10n_ve_dispatch_guide_enabled",
+        "l10n_ve_dispatch_guide_enabled",
         "sale_id",
         "sale_id.journal_id",
         "sale_id.journal_id.l10n_ve_emission_medium",

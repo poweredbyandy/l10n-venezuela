@@ -36,7 +36,7 @@
             >
                 <attribute
                     name="invisible"
-                >not l10n_ve_is_ve_country or picking_type_code != 'outgoing' or state != 'done' or l10n_ve_edi_show_sent_document_actions or (l10n_ve_edi_show_tab and l10n_ve_edi_send_state in ('not_sent', 'queued'))</attribute>
+                >not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing' or state != 'done' or l10n_ve_edi_show_sent_document_actions or (l10n_ve_edi_show_tab and l10n_ve_edi_send_state in ('not_sent', 'queued'))</attribute>
             </xpath>
             <xpath expr="//sheet" position="before">
                 <field name="l10n_ve_edi_show_tab" invisible="1" />

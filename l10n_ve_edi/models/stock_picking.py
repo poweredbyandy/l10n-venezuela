@@ -49,6 +49,8 @@ class StockPicking(models.Model):
 
     def _l10n_ve_edi_dispatch_guide_qualifies_for_factura_guia(self):
         self.ensure_one()
+        if not self._l10n_ve_is_ve_outgoing_dispatch_guide_picking():
+            return False
         if not (self.l10n_ve_control_number or "").strip():
             return False
         return bool(self._l10n_ve_edi_get_digital_emission_journal())
@@ -78,6 +80,8 @@ class StockPicking(models.Model):
         "picking_type_code",
         "l10n_ve_edi_send_state",
         "company_id",
+        "company_id.l10n_ve_dispatch_guide_enabled",
+        "l10n_ve_dispatch_guide_enabled",
         "sale_id",
         "sale_id.journal_id",
         "sale_id.journal_id.l10n_ve_emission_medium",
@@ -130,6 +134,8 @@ class StockPicking(models.Model):
         "state",
         "picking_type_code",
         "company_id",
+        "company_id.l10n_ve_dispatch_guide_enabled",
+        "l10n_ve_dispatch_guide_enabled",
         "sale_id",
         "sale_id.journal_id",
         "sale_id.journal_id.l10n_ve_emission_medium",
@@ -457,6 +463,7 @@ class StockPicking(models.Model):
     @api.depends(
         "l10n_ve_control_number",
         "l10n_ve_is_ve_country",
+        "l10n_ve_dispatch_guide_enabled",
         "picking_type_id",
         "sale_id",
         "state",
@@ -468,6 +475,7 @@ class StockPicking(models.Model):
         "move_ids.product_id",
         "invoice_ids",
         "company_id",
+        "company_id.l10n_ve_dispatch_guide_enabled",
         "sale_id.journal_id",
         "sale_id.journal_id.l10n_ve_emission_medium",
         "sale_id.journal_id.l10n_ve_edi_provider",
@@ -487,6 +495,8 @@ class StockPicking(models.Model):
         return res
 
     def action_l10n_ve_print_dispatch_guide(self):
+        if any(not picking.l10n_ve_dispatch_guide_enabled for picking in self):
+            return super().action_l10n_ve_print_dispatch_guide()
         blocked = self.filtered(
             lambda picking: (
                 picking._l10n_ve_edi_dispatch_guide_blocking_print_before_digital_sent()

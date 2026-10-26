@@ -1,7 +1,7 @@
 {
     "name": "Venezuela TFHKA EDI",
     "summary": "Conector The Factory HKA para facturacion digital Venezuela",
-    "version": "18.0.1.37.0",
+    "version": "18.0.1.37.1",
     "category": "Accounting/Localizations",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainer": "andyengit",

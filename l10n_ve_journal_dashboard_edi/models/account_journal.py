@@ -48,12 +48,21 @@ class AccountJournal(models.Model):
         return invoices.filtered(lambda move: move._l10n_ve_edi_is_invoice_target())
 
     @api.model
+    def _l10n_ve_edi_dispatch_guide_enabled_companies(self, companies):
+        return companies.filtered("l10n_ve_dispatch_guide_enabled")
+
+    @api.model
     def _l10n_ve_edi_unsent_dispatch_guides(self, companies):
         if "stock.picking" not in self.env:
             return self.env["stock.picking"].browse()
+        enabled_companies = self._l10n_ve_edi_dispatch_guide_enabled_companies(
+            companies
+        )
+        if not enabled_companies:
+            return self.env["stock.picking"].browse()
         pickings = self.env["stock.picking"].search(
             [
-                ("company_id", "in", companies.ids),
+                ("company_id", "in", enabled_companies.ids),
                 ("state", "=", "done"),
                 ("picking_type_code", "=", "outgoing"),
                 (
@@ -93,28 +102,34 @@ class AccountJournal(models.Model):
             return {"visible": False, "title": "", "items": []}
 
         invoices = self._l10n_ve_edi_unsent_invoices(ve_companies)
-        pickings = self._l10n_ve_edi_unsent_dispatch_guides(ve_companies)
         retentions = self._l10n_ve_edi_unsent_retentions(ve_companies)
-        return {
-            "visible": True,
-            "title": _("Documentos sin enviar"),
-            "items": [
-                {
-                    "key": "unsent_invoices",
-                    "label": _("Facturas"),
-                    "count": len(invoices),
-                },
+        items = [
+            {
+                "key": "unsent_invoices",
+                "label": _("Facturas"),
+                "count": len(invoices),
+            },
+        ]
+        if self._l10n_ve_edi_dispatch_guide_enabled_companies(ve_companies):
+            pickings = self._l10n_ve_edi_unsent_dispatch_guides(ve_companies)
+            items.append(
                 {
                     "key": "unsent_dispatch_guides",
                     "label": _("Guías de despacho"),
                     "count": len(pickings),
-                },
-                {
-                    "key": "unsent_retentions",
-                    "label": _("Retenciones"),
-                    "count": len(retentions),
-                },
-            ],
+                }
+            )
+        items.append(
+            {
+                "key": "unsent_retentions",
+                "label": _("Retenciones"),
+                "count": len(retentions),
+            }
+        )
+        return {
+            "visible": True,
+            "title": _("Documentos sin enviar"),
+            "items": items,
         }
 
     @api.model
@@ -141,6 +156,10 @@ class AccountJournal(models.Model):
             return clean_action(action, self.env)
 
         if key == "unsent_dispatch_guides":
+            if not self._l10n_ve_edi_dispatch_guide_enabled_companies(ve_companies):
+                raise UserError(
+                    _("La guía de despacho no está activa en las compañías actuales.")
+                )
             records = self._l10n_ve_edi_unsent_dispatch_guides(ve_companies)
             action = self.env["ir.actions.actions"]._for_xml_id(
                 "stock.action_picking_tree_all"

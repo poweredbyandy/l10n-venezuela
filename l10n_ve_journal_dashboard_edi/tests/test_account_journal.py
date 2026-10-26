@@ -36,3 +36,23 @@ class TestL10nVeJournalDashboardEdi(L10nVeSeniatCommon):
     def test_unsent_dashboard_open_rejects_unknown_key(self):
         with self.assertRaises(UserError):
             self.AccountJournal.action_l10n_ve_edi_unsent_dashboard_open("unknown")
+
+    def test_unsent_dashboard_hides_dispatch_guides_when_disabled(self):
+        sale_journals = self.AccountJournal.search(
+            [("company_id", "=", self.env.company.id), ("type", "=", "sale")]
+        )
+        sale_journals.write(
+            {
+                "l10n_ve_emission_medium": "digital",
+                "l10n_ve_edi_provider": "tfhka",
+            }
+        )
+        self.env.company.l10n_ve_dispatch_guide_enabled = False
+        data = self.AccountJournal.get_l10n_ve_edi_unsent_dashboard()
+        self.assertTrue(data["visible"])
+        keys = [item["key"] for item in data["items"]]
+        self.assertNotIn("unsent_dispatch_guides", keys)
+        with self.assertRaises(UserError):
+            self.AccountJournal.action_l10n_ve_edi_unsent_dashboard_open(
+                "unsent_dispatch_guides"
+            )
