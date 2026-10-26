@@ -4,7 +4,7 @@
 {
     "name": "Venezuela Bank Auto Reconcile",
     "summary": "Conciliación bancaria por referencia, en tandas y solo al pulsar el botón",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "category": "Accounting",
     "website": "https://github.com/OCA/l10n-venezuela",
     "author": "andyengit, Odoo Community Association (OCA)",
@@ -23,4 +23,5 @@
         "views/l10n_ve_default_account_views.xml",
     ],
     "installable": True,
+    "post_init_hook": "post_init_hook",
 }

@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_ve_default_account_invoice,l10n_ve.default.account.invoice,model_l10n_ve_default_account,account.group_account_invoice,1,0,0,0
+access_l10n_ve_default_account_readonly,l10n_ve.default.account.readonly,model_l10n_ve_default_account,account.group_account_readonly,1,0,0,0
 access_l10n_ve_default_account_user,l10n_ve.default.account.user,model_l10n_ve_default_account,account.group_account_user,1,0,0,0
 access_l10n_ve_default_account_manager,l10n_ve.default.account.manager,model_l10n_ve_default_account,account.group_account_manager,1,1,1,1

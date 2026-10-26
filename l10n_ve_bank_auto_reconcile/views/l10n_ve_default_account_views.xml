@@ -28,6 +28,5 @@
         parent="account.account_account_menu"
         action="action_l10n_ve_default_accounts"
         sequence="6"
-        groups="account.group_account_manager"
     />
 </odoo>
