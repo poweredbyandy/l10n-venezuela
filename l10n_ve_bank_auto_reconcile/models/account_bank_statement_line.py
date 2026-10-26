@@ -3,8 +3,9 @@
 
 import logging
 import time
+import unicodedata
 
-from odoo import _, api, models
+from odoo import Command, _, api, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -14,6 +15,8 @@ BATCH_SECONDS = 30
 JOB_CHANNEL = "root"
 JOB_PRIORITY = 20
 BUSY_JOB_STATES = ("wait_dependencies", "pending", "enqueued", "started")
+COMMISSION_KEYWORD = "comision"
+COMMISSION_MODEL_NAME = "VE: Comisión bancaria"
 
 
 class AccountBankStatementLine(models.Model):
@@ -25,29 +28,44 @@ class AccountBankStatementLine(models.Model):
         if not lines:
             raise UserError(_("No hay líneas de extracto pendientes en este banco."))
         journals = lines.journal_id
+        missing_account = self.env["res.company"]
         for company in lines.company_id:
             company_lines = lines.filtered(
                 lambda line, company=company: line.company_id == company
             )
+            if company_lines.filtered(
+                lambda line: line._is_bank_commission_line()
+            ) and not self.env["l10n_ve.default.account"].commission_account_for(
+                company
+            ):
+                missing_account |= company
             self._check_reference_reconcile_not_running(company)
             self._enqueue_reference_reconcile(company, company_lines.ids)
+        message = _(
+            "Se encolaron %(count)s líneas (%(journals)s). "
+            "Cada tanda procesa 25 líneas o 30 segundos, y la siguiente "
+            "empieza al terminar la anterior. No queda programado: "
+            "solo corre al pulsar este botón."
+        ) % {
+            "count": len(lines),
+            "journals": ", ".join(journals.mapped("display_name")),
+        }
+        if missing_account:
+            message = "%s %s" % (
+                message,
+                _(
+                    "Las líneas con COMISION quedan pendientes hasta configurar "
+                    "la cuenta de comisiones en Configuración, Cuentas por defecto."
+                ),
+            )
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("Conciliación encolada"),
-                "message": _(
-                    "Se encolaron %(count)s líneas (%(journals)s). "
-                    "Cada tanda procesa 25 líneas o 30 segundos, y la siguiente "
-                    "empieza al terminar la anterior. No queda programado: "
-                    "solo corre al pulsar este botón."
-                )
-                % {
-                    "count": len(lines),
-                    "journals": ", ".join(journals.mapped("display_name")),
-                },
-                "type": "success",
-                "sticky": False,
+                "message": message,
+                "type": "warning" if missing_account else "success",
+                "sticky": bool(missing_account),
             },
         }
 
@@ -119,7 +137,14 @@ class AccountBankStatementLine(models.Model):
                 break
             try:
                 with self.env.cr.savepoint():
-                    if line._reconcile_by_bank_reference():
+                    if line._is_bank_commission_line():
+                        reconciled = line._reconcile_bank_commission()
+                    else:
+                        reconciled = (
+                            line._reconcile_by_bank_reference()
+                            or line._reconcile_pos_income()
+                        )
+                    if reconciled:
                         reconciled_count += 1
             except UserError as error:
                 _logger.info(
@@ -145,6 +170,160 @@ class AccountBankStatementLine(models.Model):
             "reconciled": reconciled_count,
             "remaining": len(remaining_ids),
         }
+
+    def _fold_bank_text(self, value):
+        normalized = unicodedata.normalize("NFD", value or "")
+        without_accents = "".join(
+            char for char in normalized if unicodedata.category(char) != "Mn"
+        )
+        return without_accents.lower()
+
+    def _is_bank_commission_line(self):
+        """Venezuelan banks label fees with COMISION, with or without an accent."""
+        self.ensure_one()
+        return COMMISSION_KEYWORD in self._fold_bank_text(self.payment_ref)
+
+    def _commission_writeoff_model(self):
+        """Return the write-off rule for this company, kept in sync with the account."""
+        self.ensure_one()
+        account = self.env["l10n_ve.default.account"].commission_account_for(
+            self.company_id
+        )
+        if not account:
+            return self.env["account.reconcile.model"]
+        model = self.env["account.reconcile.model"].search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("name", "=", COMMISSION_MODEL_NAME),
+                ("rule_type", "=", "writeoff_suggestion"),
+            ],
+            limit=1,
+        )
+        line_vals = {
+            "account_id": account.id,
+            "amount_type": "percentage_st_line",
+            "amount_string": "100",
+            "label": _("Comisión bancaria"),
+        }
+        if not model:
+            return self.env["account.reconcile.model"].create(
+                {
+                    "name": COMMISSION_MODEL_NAME,
+                    "company_id": self.company_id.id,
+                    "rule_type": "writeoff_suggestion",
+                    "auto_reconcile": False,
+                    "sequence": -5,
+                    "match_nature": "both",
+                    "match_label": "match_regex",
+                    "match_label_param": r".*comisi[oó]n",
+                    "line_ids": [Command.create(line_vals)],
+                }
+            )
+        if model.line_ids[:1].account_id != account:
+            if model.line_ids:
+                model.line_ids[:1].account_id = account
+            else:
+                model.line_ids = [Command.create(line_vals)]
+        return model
+
+    def _reconcile_bank_commission(self):
+        """Book a COMISION statement line to the expense account. No payment."""
+        self.ensure_one()
+        if self.is_reconciled or not self._is_bank_commission_line():
+            return False
+        rule = self._commission_writeoff_model()
+        if not rule:
+            _logger.info(
+                "Statement line %s left pending: company %s has no bank "
+                "commission account.",
+                self.id,
+                self.company_id.id,
+            )
+            return False
+        wizard = (
+            self.env["bank.rec.widget"]
+            .with_context(default_st_line_id=self.id)
+            .new({})
+        )
+        wizard._action_select_reconcile_model(rule)
+        if wizard.state != "valid":
+            return False
+        wizard._action_validate()
+        return bool(self.is_reconciled)
+
+    def _pos_income_amount(self):
+        self.ensure_one()
+        if self.foreign_currency_id:
+            return self.amount_currency, self.foreign_currency_id
+        return self.amount, self.currency_id
+
+    def _pos_income_closings(self):
+        """Posted terminal closings with the same bank-credit date and amount."""
+        self.ensure_one()
+        amount, currency = self._pos_income_amount()
+        closing_model = self.env["account.payment.closing"]
+        if not currency or currency.compare_amounts(amount, 0.0) <= 0:
+            return closing_model
+        closings = closing_model.search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("state", "=", "posted"),
+                ("is_matched", "=", False),
+                ("deposit_date", "=", self.date),
+                ("currency_id", "=", currency.id),
+            ]
+        )
+        return closings.filtered(
+            lambda closing: closing.closing_line_id
+            and not closing.closing_line_id.reconciled
+            and currency.compare_amounts(
+                closing.closing_line_id.amount_residual_currency, amount
+            )
+            == 0
+        )
+
+    def _unique_pos_income_closing(self):
+        """One closing only. The statement journal breaks a tie; several matches wait."""
+        self.ensure_one()
+        closings = self._pos_income_closings()
+        if not closings:
+            return self.env["account.payment.closing"]
+        same_journal = closings.filtered(
+            lambda closing: closing.journal_id == self.journal_id
+        )
+        if len(same_journal) == 1:
+            return same_journal
+        if same_journal or len(closings) != 1:
+            _logger.info(
+                "Statement line %s left pending: %s terminal closings match "
+                "the date and amount.",
+                self.id,
+                len(same_journal or closings),
+            )
+            return self.env["account.payment.closing"]
+        return closings
+
+    def _reconcile_pos_income(self):
+        """Match a bank deposit with the open line of one posted terminal closing.
+
+        A draft closing is ignored. The button does not create the closing.
+        """
+        self.ensure_one()
+        if self.is_reconciled:
+            return False
+        closing = self._unique_pos_income_closing()
+        if not closing:
+            return False
+        wizard = (
+            self.env["bank.rec.widget"]
+            .with_context(default_st_line_id=self.id)
+            .new({})
+        )
+        wizard._action_add_new_amls(closing.closing_line_id, allow_partial=True)
+        if wizard.state != "valid":
+            return False
+        wizard._action_validate()
+        return bool(self.is_reconciled)
 
     def _reference_reconcile_models(self):
         self.ensure_one()
