@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<odoo>
-    <record id="l10n_ve_default_account_company_rule" model="ir.rule">
-        <field name="name">Cuentas por defecto multi-company</field>
-        <field name="model_id" ref="model_l10n_ve_default_account" />
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-    </record>
-</odoo>
