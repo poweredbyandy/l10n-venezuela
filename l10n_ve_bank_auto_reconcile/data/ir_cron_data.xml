@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        The standard accountant cron reconciles statement lines by itself
+        when a model has auto-validate enabled. This button flow must not
+        run on a schedule, so the cron stays off.
+    -->
+    <record id="account_accountant.auto_reconcile_bank_statement_line" model="ir.cron">
+        <field name="active" eval="False" />
+    </record>
+</odoo>
