@@ -1747,6 +1747,30 @@ class TestAccountMove(L10nVeSeniatCommon):
         )
         self.assertEqual(move.l10n_ve_inverse_rate, 1.0)
 
+    def test_report_exchange_rate_display_uses_four_decimals(self):
+        move = self.env["account.move"].create(
+            self._create_invoice_vals(self.partner_ve)
+        )
+        self.assertFalse(move.l10n_ve_report_exchange_rate_display())
+        foreign_currency = self.env.ref("base.EUR")
+        if foreign_currency == move.company_currency_id:
+            foreign_currency = self.env.ref("base.VES")
+        self.assertNotEqual(foreign_currency, move.company_currency_id)
+        foreign = self.env["account.move"].create(
+            {
+                **self._create_invoice_vals(self.partner_ve),
+                "currency_id": foreign_currency.id,
+            }
+        )
+        display = foreign.with_context(
+            lang="en_US"
+        ).l10n_ve_report_exchange_rate_display()
+        amount, symbol = display.rsplit(" ", 1)
+        self.assertEqual(
+            symbol, (foreign.company_currency_id.symbol or "Bs").strip()
+        )
+        self.assertRegex(amount, r"\.\d{4}$")
+
     def test_button_draft_with_force_draft_context(self):
         move = self.env["account.move"].create(
             self._create_invoice_vals(self.partner_ve)

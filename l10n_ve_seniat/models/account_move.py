@@ -2869,7 +2869,7 @@ Please create a credit note instead.
         amount = formatLang(
             self.env,
             self.l10n_ve_inverse_rate,
-            digits=min(2, self.company_currency_id.decimal_places),
+            digits=4,
         )
         symbol = (self.company_currency_id.symbol or "Bs").strip()
         return f"{amount} {symbol}"
