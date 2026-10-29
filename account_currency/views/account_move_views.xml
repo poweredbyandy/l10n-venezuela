@@ -112,13 +112,7 @@
                     column_invisible="parent.currency_id == parent.company_currency_id"
                     invisible="not manually_price_subtotal_currency or parent.state != 'draft'"
                 />
-                <field
-                    name="currency_rate"
-                    string="Exchange Rate"
-                    optional="hide"
-                    readonly="0"
-                    digits="[16,16]"
-                />
+                <field name="currency_rate" column_invisible="1" />
             </xpath>
             <xpath
                 expr="//field[@name='invoice_line_ids']//form//field[@name='price_subtotal']"

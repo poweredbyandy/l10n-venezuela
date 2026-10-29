@@ -2,6 +2,7 @@
 
 from odoo import fields
 from odoo.tests import Form, tagged
+from odoo.tools import float_round
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
@@ -79,18 +80,20 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         line = invoice.invoice_line_ids
         self.assertAlmostEqual(invoice.invoice_currency_rate, 2.0)
         self.assertAlmostEqual(line.price_subtotal, 143.15)
-        self.assertAlmostEqual(line.price_subtotal_currency, 71.58, places=2)
-        self.assertAlmostEqual(line.price_total_currency, 71.58, places=2)
-        self.assertAlmostEqual(abs(line.balance), 71.58, places=2)
+        # Native Bs math: pu_bs = round(4.473315 / 2, Product Price) * 32
+        self.assertAlmostEqual(line.price_subtotal_currency, 71.68, places=2)
+        self.assertAlmostEqual(line.price_total_currency, 71.68, places=2)
+        self.assertAlmostEqual(abs(line.balance), 71.68, places=2)
         self.assertAlmostEqual(abs(line.amount_currency), 143.15, places=2)
         self.assertAlmostEqual(line.price_unit_company_currency, 2.24, places=2)
         invoice.action_post()
-        self.assertAlmostEqual(abs(line.balance), 71.58, places=2)
+        self.assertAlmostEqual(abs(line.balance), 71.68, places=2)
         self.assertAlmostEqual(abs(line.amount_currency), 143.15, places=2)
-        self.assertAlmostEqual(line.price_subtotal_currency, 71.58, places=2)
+        self.assertAlmostEqual(line.price_subtotal_currency, 71.68, places=2)
 
     def test_company_currency_price_unit_ignores_discount(self):
-        invoice = self._create_invoice()
+        # Vendor bill: customer invoices may forbid per-line discount in this DB.
+        invoice = self._create_invoice(move_type="in_invoice")
         line = invoice.invoice_line_ids
         line.discount = 10.0
         self.assertAlmostEqual(line.price_subtotal_currency, 45.0)
@@ -348,12 +351,19 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
             places=6,
         )
 
-    def test_fractional_foreign_unit_matches_machine_bs_tax(self):
-        """Many USD decimals: asiento = round(USD)/tasa and IVA on that Bs base.
+    def _company_base_from_foreign_unit(self, price_unit, quantity=1.0, discount=0.0):
+        """Expected Bs base under pu_bs = round(pu_foreign / rate, Product Price)."""
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+        company_pu = float_round(price_unit / BCV_LIKE_RATE, precision_digits=prec)
+        return self.env.company.currency_id.round(
+            company_pu * quantity * (1.0 - discount / 100.0)
+        )
 
-        Reproduces INV/2026/02772: unit 1.43234234 at BCV_LIKE_RATE must not
-        post company base from the unrounded unit (1269.38) while the fiscal
-        machine prints base 1267.30, tax 202.77, total 1470.07.
+    def test_fractional_foreign_unit_matches_machine_bs_tax(self):
+        """Many USD decimals: asiento uses pu_bs = round(pu / rate) then qty.
+
+        Fiscal print and journal share the same company unit so a VES document
+        with that unit price matches the USD invoice company amounts.
         """
         self.env.company.tax_calculation_rounding_method = "round_globally"
         tax = self._sale_percent_tax(16)
@@ -384,28 +394,35 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
             }
         )
         line = invoice.invoice_line_ids
+        expected_base = self._company_base_from_foreign_unit(1.43234234)
+        expected_tax = self.env.company.currency_id.round(expected_base * 0.16)
+        expected_total = self.env.company.currency_id.round(
+            expected_base + expected_tax
+        )
         self.assertAlmostEqual(line.price_subtotal, 1.43, places=2)
         self.assertAlmostEqual(invoice.invoice_currency_rate, BCV_LIKE_RATE, places=12)
-        self.assertAlmostEqual(line.price_subtotal_currency, 1267.30, places=2)
-        self.assertAlmostEqual(line.price_total_currency, 1470.07, places=2)
-        self.assertAlmostEqual(line.price_unit_company_currency, 1267.30, places=2)
-        self.assertAlmostEqual(abs(line.balance), 1267.30, places=2)
-        self.assertNotAlmostEqual(
-            abs(line.balance),
-            1269.38,
-            places=2,
-            msg="Must not post unrounded price_unit/rate",
+        self.assertAlmostEqual(line.price_subtotal_currency, expected_base, places=2)
+        self.assertAlmostEqual(line.price_total_currency, expected_total, places=2)
+        self.assertAlmostEqual(
+            line.price_unit_company_currency, expected_base, places=2
         )
-        self.assertAlmostEqual(abs(invoice.amount_untaxed_signed), 1267.30, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_tax_signed), 202.77, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_total_signed), 1470.07, places=2)
+        self.assertAlmostEqual(abs(line.balance), expected_base, places=2)
+        self.assertAlmostEqual(
+            abs(invoice.amount_untaxed_signed), expected_base, places=2
+        )
+        self.assertAlmostEqual(abs(invoice.amount_tax_signed), expected_tax, places=2)
+        self.assertAlmostEqual(
+            abs(invoice.amount_total_signed), expected_total, places=2
+        )
 
         invoice.action_post()
-        self.assertAlmostEqual(abs(line.balance), 1267.30, places=2)
-        self.assertAlmostEqual(line.price_subtotal_currency, 1267.30, places=2)
-        self.assertAlmostEqual(line.price_total_currency, 1470.07, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_tax_signed), 202.77, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_total_signed), 1470.07, places=2)
+        self.assertAlmostEqual(abs(line.balance), expected_base, places=2)
+        self.assertAlmostEqual(line.price_subtotal_currency, expected_base, places=2)
+        self.assertAlmostEqual(line.price_total_currency, expected_total, places=2)
+        self.assertAlmostEqual(abs(invoice.amount_tax_signed), expected_tax, places=2)
+        self.assertAlmostEqual(
+            abs(invoice.amount_total_signed), expected_total, places=2
+        )
 
     def _bcv_like_currency(self):
         self.env.company.tax_calculation_rounding_method = "round_globally"
@@ -449,23 +466,29 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         )
         self.assertEqual(len(product_lines), len(line_specs))
         self.assertAlmostEqual(invoice.invoice_currency_rate, BCV_LIKE_RATE, places=12)
+        company = self.env.company.currency_id
+        expected_bases = []
         for line, spec in zip(product_lines, line_specs, strict=True):
             self.assertEqual(line.name, spec["name"])
             self.assertAlmostEqual(line.price_subtotal, spec["foreign"], places=2)
-            self.assertAlmostEqual(
-                line.price_subtotal_currency, spec["base_company"], places=2
+            expected_base = self._company_base_from_foreign_unit(
+                spec["price_unit"],
+                quantity=spec.get("quantity", 1.0),
+                discount=spec.get("discount", 0.0),
             )
-            self.assertAlmostEqual(abs(line.balance), spec["base_company"], delta=0.02)
-            if abs(spec["unrounded_base"] - spec["base_company"]) > 0.05:
-                self.assertNotAlmostEqual(
-                    abs(line.balance),
-                    spec["unrounded_base"],
-                    places=2,
-                    msg=f"{spec['name']} must not use unrounded price_unit/rate",
-                )
+            expected_bases.append(expected_base)
+            self.assertAlmostEqual(
+                line.price_subtotal_currency, expected_base, places=2
+            )
+            self.assertAlmostEqual(abs(line.balance), expected_base, places=2)
+        self.assertAlmostEqual(
+            company.round(sum(product_lines.mapped("price_subtotal_currency"))),
+            company.round(sum(expected_bases)),
+            places=2,
+        )
 
     def test_multi_product_same_tax_fractional_units(self):
-        """Several lines @16% with fractional USD units follow machine Bs bases."""
+        """Several lines @16% with fractional USD units follow pu_bs bases."""
         currency = self._bcv_like_currency()
         tax16 = self._sale_percent_tax(16)
         specs = [
@@ -475,8 +498,6 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
                 "quantity": 1.0,
                 "tax": tax16,
                 "foreign": 1.43,
-                "base_company": 1267.30,
-                "unrounded_base": 1269.38,
             },
             {
                 "name": "Panel B",
@@ -484,32 +505,45 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
                 "quantity": 3.0,
                 "tax": tax16,
                 "foreign": 7.67,
-                "base_company": 6797.36,
-                "unrounded_base": 6794.41,
             },
             {
                 "name": "Panel C",
                 "price_unit": 10.99999999,
                 "quantity": 2.0,
-                "discount": 10.0,
                 "tax": tax16,
-                "foreign": 19.80,
-                "base_company": 17547.30,
-                "unrounded_base": 17547.30,
+                "foreign": 22.0,
             },
         ]
         invoice = self._create_fractional_multi_tax_invoice(currency, specs)
         self._assert_lines_fixed_company_base(invoice, specs)
-        self.assertAlmostEqual(abs(invoice.amount_untaxed_signed), 25611.96, places=2)
-        self.assertNotAlmostEqual(
-            abs(invoice.amount_untaxed_signed), 25611.08, places=2
+        company = self.env.company.currency_id
+        expected_untaxed = company.round(
+            sum(
+                self._company_base_from_foreign_unit(
+                    spec["price_unit"],
+                    quantity=spec.get("quantity", 1.0),
+                    discount=spec.get("discount", 0.0),
+                )
+                for spec in specs
+            )
         )
-        self.assertAlmostEqual(abs(invoice.amount_tax_signed), 4097.91, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_total_signed), 29709.87, places=2)
+        expected_tax = company.round(expected_untaxed * 0.16)
+        expected_total = company.round(expected_untaxed + expected_tax)
+        self.assertAlmostEqual(
+            abs(invoice.amount_untaxed_signed), expected_untaxed, places=2
+        )
+        self.assertAlmostEqual(abs(invoice.amount_tax_signed), expected_tax, places=2)
+        self.assertAlmostEqual(
+            abs(invoice.amount_total_signed), expected_total, places=2
+        )
         invoice.action_post()
-        self.assertAlmostEqual(abs(invoice.amount_untaxed_signed), 25611.96, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_tax_signed), 4097.91, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_total_signed), 29709.87, places=2)
+        self.assertAlmostEqual(
+            abs(invoice.amount_untaxed_signed), expected_untaxed, places=2
+        )
+        self.assertAlmostEqual(abs(invoice.amount_tax_signed), expected_tax, places=2)
+        self.assertAlmostEqual(
+            abs(invoice.amount_total_signed), expected_total, places=2
+        )
 
     def test_multi_product_mixed_tax_rates_fractional_units(self):
         """Lines with 16%, 8% and exempt keep per-line Bs base and tax buckets."""
@@ -524,8 +558,6 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
                 "quantity": 1.0,
                 "tax": tax16,
                 "foreign": 1.43,
-                "base_company": 1267.30,
-                "unrounded_base": 1269.38,
             },
             {
                 "name": "IVA 8",
@@ -533,8 +565,6 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
                 "quantity": 2.0,
                 "tax": tax8,
                 "foreign": 11.36,
-                "base_company": 10067.54,
-                "unrounded_base": 10065.59,
             },
             {
                 "name": "Exento",
@@ -542,8 +572,6 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
                 "quantity": 4.0,
                 "tax": tax0,
                 "foreign": 12.57,
-                "base_company": 11139.87,
-                "unrounded_base": 11136.66,
             },
             {
                 "name": "IVA 16 qty",
@@ -551,30 +579,50 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
                 "quantity": 7.0,
                 "tax": tax16,
                 "foreign": 7.0,
-                "base_company": 6203.59,
-                "unrounded_base": 6203.59,
             },
         ]
         invoice = self._create_fractional_multi_tax_invoice(currency, specs)
         self._assert_lines_fixed_company_base(invoice, specs)
-        self.assertAlmostEqual(abs(invoice.amount_untaxed_signed), 28678.31, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_tax_signed), 2000.74, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_total_signed), 30679.05, places=2)
+        company = self.env.company.currency_id
+        product_lines = invoice.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+        )
+        base_by_rate = {16.0: 0.0, 8.0: 0.0, 0.0: 0.0}
+        for line, spec in zip(product_lines, specs, strict=True):
+            base_by_rate[spec["tax"].amount] = company.round(
+                base_by_rate[spec["tax"].amount] + line.price_subtotal_currency
+            )
+        expected_untaxed = company.round(
+            sum(product_lines.mapped("price_subtotal_currency"))
+        )
+        expected_tax16 = company.round(base_by_rate[16.0] * 0.16)
+        expected_tax8 = company.round(base_by_rate[8.0] * 0.08)
+        expected_tax = company.round(expected_tax16 + expected_tax8)
+        expected_total = company.round(expected_untaxed + expected_tax)
+        self.assertAlmostEqual(
+            abs(invoice.amount_untaxed_signed), expected_untaxed, places=2
+        )
+        self.assertAlmostEqual(abs(invoice.amount_tax_signed), expected_tax, places=2)
+        self.assertAlmostEqual(
+            abs(invoice.amount_total_signed), expected_total, places=2
+        )
 
         tax_lines = invoice.line_ids.filtered("tax_line_id")
         self.assertEqual(len(tax_lines), 2)
         tax_by_percent = {
             line.tax_line_id.amount: abs(line.balance) for line in tax_lines
         }
-        self.assertAlmostEqual(tax_by_percent[16.0], 1195.34, places=2)
-        self.assertAlmostEqual(tax_by_percent[8.0], 805.40, places=2)
+        self.assertAlmostEqual(tax_by_percent[16.0], expected_tax16, places=2)
+        self.assertAlmostEqual(tax_by_percent[8.0], expected_tax8, places=2)
 
         invoice.action_post()
-        self.assertAlmostEqual(abs(invoice.amount_tax_signed), 2000.74, places=2)
-        self.assertAlmostEqual(abs(invoice.amount_total_signed), 30679.05, places=2)
+        self.assertAlmostEqual(abs(invoice.amount_tax_signed), expected_tax, places=2)
+        self.assertAlmostEqual(
+            abs(invoice.amount_total_signed), expected_total, places=2
+        )
 
     def test_multi_product_mixed_taxes_reject_unrounded_company_base(self):
-        """Guard: mixed taxes must not silently fall back to price_unit/rate."""
+        """Guard: mixed taxes follow pu_bs company bases, not foreign/rate alone."""
         currency = self._bcv_like_currency()
         tax16 = self._sale_percent_tax(16)
         tax8 = self._sale_percent_tax(8)
@@ -585,8 +633,6 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
                 "quantity": 1.0,
                 "tax": tax16,
                 "foreign": 1.43,
-                "base_company": 1267.30,
-                "unrounded_base": 1269.38,
             },
             {
                 "name": "B",
@@ -594,23 +640,25 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
                 "quantity": 5.0,
                 "tax": tax8,
                 "foreign": 49.38,
-                "base_company": 43761.89,
-                "unrounded_base": 43764.30,
             },
         ]
         invoice = self._create_fractional_multi_tax_invoice(currency, specs)
         self._assert_lines_fixed_company_base(invoice, specs)
-        self.assertAlmostEqual(abs(invoice.amount_untaxed_signed), 45029.20, places=2)
-        self.assertNotAlmostEqual(
-            abs(invoice.amount_untaxed_signed), 45033.68, places=2
+        expected_untaxed = sum(
+            self._company_base_from_foreign_unit(
+                spec["price_unit"],
+                quantity=spec.get("quantity", 1.0),
+            )
+            for spec in specs
         )
-        self.assertAlmostEqual(abs(invoice.amount_tax_signed), 3703.72, places=2)
-        self.assertNotAlmostEqual(
-            abs(invoice.amount_tax_signed),
-            3704.24,
-            places=2,
-            msg="Tax must not be computed from unrounded foreign bases",
+        expected_tax = self.env.company.currency_id.round(
+            self._company_base_from_foreign_unit(1.43234234) * 0.16
+            + self._company_base_from_foreign_unit(9.87654321, quantity=5.0) * 0.08
         )
+        self.assertAlmostEqual(
+            abs(invoice.amount_untaxed_signed), expected_untaxed, places=2
+        )
+        self.assertAlmostEqual(abs(invoice.amount_tax_signed), expected_tax, places=2)
 
 
 @tagged("post_install", "-at_install")

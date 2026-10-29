@@ -197,9 +197,12 @@ class AccountTax(models.Model):
 
     @api.model
     def _l10n_ve_uses_accounting_company_totals(self, document):
-        return (
-            document._name == "account.move"
-            and document.currency_id != document.company_id.currency_id
+        if document._name != "account.move":
+            return False
+        if document.currency_id != document.company_id.currency_id:
+            return True
+        return bool(
+            document._l10n_ve_uses_global_discount_journal_lines()
         )
 
     @api.model
@@ -207,31 +210,36 @@ class AccountTax(models.Model):
         if not move or not tax_group_id or tax_group_id == -1:
             return None
         company_currency = move.company_id.currency_id
+        product_lines = move.line_ids.filtered(
+            lambda line: line.display_type == "product"
+            and tax_group_id in line.tax_ids.tax_group_id.ids
+        )
+        discount_lines = move.line_ids.filtered(
+            lambda line: line.l10n_ve_global_discount_line
+            and tax_group_id in line.l10n_ve_global_discount_tax_ids.tax_group_id.ids
+        )
         tax_lines = move.line_ids.filtered(
             lambda line: line.tax_line_id
             and line.tax_line_id.tax_group_id.id == tax_group_id
         )
-        if tax_lines:
-            return {
-                "base_amount": company_currency.round(
+        if product_lines or discount_lines or tax_lines:
+            base_amount = company_currency.round(
+                abs(
+                    sum(product_lines.mapped("balance"))
+                    + sum(discount_lines.mapped("balance"))
+                )
+            )
+            if not product_lines and not discount_lines and tax_lines:
+                base_amount = company_currency.round(
                     abs(sum(tax_lines.mapped("tax_base_amount")))
-                ),
+                )
+            return {
+                "base_amount": base_amount,
                 "tax_amount": company_currency.round(
                     abs(sum(tax_lines.mapped("balance")))
                 ),
             }
-        base_lines = move.line_ids.filtered(
-            lambda line: line.display_type in ("product", "global_discount")
-            and tax_group_id in line.tax_ids.tax_group_id.ids
-        )
-        if not base_lines:
-            return None
-        return {
-            "base_amount": company_currency.round(
-                abs(sum(base_lines.mapped("balance")))
-            ),
-            "tax_amount": 0.0,
-        }
+        return None
 
     @api.model
     def _l10n_ve_align_tax_totals_groups_to_accounting(self, document, totals):

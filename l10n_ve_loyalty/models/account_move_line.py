@@ -203,6 +203,11 @@ class AccountMoveLine(models.Model):
             "display_type",
         }:
             self._l10n_ve_refresh_move_global_discounts()
+        elif "amount_currency" in vals:
+            self.filtered(
+                lambda line: line.display_type == "product"
+                and line.move_id._l10n_ve_uses_global_discount_journal_lines()
+            )._l10n_ve_refresh_move_global_discounts()
         return res
 
     def unlink(self):

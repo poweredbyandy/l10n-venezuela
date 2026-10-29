@@ -1,5 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from contextlib import contextmanager
+
 from odoo import api, fields, models
 from odoo.tools import float_compare, float_round
 
@@ -67,11 +69,20 @@ class AccountMoveLine(models.Model):
                     else line.price_subtotal_currency
                 )
                 continue
-            if (
-                line.move_id.state == "posted"
-                and line.display_type == "product"
-                and line.move_id.move_type in INVOICE_MOVE_TYPES
-            ):
+            move = line.move_id
+            use_balance = (
+                line.display_type == "product"
+                and move.move_type in INVOICE_MOVE_TYPES
+                and (
+                    move.state == "posted"
+                    or (
+                        move.move_type in ("out_refund", "in_refund")
+                        and move.reversed_entry_id
+                        and move.currency_id != move.company_currency_id
+                    )
+                )
+            )
+            if use_balance:
                 line.price_subtotal_currency = line.company_currency_id.round(
                     abs(line.balance)
                 )
@@ -151,21 +162,32 @@ class AccountMoveLine(models.Model):
     def _compute_price_unit_company_currency(self):
         prec = self.env["decimal.precision"].precision_get("Product Price")
         for line in self:
-            if line.currency_id == line.company_currency_id or not line.currency_rate:
+            if line.currency_id == line.company_currency_id:
                 line.price_unit_company_currency = float_round(
                     line.price_unit or 0.0, precision_digits=prec
                 )
                 continue
-            qty = line.quantity or 0.0
-            discount_factor = 1.0 - ((line.discount or 0.0) / 100.0)
-            base_qty = qty * discount_factor
-            if base_qty and line.price_subtotal_currency:
+            move = line.move_id
+            rate = move.invoice_currency_rate or line.currency_rate or 0.0
+            if (
+                move
+                and move.is_invoice(include_receipts=True)
+                and rate
+                and hasattr(move, "_l10n_ve_company_price_unit_from_foreign_unit")
+            ):
+                line.price_unit_company_currency = (
+                    move._l10n_ve_company_price_unit_from_foreign_unit(
+                        line.price_unit or 0.0, rate=rate
+                    )
+                )
+                continue
+            if not rate:
                 line.price_unit_company_currency = float_round(
-                    line.price_subtotal_currency / base_qty, precision_digits=prec
+                    line.price_unit or 0.0, precision_digits=prec
                 )
                 continue
             line.price_unit_company_currency = float_round(
-                (line.price_unit or 0.0) / line.currency_rate, precision_digits=prec
+                (line.price_unit or 0.0) / rate, precision_digits=prec
             )
 
     @api.depends(
@@ -195,7 +217,19 @@ class AccountMoveLine(models.Model):
                 line.balance = line.company_currency_id.round(
                     line.amount_currency / manual_rate
                 )
+        for line in self.filtered(lambda aml: not aml.currency_rate):
+            line.currency_rate = line.move_id.invoice_currency_rate or 1.0
         return res
+
+    @contextmanager
+    def _sync_invoice(self, container):
+        with super()._sync_invoice(container):
+            yield
+            for line in container["records"].filtered(
+                lambda aml: aml.move_id.is_invoice(include_receipts=True)
+                and not aml.currency_rate
+            ):
+                line.currency_rate = line.move_id.invoice_currency_rate or 1.0
 
     @api.depends(
         "currency_rate",
@@ -334,16 +368,28 @@ class AccountMoveLine(models.Model):
             or self.display_type != "product"
         ):
             return 0.0
+        if self.currency_id == self.company_currency_id:
+            return self.company_currency_id.round(
+                (self.price_unit or 0.0)
+                * (self.quantity or 0.0)
+                * (1.0 - (self.discount or 0.0) / 100.0)
+            )
+        move = self.move_id
+        rate = move.invoice_currency_rate or self.currency_rate or 0.0
+        if not rate:
+            return 0.0
+        if hasattr(move, "_l10n_ve_company_line_subtotal_from_foreign_unit"):
+            return move._l10n_ve_company_line_subtotal_from_foreign_unit(
+                self.price_unit or 0.0,
+                self.quantity or 0.0,
+                discount=self.discount or 0.0,
+                rate=rate,
+            )
         foreign_subtotal = self.currency_id.round(
             (self.price_unit or 0.0)
             * (self.quantity or 0.0)
             * (1.0 - (self.discount or 0.0) / 100.0)
         )
-        if self.currency_id == self.company_currency_id:
-            return self.company_currency_id.round(foreign_subtotal)
-        rate = self.move_id.invoice_currency_rate or self.currency_rate or 0.0
-        if not rate:
-            return 0.0
         return self.company_currency_id.round(foreign_subtotal / rate)
 
     def _l10n_ve_company_currency_total_from_foreign_total(self):

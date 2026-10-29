@@ -591,10 +591,12 @@ class AccountMove(models.Model):
         return result
 
     def _l10n_ve_needed_global_discount_journal_values(
-        self, allocations, discount_account
+        self, allocations, discount_account, company_allocations=None
     ):
         needed = super()._l10n_ve_needed_global_discount_journal_values(
-            allocations, discount_account
+            allocations,
+            discount_account,
+            company_allocations=company_allocations,
         )
         for key, values in needed.items():
             tax_ids = set(key.get("tax_ids") or ())

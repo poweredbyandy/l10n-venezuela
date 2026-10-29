@@ -1169,6 +1169,74 @@ class AccountMove(models.Model):
             conversion_date,
         )
 
+    def _l10n_ve_company_subtotal_by_taxes_from_base_lines(self, base_lines):
+        self.ensure_one()
+        company_currency = self.company_currency_id
+        totals = defaultdict(float)
+        for base_line in self._l10n_ve_product_base_lines_for_discount(base_lines):
+            taxes = base_line["tax_ids"].filtered(
+                lambda tax: tax.amount_type != "fixed"
+            )
+            tax_details = base_line.get("tax_details") or {}
+            if "raw_total_excluded" in tax_details:
+                line_subtotal = tax_details["raw_total_excluded"]
+            elif "total_excluded" in tax_details:
+                line_subtotal = tax_details["total_excluded"]
+            elif base_line.get("l10n_ve_company_price_unit") is not None:
+                line_subtotal = company_currency.round(
+                    (base_line["l10n_ve_company_price_unit"] or 0.0)
+                    * (base_line.get("quantity") or 0.0)
+                    * (1.0 - (base_line.get("discount") or 0.0) / 100.0)
+                )
+            else:
+                continue
+            if float_is_zero(
+                line_subtotal, precision_rounding=company_currency.rounding
+            ):
+                continue
+            totals[taxes] += line_subtotal
+        return totals
+
+    def _l10n_ve_company_sequential_global_discount_amounts(
+        self, company_subtotal_by_taxes
+    ):
+        self.ensure_one()
+        company_currency = self.company_currency_id
+        running = dict(company_subtotal_by_taxes)
+        results = []
+        rate = self.invoice_currency_rate or 0.0
+        for discount in l10n_ve_discount_logic.l10n_ve_ordered_global_discounts(
+            self.l10n_ve_global_discount_ids
+        ):
+            total_running = sum(running.values())
+            if float_is_zero(
+                total_running, precision_rounding=company_currency.rounding
+            ):
+                break
+            if discount.discount_type == "percentage":
+                amount = company_currency.round(
+                    total_running * discount.discount_percentage
+                )
+            elif self.currency_id == company_currency:
+                amount = company_currency.round(min(discount.amount, total_running))
+            elif rate:
+                amount = company_currency.round(
+                    min(discount.amount / rate, total_running)
+                )
+            else:
+                amount = 0.0
+            if float_is_zero(amount, precision_rounding=company_currency.rounding):
+                continue
+            results.append((discount, amount))
+            tax_groups = list(running.keys())
+            weights = [running[taxes] for taxes in tax_groups]
+            parts = self._l10n_ve_split_amount_by_weights(
+                amount, weights, currency=company_currency
+            )
+            for taxes, part in zip(tax_groups, parts, strict=False):
+                running[taxes] = max(0.0, running[taxes] - part)
+        return results
+
     def _l10n_ve_build_global_discount_base_lines(self, base_lines, foreign=False):
         self.ensure_one()
         if not self.l10n_ve_global_discount_ids:
@@ -1186,6 +1254,27 @@ class AccountMove(models.Model):
         )
         if not rate:
             rate = 1.0
+
+        company_subtotal_by_taxes = (
+            self._l10n_ve_company_subtotal_by_taxes_from_base_lines(base_lines)
+        )
+        company_parts_by_discount = {}
+        company_running = dict(company_subtotal_by_taxes)
+        for (
+            discount,
+            company_amount,
+        ) in self._l10n_ve_company_sequential_global_discount_amounts(
+            company_subtotal_by_taxes
+        ):
+            tax_groups = list(company_running.keys())
+            weights = [company_running[taxes] for taxes in tax_groups]
+            parts = self._l10n_ve_split_amount_by_weights(
+                company_amount, weights, currency=self.company_currency_id
+            )
+            company_parts_by_discount[discount.id] = {}
+            for taxes, part in zip(tax_groups, parts, strict=False):
+                company_parts_by_discount[discount.id][taxes] = part
+                company_running[taxes] = max(0.0, company_running[taxes] - part)
 
         AccountTax = self.env["account.tax"]
         discount_base_lines = []
@@ -1205,22 +1294,32 @@ class AccountMove(models.Model):
                 if float_is_zero(part, precision_rounding=line_currency.rounding):
                     continue
                 sequence += 1
-                discount_base_lines.append(
-                    AccountTax._prepare_base_line_for_taxes_computation(
-                        {
-                            "id": f"l10n_ve_global_discount_{discount.id}_{sequence}",
-                            "tax_ids": taxes,
-                            "price_unit": -part,
-                            "quantity": 1.0,
-                            "currency_id": line_currency,
-                            "name": discount.name,
-                        },
-                        special_type="global_discount",
-                        special_mode="total_excluded",
-                        sign=self.direction_sign,
-                        rate=rate,
-                    )
+                company_part = company_parts_by_discount.get(discount.id, {}).get(
+                    taxes, 0.0
                 )
+                base_line = AccountTax._prepare_base_line_for_taxes_computation(
+                    {
+                        "id": f"l10n_ve_global_discount_{discount.id}_{sequence}",
+                        "tax_ids": taxes,
+                        "price_unit": -part,
+                        "quantity": 1.0,
+                        "currency_id": line_currency,
+                        "name": discount.name,
+                    },
+                    special_type="global_discount",
+                    special_mode="total_excluded",
+                    sign=self.direction_sign,
+                    rate=rate,
+                )
+                if (
+                    self.currency_id != self.company_currency_id
+                    and not float_is_zero(
+                        company_part,
+                        precision_rounding=self.company_currency_id.rounding,
+                    )
+                ):
+                    base_line["l10n_ve_company_price_unit"] = -company_part
+                discount_base_lines.append(base_line)
                 running[taxes] = max(0.0, running[taxes] - part)
         return discount_base_lines
 
@@ -1339,6 +1438,8 @@ class AccountMove(models.Model):
             tax_account_weights[taxes][account_id] += line_subtotal
 
         allocations = defaultdict(lambda: defaultdict(float))
+        company_allocations = defaultdict(lambda: defaultdict(float))
+        company_currency = self.company_currency_id
         for discount_bl in discount_lines:
             taxes = discount_bl["tax_ids"].filtered(
                 lambda tax: tax.amount_type != "fixed"
@@ -1348,8 +1449,15 @@ class AccountMove(models.Model):
                 tax_details["total_excluded_currency"]
                 + tax_details.get("delta_total_excluded_currency", 0.0)
             )
+            discount_amount_company = abs(
+                tax_details.get("total_excluded", 0.0)
+                + tax_details.get("delta_total_excluded", 0.0)
+            )
             if float_is_zero(
                 discount_amount, precision_rounding=self.currency_id.rounding
+            ) and float_is_zero(
+                discount_amount_company,
+                precision_rounding=company_currency.rounding,
             ):
                 continue
             account_amounts = tax_account_weights.get(taxes)
@@ -1358,11 +1466,19 @@ class AccountMove(models.Model):
             account_ids = list(account_amounts.keys())
             weights = [account_amounts[account_id] for account_id in account_ids]
             parts = self._l10n_ve_split_amount_by_weights(discount_amount, weights)
-            for account_id, part in zip(account_ids, parts, strict=False):
-                if float_is_zero(part, precision_rounding=self.currency_id.rounding):
-                    continue
-                allocations[taxes][account_id] += part
-        return allocations
+            company_parts = self._l10n_ve_split_amount_by_weights(
+                discount_amount_company, weights, currency=company_currency
+            )
+            for account_id, part, company_part in zip(
+                account_ids, parts, company_parts, strict=False
+            ):
+                if not float_is_zero(part, precision_rounding=self.currency_id.rounding):
+                    allocations[taxes][account_id] += part
+                if not float_is_zero(
+                    company_part, precision_rounding=company_currency.rounding
+                ):
+                    company_allocations[taxes][account_id] += company_part
+        return allocations, company_allocations
 
     def _l10n_ve_global_discount_allocation_line_name(self, taxes):
         self.ensure_one()
@@ -1425,7 +1541,7 @@ class AccountMove(models.Model):
         return False
 
     def _l10n_ve_needed_global_discount_journal_values(
-        self, allocations, discount_account
+        self, allocations, discount_account, company_allocations=None
     ):
         self.ensure_one()
         needed = {}
@@ -1434,8 +1550,20 @@ class AccountMove(models.Model):
         else:
             rate = self.invoice_currency_rate or 1.0
         sign = self.direction_sign
-        for taxes, account_amounts in allocations.items():
+        company_allocations = company_allocations or {}
+        company_currency = self.company_id.currency_id
+        tax_keys = set(allocations) | set(company_allocations)
+        for taxes in tax_keys:
+            account_amounts = allocations.get(taxes) or {}
+            company_account_amounts = company_allocations.get(taxes) or {}
             total_for_taxes = sum(account_amounts.values())
+            total_company = sum(company_account_amounts.values())
+            if float_is_zero(
+                total_for_taxes, precision_rounding=self.currency_id.rounding
+            ) and float_is_zero(
+                total_company, precision_rounding=company_currency.rounding
+            ):
+                continue
             key_discount = frozendict(
                 {
                     "move_id": self.id,
@@ -1444,7 +1572,10 @@ class AccountMove(models.Model):
                     "tax_ids": tuple(sorted(taxes.ids)),
                 }
             )
-            balance = self.company_id.currency_id.round(-sign * total_for_taxes / rate)
+            if company_account_amounts:
+                balance = company_currency.round(-sign * total_company)
+            else:
+                balance = company_currency.round(-sign * total_for_taxes / rate)
             needed[key_discount] = {
                 "display_type": "global_discount",
                 "name": self._l10n_ve_global_discount_allocation_line_name(taxes),
@@ -1501,9 +1632,13 @@ class AccountMove(models.Model):
                 if existing_lines:
                     existing_lines.with_context(dynamic_unlink=True).unlink()
                 continue
-            allocations = move._l10n_ve_get_global_discount_allocation_by_taxes()
+            allocations, company_allocations = (
+                move._l10n_ve_get_global_discount_allocation_by_taxes()
+            )
             needed = move._l10n_ve_needed_global_discount_journal_values(
-                allocations, discount_account
+                allocations,
+                discount_account,
+                company_allocations=company_allocations,
             )
             move._l10n_ve_apply_needed_discount_journal_lines(
                 existing_lines, needed, MoveLine
@@ -1549,6 +1684,14 @@ class AccountMove(models.Model):
                     "needed_terms",
                 ]
             )
+
+    def _inverse_tax_totals(self):
+        res = super()._inverse_tax_totals()
+        self.filtered(
+            lambda move: move.is_invoice(include_receipts=True)
+            and move._l10n_ve_uses_global_discount_journal_lines()
+        )._l10n_ve_rebalance_payment_term_from_lines()
+        return res
 
     def _l10n_ve_sync_payment_term_after_global_discount_lines(self):
         return self._l10n_ve_rebalance_payment_term_from_lines()

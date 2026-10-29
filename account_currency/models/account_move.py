@@ -396,14 +396,81 @@ class AccountMove(models.Model):
         if line.currency_id == line.company_currency_id:
             return line.price_unit
         qty = abs(line.quantity or 0.0)
-        if not qty:
-            return line.price_unit_company_currency
         discount_factor = 1.0 - (line.discount or 0.0) / 100.0
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+        if qty and discount_factor > 0.0 and line.balance:
+            return float_round(
+                abs(line.balance) / qty / discount_factor, precision_digits=prec
+            )
+        if line.price_unit_company_currency:
+            return line.price_unit_company_currency
+        if not qty:
+            return line.price_unit_company_currency or 0.0
         if discount_factor <= 0.0:
             return 0.0
         subtotal = self._l10n_ve_company_subtotal_unrounded_from_origin_line(line)
-        prec = self.env["decimal.precision"].precision_get("Product Price")
         return float_round(subtotal / discount_factor / qty, precision_digits=prec)
+
+    def _l10n_ve_find_origin_product_line_for_refund(self, credit_line):
+        self.ensure_one()
+        origin = self.reversed_entry_id
+        if not origin:
+            return self.env["account.move.line"]
+        origin_products = origin.invoice_line_ids.filtered(
+            lambda origin_line: origin_line.display_type == "product"
+        )
+        price_prec = self.env["decimal.precision"].precision_get("Product Price")
+        qty_prec = self.env["decimal.precision"].precision_get(
+            "Product Unit of Measure"
+        )
+
+        def _same_price(origin_line):
+            return not float_compare(
+                origin_line.price_unit or 0.0,
+                credit_line.price_unit or 0.0,
+                precision_digits=price_prec,
+            )
+
+        def _same_qty(origin_line):
+            return not float_compare(
+                abs(origin_line.quantity or 0.0),
+                abs(credit_line.quantity or 0.0),
+                precision_digits=qty_prec,
+            )
+
+        def _same_taxes(origin_line):
+            return tuple(sorted(origin_line.tax_ids.ids)) == tuple(
+                sorted(credit_line.tax_ids.ids)
+            )
+
+        candidates = origin_products.filtered(
+            lambda origin_line: _same_taxes(origin_line)
+            and _same_price(origin_line)
+            and _same_qty(origin_line)
+        )
+        if len(candidates) == 1:
+            return candidates
+        if len(candidates) > 1:
+            same_name = candidates.filtered(
+                lambda origin_line: (origin_line.name or "") == (credit_line.name or "")
+            )
+            if len(same_name) == 1:
+                return same_name
+            same_seq = candidates.filtered(
+                lambda origin_line: origin_line.sequence == credit_line.sequence
+            )
+            return same_seq[:1] or same_name[:1] or candidates[:1]
+        candidates = origin_products.filtered(
+            lambda origin_line: _same_taxes(origin_line) and _same_price(origin_line)
+        )
+        if len(candidates) == 1:
+            return candidates
+        if candidates:
+            same_seq = candidates.filtered(
+                lambda origin_line: origin_line.sequence == credit_line.sequence
+            )
+            return same_seq[:1] or candidates[:1]
+        return self.env["account.move.line"]
 
     def _l10n_ve_company_subtotal_from_origin_line(self, line):
         if line.currency_id == line.company_currency_id:
@@ -425,20 +492,75 @@ class AccountMove(models.Model):
             return origin_pu
         return origin_pu * (credit_line.price_unit / origin_line.price_unit)
 
+    def _l10n_ve_company_price_unit_from_foreign_unit(self, price_unit, rate=None):
+        """Round foreign unit price to company currency like a native Bs document.
+
+        ``pu_bs = round(pu_usd / invoice_currency_rate, Product Price)`` so the
+        same list-price unit converted at the invoice rate matches a VES invoice.
+        """
+        self.ensure_one()
+        if self.currency_id == self.company_currency_id:
+            return price_unit or 0.0
+        rate = rate if rate is not None else (self.invoice_currency_rate or 0.0)
+        if not rate:
+            return 0.0
+        prec = self.env["decimal.precision"].precision_get("Product Price")
+        return float_round((price_unit or 0.0) / rate, precision_digits=prec)
+
+    def _l10n_ve_company_line_subtotal_from_foreign_unit(
+        self, price_unit, quantity, discount=0.0, rate=None
+    ):
+        """Company subtotal from rounded company unit price (native Bs math)."""
+        self.ensure_one()
+        company_pu = self._l10n_ve_company_price_unit_from_foreign_unit(
+            price_unit, rate=rate
+        )
+        discount_factor = 1.0 - ((discount or 0.0) / 100.0)
+        return self.company_currency_id.round(
+            company_pu * (quantity or 0.0) * discount_factor
+        )
+
     def _prepare_product_base_line_for_taxes_computation(self, product_line):
         base_line = super()._prepare_product_base_line_for_taxes_computation(
             product_line
         )
         self._l10n_ve_apply_rounded_foreign_price_unit(product_line, base_line)
+        if (
+            self.is_invoice(include_receipts=True)
+            and self.currency_id != self.company_currency_id
+            and product_line.display_type in ("product", "cogs")
+            and not self.env.context.get("l10n_ve_unrounded_tax_base")
+        ):
+            company_pu = None
+            if self.move_type in ("out_refund", "in_refund") and self.reversed_entry_id:
+                origin_line = self._l10n_ve_find_origin_product_line_for_refund(
+                    product_line
+                )
+                if origin_line:
+                    company_pu = self._l10n_ve_company_price_unit_from_refund_line(
+                        origin_line, product_line
+                    )
+                    origin_subtotal = abs(origin_line.balance or 0.0)
+                    if origin_line.quantity:
+                        company_total = self.company_currency_id.round(
+                            origin_subtotal
+                            * ((product_line.quantity or 0.0) / origin_line.quantity)
+                        )
+                    else:
+                        company_total = self.company_currency_id.round(origin_subtotal)
+                    base_line["l10n_ve_company_total_excluded"] = company_total
+            if company_pu is None:
+                company_pu = self._l10n_ve_company_price_unit_from_foreign_unit(
+                    product_line.price_unit or 0.0
+                )
+            base_line["l10n_ve_company_price_unit"] = company_pu
         return base_line
 
     def _l10n_ve_apply_rounded_foreign_price_unit(self, product_line, base_line):
-        """Use currency-rounded foreign subtotal for tax/balance conversion.
+        """Keep foreign (USD) subtotal currency-rounded for document amounts.
 
-        Fiscal machines print ``round(USD) / rate`` as the Bs base and then
-        ``round(base_bs * tax%, 2)``. Odoo native tax uses the unrounded
-        ``price_unit``, so ``price_unit / rate`` diverges from
-        ``round(price_unit) / rate`` when the unit has many decimals.
+        Company (Bs) amounts use ``l10n_ve_company_price_unit`` instead of
+        dividing the foreign subtotal by the rate.
         """
         if self.env.context.get("l10n_ve_unrounded_tax_base"):
             return
