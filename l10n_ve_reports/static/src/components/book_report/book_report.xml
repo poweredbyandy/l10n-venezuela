@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t
+        t-name="l10n_ve_reports.BookReport"
+        t-inherit="l10n_ve_reports.AccountReportCustomizable"
+        t-inherit-mode="primary"
+    >
+        <xpath expr="//t[@t-foreach='controller.lines']/t" position="attributes">
+            <attribute
+                name="t-if"
+            >(!splitSide || splitSide === (line.horizontal_split_side || 'left')) &amp;&amp; !(controller.areLinesOrdered() ? controller.lines[controller.linesOrder[line_index]] : line).l10n_ve_summary</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('fit-content')]" position="inside">
+            <t
+                t-set="summaryLines"
+                t-value="controller.lines.filter((summaryLine) => summaryLine.l10n_ve_summary_values)"
+            />
+            <div t-if="summaryLines.length" class="o_l10n_ve_book_summary">
+                <table class="table table-sm table-borderless">
+                    <thead>
+                        <tr>
+                            <th>Summary</th>
+                            <th class="text-end">Tax Base</th>
+                            <th
+                                class="text-end"
+                                t-out="summaryLines[0].l10n_ve_summary_values.tax_label"
+                            />
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            t-foreach="summaryLines"
+                            t-as="summaryLine"
+                            t-key="summaryLine.id"
+                            t-att-class="{'o_l10n_ve_book_summary_total': summaryLine.l10n_ve_summary_values.is_total}"
+                        >
+                            <td t-out="summaryLine.name" />
+                            <td
+                                class="text-end text-nowrap"
+                                t-out="summaryLine.l10n_ve_summary_values.base"
+                            />
+                            <td
+                                class="text-end text-nowrap"
+                                t-out="summaryLine.l10n_ve_summary_values.tax"
+                            />
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </xpath>
+    </t>
+</templates>

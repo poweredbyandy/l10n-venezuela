@@ -114,6 +114,25 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         self.assertAlmostEqual(abs(line.balance), 150.0)
         self.assertFalse(line.manually_price_subtotal_currency)
 
+    def test_posted_manual_rate_does_not_rewrite_balance(self):
+        bill = self._create_invoice(move_type="in_invoice")
+        line = bill.invoice_line_ids
+        line.write(
+            {
+                "price_subtotal_currency": 40.0,
+                "manually_price_subtotal_currency": True,
+            }
+        )
+        bill.action_post()
+        stored_balance = line.balance
+        self.env.cr.execute(
+            "UPDATE account_move_line SET balance = %s WHERE id = %s",
+            (stored_balance + 15.0, line.id),
+        )
+        line.invalidate_recordset()
+        self.assertAlmostEqual(line.currency_rate, 2.5)
+        self.assertAlmostEqual(line.balance, stored_balance + 15.0)
+
     def test_manual_company_currency_subtotal(self):
         invoice = self._create_invoice()
         line = invoice.invoice_line_ids

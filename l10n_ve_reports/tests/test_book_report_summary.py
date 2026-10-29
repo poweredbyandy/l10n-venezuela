@@ -78,10 +78,10 @@ class TestBookReportSummary(TestAccountReportsCommon):
                 return column.get("no_format")
         return None
 
-    def _assert_summary_nets_credit_notes(self, report):
+    def _assert_summary_nets_credit_notes(self, report, tax_label):
         options = self._generate_options(report, "2017-01-01", "2017-01-31")
         lines = report._get_lines(options)
-        for section_key in ("general", "total"):
+        for section_key, is_total in (("general", False), ("total", True)):
             summary_line = self._get_summary_line(report, lines, section_key)
             self.assertAlmostEqual(
                 self._get_column_value(summary_line, "tax_base_general_aliquot"),
@@ -91,6 +91,17 @@ class TestBookReportSummary(TestAccountReportsCommon):
                 self._get_column_value(summary_line, "amount_general_aliquot"),
                 9.6,
             )
+            self.assertTrue(summary_line["l10n_ve_summary"])
+            self.assertEqual(
+                summary_line["l10n_ve_summary_values"],
+                {
+                    "base": report.format_value(options, 60.0, "monetary"),
+                    "tax": report.format_value(options, 9.6, "monetary"),
+                    "tax_label": tax_label,
+                    "is_total": is_total,
+                },
+            )
+        return lines
 
     def test_sales_book_summary_subtracts_credit_notes(self):
         invoice = self._post_book_document(
@@ -99,9 +110,10 @@ class TestBookReportSummary(TestAccountReportsCommon):
         self._post_book_document(
             "out_refund", 40.0, self.sale_general_tax, "00-2", origin=invoice
         )
-        self._assert_summary_nets_credit_notes(
-            self.env.ref("l10n_ve_reports.sales_book_report")
+        lines = self._assert_summary_nets_credit_notes(
+            self.env.ref("l10n_ve_reports.sales_book_report"), "Tax Debit"
         )
+        self.assertFalse(self._book_move_line(lines, invoice).get("l10n_ve_summary"))
 
     def test_purchase_book_summary_subtracts_credit_notes(self):
         invoice = self._post_book_document(
@@ -110,8 +122,27 @@ class TestBookReportSummary(TestAccountReportsCommon):
         self._post_book_document(
             "in_refund", 40.0, self.purchase_general_tax, "00-2", origin=invoice
         )
-        self._assert_summary_nets_credit_notes(
-            self.env.ref("l10n_ve_reports.purchases_book_report")
+        lines = self._assert_summary_nets_credit_notes(
+            self.env.ref("l10n_ve_reports.purchases_book_report"), "Tax Credit"
+        )
+        self.assertFalse(self._book_move_line(lines, invoice).get("l10n_ve_summary"))
+
+    def test_fiscal_machine_book_summary_compact_values(self):
+        report = self.env.ref("l10n_ve_reports.sales_book_fiscal_machine_report")
+        options = self._generate_options(report, "2017-01-01", "2017-01-31")
+        lines = report._get_lines(options)
+        summary_lines = [line for line in lines if line.get("l10n_ve_summary_values")]
+        self.assertEqual(len(summary_lines), 7)
+        self.assertTrue(summary_lines[-1]["l10n_ve_summary_values"]["is_total"])
+        self.assertEqual(
+            summary_lines[-1]["l10n_ve_summary_values"]["tax_label"], "Tax Debit"
+        )
+        self.assertTrue(
+            all(
+                line.get("l10n_ve_summary")
+                for line in lines
+                if line.get("class") in ("resume_separator", "resume_title")
+            )
         )
 
     def _create_ve_tax_group(self, name, **values):

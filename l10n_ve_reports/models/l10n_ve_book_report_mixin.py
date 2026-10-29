@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import _, fields, models
 
 
 class L10nVeBookReportMixin(models.AbstractModel):
@@ -60,6 +60,48 @@ class L10nVeBookReportMixin(models.AbstractModel):
             "amount_extend_aliquot",
         ],
     }
+
+    def _l10n_ve_book_custom_display_config(self, css_custom_class):
+        return {
+            "css_custom_class": css_custom_class,
+            "templates": {
+                "AccountReport": "l10n_ve_reports.BookReport",
+            },
+            "pdf_export": {
+                "pdf_export_main": "l10n_ve_reports.pdf_export_book_main",
+            },
+        }
+
+    def _l10n_ve_summary_display_values(
+        self, report, options, section, section_data, book_type
+    ):
+        if section.get("third_party_section"):
+            base = sum(
+                section_data.get(key, 0.0)
+                for key in (
+                    "total_exempt",
+                    "base_general",
+                    "base_reduced",
+                    "base_extend",
+                )
+            )
+            tax = sum(
+                section_data.get(key, 0.0)
+                for key in ("amount_general", "amount_reduced", "amount_extend")
+            )
+        else:
+            base = section_data.get("base_invoices", 0.0) - section_data.get(
+                "base_credits", 0.0
+            )
+            tax = section_data.get("amount_invoices", 0.0) - section_data.get(
+                "amount_credits", 0.0
+            )
+        return {
+            "base": report.format_value(options, base, "monetary"),
+            "tax": report.format_value(options, tax, "monetary"),
+            "tax_label": _("Tax Credit") if book_type == "purchase" else _("Tax Debit"),
+            "is_total": bool(section.get("is_total")),
+        }
 
     def _l10n_ve_get_aliquot_column_map(self, book_type):
         if book_type == "purchase":

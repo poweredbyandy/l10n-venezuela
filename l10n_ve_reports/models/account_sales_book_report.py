@@ -11,9 +11,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
     _description = "Sales Book Report Custom Handler"
 
     def _get_custom_display_config(self):
-        return {
-            "css_custom_class": "sales_book_report",
-        }
+        return self._l10n_ve_book_custom_display_config("sales_book_report")
 
     def _custom_options_initializer(self, report, options, previous_options):
         result = super()._custom_options_initializer(
@@ -498,6 +496,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
             "level": 0,
             "unfoldable": False,
             "class": "resume_separator",
+            "l10n_ve_summary": True,
         }
         lines.append(separator_line)
 
@@ -511,6 +510,7 @@ class SalesBookReportCustomHandler(models.AbstractModel):
             "level": 0,
             "unfoldable": False,
             "class": "resume_title",
+            "l10n_ve_summary": True,
         }
         lines.append(resume_title_line)
 
@@ -846,6 +846,10 @@ class SalesBookReportCustomHandler(models.AbstractModel):
                 "level": 0 if section.get("is_total") else 1,
                 "unfoldable": False,
                 "class": line_class,
+                "l10n_ve_summary": True,
+                "l10n_ve_summary_values": self._l10n_ve_summary_display_values(
+                    report, options, section, section_data, "sale"
+                ),
             }
             resume_lines.append(line_dict)
 

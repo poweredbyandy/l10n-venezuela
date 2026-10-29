@@ -81,6 +81,54 @@
         </html>
     </template>
 
+    <template
+        id="pdf_export_book_main"
+        inherit_id="l10n_ve_reports.pdf_export_main"
+        primary="True"
+    >
+        <xpath expr="//div[hasclass('d-flex')]" position="before">
+            <t
+                t-set="summary_lines"
+                t-value="[line for line in lines if line.get('l10n_ve_summary_values')]"
+            />
+            <t
+                t-set="lines"
+                t-value="[line for line in lines if not line.get('l10n_ve_summary')]"
+            />
+        </xpath>
+        <xpath expr="//div[hasclass('d-flex')]" position="after">
+            <table t-if="summary_lines" class="o_table o_l10n_ve_book_summary">
+                <thead>
+                    <tr>
+                        <th>Summary</th>
+                        <th class="o_text_end">Tax Base</th>
+                        <th
+                            class="o_text_end"
+                            t-out="summary_lines[0]['l10n_ve_summary_values']['tax_label']"
+                        />
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        t-foreach="summary_lines"
+                        t-as="summary_line"
+                        t-att-class="'o_l10n_ve_book_summary_total' if summary_line['l10n_ve_summary_values']['is_total'] else None"
+                    >
+                        <td t-out="summary_line['name']" />
+                        <td
+                            class="o_text_end"
+                            t-out="summary_line['l10n_ve_summary_values']['base']"
+                        />
+                        <td
+                            class="o_text_end"
+                            t-out="summary_line['l10n_ve_summary_values']['tax']"
+                        />
+                    </tr>
+                </tbody>
+            </table>
+        </xpath>
+    </template>
+
     <template id="company_information">
         <t
             t-set="company_names"

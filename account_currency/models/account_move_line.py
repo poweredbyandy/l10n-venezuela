@@ -211,6 +211,7 @@ class AccountMoveLine(models.Model):
             line.currency_rate = manual_rate
             if (
                 line.display_type == "product"
+                and line.move_id.state == "draft"
                 and line.move_id.is_invoice(include_receipts=True)
                 and line.amount_currency
             ):

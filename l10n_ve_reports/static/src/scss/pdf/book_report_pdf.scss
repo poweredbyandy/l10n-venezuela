@@ -1,0 +1,124 @@
+.o_content.sales_book_report,
+.o_content.sales_book_fiscal_machine_report,
+.o_content.purchases_book_report {
+    margin: 0 14mm;
+
+    header {
+        padding: 6px 8px;
+        margin-bottom: 6px;
+
+        .o_title {
+            font-size: 16px;
+        }
+
+        .o_header_font {
+            font-size: 10px;
+        }
+    }
+
+    .o_table {
+        width: 100%;
+        font-size: 0.55rem;
+        margin: 0;
+        padding: 0;
+
+        > :not(caption) > * > * {
+            padding: 0.15rem 0.2rem;
+        }
+
+        > thead > tr > th:first-child:nth-last-child(n + 30),
+        > thead > tr > th:first-child:nth-last-child(n + 30) ~ th,
+        > tbody > tr > td:first-child:nth-last-child(n + 30),
+        > tbody > tr > td:first-child:nth-last-child(n + 30) ~ td {
+            font-size: 0.38rem;
+            padding: 0.1rem;
+        }
+
+        > thead {
+            white-space: normal;
+
+            tr > th:first-child {
+                width: auto;
+            }
+
+            > tr > th {
+                overflow-wrap: break-word;
+                vertical-align: bottom;
+                text-align: center;
+            }
+        }
+
+        > tbody {
+            white-space: normal;
+
+            tr {
+                height: auto;
+            }
+
+            td.o_line_name_level {
+                min-width: 90px;
+                white-space: normal;
+            }
+
+            td {
+                max-width: none;
+                overflow-wrap: break-word;
+            }
+
+            .o_overflow_value {
+                max-width: none;
+                white-space: nowrap !important;
+            }
+
+            td:nth-child(5) .o_overflow_value {
+                max-width: 130px;
+                white-space: normal !important;
+            }
+
+            .o_line_cell_value_number {
+                white-space: nowrap;
+            }
+        }
+    }
+
+    .o_table.o_l10n_ve_book_summary {
+        width: auto;
+        min-width: 40%;
+        margin: 16px 0 0;
+        font-size: 0.7rem;
+        page-break-inside: avoid;
+
+        > :not(caption) > * > * {
+            padding: 0.2rem 0.8rem;
+        }
+
+        > thead > tr > th {
+            background-color: #e7e9ed;
+            border-top: 1px solid $o-gray-600;
+            border-bottom: 1px solid $o-gray-600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        > tbody {
+            td {
+                border-bottom: 0.5px solid $o-gray-300;
+            }
+
+            td:not(:first-child) {
+                white-space: nowrap;
+            }
+
+            .o_l10n_ve_book_summary_total > td {
+                font-weight: bold;
+                background-color: #e7e9ed;
+                border-top: 1px solid $o-gray-600;
+                border-bottom: 1px solid $o-gray-600;
+            }
+        }
+    }
+
+    .o_annotation {
+        margin: 0;
+    }
+}

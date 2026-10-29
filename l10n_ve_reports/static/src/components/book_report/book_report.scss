@@ -1,0 +1,35 @@
+.account_report .o_l10n_ve_book_summary {
+    width: fit-content;
+    margin: 2rem 0 1rem;
+
+    > .table {
+        min-width: 420px;
+        margin-bottom: 0;
+
+        > thead > tr > th {
+            color: $o-gray-700;
+            background-color: $o-gray-200;
+            border-top: 2px solid $o-gray-600;
+            border-bottom: 2px solid $o-gray-600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        > thead > tr > th,
+        > tbody > tr > td {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        > tbody > tr > td {
+            border-bottom: 1px solid $o-gray-200;
+        }
+
+        > tbody > tr.o_l10n_ve_book_summary_total > td {
+            font-weight: bold;
+            background-color: $o-gray-200;
+            border-top: 2px solid $o-gray-600;
+            border-bottom: 2px solid $o-gray-600;
+        }
+    }
+}

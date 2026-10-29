@@ -3,7 +3,7 @@
     "name": "Account Currency",
     "summary": "Company currency amounts and exchange rates on invoices",
     "website": "https://github.com/OCA/l10n-venezuela",
-    "version": "18.0.1.4.5",
+    "version": "18.0.1.4.6",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Accounting/Accounting",

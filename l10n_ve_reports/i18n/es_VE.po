@@ -5088,3 +5088,29 @@ msgstr "Total de pagos registrados"
 
 #~ msgid "Today"
 #~ msgstr "Hoy"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/book_report/book_report.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_book_main
+msgid "Summary"
+msgstr "Resumen"
+
+#. module: l10n_ve_reports
+#. odoo-javascript
+#: code:addons/l10n_ve_reports/static/src/components/book_report/book_report.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_ve_reports.pdf_export_book_main
+msgid "Tax Base"
+msgstr "Base imponible"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/l10n_ve_book_report_mixin.py:0
+msgid "Tax Credit"
+msgstr "Crédito fiscal"
+
+#. module: l10n_ve_reports
+#. odoo-python
+#: code:addons/l10n_ve_reports/models/l10n_ve_book_report_mixin.py:0
+msgid "Tax Debit"
+msgstr "Débito fiscal"
