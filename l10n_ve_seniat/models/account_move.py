@@ -102,12 +102,8 @@ class AccountMove(models.Model):
                         "17-03-2022, en caso de ser cancelado en divisas. No aplica "
                         "en pago en Bs.</span> "
                     )
-                # Segundo texto sobre tipo de cambio (solo si hay tasa inversa)
-                if move.company_currency_id != move.currency_id:
-                    # Formatear la tasa inversa con la moneda de la compañía
-                    rate_formatted = move.company_currency_id.format(
-                        move.l10n_ve_inverse_rate
-                    )
+                rate_formatted = move.l10n_ve_report_exchange_rate_display()
+                if rate_formatted:
                     texts.append(
                         "<span>Este documento se expresa en Bolívares con su "
                         "equivalente en Divisas, al tipo de cambio corriente del "
@@ -2869,7 +2865,7 @@ Please create a credit note instead.
         amount = formatLang(
             self.env,
             self.l10n_ve_inverse_rate,
-            digits=min(2, self.company_currency_id.decimal_places),
+            digits=4,
         )
         symbol = (self.company_currency_id.symbol or "Bs").strip()
         return f"{amount} {symbol}"

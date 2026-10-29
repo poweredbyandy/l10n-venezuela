@@ -48,6 +48,9 @@ class TestCoverageExtraAccountMove(L10nVeSeniatCommon):
         self.assertIn("IGTF", tag)
         self.assertIn("tipo de cambio", tag.lower())
         self.assertGreater(move.l10n_ve_inverse_rate, 0.0)
+        rate_display = move.l10n_ve_report_exchange_rate_display()
+        self.assertTrue(rate_display)
+        self.assertRegex(rate_display, r"\d+[.,]\d{4}\b")
 
     def test_out_refund_second_credit_exceeds_origin_total_raises(self):
         customer = self._ve_customer()
