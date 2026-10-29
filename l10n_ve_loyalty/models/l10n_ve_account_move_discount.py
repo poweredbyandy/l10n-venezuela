@@ -1715,27 +1715,32 @@ class AccountMove(models.Model):
         tax_details = base_line.get("tax_details") or {}
         sign = base_line["sign"]
         to_update = dict(to_update)
+        company_currency = self.company_id.currency_id
+        discount_factor = 1 - (base_line.get("discount") or 0.0) / 100.0
         if float_is_zero(base_line.get("discount") or 0.0, precision_rounding=1e-9):
             pre_global_currency = tax_details.get("raw_gross_total_excluded_currency")
             pre_global_balance = tax_details.get("raw_gross_total_excluded")
         else:
             line_currency = base_line["currency_id"]
-            discount_factor = 1 - (base_line.get("discount") or 0.0) / 100.0
             pre_global_currency = line_currency.round(
                 base_line["price_unit"] * base_line["quantity"] * discount_factor
             )
-            rate = base_line.get("rate") or 1.0
-            pre_global_balance = self.company_id.currency_id.round(
-                pre_global_currency / rate if rate else pre_global_currency
-            )
+            company_pu = base_line.get("l10n_ve_company_price_unit")
+            if company_pu is not None:
+                pre_global_balance = company_currency.round(
+                    company_pu * base_line["quantity"] * discount_factor
+                )
+            else:
+                rate = base_line.get("rate") or 1.0
+                pre_global_balance = company_currency.round(
+                    pre_global_currency / rate if rate else pre_global_currency
+                )
         if pre_global_currency is not None and pre_global_balance is not None:
-            to_update["amount_currency"] = sign * (
-                pre_global_currency
-                + tax_details.get("delta_total_excluded_currency", 0.0)
-            )
-            to_update["balance"] = sign * (
-                pre_global_balance + tax_details.get("delta_total_excluded", 0.0)
-            )
+            # Do not apply net-side tax deltas on the pre-global gross: those
+            # deltas reconcile discounted amounts, and with journal discount
+            # lines the product row must keep the rounded gross (pu_bs / USD).
+            to_update["amount_currency"] = sign * pre_global_currency
+            to_update["balance"] = sign * pre_global_balance
         return to_update
 
     def _l10n_ve_flush_grouped_line_updates(
