@@ -1515,6 +1515,36 @@ class AccountMove(models.Model):
                 move.show_reset_to_draft_button = True
         return res
 
+    def _is_readonly(self):
+        """El catálogo no debe seguir editable si otra sesión ya publicó el documento."""
+        self.ensure_one()
+        if self.state != "draft":
+            return True
+        return super()._is_readonly()
+
+    def _l10n_ve_raise_if_catalog_locked(self):
+        """Impide agregar productos cuando el documento ya no está en borrador.
+
+        El catálogo abierto en otro navegador no se entera de la publicación
+        y llama a ``_update_order_line_info`` con el estado que vio al abrirse.
+        """
+        self.ensure_one()
+        if self.state == "draft":
+            return
+        document = self.name if self.name and self.name != "/" else _("el documento")
+        raise UserError(
+            _(
+                "No puede agregar ni modificar productos en %(document)s porque "
+                "ya no está en borrador. Se confirmó en otra ventana. Cierre el "
+                "catálogo y vuelva a abrir el documento.",
+                document=document,
+            )
+        )
+
+    def _update_order_line_info(self, product_id, quantity, **kwargs):
+        self._l10n_ve_raise_if_catalog_locked()
+        return super()._update_order_line_info(product_id, quantity, **kwargs)
+
     def button_draft(self):
         """Impide restablecer a borrador facturas de cliente venezolanas.
 

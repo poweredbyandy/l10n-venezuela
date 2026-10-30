@@ -10,8 +10,38 @@ _logger = logging.getLogger(__name__)
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
+    @api.model
+    def _l10n_ve_vals_is_commercial_line(self, vals):
+        """Línea que el usuario agrega desde la factura o el catálogo.
+
+        Las líneas automáticas (impuesto, plazo, costo, redondeo) siguen
+        pudiendo crearse sobre un asiento publicado.
+        """
+        display_type = vals.get("display_type")
+        if display_type in ("product", "line_section", "line_note"):
+            return True
+        return not display_type and bool(vals.get("product_id"))
+
+    @api.model
+    def _l10n_ve_reject_commercial_lines_on_locked_moves(self, vals_list):
+        if self.env.context.get("skip_readonly_check"):
+            return
+        move_ids = [
+            vals["move_id"]
+            for vals in vals_list
+            if vals.get("move_id") and self._l10n_ve_vals_is_commercial_line(vals)
+        ]
+        if not move_ids:
+            return
+        locked = self.env["account.move"].browse(move_ids).filtered(
+            lambda move: move.state != "draft"
+        )
+        if locked:
+            locked[0]._l10n_ve_raise_if_catalog_locked()
+
     @api.model_create_multi
     def create(self, vals_list):
+        self._l10n_ve_reject_commercial_lines_on_locked_moves(vals_list)
         res = super().create(vals_list)
         if self.env.context.get("l10n_ve_skip_exempt_tax_line"):
             return res
