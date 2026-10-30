@@ -96,12 +96,31 @@ class AccountTax(models.Model):
         """Same company subtotal rule as invoice ``price_subtotal_currency``."""
         company_currency = document.company_id.currency_id
         currency = document.currency_id
-        foreign_subtotal = currency.round(line.price_subtotal or 0.0)
         if currency == company_currency:
-            return company_currency.round(foreign_subtotal)
+            return company_currency.round(line.price_subtotal or 0.0)
         rate = self._account_currency_document_rate(document)
         if not rate:
             return 0.0
+        Move = self.env["account.move"]
+        if hasattr(Move, "_l10n_ve_company_line_subtotal_from_foreign_unit"):
+            quantity = getattr(line, "product_uom_qty", None)
+            if quantity is None:
+                quantity = getattr(line, "product_qty", 0.0)
+            stub = Move.new(
+                {
+                    "company_id": document.company_id.id,
+                    "currency_id": currency.id,
+                    "move_type": "out_invoice",
+                    "invoice_currency_rate": rate,
+                }
+            )
+            return stub._l10n_ve_company_line_subtotal_from_foreign_unit(
+                line.price_unit or 0.0,
+                quantity or 0.0,
+                discount=getattr(line, "discount", 0.0) or 0.0,
+                rate=rate,
+            )
+        foreign_subtotal = currency.round(line.price_subtotal or 0.0)
         return company_currency.round(foreign_subtotal / rate)
 
     @api.model
