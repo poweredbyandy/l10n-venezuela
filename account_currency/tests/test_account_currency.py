@@ -679,6 +679,67 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         )
         self.assertAlmostEqual(abs(invoice.amount_tax_signed), expected_tax, places=2)
 
+    def _invoice_rate_change_tax(self, price_unit, quantity):
+        self.env.company.tax_calculation_rounding_method = "round_globally"
+        precision = self.env["decimal.precision"].search(
+            [("name", "=", "Product Price")], limit=1
+        )
+        if precision:
+            precision.digits = 4
+        tax = self._sale_percent_tax(16)
+        self.setup_other_currency("EUR", rates=[("2026-10-01", 0.01)])
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": "2026-10-23",
+                "date": "2026-10-23",
+                "currency_id": self.foreign_currency.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Rate change",
+                            "quantity": quantity,
+                            "price_unit": price_unit,
+                            "tax_ids": [(6, 0, tax.ids)],
+                        },
+                    )
+                ],
+            }
+        )
+        foreign_tax = invoice.amount_tax
+        invoice.invoice_currency_rate = 0.0011259761227755357
+        company = self.env.company.currency_id
+        return invoice, foreign_tax, company
+
+    def test_rate_change_fractional_unit_keeps_tax_percent_of_company_base(self):
+        """Extra price decimals: Bs IVA stays 16% of the Bs base after a rate write.
+
+        ``round(usd_tax / rate)`` is a different amount. Posted invoices are
+        left untouched; only a later rate write on a draft takes this path.
+        """
+        invoice, foreign_tax, company = self._invoice_rate_change_tax(6.28595, 8.0)
+        base = abs(invoice.amount_untaxed_signed)
+        tax_amount = abs(invoice.amount_tax_signed)
+        expected = company.round(base * 0.16)
+        converted = company.round(invoice.amount_tax / invoice.invoice_currency_rate)
+        self.assertAlmostEqual(invoice.amount_tax, foreign_tax, places=2)
+        self.assertAlmostEqual(tax_amount, expected, places=2)
+        self.assertNotAlmostEqual(expected, converted, places=2)
+
+    def test_rate_change_even_price_company_tax_matches_both_formulas(self):
+        """Prices that divide evenly already match. A rate write must not move them."""
+        invoice, foreign_tax, company = self._invoice_rate_change_tax(15.0, 4.0)
+        base = abs(invoice.amount_untaxed_signed)
+        tax_amount = abs(invoice.amount_tax_signed)
+        expected = company.round(base * 0.16)
+        converted = company.round(invoice.amount_tax / invoice.invoice_currency_rate)
+        self.assertAlmostEqual(invoice.amount_tax, foreign_tax, places=2)
+        self.assertAlmostEqual(tax_amount, expected, places=2)
+        self.assertAlmostEqual(tax_amount, converted, places=2)
+
 
 @tagged("post_install", "-at_install")
 class TestResCurrencyRate(AccountTestInvoicingCommon):

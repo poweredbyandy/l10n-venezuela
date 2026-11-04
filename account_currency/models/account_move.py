@@ -520,6 +520,39 @@ class AccountMove(models.Model):
             company_pu * (quantity or 0.0) * discount_factor
         )
 
+    def _l10n_ve_reapply_rate_from_prices(self):
+        """Recompute taxes from the lines when only the rate changes.
+
+        Odoo keeps the foreign tax and sets the company amount to
+        ``foreign_tax / rate``. With extra price decimals that is not the
+        percent of the company base. Recomputing from the prices keeps the
+        foreign tax and applies the percent to the company base. A tax amount
+        typed by hand stays on Odoo's path.
+        """
+        self.ensure_one()
+        if not self.currency_id or self.currency_id == self.company_currency_id:
+            return False
+        manual_field = self.env["account.move.line"]._fields.get(
+            "l10n_ve_manual_balance_active"
+        )
+        if not manual_field:
+            return True
+        return not any(
+            line.l10n_ve_manual_balance_active
+            for line in self.line_ids
+            if line.tax_repartition_line_id
+        )
+
+    def _get_rounded_base_and_tax_lines(self, round_from_tax_lines=True):
+        if (
+            round_from_tax_lines == "reapply_currency_rate"
+            and self._l10n_ve_reapply_rate_from_prices()
+        ):
+            round_from_tax_lines = False
+        return super()._get_rounded_base_and_tax_lines(
+            round_from_tax_lines=round_from_tax_lines
+        )
+
     def _prepare_product_base_line_for_taxes_computation(self, product_line):
         base_line = super()._prepare_product_base_line_for_taxes_computation(
             product_line
