@@ -429,6 +429,12 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         return self.env["account.move"]
 
     def _get_invoice_moves_from_reconciliation(self, move):
+        """Invoices matched directly to this move.
+
+        ``_all_reconciled_lines`` follows the whole matching number. Partial
+        payments of one partner merge that number over time, so a later
+        payment would list every invoice ever linked to the customer.
+        """
         move = move[:1]
         if not move:
             return self.env["account.move"]
@@ -443,8 +449,13 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
         seen = set()
         invoices = self.env["account.move"]
         for line in move.line_ids:
-            for other in line._all_reconciled_lines():
-                cm = other.move_id
+            partials = line.matched_debit_ids | line.matched_credit_ids
+            for partial in partials:
+                if partial.debit_move_id == line:
+                    counterpart = partial.credit_move_id
+                else:
+                    counterpart = partial.debit_move_id
+                cm = counterpart.move_id
                 if (
                     cm.id != move.id
                     and cm.move_type in invoice_types
