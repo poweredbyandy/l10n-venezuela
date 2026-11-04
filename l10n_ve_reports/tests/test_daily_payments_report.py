@@ -223,6 +223,74 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
             ):
                 self.assertNotIn("o_daily_pay_credit", line.get("class") or "")
 
+    def test_document_label_ignores_older_payments_in_the_same_chain(self):
+        invoice_a = self._create_credit_invoice(
+            "out_invoice", 100.0, invoice_date="2025-01-10"
+        )
+        invoice_b = self._create_credit_invoice(
+            "out_invoice", 100.0, invoice_date="2025-01-11"
+        )
+        method = self.bank_journal.inbound_payment_method_line_ids[:1]
+        self.assertTrue(method)
+        payment_old, payment_new = self.env["account.payment"].create(
+            [
+                {
+                    "amount": amount,
+                    "payment_type": "inbound",
+                    "partner_type": "customer",
+                    "date": pay_date,
+                    "journal_id": self.bank_journal.id,
+                    "partner_id": self.partner_a.id,
+                    "payment_method_line_id": method.id,
+                }
+                for amount, pay_date in ((150.0, "2025-01-12"), (50.0, "2025-01-13"))
+            ]
+        )
+        payment_old.action_post()
+        receivable = "asset_receivable"
+        (
+            invoice_a.line_ids.filtered(
+                lambda line: line.account_id.account_type == receivable
+            )
+            | invoice_b.line_ids.filtered(
+                lambda line: line.account_id.account_type == receivable
+            )
+            | payment_old.move_id.line_ids.filtered(
+                lambda line: line.account_id.account_type == receivable
+            )
+        ).reconcile()
+        payment_new.action_post()
+        (
+            invoice_b.line_ids.filtered(
+                lambda line: line.account_id.account_type == receivable
+                and not line.reconciled
+            )
+            | payment_new.move_id.line_ids.filtered(
+                lambda line: line.account_id.account_type == receivable
+            )
+        ).reconcile()
+
+        chain_moves = payment_new.move_id.line_ids._all_reconciled_lines().move_id
+        self.assertIn(invoice_a, chain_moves)
+
+        handler = self.env["account.daily.payments.report.handler.oca"]
+        self.assertEqual(
+            handler._format_invoice_documents_label(payment_new.move_id),
+            invoice_b.name,
+        )
+        old_label = handler._format_invoice_documents_label(payment_old.move_id)
+        self.assertIn(invoice_a.name, old_label)
+        self.assertIn(invoice_b.name, old_label)
+
+        lines, _options = self._get_report_lines()
+        new_payment_lines = [
+            line for line in lines if line.get("name") == payment_new.move_id.name
+        ]
+        self.assertTrue(new_payment_lines)
+        documents = new_payment_lines[0]["columns"][1].get("name")
+        self.assertEqual(documents, invoice_b.name)
+        self.assertNotIn(invoice_a.name, documents or "")
+
     def test_paid_invoices_are_not_listed_as_credit(self):
         invoice = self._create_credit_invoice("out_invoice", 200.0)
         self.env["account.payment.register"].with_context(
