@@ -1,6 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.tests import tagged
 
 from .common import TestAccountReportsCommon
@@ -525,3 +525,81 @@ class TestDailyPaymentsReport(TestAccountReportsCommon):
             if line.get("name") == "Total" and line.get("level") == 0
         ]
         self.assertAlmostEqual(self._get_line_amount(grand_total[0]), 500.0)
+
+    def _payment_detail_lines(self, lines, payment):
+        move_name = payment.move_id.name
+        return [line for line in lines if line.get("name") == move_name]
+
+    def test_document_rate_stays_on_payment_date_when_filtering_validation(self):
+        payment_date = fields.Date.from_string("2025-01-10")
+        validation_date = fields.Date.from_string("2025-01-20")
+        company = self.company_data["company"]
+        self.env["res.currency.rate"].create(
+            {
+                "currency_id": self.other_currency.id,
+                "name": validation_date,
+                "rate": 5.0,
+                "company_id": company.id,
+            }
+        )
+        method = self.bank_journal.inbound_payment_method_line_ids[:1]
+        self.assertTrue(method)
+        payment = self.env["account.payment"].create(
+            {
+                "amount": 100.0,
+                "payment_type": "inbound",
+                "partner_type": "customer",
+                "date": validation_date,
+                "journal_id": self.bank_journal.id,
+                "partner_id": self.partner_a.id,
+                "payment_method_line_id": method.id,
+            }
+        )
+        payment.action_post()
+        payment.date = payment_date
+        self.assertEqual(payment.date, payment_date)
+        self.assertEqual(payment.move_id.date, validation_date)
+
+        document_amount = company.currency_id._convert(
+            100.0, self.other_currency, company, payment_date
+        )
+        validation_amount = company.currency_id._convert(
+            100.0, self.other_currency, company, validation_date
+        )
+        self.assertNotAlmostEqual(document_amount, validation_amount)
+
+        rate_options = {
+            "currency_rate_date_type": "document",
+            "display_currency_id": self.other_currency.id,
+        }
+        lines_validation, _options = self._get_report_lines(
+            date_from="2025-01-20",
+            date_to="2025-01-20",
+            extra_options={
+                **rate_options,
+                "daily_payments_date_type": "validation",
+            },
+        )
+        detail_validation = self._payment_detail_lines(lines_validation, payment)
+        self.assertEqual(len(detail_validation), 1)
+        self.assertAlmostEqual(
+            self._get_line_amount(detail_validation[0]), document_amount
+        )
+        shown_date = detail_validation[0]["columns"][0].get("no_format")
+        self.assertEqual(fields.Date.to_date(shown_date), validation_date)
+
+        lines_payment, _options = self._get_report_lines(
+            date_from="2025-01-10",
+            date_to="2025-01-10",
+            extra_options={
+                **rate_options,
+                "daily_payments_date_type": "payment",
+            },
+        )
+        detail_payment = self._payment_detail_lines(lines_payment, payment)
+        self.assertEqual(len(detail_payment), 1)
+        self.assertAlmostEqual(
+            self._get_line_amount(detail_payment[0]), document_amount
+        )
+        shown_payment_date = detail_payment[0]["columns"][0].get("no_format")
+        self.assertEqual(fields.Date.to_date(shown_payment_date), payment_date)

@@ -98,16 +98,26 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
     def _show_credit_invoices(self, options):
         return bool(options.get("daily_payments_show_credit_invoices", True))
 
-    def _get_move_display_report_amount(self, move, journal, options, conv_date):
+    def _get_move_rate_date(self, move):
+        """Payment date that locks the document exchange rate.
+
+        The validation filter only chooses which rows appear and which date
+        is printed. The document rate stays on the payment date, so the
+        converted amount does not follow that filter or the day the report
+        is opened.
+        """
+        return self._get_move_payment_date(move)
+
+    def _get_move_display_report_amount(self, move, journal, options):
         balance = self._get_move_report_amount(move, journal)
         return self._amount_to_report_currency(
             balance,
             move.company_id,
             options,
-            conv_date,
+            self._get_move_rate_date(move),
         )
 
-    def _get_move_pending_report_amount(self, move, journal, options, conv_date):
+    def _get_move_pending_report_amount(self, move, journal, options):
         company_currency = journal.company_id.currency_id
         bal = self._get_move_outstanding_balance_company(move, journal)
         if company_currency.is_zero(bal):
@@ -118,7 +128,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             bal,
             journal.company_id,
             options,
-            conv_date,
+            self._get_move_rate_date(move),
         )
 
     def _get_move_payment(self, move):
@@ -749,48 +759,35 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             )
 
         for move in registered_moves:
-            display_date = self._get_move_display_date(move, date_type)
             _append_move_item(
                 move,
-                self._get_move_display_report_amount(
-                    move, journal, options, display_date
-                ),
+                self._get_move_display_report_amount(move, journal, options),
                 "registered",
             )
         for move in draft_moves:
-            display_date = self._get_move_display_date(move, date_type)
             _append_move_item(
                 move,
-                self._get_move_display_report_amount(
-                    move, journal, options, display_date
-                ),
+                self._get_move_display_report_amount(move, journal, options),
                 "pending",
             )
         for move in closed_payment_moves:
-            display_date = self._get_move_display_date(move, date_type)
             _append_move_item(
                 move,
-                self._get_move_display_report_amount(
-                    move, journal, options, display_date
-                ),
+                self._get_move_display_report_amount(move, journal, options),
                 "pending",
             )
         for move in pending_posted_moves:
-            display_date = self._get_move_display_date(move, date_type)
             _append_move_item(
                 move,
-                self._get_move_pending_report_amount(
-                    move, journal, options, display_date
-                ),
+                self._get_move_pending_report_amount(move, journal, options),
                 "pending",
             )
         for aml in outstanding_amls:
-            display_date = self._get_aml_display_date(aml, date_type)
             amount = self._amount_to_report_currency(
                 aml.amount_residual,
                 journal.company_id,
                 options,
-                display_date,
+                self._get_move_rate_date(aml.move_id),
             )
             if self._is_report_amount_zero(amount, options):
                 continue
@@ -1346,9 +1343,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
             for move_date in sorted(moves_by_date.keys()):
                 for move in moves_by_date[move_date]:
                     display_date = self._get_move_display_date(move, date_type)
-                    amt = self._get_move_display_report_amount(
-                        move, journal, options, display_date
-                    )
+                    amt = self._get_move_display_report_amount(move, journal, options)
                     if self._is_report_amount_zero(amt, options):
                         continue
                     flow_kind = self._get_report_amount_flow_kind(amt, move=move)
@@ -1411,9 +1406,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
 
             for move in draft_moves:
                 display_date = self._get_move_display_date(move, date_type)
-                amt = self._get_move_display_report_amount(
-                    move, journal, options, display_date
-                )
+                amt = self._get_move_display_report_amount(move, journal, options)
                 if self._is_report_amount_zero(amt, options):
                     continue
                 flow_kind = self._get_report_amount_flow_kind(amt, move=move)
@@ -1461,9 +1454,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
             ):
                 display_date = self._get_move_display_date(move, date_type)
-                amt = self._get_move_display_report_amount(
-                    move, journal, options, display_date
-                )
+                amt = self._get_move_display_report_amount(move, journal, options)
                 if self._is_report_amount_zero(amt, options):
                     continue
                 flow_kind = self._get_report_amount_flow_kind(amt, move=move)
@@ -1511,9 +1502,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                 )
             ):
                 display_date = self._get_move_display_date(move, date_type)
-                amt = self._get_move_pending_report_amount(
-                    move, journal, options, display_date
-                )
+                amt = self._get_move_pending_report_amount(move, journal, options)
                 if self._is_report_amount_zero(amt, options):
                     continue
                 flow_kind = self._get_report_amount_flow_kind(amt, move=move)
@@ -1560,7 +1549,7 @@ class DailyPaymentsReportCustomHandler(models.AbstractModel):
                     aml.amount_residual,
                     journal.company_id,
                     options,
-                    display_date,
+                    self._get_move_rate_date(aml.move_id),
                 )
                 if self._is_report_amount_zero(amt, options):
                     continue
