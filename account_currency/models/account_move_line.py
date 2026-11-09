@@ -69,6 +69,10 @@ class AccountMoveLine(models.Model):
                     else line.price_subtotal_currency
                 )
                 continue
+            refund_subtotal = line._l10n_ve_draft_refund_company_subtotal()
+            if refund_subtotal is not None:
+                line.price_subtotal_currency = refund_subtotal
+                continue
             move = line.move_id
             use_balance = (
                 line.display_type == "product"
@@ -111,10 +115,12 @@ class AccountMoveLine(models.Model):
                 or line.move_id.move_type not in INVOICE_MOVE_TYPES
             ):
                 continue
+            if self.env.context.get("l10n_ve_resetting_company_currency"):
+                continue
             if line.company_currency_id.is_zero(line.price_subtotal_currency):
                 line.manually_price_subtotal_currency = False
                 continue
-            auto = line._l10n_ve_company_currency_subtotal()
+            auto = line._l10n_ve_automatic_company_subtotal()
             if line.company_currency_id.is_zero(auto):
                 continue
             line.manually_price_subtotal_currency = bool(
@@ -124,6 +130,8 @@ class AccountMoveLine(models.Model):
             )
 
     def _inverse_price_total_currency(self):
+        if self.env.context.get("l10n_ve_resetting_company_currency"):
+            return
         for line in self:
             if (
                 line.display_type != "product"
@@ -132,7 +140,7 @@ class AccountMoveLine(models.Model):
                 continue
             if line.company_currency_id.is_zero(line.price_total_currency):
                 continue
-            auto = line._l10n_ve_company_currency_total_at_invoice_rate()
+            auto = line._l10n_ve_automatic_company_total()
             if line.company_currency_id.is_zero(auto):
                 continue
             if not line.company_currency_id.compare_amounts(
@@ -141,6 +149,17 @@ class AccountMoveLine(models.Model):
                 if not line.manually_price_subtotal_currency:
                     continue
                 line.manually_price_subtotal_currency = False
+                line.price_subtotal_currency = (
+                    line._l10n_ve_automatic_company_subtotal()
+                )
+                continue
+            if line._l10n_ve_stale_company_total():
+                reset = line.with_context(l10n_ve_resetting_company_currency=True)
+                reset.manually_price_subtotal_currency = False
+                reset.price_subtotal_currency = (
+                    reset._l10n_ve_automatic_company_subtotal()
+                )
+                reset.price_total_currency = reset._l10n_ve_automatic_company_total()
                 continue
             if not line.price_total:
                 continue
@@ -268,8 +287,8 @@ class AccountMoveLine(models.Model):
             and aml.move_id.move_type in INVOICE_MOVE_TYPES
         ):
             line.manually_price_subtotal_currency = False
-            line.price_subtotal_currency = line._l10n_ve_company_currency_subtotal()
-            line.price_total_currency = line._l10n_ve_company_currency_total()
+            line.price_subtotal_currency = line._l10n_ve_automatic_company_subtotal()
+            line.price_total_currency = line._l10n_ve_automatic_company_total()
 
     @api.onchange("price_subtotal_currency")
     def _onchange_price_subtotal_currency(self):
@@ -279,14 +298,14 @@ class AccountMoveLine(models.Model):
                 or line.move_id.move_type not in INVOICE_MOVE_TYPES
             ):
                 continue
-            auto = line._l10n_ve_company_currency_subtotal()
+            auto = line._l10n_ve_automatic_company_subtotal()
             if line.company_currency_id.compare_amounts(
                 line.price_subtotal_currency, auto
             ):
                 line.manually_price_subtotal_currency = True
             else:
                 line.manually_price_subtotal_currency = False
-            line.price_total_currency = line._l10n_ve_company_currency_total()
+            line.price_total_currency = line._l10n_ve_automatic_company_total()
 
     @api.onchange("price_total_currency")
     def _onchange_price_total_currency(self):
@@ -296,12 +315,14 @@ class AccountMoveLine(models.Model):
                 or line.move_id.move_type not in INVOICE_MOVE_TYPES
             ):
                 continue
-            auto = line._l10n_ve_company_currency_total_at_invoice_rate()
+            auto = line._l10n_ve_automatic_company_total()
             if not line.company_currency_id.compare_amounts(
                 line.price_total_currency, auto
             ):
                 line.manually_price_subtotal_currency = False
-                line.price_subtotal_currency = line._l10n_ve_company_currency_subtotal()
+                line.price_subtotal_currency = (
+                    line._l10n_ve_automatic_company_subtotal()
+                )
                 continue
             if not line.price_total or not line.price_total_currency:
                 continue
@@ -312,11 +333,34 @@ class AccountMoveLine(models.Model):
             )
 
     def write(self, vals):
+        vals = dict(vals)
         protect_keys = {"quantity", "price_unit", "discount", "tax_ids"}
+        company_amount_keys = {"price_subtotal_currency", "price_total_currency"}
         protected = {}
         if protect_keys & set(vals) and not self.env.context.get(
             "l10n_ve_skip_manual_company_protect"
         ):
+            # The form resends the previous company amounts together with the
+            # new quantity. On a line that was not manual, those amounts are
+            # leftovers, not a rate typed by the user.
+            if not vals.get("manually_price_subtotal_currency"):
+                automatic = self.filtered(
+                    lambda line: line.id and not line.manually_price_subtotal_currency
+                )
+                if automatic and company_amount_keys & set(vals):
+                    if automatic != self:
+                        clean = {
+                            key: value
+                            for key, value in vals.items()
+                            if key not in company_amount_keys
+                        }
+                        clean["manually_price_subtotal_currency"] = False
+                        return automatic.write(clean) and (self - automatic).write(
+                            vals
+                        )
+                    for key in company_amount_keys:
+                        vals.pop(key, None)
+                    vals["manually_price_subtotal_currency"] = False
             protected = {
                 line.id: line.price_subtotal_currency
                 for line in self
@@ -341,8 +385,8 @@ class AccountMoveLine(models.Model):
     def reset_price_subtotal_currency(self):
         self.manually_price_subtotal_currency = False
         for line in self:
-            line.price_subtotal_currency = line._l10n_ve_company_currency_subtotal()
-            line.price_total_currency = line._l10n_ve_company_currency_total()
+            line.price_subtotal_currency = line._l10n_ve_automatic_company_subtotal()
+            line.price_total_currency = line._l10n_ve_automatic_company_total()
 
     def _l10n_ve_has_rate_difference(self):
         self.ensure_one()
@@ -361,6 +405,75 @@ class AccountMoveLine(models.Model):
         if not self.price_subtotal_currency or not self.price_subtotal:
             return 0.0
         return abs(self.price_subtotal) / abs(self.price_subtotal_currency)
+
+    def _l10n_ve_draft_refund_company_subtotal(self):
+        """Company subtotal of a draft credit note scaled from the origin line.
+
+        ``balance`` still holds the full origin amount while the form edits the
+        quantity, so the display cannot follow it.
+        """
+        self.ensure_one()
+        move = self.move_id
+        if (
+            move.state != "draft"
+            or move.move_type not in ("out_refund", "in_refund")
+            or not move.reversed_entry_id
+            or move.currency_id == move.company_currency_id
+            or self.display_type != "product"
+        ):
+            return None
+        origin = move._l10n_ve_find_origin_product_line_for_refund(self)
+        if not origin:
+            return None
+        if hasattr(move, "_l10n_ve_refund_line_target_company_subtotal"):
+            return abs(
+                move._l10n_ve_refund_line_target_company_subtotal(origin, self)
+            )
+        company = self.company_currency_id
+        origin_subtotal = abs(origin.balance or 0.0)
+        if company.is_zero(origin_subtotal):
+            origin_subtotal = abs(origin.price_subtotal_currency or 0.0)
+        if not origin.quantity:
+            return company.round(origin_subtotal)
+        qty_ratio = (self.quantity or 0.0) / origin.quantity
+        price_ratio = (
+            (self.price_unit or 0.0) / origin.price_unit if origin.price_unit else 1.0
+        )
+        origin_discount = 1.0 - (origin.discount or 0.0) / 100.0
+        credit_discount = 1.0 - (self.discount or 0.0) / 100.0
+        discount_ratio = credit_discount / origin_discount if origin_discount else 0.0
+        return company.round(origin_subtotal * qty_ratio * price_ratio * discount_ratio)
+
+    def _l10n_ve_automatic_company_subtotal(self):
+        self.ensure_one()
+        refund_subtotal = self._l10n_ve_draft_refund_company_subtotal()
+        if refund_subtotal is not None:
+            return refund_subtotal
+        return self._l10n_ve_company_currency_subtotal()
+
+    def _l10n_ve_automatic_company_total(self):
+        self.ensure_one()
+        return self._l10n_ve_company_currency_total_from_company_base(
+            self._l10n_ve_automatic_company_subtotal()
+        )
+
+    def _l10n_ve_stale_company_total(self):
+        """Company total still equals the origin while the foreign subtotal changed."""
+        self.ensure_one()
+        origin = self._origin
+        if not origin or not origin.id:
+            return False
+        company = self.company_currency_id
+        origin_total = origin.price_total_currency or 0.0
+        if company.is_zero(origin_total):
+            return False
+        if company.compare_amounts(self.price_total_currency or 0.0, origin_total):
+            return False
+        return bool(
+            self.currency_id.compare_amounts(
+                self.price_subtotal or 0.0, origin.price_subtotal or 0.0
+            )
+        )
 
     def _l10n_ve_company_currency_subtotal(self):
         self.ensure_one()

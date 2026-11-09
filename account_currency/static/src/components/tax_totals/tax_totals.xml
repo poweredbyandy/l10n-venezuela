@@ -4,7 +4,7 @@
         <xpath expr="//tr/td[last()]" position="after">
             <td
                 t-if="props.totals.display_in_company_currency"
-                class="o_tax_group o_list_monetary ps-5"
+                class="o_tax_group o_list_monetary o_account_currency_company_col ps-5"
             >
                 <span
                     class="o_tax_group_amount_value o_list_monetary o_account_currency_company_tax"
@@ -16,11 +16,19 @@
     </t>
 
     <t t-inherit="account.TaxTotalsField" t-inherit-mode="extension">
+        <xpath expr="//table" position="attributes">
+            <attribute name="t-att-class">
+                {'o_account_currency_tax_totals': totals.display_in_company_currency}
+            </attribute>
+        </xpath>
         <xpath
             expr="//t[@t-foreach='totals.subtotals']/tr[1]/td[hasclass('o_list_monetary')]"
             position="after"
         >
-            <td t-if="totals.display_in_company_currency" class="o_list_monetary ps-5">
+            <td
+                t-if="totals.display_in_company_currency"
+                class="o_list_monetary o_account_currency_company_col ps-5"
+            >
                 <span
                     class="o_account_currency_company_subtotal"
                     t-att-name="subtotal.name + '_company'"
@@ -31,7 +39,10 @@
             </td>
         </xpath>
         <xpath expr="//tr[.//span[@name='amount_total']]/td[last()]" position="after">
-            <td t-if="totals.display_in_company_currency" class="o_list_monetary ps-5">
+            <td
+                t-if="totals.display_in_company_currency"
+                class="o_list_monetary o_account_currency_company_col ps-5"
+            >
                 <span
                     class="o_account_currency_company_total"
                     name="amount_total_company"

@@ -28,11 +28,12 @@ Venezuela Bank Statement Import
 
 |badge1| |badge2| |badge3| |badge4| |badge5|
 
-Importación de estados de cuenta bancarios para bancos de Venezuela.
+Importación de estados de cuenta bancarios para bancos de Venezuela
+y del historial de transacciones de Binance.
 
 Extiende ``account_statement_import_sheet_file`` con mapeos para bancos
-locales, lectura de HTML y comprobantes BDVenlínea, omisión de filas de
-saldo inicial/final y captura de saldos desde celdas concretas.
+locales y Binance, lectura de HTML y comprobantes BDVenlínea, omisión
+de filas de saldo inicial/final y captura de saldos desde celdas concretas.
 
 **Table of contents**
 
@@ -45,7 +46,7 @@ Usage
 1. Instale el módulo ``l10n_ve_bank_statement_import``.
 2. Vaya a **Contabilidad → Configuración → Mapeos de importación**.
 3. Seleccione el mapeo del banco (Mercantil, Bancaribe, BFC, Banesco,
-   BDV, BNC u otro incluido) o cree uno con las columnas de su archivo.
+   BDV, BNC, Binance u otro incluido) o cree uno con las columnas de su archivo.
    El TXT de movimientos del BNC (separado por tabulaciones) usa fecha y
    hora para ordenar los movimientos del mismo día.
 4. Si el extracto no tiene cabecera, indique las filas iniciales a
@@ -58,6 +59,14 @@ Usage
 El módulo omite las filas de saldo inicial y saldo final para no
 crearlas como movimientos. No se puede eliminar un extracto con apuntes
 ya conciliados.
+
+El Excel de Binance, «Historial de transacciones», se importa con el
+mapeo **Binance - Historial de transacciones**. La cabecera está en la
+fila 10 (``Tiempo``, ``Cuenta``, ``Operación``, ``Moneda``, ``Cambio``,
+``Observación``). Todas las líneas entran en la moneda del diario; la
+columna ``Moneda`` solo queda en la etiqueta del movimiento. Un valor
+negativo en ``Cambio`` es una salida. Las transferencias entre Spot y
+Funding también se importan.
 
 Bug Tracker
 ===========

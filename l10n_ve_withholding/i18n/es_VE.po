@@ -1018,8 +1018,8 @@ msgstr "Error en el campo de porcentaje de tarifas"
 
 #. module: l10n_ve_withholding
 #: model_terms:ir.ui.view,arch_db:l10n_ve_withholding.report_islr_customer
-msgid "Fact Nro"
-msgstr "Número de hecho"
+msgid "Nro. Factura"
+msgstr "Nro. Factura"
 
 #. module: l10n_ve_withholding
 #. odoo-python

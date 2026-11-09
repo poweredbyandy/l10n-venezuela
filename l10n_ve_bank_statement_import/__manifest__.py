@@ -1,7 +1,7 @@
 {
     "name": "Venezuela Bank Statement Import",
     "summary": "Importación de estados de cuenta bancarios para Venezuela",
-    "version": "18.0.1.4.2",
+    "version": "18.0.1.5.0",
     "category": "Accounting",
     "website": "https://github.com/OCA/l10n-venezuela",
     "author": "andyengit, Odoo Community Association (OCA)",

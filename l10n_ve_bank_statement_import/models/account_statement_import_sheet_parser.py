@@ -216,6 +216,19 @@ class AccountStatementImportSheetParser(models.TransientModel):
             header.append(str(value).strip() if value is not None else "")
         return header
 
+    def _load_xlsx_workbook(self, data_file):
+        from io import BytesIO
+
+        from openpyxl import load_workbook
+
+        workbook = load_workbook(BytesIO(data_file), read_only=True, data_only=True)
+        sheet = workbook.active
+        if (sheet.max_row or 0) >= 2 and (sheet.max_column or 0) >= 2:
+            return workbook, sheet
+        workbook.close()
+        workbook = load_workbook(BytesIO(data_file), data_only=True)
+        return workbook, workbook.active
+
     def _parse_lines(self, mapping, data_file, currency_code):
         if self._is_html_table(data_file):
             try:
@@ -231,14 +244,7 @@ class AccountStatementImportSheetParser(models.TransientModel):
                 _logger.warning("No se pudo leer el comprobante BDVenlínea: %s", error)
         if data_file[:2] == b"PK":
             try:
-                from io import BytesIO
-
-                from openpyxl import load_workbook
-
-                workbook = load_workbook(
-                    BytesIO(data_file), read_only=True, data_only=True
-                )
-                sheet = workbook.active
+                workbook, sheet = self._load_xlsx_workbook(data_file)
                 header = self._openpyxl_header(sheet, mapping)
                 columns = {
                     column_name: self._get_column_indexes(header, column_name, mapping)

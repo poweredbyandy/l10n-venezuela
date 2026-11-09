@@ -278,6 +278,81 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         refund.refresh_invoice_currency_rate()
         self.assertAlmostEqual(refund.invoice_currency_rate, 2.0)
 
+    def test_partial_refund_quantity_scales_company_amount(self):
+        """Lowering the credited quantity must scale Bs and must not go red.
+
+        The form save resends the previous company total. That leftover is not
+        a manual rate.
+        """
+        tax = self._sale_percent_tax(16)
+        invoice = self.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": "2024-01-10",
+                "currency_id": self.foreign_currency.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Bebida de Aloe sabor Coco",
+                            "quantity": 3.0,
+                            "price_unit": 40.0,
+                            "discount": 8.0,
+                            "tax_ids": [(6, 0, tax.ids)],
+                        },
+                    )
+                ],
+            }
+        )
+        invoice.action_post()
+        refund = invoice._reverse_moves(
+            default_values_list=[{"invoice_date": fields.Date.to_date("2024-01-10")}]
+        )
+        origin = invoice.invoice_line_ids
+        line = refund.invoice_line_ids
+        stale_subtotal = line.price_subtotal_currency
+        stale_total = line.price_total_currency
+        self.assertAlmostEqual(stale_subtotal, origin.price_subtotal_currency)
+        line.write(
+            {
+                "quantity": 1.0,
+                "price_subtotal_currency": stale_subtotal,
+                "price_total_currency": stale_total,
+            }
+        )
+        company = line.company_currency_id
+        expected_base = company.round(abs(origin.balance) / 3.0)
+        self.assertAlmostEqual(line.price_subtotal, 36.80, places=2)
+        self.assertFalse(line.manually_price_subtotal_currency)
+        self.assertFalse(line.warning_rate_difference)
+        self.assertAlmostEqual(line.price_subtotal_currency, expected_base, places=2)
+        self.assertAlmostEqual(abs(line.balance), expected_base, places=2)
+        self.assertLess(line.price_total_currency, stale_total)
+        with Form(refund) as refund_form:
+            with refund_form.invoice_line_ids.edit(0) as line_form:
+                line_form.quantity = 2
+                self.assertFalse(line_form.warning_rate_difference)
+                self.assertFalse(line_form.manually_price_subtotal_currency)
+                self.assertAlmostEqual(
+                    line_form.price_subtotal_currency,
+                    company.round(abs(origin.balance) * 2.0 / 3.0),
+                    places=2,
+                )
+        line = refund.invoice_line_ids
+        self.assertFalse(line.warning_rate_difference)
+        self.assertAlmostEqual(
+            line.price_subtotal_currency,
+            company.round(abs(origin.balance) * 2.0 / 3.0),
+            places=2,
+        )
+        self.assertAlmostEqual(
+            abs(line.balance),
+            company.round(abs(origin.balance) * 2.0 / 3.0),
+            places=2,
+        )
+
     def _sale_percent_tax(self, amount):
         country = self.env.company.account_fiscal_country_id
         tax_group = self.env["account.tax.group"].create(

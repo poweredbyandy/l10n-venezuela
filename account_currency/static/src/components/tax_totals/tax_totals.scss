@@ -1,0 +1,52 @@
+@include media-breakpoint-down(md) {
+    .o_form_view .o_inner_group.oe_subtotal_footer .o_account_currency_tax_totals,
+    .o_form_view
+        .o_notebook
+        > .tab-content
+        > .tab-pane.active
+        .o_inner_group.oe_subtotal_footer
+        .o_account_currency_tax_totals {
+        display: block;
+        float: none !important;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        width: 100% !important;
+
+        tbody {
+            display: block;
+        }
+
+        tr {
+            align-items: baseline;
+            column-gap: 0.75rem;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) max-content;
+            width: 100%;
+        }
+
+        tr > td {
+            display: block;
+            width: auto !important;
+        }
+
+        .o_td_label .o_form_label {
+            white-space: normal;
+        }
+
+        tr > td:nth-child(n + 2) {
+            /*rtl:ignore*/
+            text-align: right;
+        }
+
+        tr > td:nth-child(3),
+        tr > .o_account_currency_company_col {
+            grid-column: 2;
+            grid-row: 2;
+            padding-bottom: 0.15rem !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            padding-top: 0 !important;
+        }
+    }
+}

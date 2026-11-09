@@ -370,10 +370,11 @@ ul.auto-toc {
 !! source digest: sha256:25e8baecdcde310da5f48d84928b8a6c672f83f9d72fd7ec721c2b6db52c0cd7
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Beta" src="https://img.shields.io/badge/maturity-Beta-yellow.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/OCA/l10n-venezuela/tree/18.0/l10n_ve_bank_statement_import"><img alt="OCA/l10n-venezuela" src="https://img.shields.io/badge/github-OCA%2Fl10n--venezuela-lightgray.png?logo=github" /></a> <a class="reference external image-reference" href="https://translation.odoo-community.org/projects/l10n-venezuela-18-0/l10n-venezuela-18-0-l10n_ve_bank_statement_import"><img alt="Translate me on Weblate" src="https://img.shields.io/badge/weblate-Translate%20me-F47D42.png" /></a> <a class="reference external image-reference" href="https://runboat.odoo-community.org/builds?repo=OCA/l10n-venezuela&amp;target_branch=18.0"><img alt="Try me on Runboat" src="https://img.shields.io/badge/runboat-Try%20me-875A7B.png" /></a></p>
-<p>Importación de estados de cuenta bancarios para bancos de Venezuela.</p>
+<p>Importación de estados de cuenta bancarios para bancos de Venezuela
+y del historial de transacciones de Binance.</p>
 <p>Extiende <tt class="docutils literal">account_statement_import_sheet_file</tt> con mapeos para bancos
-locales, lectura de HTML y comprobantes BDVenlínea, omisión de filas de
-saldo inicial/final y captura de saldos desde celdas concretas.</p>
+locales y Binance, lectura de HTML y comprobantes BDVenlínea, omisión
+de filas de saldo inicial/final y captura de saldos desde celdas concretas.</p>
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
@@ -393,7 +394,7 @@ saldo inicial/final y captura de saldos desde celdas concretas.</p>
 <li>Instale el módulo <tt class="docutils literal">l10n_ve_bank_statement_import</tt>.</li>
 <li>Vaya a <strong>Contabilidad → Configuración → Mapeos de importación</strong>.</li>
 <li>Seleccione el mapeo del banco (Mercantil, Bancaribe, BFC, Banesco,
-BDV, BNC u otro incluido) o cree uno con las columnas de su archivo.
+BDV, BNC, Binance u otro incluido) o cree uno con las columnas de su archivo.
 El TXT de movimientos del BNC (separado por tabulaciones) usa fecha y
 hora para ordenar los movimientos del mismo día.</li>
 <li>Si el extracto no tiene cabecera, indique las filas iniciales a
@@ -406,6 +407,13 @@ desde el diario bancario.</li>
 <p>El módulo omite las filas de saldo inicial y saldo final para no
 crearlas como movimientos. No se puede eliminar un extracto con apuntes
 ya conciliados.</p>
+<p>El Excel de Binance, «Historial de transacciones», se importa con el
+mapeo <strong>Binance - Historial de transacciones</strong>. La cabecera está en la
+fila 10 (<tt class="docutils literal">Tiempo</tt>, <tt class="docutils literal">Cuenta</tt>, <tt class="docutils literal">Operación</tt>, <tt class="docutils literal">Moneda</tt>, <tt class="docutils literal">Cambio</tt>,
+<tt class="docutils literal">Observación</tt>). Todas las líneas entran en la moneda del diario; la
+columna <tt class="docutils literal">Moneda</tt> solo queda en la etiqueta del movimiento. Un valor
+negativo en <tt class="docutils literal">Cambio</tt> es una salida. Las transferencias entre Spot y
+Funding también se importan.</p>
 </div>
 <div class="section" id="bug-tracker">
 <h1><a class="toc-backref" href="#toc-entry-2">Bug Tracker</a></h1>
