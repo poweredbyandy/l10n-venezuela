@@ -1,7 +1,7 @@
 {
     "name": "Venezuela EDI Queue Job",
     "summary": "Encola envios EDI Venezuela con queue_job",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Accounting/Localizations",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainer": "andyengit",

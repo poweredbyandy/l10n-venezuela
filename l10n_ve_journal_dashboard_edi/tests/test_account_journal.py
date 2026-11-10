@@ -38,6 +38,8 @@ class TestL10nVeJournalDashboardEdi(L10nVeSeniatCommon):
             self.AccountJournal.action_l10n_ve_edi_unsent_dashboard_open("unknown")
 
     def test_unsent_dashboard_hides_dispatch_guides_when_disabled(self):
+        if "l10n_ve_dispatch_guide_enabled" not in self.env.company._fields:
+            self.skipTest("l10n_ve_stock is not installed")
         sale_journals = self.AccountJournal.search(
             [("company_id", "=", self.env.company.id), ("type", "=", "sale")]
         )

@@ -1,4 +1,5 @@
-1. Install `l10n_ve_edi_tfhka` after `l10n_ve_edi`.
+1. Install `l10n_ve_edi_tfhka` after `l10n_ve_edi`. To send dispatch
+   guides, also install `l10n_ve_edi_stock_tfhka`.
 2. In **Settings**, set the TFHKA environment, API URL, username and
    password. Test the connection before emitting live documents.
 3. On each sales or withholding journal used for digital emission,

@@ -29,11 +29,12 @@ Venezuela TFHKA EDI
 |badge1| |badge2| |badge3| |badge4| |badge5|
 
 Connector for The Factory HKA digital invoicing in Venezuela. It sends
-customer invoices, credit and debit notes, dispatch guides and
-withholding vouchers through the TFHKA API, stores the provider response
-and serves the official digital PDF. It also queries the numbering
-ranges available in TFHKA and assigns a new range when none is
-available.
+customer invoices, credit and debit notes and withholding vouchers
+through the TFHKA API, stores the provider response and serves the
+official digital PDF. It also queries the numbering ranges available in
+TFHKA and assigns a new range when none is available.
+
+Dispatch guides are sent by ``l10n_ve_edi_stock_tfhka``.
 
 The payload follows the TFHKA API technical reference v2.2
 (``static/description/tfhka_api_reference.pdf``), including IGTF debit
@@ -55,7 +56,8 @@ portal display of the digital document.
 Configuration
 =============
 
-1. Install ``l10n_ve_edi_tfhka`` after ``l10n_ve_edi``.
+1. Install ``l10n_ve_edi_tfhka`` after ``l10n_ve_edi``. To send dispatch
+   guides, also install ``l10n_ve_edi_stock_tfhka``.
 2. In **Settings**, set the TFHKA environment, API URL, username and
    password. Test the connection before emitting live documents.
 3. On each sales or withholding journal used for digital emission,
@@ -107,19 +109,10 @@ IGTF debit notes
 Customers outside Venezuela
 ---------------------------
 
-Invoices and dispatch guides for a contact whose country is not
-Venezuela send the foreign identification type set on the contact and
-the tax ID without the country prefix. Sending is blocked until both are
-set.
-
-Dispatch guides
----------------
-
-1. Validate an outgoing picking that requires a SENIAT dispatch guide on
-   a TFHKA sales journal.
-2. Send the guide from the EDI tab.
-3. Print is blocked until the EDI state is sent. The portal can show the
-   official TFHKA PDF.
+Invoices for a contact whose country is not Venezuela send the foreign
+identification type set on the contact and the tax ID without the
+country prefix. Sending is blocked until both are set. Dispatch guides
+for those contacts are handled by ``l10n_ve_edi_stock_tfhka``.
 
 Withholding vouchers
 --------------------

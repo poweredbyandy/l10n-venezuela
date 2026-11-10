@@ -4,7 +4,12 @@ import json
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-from .edi_mixin import STATE_FAILED, STATE_NOT_SENT, STATE_QUEUED, STATE_SENT
+from odoo.addons.l10n_ve_edi.models.edi_mixin import (
+    STATE_FAILED,
+    STATE_NOT_SENT,
+    STATE_QUEUED,
+    STATE_SENT,
+)
 
 
 class StockPicking(models.Model):

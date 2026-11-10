@@ -30,18 +30,10 @@ batch of control numbers and assign the range again.
 
 ## Customers outside Venezuela
 
-Invoices and dispatch guides for a contact whose country is not
-Venezuela send the foreign identification type set on the contact and
-the tax ID without the country prefix. Sending is blocked until both
-are set.
-
-## Dispatch guides
-
-1. Validate an outgoing picking that requires a SENIAT dispatch guide
-   on a TFHKA sales journal.
-2. Send the guide from the EDI tab.
-3. Print is blocked until the EDI state is sent. The portal can show
-   the official TFHKA PDF.
+Invoices for a contact whose country is not Venezuela send the foreign
+identification type set on the contact and the tax ID without the
+country prefix. Sending is blocked until both are set. Dispatch guides
+for those contacts are handled by `l10n_ve_edi_stock_tfhka`.
 
 ## Withholding vouchers
 

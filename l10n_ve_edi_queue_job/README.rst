@@ -13,9 +13,12 @@ of running them in the user request.
 Use Cases / Context
 ===================
 
-When many invoices, dispatch guides or withholding vouchers are sent at
-once, a synchronous EDI call can time out. This module enqueues each
-send so the worker processes it in the background.
+When many invoices or withholding vouchers are sent at once, a
+synchronous EDI call can time out. This module enqueues each send so
+the worker processes it in the background.
+
+Dispatch guides are queued by ``l10n_ve_edi_stock_queue_job``, installed
+automatically when ``l10n_ve_edi_stock`` is also installed.
 
 Configuration
 =============
@@ -27,8 +30,8 @@ Configuration
 Usage
 =====
 
-1. Send a customer invoice, dispatch guide or withholding voucher from
-   the EDI tab as usual.
+1. Send a customer invoice or withholding voucher from the EDI tab as
+   usual. Dispatch guides use ``l10n_ve_edi_stock_queue_job``.
 2. The chatter records that the digital invoicing request was queued.
 3. The worker sends the document and updates the EDI state.
 

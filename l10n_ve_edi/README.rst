@@ -3,8 +3,11 @@ Venezuela EDI Digital Invoicing
 ===============================
 
 Base module for Venezuelan digital invoicing. It tracks send state,
-validates parties, builds the payload and dispatches customer invoices,
-dispatch guides and withholding vouchers through a provider connector.
+validates parties, builds the payload and dispatches customer invoices
+and withholding vouchers through a provider connector.
+
+Dispatch guides are sent by ``l10n_ve_edi_stock``, which is installed
+automatically when ``l10n_ve_stock`` is installed.
 
 **Table of contents**
 
@@ -40,14 +43,6 @@ Customer invoices
 3. When IGTF accrual applies on post, the module can enqueue the send
    automatically.
 
-Dispatch guides
----------------
-
-1. Validate an outgoing picking that requires a SENIAT dispatch guide
-   and whose sales journal uses digital emission.
-2. Send the guide from the EDI tab.
-3. Print is blocked until the EDI state is sent.
-
 Withholding vouchers
 --------------------
 
@@ -55,8 +50,9 @@ Withholding vouchers
 2. Send it from the EDI tab after the voucher has a number and the
    related vendor bills have fiscal control and invoice numbers.
 
-The accounting dashboard shows unsent invoices, dispatch guides and
-withholding vouchers for Venezuelan companies.
+The accounting dashboard shows unsent invoices and withholding vouchers
+for Venezuelan companies. Unsent dispatch guides appear when
+``l10n_ve_edi_stock`` is installed.
 
 Bug Tracker
 ===========

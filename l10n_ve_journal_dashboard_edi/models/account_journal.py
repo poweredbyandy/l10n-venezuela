@@ -48,12 +48,27 @@ class AccountJournal(models.Model):
         return invoices.filtered(lambda move: move._l10n_ve_edi_is_invoice_target())
 
     @api.model
+    def _l10n_ve_edi_dispatch_guide_dashboard_ready(self):
+        if "stock.picking" not in self.env:
+            return False
+        if "l10n_ve_dispatch_guide_enabled" not in self.env["res.company"]._fields:
+            return False
+        picking_model = self.env["stock.picking"]
+        return "l10n_ve_edi_send_state" in picking_model._fields and hasattr(
+            picking_model, "_l10n_ve_edi_is_picking_target"
+        )
+
+    @api.model
     def _l10n_ve_edi_dispatch_guide_enabled_companies(self, companies):
+        if not self._l10n_ve_edi_dispatch_guide_dashboard_ready():
+            return companies.browse()
         return companies.filtered("l10n_ve_dispatch_guide_enabled")
 
     @api.model
     def _l10n_ve_edi_unsent_dispatch_guides(self, companies):
-        if "stock.picking" not in self.env:
+        if not self._l10n_ve_edi_dispatch_guide_dashboard_ready():
+            if "stock.picking" not in self.env:
+                return self.browse()
             return self.env["stock.picking"].browse()
         enabled_companies = self._l10n_ve_edi_dispatch_guide_enabled_companies(
             companies
