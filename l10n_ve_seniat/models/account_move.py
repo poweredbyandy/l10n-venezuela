@@ -1851,19 +1851,30 @@ Please create a credit note instead.
             or fields.Date.context_today(self)
         )
 
+    def _l10n_ve_due_not_before_invoice_date(self, due_date):
+        self.ensure_one()
+        if due_date and self.invoice_date and due_date < self.invoice_date:
+            return self.invoice_date
+        return due_date
+
     def _l10n_ve_reception_payment_term_due_dates(self):
         self.ensure_one()
         if not self._l10n_ve_use_reception_date_for_payment_terms():
             return []
         if self.invoice_payment_term_id:
             date_ref = self._l10n_ve_payment_term_date_ref()
-            return [
+            due_dates = [
                 line._get_due_date(date_ref)
                 for line in self.invoice_payment_term_id.line_ids
             ]
-        if self.reception_date:
-            return [self.reception_date]
-        return []
+        elif self.reception_date:
+            due_dates = [self.reception_date]
+        else:
+            return []
+        return [
+            self._l10n_ve_due_not_before_invoice_date(due_date)
+            for due_date in due_dates
+        ]
 
     def _l10n_ve_reception_term_sync_context(self):
         return {
@@ -1887,6 +1898,9 @@ Please create a credit note instead.
             due_dates = move._l10n_ve_reception_payment_term_due_dates()
             if due_dates:
                 move.invoice_date_due = max(due_dates)
+            move.invoice_date_due = move._l10n_ve_due_not_before_invoice_date(
+                move.invoice_date_due
+            )
         return result
 
     @api.depends("show_payment_term_details", "line_ids.date_maturity")

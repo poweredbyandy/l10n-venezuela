@@ -2245,6 +2245,20 @@ class TestAccountMove(L10nVeSeniatCommon):
         self.assertEqual(move.invoice_date_due, date(2026, 8, 21))
         self.assertEqual(self._payment_term_maturity_dates(move), [date(2026, 8, 21)])
 
+    def test_reception_date_before_invoice_date_keeps_due_on_invoice_date(self):
+        self._enable_reception_date_payment_terms(customer=True)
+        vals = self._create_invoice_vals(self.partner_ve)
+        vals["invoice_date"] = date(2026, 9, 21)
+        vals["invoice_date_due"] = date(2026, 9, 21)
+        vals["invoice_payment_term_id"] = False
+        move = self.env["account.move"].create(vals)
+        move.action_post()
+        move.write({"reception_date": date(2026, 9, 2)})
+        self.assertEqual(move.invoice_date_due, date(2026, 9, 21))
+        move.invalidate_recordset(["invoice_date_due"])
+        move._compute_invoice_date_due()
+        self.assertEqual(move.invoice_date_due, date(2026, 9, 21))
+
     def test_reception_date_write_overrides_old_due_from_form(self):
         self._enable_reception_date_payment_terms(customer=True)
         term = self._create_payment_term("Net 30 form", [(100.0, 30, "days_after")])

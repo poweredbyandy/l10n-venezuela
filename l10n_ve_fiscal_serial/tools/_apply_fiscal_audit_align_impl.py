@@ -156,6 +156,29 @@ def _scale_balances(lines, target_abs):
             )
 
 
+def _scale_tax_base_to_printed_rates(move, audit_lines):
+    """Scale each IVA group to the printed base of its own rate.
+
+    The printed subtotal includes exempt lines. Those lines do not create
+    tax journal items, so writing that subtotal on the IVA lines inflates
+    the taxable base of the sales book.
+    """
+    company_currency = move.company_currency_id
+    grouped = {}
+    for line in move.line_ids.filtered("tax_line_id"):
+        grouped.setdefault(line.tax_line_id.amount, []).append(line)
+    for rate, lines in grouped.items():
+        matched = [
+            item
+            for item in audit_lines
+            if not float_compare(item["rate"], rate, precision_digits=2)
+        ]
+        if not matched:
+            continue
+        target = company_currency.round(sum(item["base"] for item in matched))
+        _scale_tax_base(lines, target)
+
+
 def _scale_tax_base(lines, target_abs):
     lines = list(lines)
     if not lines:
@@ -589,7 +612,7 @@ def _align_move(move, audit_lines, dry_run=True):
 
     tax_lines = move.line_ids.filtered("tax_line_id")
     _scale_balances(tax_lines, printed_tax)
-    _scale_tax_base(tax_lines, printed_base)
+    _scale_tax_base_to_printed_rates(move, audit_lines)
     term_lines = move.line_ids.filtered(
         lambda line: line.display_type == "payment_term"
     )
