@@ -143,3 +143,6 @@ class TestSaleOrderPortalNoteVe(L10nVeSeniatCommon):
         html_text = html.decode() if isinstance(html, bytes) else str(html)
         self.assertIn("Sin derecho a crédito fiscal", html_text)
         self.assertIn("NO FISCAL", html_text)
+        self.assertIn('id="total"', html_text)
+        self.assertNotIn("l10n_ve_seniat_note", html_text)
+        self.assertNotIn("SNAT/2011/0071", html_text)

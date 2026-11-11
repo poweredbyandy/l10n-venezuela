@@ -1,6 +1,6 @@
 {
     "name": "Venezuela IGTF",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.1.3",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
     "author": "andyengit, Odoo Community Association (OCA)",
@@ -23,6 +23,7 @@
             "l10n_ve_igtf/static/src/components/account_payment_field/account_payment_field_patch.esm.js",
             "l10n_ve_igtf/static/src/components/tax_totals/tax_totals_igtf.esm.js",
             "l10n_ve_igtf/static/src/components/tax_totals/tax_totals_igtf.xml",
+            "l10n_ve_igtf/static/src/components/tax_totals/tax_totals_igtf.scss",
             "l10n_ve_igtf/static/src/components/igtf_payment_summary/igtf_payment_summary.esm.js",
             "l10n_ve_igtf/static/src/components/igtf_payment_summary/igtf_payment_summary.xml",
             "l10n_ve_igtf/static/src/components/igtf_payment_summary/igtf_payment_summary.scss",

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <templates>
     <t t-inherit="account.TaxGroupComponent" t-inherit-mode="extension">
-        <xpath expr="//tr/td[last()]" position="after">
+        <xpath expr="//td[hasclass('o_tax_group')]" position="after">
             <td
                 t-if="props.totals.display_in_company_currency"
-                class="o_tax_group o_list_monetary o_account_currency_company_col ps-5"
+                class="o_list_monetary ps-5 o_tax_totals_company_col"
             >
                 <span
-                    class="o_tax_group_amount_value o_list_monetary o_account_currency_company_tax"
+                    class="o_tax_group_amount_value o_list_monetary o_tax_totals_company_amount o_account_currency_company_tax"
                     dir="ltr"
+                    style="white-space: nowrap;"
                     t-out="formatMonetaryCompany(props.taxGroup.tax_amount)"
                 />
             </td>
@@ -27,10 +28,10 @@
         >
             <td
                 t-if="totals.display_in_company_currency"
-                class="o_list_monetary o_account_currency_company_col ps-5"
+                class="o_list_monetary ps-5 o_tax_totals_company_col"
             >
                 <span
-                    class="o_account_currency_company_subtotal"
+                    class="o_list_monetary o_tax_totals_company_amount o_account_currency_company_subtotal"
                     t-att-name="subtotal.name + '_company'"
                     style="white-space: nowrap; font-weight: bold;"
                     dir="ltr"
@@ -38,13 +39,13 @@
                 />
             </td>
         </xpath>
-        <xpath expr="//tr[.//span[@name='amount_total']]/td[last()]" position="after">
+        <xpath expr="//tr[.//span[@name='amount_total']]/td[hasclass('o_list_monetary')]" position="after">
             <td
                 t-if="totals.display_in_company_currency"
-                class="o_list_monetary o_account_currency_company_col ps-5"
+                class="o_list_monetary ps-5 o_tax_totals_company_col"
             >
                 <span
-                    class="o_account_currency_company_total"
+                    class="o_list_monetary o_tax_totals_company_amount o_account_currency_company_total"
                     name="amount_total_company"
                     style="font-size: 1.3em; font-weight: bold; white-space: nowrap;"
                     dir="ltr"

@@ -178,6 +178,10 @@ class AccountMove(models.Model):
                     and company_currency
                     and move.currency_id != company_currency
                 )
+                if move.currency_id:
+                    totals["currency_name"] = move.currency_id.name
+                if company_currency:
+                    totals["company_currency_name"] = company_currency.name
                 if company_currency and not totals.get("company_currency_id"):
                     totals["company_currency_id"] = company_currency.id
                 for subtotal in totals.get("subtotals", []):

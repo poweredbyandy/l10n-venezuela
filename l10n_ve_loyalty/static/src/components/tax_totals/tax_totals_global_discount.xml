@@ -62,11 +62,11 @@
                 </td>
                 <td
                     t-if="totals.display_in_company_currency"
-                    class="o_list_monetary ps-5"
+                    class="o_list_monetary ps-5 o_tax_totals_company_col"
                 >
                     <span
                         name="l10n_ve_subtotal_gross"
-                        class="o_list_monetary"
+                        class="o_list_monetary o_tax_totals_company_amount"
                         style="white-space: nowrap; font-weight: bold;"
                         t-out="formatGlobalDiscountAmount(totals.l10n_ve_subtotal_gross || 0, true)"
                     />
@@ -103,13 +103,18 @@
                     <span
                         name="l10n_ve_global_discount_currency"
                         class="o_list_monetary"
+                        style="white-space: nowrap;"
                         t-out="formatGlobalDiscountAmount(-(totals.l10n_ve_global_discount_amount_currency || 0))"
                     />
                 </td>
-                <td t-if="totals.display_in_company_currency" class="o_tax_group ps-5">
+                <td
+                    t-if="totals.display_in_company_currency"
+                    class="o_tax_group ps-5 o_tax_totals_company_col"
+                >
                     <span
                         name="l10n_ve_global_discount_company"
-                        class="o_list_monetary"
+                        class="o_list_monetary o_tax_totals_company_amount"
+                        style="white-space: nowrap;"
                         t-out="formatGlobalDiscountAmount(-(totals.l10n_ve_global_discount_amount || 0), true)"
                     />
                 </td>

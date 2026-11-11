@@ -220,6 +220,8 @@ class AccountTax(models.Model):
         totals["tax_amount"] = tax_amount
         totals["total_amount"] = company_currency.round(base_amount + tax_amount)
         totals["display_in_company_currency"] = True
+        totals["currency_name"] = document.currency_id.name
+        totals["company_currency_name"] = company_currency.name
         if not totals.get("company_currency_id"):
             totals["company_currency_id"] = company_currency.id
         return totals

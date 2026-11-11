@@ -1,0 +1,31 @@
+.o_tax_totals_company_currency {
+    display: flow-root;
+}
+
+.o_tax_totals_responsive {
+    width: 100%;
+
+    .o_tax_totals_responsive_line {
+        align-items: baseline;
+        column-gap: 1rem;
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 0.2rem;
+
+        .o_form_label {
+            white-space: normal;
+        }
+
+        .o_list_monetary {
+            text-align: right;
+            white-space: nowrap;
+        }
+    }
+
+    .o_tax_totals_responsive_total {
+        border-top: 1px solid var(--o-border-color, #dee2e6);
+        font-weight: bold;
+        margin-top: 0.15rem;
+        padding-top: 0.25rem;
+    }
+}
