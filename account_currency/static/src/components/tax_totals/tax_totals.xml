@@ -17,9 +17,92 @@
     </t>
 
     <t t-inherit="account.TaxTotalsField" t-inherit-mode="extension">
+        <xpath expr="//table" position="before">
+            <div
+                t-if="totals.display_in_company_currency"
+                class="o_account_currency_tax_totals_responsive d-md-none"
+            >
+                <t t-foreach="totals.subtotals" t-as="subtotal" t-key="subtotal_index">
+                    <div class="o_account_currency_tax_totals_line">
+                        <span class="o_form_label" t-out="responsiveLabel(subtotal.name, false)"/>
+                        <span
+                            class="o_list_monetary"
+                            t-out="formatMonetary(subtotal.base_amount_currency)"
+                        />
+                    </div>
+                    <div class="o_account_currency_tax_totals_line">
+                        <span class="o_form_label" t-out="responsiveLabel(subtotal.name, true)"/>
+                        <span
+                            class="o_list_monetary"
+                            t-out="formatMonetaryCompany(subtotal.base_amount)"
+                        />
+                    </div>
+                    <t t-foreach="subtotal.tax_groups" t-as="taxGroup" t-key="taxGroup_index">
+                        <div class="o_account_currency_tax_totals_line">
+                            <span
+                                class="o_form_label"
+                                t-out="responsiveLabel(taxGroup.group_name, false)"
+                            />
+                            <span
+                                class="o_list_monetary"
+                                t-out="formatMonetary(taxGroup.tax_amount_currency)"
+                            />
+                        </div>
+                        <div class="o_account_currency_tax_totals_line">
+                            <span
+                                class="o_form_label"
+                                t-out="responsiveLabel(taxGroup.group_name, true)"
+                            />
+                            <span
+                                class="o_list_monetary"
+                                t-out="formatMonetaryCompany(taxGroup.tax_amount)"
+                            />
+                        </div>
+                    </t>
+                </t>
+                <div
+                    t-if="'cash_rounding_base_amount_currency' in totals"
+                    class="o_account_currency_tax_totals_line"
+                >
+                    <span class="o_form_label" t-out="responsiveRoundingLabel(false)"/>
+                    <span
+                        class="o_list_monetary"
+                        t-out="formatMonetary(totals.cash_rounding_base_amount_currency)"
+                    />
+                </div>
+                <div
+                    t-if="'cash_rounding_base_amount_currency' in totals"
+                    class="o_account_currency_tax_totals_line"
+                >
+                    <span class="o_form_label" t-out="responsiveRoundingLabel(true)"/>
+                    <span
+                        class="o_list_monetary"
+                        t-out="formatMonetaryCompany(totals.cash_rounding_base_amount)"
+                    />
+                </div>
+                <div class="o_account_currency_tax_totals_line o_account_currency_tax_totals_total">
+                    <span class="o_form_label" t-out="responsiveTotalLabel(false)"/>
+                    <span
+                        class="o_list_monetary"
+                        t-out="formatMonetary(totals.total_amount_currency)"
+                    />
+                </div>
+                <div class="o_account_currency_tax_totals_line">
+                    <span class="o_form_label" t-out="responsiveTotalLabel(true)"/>
+                    <span
+                        class="o_list_monetary"
+                        t-out="formatMonetaryCompany(totals.total_amount)"
+                    />
+                </div>
+            </div>
+        </xpath>
         <xpath expr="//table" position="attributes">
             <attribute name="t-att-class">
-                {'o_account_currency_tax_totals': totals.display_in_company_currency}
+                {
+                    'o_account_currency_tax_totals': totals.display_in_company_currency,
+                    'd-none': totals.display_in_company_currency,
+                    'd-md-table': totals.display_in_company_currency,
+                }
             </attribute>
         </xpath>
         <xpath
