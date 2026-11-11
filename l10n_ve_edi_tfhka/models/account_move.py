@@ -231,12 +231,10 @@ class AccountMove(models.Model):
             return
         if not self._tfhka_should_cancel_digital_document():
             return
-        params = self.env["ir.config_parameter"].sudo()
-        username = params.get_param("l10n_ve_edi_tfhka.username")
-        password = params.get_param("l10n_ve_edi_tfhka.password")
+        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
+        username, password = client._credentials()
         if not username or not password:
             raise UserError(_("Configure usuario y clave TFHKA en Ajustes."))
-        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
         payload = self._tfhka_build_anular_payload()
         try:
             auth = client.authenticate(username, password)
@@ -315,12 +313,10 @@ class AccountMove(models.Model):
 
     def _tfhka_get_invoice_pdf_bytes_via_descarga_archivo(self):
         self.ensure_one()
-        params = self.env["ir.config_parameter"].sudo()
-        username = params.get_param("l10n_ve_edi_tfhka.username")
-        password = params.get_param("l10n_ve_edi_tfhka.password")
+        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
+        username, password = client._credentials()
         if not username or not password:
             return None, _("Configure usuario y clave TFHKA en Ajustes.")
-        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
         try:
             auth = client.authenticate(username, password)
             token = auth.get("token")
@@ -2221,9 +2217,8 @@ class AccountMove(models.Model):
         self.ensure_one()
         if self.journal_id.l10n_ve_edi_provider != "tfhka":
             return super()._l10n_ve_edi_dispatch_payload(payload)
-        params = self.env["ir.config_parameter"].sudo()
-        username = params.get_param("l10n_ve_edi_tfhka.username")
-        password = params.get_param("l10n_ve_edi_tfhka.password")
+        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
+        username, password = client._credentials()
         if not username or not password:
             _logger.error(
                 "TFHKA envio omitido move_id=%s name=%s: credenciales no configuradas",
@@ -2231,7 +2226,6 @@ class AccountMove(models.Model):
                 self.name,
             )
             return {"success": False, "error": "Credenciales TFHKA no configuradas."}
-        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
         prepared = {}
         try:
             auth = client.authenticate(username, password)

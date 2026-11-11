@@ -177,12 +177,10 @@ class AccountRetention(models.Model):
 
     def _tfhka_get_retention_pdf_bytes_via_descarga_archivo(self):
         self.ensure_one()
-        params = self.env["ir.config_parameter"].sudo()
-        username = params.get_param("l10n_ve_edi_tfhka.username")
-        password = params.get_param("l10n_ve_edi_tfhka.password")
+        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
+        username, password = client._credentials()
         if not username or not password:
             return None, _("Configure usuario y clave TFHKA en Ajustes.")
-        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
         try:
             auth = client.authenticate(username, password)
             token = auth.get("token")
@@ -316,12 +314,10 @@ class AccountRetention(models.Model):
         self.ensure_one()
         if self._l10n_ve_edi_get_retention_edi_provider() != "tfhka":
             return super()._l10n_ve_edi_dispatch_payload(payload)
-        params = self.env["ir.config_parameter"].sudo()
-        username = params.get_param("l10n_ve_edi_tfhka.username")
-        password = params.get_param("l10n_ve_edi_tfhka.password")
+        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
+        username, password = client._credentials()
         if not username or not password:
             return {"success": False, "error": _("Credenciales TFHKA no configuradas.")}
-        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
         try:
             auth = client.authenticate(username, password)
             token = auth.get("token")

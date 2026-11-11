@@ -13,7 +13,14 @@ DEFAULT_BASE_URL = TFHKA_API_URL_TEST
 DEFAULT_TIMEOUT = 30
 ICP_BASE_URL = "l10n_ve_edi_tfhka.base_url"
 ICP_API_ENVIRONMENT = "l10n_ve_edi_tfhka.api_environment"
+ICP_TEST_URL = "l10n_ve_edi_tfhka.test_url"
 ICP_PRODUCTION_URL = "l10n_ve_edi_tfhka.production_url"
+ICP_USERNAME = "l10n_ve_edi_tfhka.username"
+ICP_PASSWORD = "l10n_ve_edi_tfhka.password"
+ICP_USERNAME_TEST = "l10n_ve_edi_tfhka.username_test"
+ICP_PASSWORD_TEST = "l10n_ve_edi_tfhka.password_test"
+ICP_USERNAME_PRODUCTION = "l10n_ve_edi_tfhka.username_production"
+ICP_PASSWORD_PRODUCTION = "l10n_ve_edi_tfhka.password_production"
 ICP_TIMEOUT = "l10n_ve_edi_tfhka.timeout"
 
 HEADER_CONTENT_TYPE = "Content-Type"
@@ -91,13 +98,38 @@ class L10nVeEdiTfhkaApiService(models.AbstractModel):
     _description = "Servicio API TFHKA Venezuela"
 
     @api.model
-    def _base_url(self):
+    def _active_environment(self):
         value = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param(ICP_BASE_URL, default=DEFAULT_BASE_URL)
+            .get_param(ICP_API_ENVIRONMENT, default="test")
         )
-        return value.rstrip("/")
+        return value if value == "production" else "test"
+
+    @api.model
+    def _base_url(self):
+        forced = (self.env.context.get("tfhka_base_url") or "").strip()
+        if forced:
+            return forced.rstrip("/")
+        icp = self.env["ir.config_parameter"].sudo()
+        if self._active_environment() == "production":
+            value = icp.get_param(ICP_PRODUCTION_URL) or icp.get_param(
+                ICP_BASE_URL, default=DEFAULT_BASE_URL
+            )
+        else:
+            value = icp.get_param(ICP_TEST_URL, default=TFHKA_API_URL_TEST)
+        return (value or DEFAULT_BASE_URL).rstrip("/")
+
+    @api.model
+    def _credentials(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        if self._active_environment() == "production":
+            username = icp.get_param(ICP_USERNAME_PRODUCTION)
+            password = icp.get_param(ICP_PASSWORD_PRODUCTION)
+        else:
+            username = icp.get_param(ICP_USERNAME_TEST) or icp.get_param(ICP_USERNAME)
+            password = icp.get_param(ICP_PASSWORD_TEST) or icp.get_param(ICP_PASSWORD)
+        return username or "", password or ""
 
     @api.model
     def _timeout(self):

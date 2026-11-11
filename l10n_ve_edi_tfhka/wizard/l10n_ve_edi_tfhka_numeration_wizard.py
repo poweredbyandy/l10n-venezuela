@@ -101,12 +101,10 @@ class L10nVeEdiTfhkaNumerationWizard(models.TransientModel):
             wizard.number_end = f"{wizard.document_type}{last_sequence}"
 
     def _tfhka_get_client_token(self):
-        params = self.env["ir.config_parameter"].sudo()
-        username = params.get_param("l10n_ve_edi_tfhka.username")
-        password = params.get_param("l10n_ve_edi_tfhka.password")
+        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
+        username, password = client._credentials()
         if not username or not password:
             raise UserError(_("Configure usuario y clave TFHKA en Ajustes."))
-        client = self.env["l10n_ve_edi_tfhka.api.service"].sudo()
         token = client.authenticate(username, password).get("token")
         if not token:
             raise UserError(_("La API TFHKA no devolvió token JWT."))

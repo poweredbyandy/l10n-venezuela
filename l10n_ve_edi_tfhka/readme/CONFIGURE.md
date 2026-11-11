@@ -1,7 +1,9 @@
 1. Install `l10n_ve_edi_tfhka` after `l10n_ve_edi`. To send dispatch
    guides, also install `l10n_ve_edi_stock_tfhka`.
-2. In **Settings**, set the TFHKA environment, API URL, username and
-   password. Test the connection before emitting live documents.
+2. In **Settings**, choose Pruebas or Producción and fill the URL,
+   username and password of each environment. The connection test uses
+   the selected environment. A neutralized database stays on Pruebas
+   and drops the production credentials.
 3. On each sales or withholding journal used for digital emission,
    choose provider **The Factory HKA** and set serie, branch and
    environment digit so they match the numbering range in the TFHKA

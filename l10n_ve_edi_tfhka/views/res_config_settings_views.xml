@@ -13,52 +13,97 @@
                     name="l10n_ve_edi_tfhka_block"
                     title="Facturacion Digital The Factory HKA"
                 >
-                    <div class="col-12 col-lg-6 o_setting_box">
-                        <div class="o_setting_right_pane">
-                            <div class="alert alert-info mb-3" role="alert">
-                                <p class="mb-1 fw-bold">URLs The Factory HKA</p>
-                                <ul class="mb-0">
-                                    <li>
-                                        Pruebas:
-                                        <code
-                                    >https://demoemisionv2.thefactoryhka.com.ve</code>
-                                    </li>
-                                    <li>
-                                        Producción:
-                                        <span
-                                        class="text-muted"
-                                    >pendiente de configuración</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <group>
-                                <field name="tfhka_api_environment" />
+                    <setting
+                        string="Ambiente activo"
+                        help="Los documentos se envían con la URL y las credenciales de este ambiente."
+                        class="col-lg-12"
+                    >
+                        <field name="tfhka_api_environment" widget="radio" />
+                        <div class="mt16">
+                            <button
+                                name="action_test_tfhka_connection"
+                                type="object"
+                                string="Probar conexión"
+                                class="btn-primary"
+                            />
+                        </div>
+                    </setting>
+                    <setting string="Producción" class="col-12 col-lg-6">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="tfhka_production_url"
+                                    string="URL"
+                                    class="col-lg-4 o_light_label"
+                                />
                                 <field
                                     name="tfhka_production_url"
-                                    invisible="tfhka_api_environment != 'production'"
                                     placeholder="https://..."
                                     required="tfhka_api_environment == 'production'"
+                                    class="col-lg-8"
+                                />
+                            </div>
+                            <div class="row">
+                                <label
+                                    for="tfhka_username_production"
+                                    string="Usuario"
+                                    class="col-lg-4 o_light_label"
                                 />
                                 <field
-                                    name="tfhka_base_url"
-                                    readonly="tfhka_api_environment == 'test'"
+                                    name="tfhka_username_production"
+                                    class="col-lg-8"
                                 />
-                                <field name="tfhka_username" />
-                                <field name="tfhka_password" password="True" />
-                                <button
-                                    name="action_test_tfhka_connection"
-                                    type="object"
-                                    string="Test Connection"
-                                    class="oe_highlight"
+                            </div>
+                            <div class="row">
+                                <label
+                                    for="tfhka_password_production"
+                                    string="Clave"
+                                    class="col-lg-4 o_light_label"
                                 />
-                                <button
-                                    name="action_test_tfhka_invoice_send"
-                                    type="object"
-                                    string="Test Invoice Send"
+                                <field
+                                    name="tfhka_password_production"
+                                    password="True"
+                                    class="col-lg-8"
                                 />
-                            </group>
+                            </div>
                         </div>
-                    </div>
+                    </setting>
+                    <setting string="Pruebas" class="col-12 col-lg-6">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label
+                                    for="tfhka_test_url"
+                                    string="URL"
+                                    class="col-lg-4 o_light_label"
+                                />
+                                <field
+                                    name="tfhka_test_url"
+                                    placeholder="https://demoemisionv2.thefactoryhka.com.ve"
+                                    class="col-lg-8"
+                                />
+                            </div>
+                            <div class="row">
+                                <label
+                                    for="tfhka_username_test"
+                                    string="Usuario"
+                                    class="col-lg-4 o_light_label"
+                                />
+                                <field name="tfhka_username_test" class="col-lg-8" />
+                            </div>
+                            <div class="row">
+                                <label
+                                    for="tfhka_password_test"
+                                    string="Clave"
+                                    class="col-lg-4 o_light_label"
+                                />
+                                <field
+                                    name="tfhka_password_test"
+                                    password="True"
+                                    class="col-lg-8"
+                                />
+                            </div>
+                        </div>
+                    </setting>
                 </block>
             </xpath>
         </field>
