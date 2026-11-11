@@ -4,7 +4,7 @@
     "summary": (
         "Base para facturacion digital Venezuela " "(validaciones, payload y flujo)"
     ),
-    "version": "18.0.2.0.0",
+    "version": "18.0.2.0.1",
     "category": "Accounting/Localizations",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
