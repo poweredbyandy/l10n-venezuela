@@ -482,14 +482,27 @@ class AccountMoveLine(models.Model):
             or self.display_type != "product"
         ):
             return 0.0
+        move = self.move_id
+        rate = move.invoice_currency_rate or self.currency_rate or 0.0
+        if (
+            self.tax_ids
+            and any(tax.price_include for tax in self.tax_ids.flatten_taxes_hierarchy())
+            and hasattr(move, "_l10n_ve_company_included_line_amounts")
+        ):
+            return move._l10n_ve_company_included_line_amounts(
+                self.price_unit or 0.0,
+                self.quantity or 0.0,
+                discount=self.discount or 0.0,
+                rate=rate,
+                taxes=self.tax_ids,
+                product=self.product_id,
+            )["base"]
         if self.currency_id == self.company_currency_id:
             return self.company_currency_id.round(
                 (self.price_unit or 0.0)
                 * (self.quantity or 0.0)
                 * (1.0 - (self.discount or 0.0) / 100.0)
             )
-        move = self.move_id
-        rate = move.invoice_currency_rate or self.currency_rate or 0.0
         if not rate:
             return 0.0
         if hasattr(move, "_l10n_ve_company_line_subtotal_from_foreign_unit"):
@@ -524,12 +537,40 @@ class AccountMoveLine(models.Model):
         taxes = self.tax_ids.flatten_taxes_hierarchy()
         if not taxes:
             return company_currency.round(subtotal_company)
+        if any(tax.price_include for tax in taxes):
+            return self._l10n_ve_company_total_for_included_taxes(subtotal_company)
         if any(tax.amount_type != "percent" for tax in taxes):
             return self._l10n_ve_company_currency_total_from_foreign_total()
         total = subtotal_company
         for tax in taxes:
             total += company_currency.round(subtotal_company * tax.amount / 100.0)
         return company_currency.round(total)
+
+    def _l10n_ve_company_total_for_included_taxes(self, subtotal_company):
+        """Company total of a price that already includes the tax.
+
+        ``round(base * percent)`` does not always rebuild the included price.
+        Keep the converted price when the base is the automatic one, and scale
+        that pair when a refund passes a smaller base.
+        """
+        self.ensure_one()
+        company = self.company_currency_id
+        move = self.move_id
+        if not hasattr(move, "_l10n_ve_company_included_line_amounts"):
+            return company.round(subtotal_company)
+        amounts = move._l10n_ve_company_included_line_amounts(
+            self.price_unit or 0.0,
+            self.quantity or 0.0,
+            discount=self.discount or 0.0,
+            rate=move.invoice_currency_rate or self.currency_rate or 0.0,
+            taxes=self.tax_ids,
+            product=self.product_id,
+        )
+        if company.compare_amounts(subtotal_company, amounts["base"]) == 0:
+            return amounts["total"]
+        if company.is_zero(amounts["base"]):
+            return company.round(subtotal_company)
+        return company.round(subtotal_company * amounts["total"] / amounts["base"])
 
     def _l10n_ve_company_currency_total_at_invoice_rate(self):
         self.ensure_one()

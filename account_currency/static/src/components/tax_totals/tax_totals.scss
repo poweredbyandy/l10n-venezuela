@@ -1,4 +1,17 @@
+.o_field_account_tax_totals_field:has(.o_account_currency_tax_totals),
+.o_field_account_tax_totals_field:has(.o_account_currency_tax_totals_responsive) {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+.o_account_currency_tax_totals {
+    margin-left: auto;
+}
+
 .o_account_currency_tax_totals_responsive {
+    margin-left: auto;
+    max-width: 28rem;
     width: 100%;
 
     .o_account_currency_tax_totals_line {

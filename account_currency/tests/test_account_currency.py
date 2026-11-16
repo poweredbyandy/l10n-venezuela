@@ -353,7 +353,7 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
             places=2,
         )
 
-    def _sale_percent_tax(self, amount):
+    def _sale_percent_tax(self, amount, **kwargs):
         country = self.env.company.account_fiscal_country_id
         tax_group = self.env["account.tax.group"].create(
             {
@@ -364,9 +364,10 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         )
         return self.percent_tax(
             amount,
-            type_tax_use="sale",
+            type_tax_use=kwargs.pop("type_tax_use", "sale"),
             tax_group_id=tax_group.id,
             country_id=country.id,
+            **kwargs,
         )
 
     def _create_foreign_taxed_invoice(self, currency, tax):
@@ -814,6 +815,227 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
         self.assertAlmostEqual(invoice.amount_tax, foreign_tax, places=2)
         self.assertAlmostEqual(tax_amount, expected, places=2)
         self.assertAlmostEqual(tax_amount, converted, places=2)
+
+    def _included_percent_tax(self, amount, type_tax_use="sale"):
+        tax = self._sale_percent_tax(
+            amount,
+            type_tax_use=type_tax_use,
+            price_include_override="tax_included",
+        )
+        self.assertTrue(tax.price_include)
+        return tax
+
+    def _create_taxed_move(
+        self,
+        currency,
+        tax,
+        price_unit,
+        quantity=1.0,
+        discount=0.0,
+        invoice_date="2024-01-10",
+        move_type="out_invoice",
+    ):
+        return self.env["account.move"].create(
+            {
+                "move_type": move_type,
+                "partner_id": self.partner_a.id,
+                "invoice_date": invoice_date,
+                "date": invoice_date,
+                "currency_id": currency.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Included tax line",
+                            "quantity": quantity,
+                            "price_unit": price_unit,
+                            "discount": discount,
+                            "tax_ids": [(6, 0, tax.ids)],
+                        },
+                    )
+                ],
+            }
+        )
+
+    def _assert_included_matches_native_company_invoice(
+        self,
+        foreign,
+        price_unit,
+        quantity=1.0,
+        discount=0.0,
+        invoice_date="2024-01-10",
+        move_type="out_invoice",
+    ):
+        """Company amounts of a price-included tax follow a native company invoice.
+
+        The foreign unit is converted with the same rounding as an excluded tax
+        (``round(pu / rate, Product Price)``). That company unit, with the same
+        included tax, is the expected base, tax and total.
+        """
+        line = foreign.invoice_line_ids
+        company_pu = foreign._l10n_ve_company_price_unit_from_foreign_unit(price_unit)
+        native = self._create_taxed_move(
+            self.env.company.currency_id,
+            line.tax_ids,
+            company_pu,
+            quantity=quantity,
+            discount=discount,
+            invoice_date=invoice_date,
+            move_type=move_type,
+        )
+        native_line = native.invoice_line_ids
+        company = self.env.company.currency_id
+        pairs = {
+            "subtotal_currency": (line.price_subtotal_currency, native_line.price_subtotal),
+            "total_currency": (line.price_total_currency, native_line.price_total),
+            "balance": (abs(line.balance), abs(native_line.balance)),
+            "untaxed_signed": (
+                abs(foreign.amount_untaxed_signed),
+                abs(native.amount_untaxed_signed),
+            ),
+            "tax_signed": (
+                abs(foreign.amount_tax_signed),
+                abs(native.amount_tax_signed),
+            ),
+            "total_signed": (
+                abs(foreign.amount_total_signed),
+                abs(native.amount_total_signed),
+            ),
+        }
+        mismatches = {
+            key: (company.round(got), company.round(expected))
+            for key, (got, expected) in pairs.items()
+            if company.compare_amounts(got, expected)
+        }
+        self.assertFalse(
+            mismatches,
+            "Included tax diverges from a company-currency invoice at unit %s. "
+            "Foreign price_subtotal=%s price_total=%s unit_company=%s. "
+            "Native price_subtotal=%s price_total=%s. Mismatches=%s"
+            % (
+                company_pu,
+                line.price_subtotal,
+                line.price_total,
+                line.price_unit_company_currency,
+                native_line.price_subtotal,
+                native_line.price_total,
+                mismatches,
+            ),
+        )
+        self.assertAlmostEqual(line.price_unit_company_currency, company_pu)
+        return native
+
+    def test_included_tax_matches_native_company_invoice(self):
+        """116 with 16% included at rate 2 is a company unit of 58, base 50."""
+        tax = self._included_percent_tax(16)
+        foreign = self._create_taxed_move(
+            self.foreign_currency, tax, price_unit=116.0
+        )
+        line = foreign.invoice_line_ids
+        self.assertAlmostEqual(foreign.invoice_currency_rate, 2.0)
+        self.assertAlmostEqual(line.price_total, 116.0)
+        self.assertAlmostEqual(line.price_subtotal, 100.0)
+        self._assert_included_matches_native_company_invoice(foreign, 116.0)
+        foreign.action_post()
+        self._assert_included_matches_native_company_invoice(foreign, 116.0)
+
+    def test_included_tax_rounding_keeps_paid_company_total(self):
+        """7.00 with 16% included stays 7.00. base * 16% would book 6.99."""
+        tax = self._included_percent_tax(16)
+        foreign = self._create_taxed_move(
+            self.foreign_currency, tax, price_unit=14.0
+        )
+        self._assert_included_matches_native_company_invoice(foreign, 14.0)
+        line = foreign.invoice_line_ids
+        self.assertAlmostEqual(line.price_subtotal_currency, 6.03, places=2)
+        self.assertAlmostEqual(line.price_total_currency, 7.00, places=2)
+
+    def test_included_tax_quantity_matches_native_company_invoice(self):
+        tax = self._included_percent_tax(16)
+        foreign = self._create_taxed_move(
+            self.foreign_currency,
+            tax,
+            price_unit=116.0,
+            quantity=3.0,
+        )
+        line = foreign.invoice_line_ids
+        self.assertAlmostEqual(line.price_total, 348.0)
+        self.assertAlmostEqual(line.price_subtotal, 300.0)
+        self._assert_included_matches_native_company_invoice(
+            foreign, 116.0, quantity=3.0
+        )
+
+    def test_included_tax_discount_matches_native_company_invoice(self):
+        # Vendor bill: customer invoices may forbid per-line discount in this DB.
+        tax = self._included_percent_tax(16, type_tax_use="purchase")
+        foreign = self._create_taxed_move(
+            self.foreign_currency,
+            tax,
+            price_unit=116.0,
+            quantity=2.0,
+            discount=10.0,
+            move_type="in_invoice",
+        )
+        line = foreign.invoice_line_ids
+        self.assertAlmostEqual(line.price_total, 208.8)
+        self.assertAlmostEqual(line.price_subtotal, 180.0)
+        self._assert_included_matches_native_company_invoice(
+            foreign,
+            116.0,
+            quantity=2.0,
+            discount=10.0,
+            move_type="in_invoice",
+        )
+
+    def test_included_tax_fractional_unit_matches_native_company_invoice(self):
+        """Included unit with many decimals still uses the rounded company unit."""
+        self.env.company.tax_calculation_rounding_method = "round_globally"
+        tax = self._included_percent_tax(16)
+        currency = self.setup_other_currency(
+            "EUR",
+            rates=[("2026-10-01", BCV_LIKE_RATE)],
+        )
+        price_unit = 1.43234234 * 1.16
+        foreign = self._create_taxed_move(
+            currency,
+            tax,
+            price_unit=price_unit,
+            invoice_date="2026-10-23",
+        )
+        line = foreign.invoice_line_ids
+        self.assertGreater(line.price_total, line.price_subtotal)
+        self.assertTrue(line.tax_ids.price_include)
+        self._assert_included_matches_native_company_invoice(
+            foreign,
+            price_unit,
+            invoice_date="2026-10-23",
+        )
+        foreign.action_post()
+        self._assert_included_matches_native_company_invoice(
+            foreign,
+            price_unit,
+            invoice_date="2026-10-23",
+        )
+
+    def test_included_tax_manual_company_total_extracts_base(self):
+        """Typing the company total of an included tax stores the company base."""
+        tax = self._included_percent_tax(16)
+        foreign = self._create_taxed_move(
+            self.foreign_currency, tax, price_unit=116.0
+        )
+        with Form(foreign) as move_form:
+            with move_form.invoice_line_ids.edit(0) as line_form:
+                line_form.price_total_currency = 46.4
+                self.assertTrue(line_form.manually_price_subtotal_currency)
+                self.assertAlmostEqual(line_form.price_subtotal_currency, 40.0)
+        line = foreign.invoice_line_ids
+        self.assertAlmostEqual(line.price_total, 116.0)
+        self.assertAlmostEqual(line.price_subtotal, 100.0)
+        self.assertAlmostEqual(line.price_total_currency, 46.4)
+        self.assertAlmostEqual(line.price_subtotal_currency, 40.0)
+        self.assertAlmostEqual(line.currency_rate, 2.5)
+        self.assertAlmostEqual(abs(line.balance), 40.0)
 
 
 @tagged("post_install", "-at_install")

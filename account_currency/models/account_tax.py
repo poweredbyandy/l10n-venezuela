@@ -92,20 +92,22 @@ class AccountTax(models.Model):
         return self.env["account.tax"]
 
     @api.model
-    def _account_currency_line_company_subtotal(self, document, line):
-        """Same company subtotal rule as invoice ``price_subtotal_currency``."""
+    def _account_currency_line_company_amounts(self, document, line):
+        """Company base and total for one order line, matching the invoice."""
         company_currency = document.company_id.currency_id
         currency = document.currency_id
         if currency == company_currency:
-            return company_currency.round(line.price_subtotal or 0.0)
+            base = company_currency.round(line.price_subtotal or 0.0)
+            total = company_currency.round(getattr(line, "price_total", None) or base)
+            return {"base": base, "total": total}
         rate = self._account_currency_document_rate(document)
         if not rate:
-            return 0.0
+            return {"base": 0.0, "total": 0.0}
+        quantity = getattr(line, "product_uom_qty", None)
+        if quantity is None:
+            quantity = getattr(line, "product_qty", 0.0)
         Move = self.env["account.move"]
-        if hasattr(Move, "_l10n_ve_company_line_subtotal_from_foreign_unit"):
-            quantity = getattr(line, "product_uom_qty", None)
-            if quantity is None:
-                quantity = getattr(line, "product_qty", 0.0)
+        if hasattr(Move, "_l10n_ve_company_included_line_amounts"):
             stub = Move.new(
                 {
                     "company_id": document.company_id.id,
@@ -114,32 +116,54 @@ class AccountTax(models.Model):
                     "invoice_currency_rate": rate,
                 }
             )
-            return stub._l10n_ve_company_line_subtotal_from_foreign_unit(
+            return stub._l10n_ve_company_included_line_amounts(
                 line.price_unit or 0.0,
                 quantity or 0.0,
                 discount=getattr(line, "discount", 0.0) or 0.0,
                 rate=rate,
+                taxes=self._account_currency_line_taxes(line),
+                product=getattr(line, "product_id", None),
             )
         foreign_subtotal = currency.round(line.price_subtotal or 0.0)
-        return company_currency.round(foreign_subtotal / rate)
+        base = company_currency.round(foreign_subtotal / rate)
+        return {"base": base, "total": base}
+
+    @api.model
+    def _account_currency_line_company_subtotal(self, document, line):
+        """Same company subtotal rule as invoice ``price_subtotal_currency``."""
+        return self._account_currency_line_company_amounts(document, line)["base"]
 
     @api.model
     def _account_currency_order_company_base_by_tax_group(self, document):
         """Map tax.group id → company base from per-line rounded conversion."""
         company_currency = document.company_id.currency_id
         base_by_group = {}
+        included_tax_by_group = {}
+        excluded_groups = set()
         total_base = 0.0
         for line in self._account_currency_order_lines(document):
-            company_subtotal = self._account_currency_line_company_subtotal(
-                document, line
-            )
+            amounts = self._account_currency_line_company_amounts(document, line)
+            company_subtotal = amounts["base"]
             total_base = company_currency.round(total_base + company_subtotal)
             taxes = self._account_currency_line_taxes(line)
-            for group in taxes.tax_group_id:
+            flat_taxes = taxes.flatten_taxes_hierarchy()
+            price_included = bool(flat_taxes) and all(
+                tax.price_include for tax in flat_taxes
+            )
+            groups = taxes.tax_group_id
+            for group in groups:
                 base_by_group[group.id] = company_currency.round(
                     base_by_group.get(group.id, 0.0) + company_subtotal
                 )
-        return base_by_group, total_base
+                if price_included and len(groups) == 1:
+                    included_tax_by_group[group.id] = company_currency.round(
+                        included_tax_by_group.get(group.id, 0.0)
+                        + amounts["total"]
+                        - amounts["base"]
+                    )
+                else:
+                    excluded_groups.add(group.id)
+        return base_by_group, total_base, included_tax_by_group, excluded_groups
 
     @api.model
     def _account_currency_align_order_tax_totals(self, document, totals):
@@ -155,7 +179,7 @@ class AccountTax(models.Model):
         if not document.currency_id or document.currency_id == company_currency:
             return totals
 
-        base_by_group, total_base = (
+        base_by_group, total_base, included_tax_by_group, excluded_groups = (
             self._account_currency_order_company_base_by_tax_group(document)
         )
         totals = dict(totals)
@@ -194,7 +218,13 @@ class AccountTax(models.Model):
                     percent = group_tax_currency / group_base_currency
                 elif not percent and group.get("base_amount"):
                     percent = (group.get("tax_amount") or 0.0) / group["base_amount"]
-                group_tax = company_currency.round(group_new_base * percent)
+                if (
+                    group_id in included_tax_by_group
+                    and group_id not in excluded_groups
+                ):
+                    group_tax = included_tax_by_group[group_id]
+                else:
+                    group_tax = company_currency.round(group_new_base * percent)
                 group["base_amount"] = group_new_base
                 group["tax_amount"] = group_tax
                 if group.get("display_base_amount") not in (None, False):

@@ -512,17 +512,48 @@ class AccountMove(models.Model):
         return float_round((price_unit or 0.0) / rate, precision_digits=prec)
 
     def _l10n_ve_company_line_subtotal_from_foreign_unit(
-        self, price_unit, quantity, discount=0.0, rate=None
+        self, price_unit, quantity, discount=0.0, rate=None, taxes=None
     ):
         """Company subtotal from rounded company unit price (native Bs math)."""
+        return self._l10n_ve_company_included_line_amounts(
+            price_unit,
+            quantity,
+            discount=discount,
+            rate=rate,
+            taxes=taxes,
+        )["base"]
+
+    def _l10n_ve_company_included_line_amounts(
+        self, price_unit, quantity, discount=0.0, rate=None, taxes=None, product=None
+    ):
+        """Company base and total for one foreign unit price.
+
+        A price-included tax is already inside the unit. The company total is
+        that unit converted at the invoice rate. The base is what a document in
+        company currency would book for the same unit, so the tax is not added
+        a second time.
+        """
         self.ensure_one()
+        company = self.company_currency_id
         company_pu = self._l10n_ve_company_price_unit_from_foreign_unit(
             price_unit, rate=rate
         )
         discount_factor = 1.0 - ((discount or 0.0) / 100.0)
-        return self.company_currency_id.round(
-            company_pu * (quantity or 0.0) * discount_factor
+        gross = company.round(company_pu * (quantity or 0.0) * discount_factor)
+        tax_records = taxes or self.env["account.tax"]
+        if not any(tax.price_include for tax in tax_records.flatten_taxes_hierarchy()):
+            return {"base": gross, "total": gross}
+        details = tax_records._get_tax_details(
+            price_unit=company_pu * discount_factor,
+            quantity=quantity or 0.0,
+            precision_rounding=company.rounding,
+            rounding_method=self.company_id.tax_calculation_rounding_method,
+            product=product,
         )
+        return {
+            "base": company.round(details["total_excluded"]),
+            "total": company.round(details["total_included"]),
+        }
 
     def _l10n_ve_reapply_rate_from_prices(self):
         """Recompute taxes from the lines when only the rate changes.

@@ -98,11 +98,9 @@
         </xpath>
         <xpath expr="//table" position="attributes">
             <attribute name="t-att-class">
-                {
-                    'o_account_currency_tax_totals': totals.display_in_company_currency,
-                    'd-none': totals.display_in_company_currency,
-                    'd-md-table': totals.display_in_company_currency,
-                }
+                totals.display_in_company_currency
+                    ? 'float-end o_account_currency_tax_totals d-none d-md-table'
+                    : 'float-end'
             </attribute>
         </xpath>
         <xpath
