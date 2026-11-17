@@ -75,6 +75,15 @@ class ResConfigSettings(models.TransientModel):
         string="ISLR TFHKA establishment",
         readonly=False,
     )
+    tfhka_product_code = fields.Selection(
+        [
+            ("barcode", "Código de barras"),
+            ("default_code", "Referencia interna"),
+        ],
+        string="Código de producto enviado a TFHKA",
+        default="default_code",
+        config_parameter="l10n_ve_edi_tfhka.product_code",
+    )
 
     def _tfhka_selected_credentials(self):
         self.ensure_one()

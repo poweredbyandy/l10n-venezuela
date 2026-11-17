@@ -759,7 +759,8 @@ class AccountMove(models.Model):
         )
 
     def _tfhka_get_line_iva_value(self, line):
-        return line.price_total - line.price_subtotal
+        _unit, subtotal, total = self._tfhka_line_document_amounts(line)
+        return self.company_id.currency_id.round(total - subtotal)
 
     def _tfhka_tax_group_to_codigo(self, tax_group_dict):
         self.ensure_one()
@@ -791,21 +792,76 @@ class AccountMove(models.Model):
             not tids and abs(float(tax_group_dict.get("tax_amount", 0.0) or 0.0)) > 0.0
         )
 
+    def _tfhka_get_product_plu(self, product):
+        self.ensure_one()
+        if not product:
+            return ""
+        source = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("l10n_ve_edi_tfhka.product_code", "default_code")
+            or "default_code"
+        )
+        if source == "default_code":
+            code = product.default_code or product.barcode or ""
+        else:
+            code = product.barcode or product.default_code or ""
+        return (code or "")[:60]
+
+    def _tfhka_line_document_amounts(self, line):
+        """Company-currency amounts shown by account_currency on the invoice.
+
+        ``detallesItems`` and ``totales`` are bolivares. Invoice-currency
+        amounts stay in ``totalesOtraMoneda``.
+        """
+        self.ensure_one()
+        company_currency = self.company_id.currency_id
+        if (
+            self.currency_id != company_currency
+            and "price_subtotal_currency" in line._fields
+        ):
+            return (
+                line.price_unit_company_currency or 0.0,
+                line.price_subtotal_currency or 0.0,
+                line.price_total_currency or 0.0,
+            )
+        return (
+            line.price_unit or 0.0,
+            line.price_subtotal or 0.0,
+            line.price_total or 0.0,
+        )
+
+    def _tfhka_sum_company_line_amounts(self):
+        self.ensure_one()
+        cur = self.company_id.currency_id
+        subtotal = tax = total = 0.0
+        for line in self._tfhka_get_line_items():
+            _unit, line_subtotal, line_total = self._tfhka_line_document_amounts(line)
+            line_subtotal = cur.round(line_subtotal)
+            line_total = cur.round(line_total)
+            subtotal = cur.round(subtotal + line_subtotal)
+            total = cur.round(total + line_total)
+            tax = cur.round(tax + cur.round(line_total - line_subtotal))
+        return subtotal, tax, total
+
     def _tfhka_get_line_price_breakdown(self, line):
         """Return the line amounts declared to TFHKA.
 
         TFHKA only accepts two decimals in ``precioUnitario`` and recomputes
         ``precioAntesDescuento`` and ``precioItem`` from it, so the rounding
-        difference against the Odoo subtotal is declared as discount.
+        difference against the company-currency subtotal is declared as discount.
         """
         self.ensure_one()
-        cur = self.currency_id
+        cur = self.company_id.currency_id
         quantity = line.quantity
-        subtotal = cur.round(line.price_subtotal)
-        unit_price = float_round(line.price_unit, precision_digits=2)
+        unit_amount, subtotal_amount, _total_amount = self._tfhka_line_document_amounts(
+            line
+        )
+        subtotal = cur.round(subtotal_amount)
+        unit_price = float_round(unit_amount, precision_digits=2)
         if cur.compare_amounts(unit_price * quantity, subtotal) < 0:
             unit_price = float_round(
-                line.price_unit, precision_digits=2, rounding_method="UP"
+                unit_amount, precision_digits=2, rounding_method="UP"
             )
         before_discount = cur.round(unit_price * quantity)
         return {
@@ -1262,6 +1318,20 @@ class AccountMove(models.Model):
 
         inv_iva_out = inv_tax
         comp_iva_out = comp_tax
+
+        line_sub, line_tax, _line_total = self._tfhka_sum_company_line_amounts()
+        if comp_buckets and (
+            not cur_comp.is_zero(cur_comp.round(line_sub - comp_sub))
+            or not cur_comp.is_zero(cur_comp.round(line_tax - comp_iva_out))
+        ):
+            comp_buckets = self._tfhka_reconcile_buckets_to_targets(
+                dict(comp_buckets), line_sub, line_tax, cur_comp
+            )
+            comp_gravado, comp_exento = self._tfhka_gravado_exento_from_buckets(
+                comp_buckets, cur_comp, subtotal_target=line_sub
+            )
+            comp_sub = line_sub
+            comp_iva_out = line_tax
 
         inv_total_con_iva = cur_inv.round(inv_sub + inv_iva_out)
         comp_total_con_iva = cur_comp.round(comp_sub + comp_iva_out)
@@ -2160,10 +2230,9 @@ class AccountMove(models.Model):
 
     def _tfhka_build_item_detail(self, index, line, tax_code, tax_rate, line_iva):
         product = line.product_id
-        plu = ""
-        if product:
-            plu = (product.barcode or product.default_code or "")[:60]
+        plu = self._tfhka_get_product_plu(product)
         qty = line.quantity
+        _unit, _subtotal, line_total = self._tfhka_line_document_amounts(line)
         breakdown = self._tfhka_get_line_price_breakdown(line)
         pu = breakdown["unit_price"]
         brutto = breakdown["before_discount"]
@@ -2192,7 +2261,9 @@ class AccountMove(models.Model):
             "codigoImpuesto": tax_code,
             "tasaIVA": self._tfhka_format_tasa_iva(tax_rate),
             "valorIVA": self._l10n_ve_edi_format_decimal(line_iva),
-            "valorTotalItem": self._l10n_ve_edi_format_decimal(line.price_total),
+            "valorTotalItem": self._l10n_ve_edi_format_decimal(
+                self.company_id.currency_id.round(line_total)
+            ),
             "infoAdicionalItem": self._tfhka_build_info_adicional_item(line),
             "listaItemOTI": None,
         }

@@ -41,13 +41,15 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
         price=30.0,
         quantity=1.0,
         discount=0.0,
+        currency=None,
+        product=None,
     ):
         vals = {
             "move_type": "out_invoice",
             "company_id": self.company.id,
             "journal_id": self.tfhka_journal.id,
             "partner_id": partner.id,
-            "currency_id": self.usd.id,
+            "currency_id": (currency or self.usd).id,
             "invoice_date": self.test_date,
             "date": self.test_date,
             "invoice_line_ids": [
@@ -58,6 +60,7 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
                         "price_unit": price,
                         "discount": discount,
                         "account_id": line_account.id,
+                        "product_id": product.id if product else False,
                         "tax_ids": [Command.set(self.exempt_sale_tax.ids)],
                     }
                 )
@@ -111,6 +114,7 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
             price=32.765795,
             quantity=3000.0,
             discount=13.75,
+            currency=self.ves,
         )
         line = invoice.invoice_line_ids
         breakdown = invoice._tfhka_get_line_price_breakdown(line)
@@ -124,7 +128,11 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
 
     def test_line_price_breakdown_never_declares_negative_discount(self):
         invoice = self._new_move(
-            self.partner, self.revenue_account, price=10.004, quantity=1000.0
+            self.partner,
+            self.revenue_account,
+            price=10.004,
+            quantity=1000.0,
+            currency=self.ves,
         )
         line = invoice.invoice_line_ids
         breakdown = invoice._tfhka_get_line_price_breakdown(line)
@@ -142,6 +150,7 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
             price=32.765795,
             quantity=3000.0,
             discount=13.75,
+            currency=self.ves,
         )
         count, total_discount, subtotal_before = (
             invoice._tfhka_line_discount_and_count()
@@ -149,6 +158,49 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
         self.assertEqual(count, 1)
         self.assertEqual(total_discount, 0.0)
         self.assertAlmostEqual(subtotal_before, invoice.invoice_line_ids.price_subtotal)
+
+    def test_product_code_setting_and_currency_amounts(self):
+        product = self.env["product.product"].create(
+            {
+                "name": "Producto TFHKA",
+                "barcode": "7591234567890",
+                "default_code": "REF-TFHKA",
+            }
+        )
+        invoice = self._new_move(
+            self.partner,
+            self.revenue_account,
+            price=100.0,
+            product=product,
+        )
+        icp = self.env["ir.config_parameter"].sudo()
+        icp.set_param("l10n_ve_edi_tfhka.product_code", "default_code")
+        detail = invoice._tfhka_build_item_detail(
+            1, invoice.invoice_line_ids, "E", 0.0, 0.0
+        )
+        self.assertEqual(detail["codigoPLU"], "REF-TFHKA")
+        icp.set_param("l10n_ve_edi_tfhka.product_code", "barcode")
+        detail = invoice._tfhka_build_item_detail(
+            1, invoice.invoice_line_ids, "E", 0.0, 0.0
+        )
+        self.assertEqual(detail["codigoPLU"], "7591234567890")
+
+        company = invoice.company_id.currency_id
+        line = invoice.invoice_line_ids
+        _unit, company_subtotal, company_total = invoice._tfhka_line_document_amounts(
+            line
+        )
+        self.assertAlmostEqual(
+            float(detail["precioItem"]), company.round(company_subtotal)
+        )
+        self.assertAlmostEqual(
+            float(detail["valorTotalItem"]), company.round(company_total)
+        )
+        totals = invoice._tfhka_get_totals_for_payload()
+        self.assertAlmostEqual(
+            totals["comp"]["subtotal"], company.round(company_subtotal)
+        )
+        self.assertAlmostEqual(totals["inv"]["subtotal"], invoice.amount_untaxed)
 
     def test_resend_throttle_code_is_an_error(self):
         client = self.env["l10n_ve_edi_tfhka.api.service"]
