@@ -1,5 +1,30 @@
+.o_form_view .oe_invoice_lines_tab {
+    > .o_inner_group {
+        flex: 1 1 0;
+        max-width: 100%;
+        min-width: 0;
+        width: auto;
+    }
+
+    > .o_group:has(.oe_subtotal_footer) {
+        flex: 0 0 auto;
+        margin-left: auto;
+        max-width: 100%;
+        width: max-content;
+    }
+
+    .oe_subtotal_footer {
+        margin-left: auto;
+        width: max-content;
+    }
+}
+
 .o_tax_totals_company_currency {
     display: flow-root;
+
+    table {
+        float: right;
+    }
 }
 
 .o_tax_totals_responsive {

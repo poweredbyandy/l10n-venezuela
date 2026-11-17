@@ -58,12 +58,6 @@
             <xpath expr="//field[@name='tax_totals']" position="attributes">
                 <attribute name="widget">l10n_ve_igtf_tax_totals</attribute>
             </xpath>
-            <xpath
-                expr="//group[hasclass('oe_invoice_lines_tab', 'overflow-hidden')]/group[.//field[@name='tax_totals']]"
-                position="attributes"
-            >
-                <attribute name="colspan">6</attribute>
-            </xpath>
         </field>
     </record>
 </odoo>

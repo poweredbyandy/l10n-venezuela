@@ -1,12 +1,41 @@
-.o_field_account_tax_totals_field:has(.o_account_currency_tax_totals),
-.o_field_account_tax_totals_field:has(.o_account_currency_tax_totals_responsive) {
+.o_form_view .o_group.row:has(.o_account_currency_tax_totals) {
+    > :first-child {
+        flex: 1 1 auto;
+        max-width: 100%;
+        min-width: 0;
+        width: auto;
+    }
+
+    > :has(.o_account_currency_tax_totals) {
+        flex: 0 0 auto;
+        margin-left: auto;
+        margin-right: 0;
+        max-width: 100%;
+        width: max-content;
+    }
+}
+
+.o_form_view .oe_subtotal_footer:has(.o_account_currency_tax_totals),
+.o_form_view .oe_subtotal_footer:has(.o_account_currency_tax_totals_responsive) {
+    grid-template-columns: max-content;
+    justify-items: end;
+    margin-left: auto;
+    margin-right: 0;
+    width: max-content;
+}
+
+.o_form_view .oe_subtotal_footer:has(.o_account_currency_tax_totals) .o_field_widget,
+.o_form_view .oe_subtotal_footer:has(.o_account_currency_tax_totals_responsive) .o_field_widget {
     display: flex;
     justify-content: flex-end;
-    width: 100%;
+    margin-left: auto;
+    width: max-content;
 }
 
 .o_account_currency_tax_totals {
+    float: none;
     margin-left: auto;
+    width: max-content;
 }
 
 .o_account_currency_tax_totals_responsive {
@@ -40,16 +69,14 @@
 }
 
 @include media-breakpoint-down(md) {
-    .o_form_view .o_inner_group.oe_subtotal_footer:has(.o_account_currency_tax_totals_responsive) {
+    .o_form_view .o_group.row:has(.o_account_currency_tax_totals_responsive) > :has(.o_account_currency_tax_totals_responsive),
+    .o_form_view .oe_subtotal_footer:has(.o_account_currency_tax_totals_responsive) {
         max-width: 100%;
-        min-width: 0;
         width: 100%;
 
-        > .o_wrap_field,
-        .o_cell,
         .o_field_widget {
             max-width: 100%;
-            min-width: 0;
+            width: 100%;
         }
     }
 }
