@@ -6,12 +6,11 @@
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "category": "Inventory/Localizations",
-    "version": "18.0.1.2.1",
+    "version": "18.0.2.1.0",
     "depends": [
         "base",
         "web",
         "stock",
-        "fleet",
         "l10n_ve_seniat",
         "l10n_ve_seniat_sale",
         "l10n_ve_product",

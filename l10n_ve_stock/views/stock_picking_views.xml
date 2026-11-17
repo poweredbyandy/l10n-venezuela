@@ -33,11 +33,15 @@
                     invisible="not l10n_ve_is_ve_country or not sale_id"
                 />
                 <field
-                    name="l10n_ve_transport_partner_id"
+                    name="l10n_ve_carrier_name"
                     invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
                 />
                 <field
-                    name="l10n_ve_fleet_vehicle_id"
+                    name="l10n_ve_carrier_vat"
+                    invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
+                />
+                <field
+                    name="l10n_ve_vehicle_plate"
                     invisible="not l10n_ve_dispatch_guide_enabled or not l10n_ve_is_ve_country or picking_type_code != 'outgoing'"
                 />
             </xpath>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.form.l10n.ve.stock.fleet</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="l10n_ve_stock.res_config_settings_view_form_l10n_ve_stock" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='l10n_ve_stock_div_dispatch_guide']" position="before">
+                <div id="l10n_ve_stock_div_own_fleet" class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                        <field name="l10n_ve_own_fleet" />
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="l10n_ve_own_fleet" />
+                        <div class="text-muted">
+                            El transportista y el vehículo salen de la flota.
+                            El nombre y la matrícula quedan guardados en el albarán.
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

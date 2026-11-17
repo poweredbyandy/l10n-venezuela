@@ -85,15 +85,17 @@ class StockPicking(models.Model):
     l10n_ve_show_control_number_ui = fields.Boolean(
         compute="_compute_l10n_ve_show_control_number_ui",
     )
-    l10n_ve_transport_partner_id = fields.Many2one(
-        "res.partner",
+    l10n_ve_carrier_name = fields.Char(
         string="Transportista",
-        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+        copy=False,
     )
-    l10n_ve_fleet_vehicle_id = fields.Many2one(
-        "fleet.vehicle",
-        string="Vehículo",
-        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+    l10n_ve_carrier_vat = fields.Char(
+        string="RIF transportista",
+        copy=False,
+    )
+    l10n_ve_vehicle_plate = fields.Char(
+        string="Matrícula",
+        copy=False,
     )
     l10n_ve_sales_user_id = fields.Many2one(
         "res.users",
@@ -375,13 +377,6 @@ class StockPicking(models.Model):
         if not p:
             return ""
         return p.phone or p.mobile or ""
-
-    def _l10n_ve_dispatch_fleet_vehicle_model_name(self):
-        self.ensure_one()
-        vehicle = self.l10n_ve_fleet_vehicle_id
-        if not vehicle or not vehicle.model_id:
-            return ""
-        return vehicle.model_id.display_name or vehicle.model_id.name or ""
 
     def _l10n_ve_dispatch_delivery_address_partner(self):
         self.ensure_one()

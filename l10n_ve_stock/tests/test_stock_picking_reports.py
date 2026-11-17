@@ -110,8 +110,13 @@ class TestL10nVeStockPickingReports(TestL10nVeStockDispatchGuide):
         )._get_combined_arch()
         arch_text = etree.tostring(combined_arch, encoding="unicode")
 
-        self.assertIn("GUIA DE DESPACHO - ", arch_text)
-        self.assertNotIn("Guía de Despacho: ", arch_text)
+        self.assertIn("Nota de Entrega: ", arch_text)
+        self.assertNotIn("GUIA DE DESPACHO - ", arch_text)
+        self.assertIn("Transportista", arch_text)
+        self.assertIn("o.l10n_ve_carrier_name", arch_text)
+        self.assertIn("o.l10n_ve_carrier_vat", arch_text)
+        self.assertIn("Matrícula", arch_text)
+        self.assertIn("o.l10n_ve_vehicle_plate", arch_text)
 
     def test_portal_picking_control_number_display(self):
         product = self._create_product(

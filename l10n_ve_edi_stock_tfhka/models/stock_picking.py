@@ -976,8 +976,6 @@ class StockPicking(models.Model):
         self.ensure_one()
         origin = self._l10n_ve_dispatch_origin_partner()
         dest = self._l10n_ve_dispatch_delivery_address_partner()
-        transport = self.l10n_ve_transport_partner_id
-        vehicle = self.l10n_ve_fleet_vehicle_id
         reason = self.l10n_ve_internal_transfer_reason_id
         motivo = reason.name if reason else "Entrega de mercancia"
         total_weight = sum(
@@ -993,20 +991,17 @@ class StockPicking(models.Model):
             "pesoOVolumenTotal": f"{total_weight:.2f}" if total_weight else "",
             "destinoProducto": self._l10n_ve_dispatch_address_inline(dest)[:255],
         }
-        if transport:
-            prefix, number = self._l10n_ve_edi_parse_ve_vat(transport.vat)
+        if self.l10n_ve_carrier_name:
             data["transportista"] = {
-                "razonSocial": (transport.name or "")[:255],
-                "numeroIdentificacion": number or "",
-                "domicilioFiscal": self._l10n_ve_dispatch_address_inline(transport)[
-                    :255
-                ],
+                "razonSocial": self.l10n_ve_carrier_name[:255],
+                "numeroIdentificacion": (self.l10n_ve_carrier_vat or "")[:20],
+                "domicilioFiscal": "",
             }
-        if vehicle:
+        if self.l10n_ve_vehicle_plate:
             data["vehiculo"] = {
-                "tipoVehiculo": self._l10n_ve_dispatch_fleet_vehicle_model_name()[:100],
-                "numeroTransporte": (vehicle.name or "")[:50],
-                "numeroPlaca": (vehicle.license_plate or "")[:20],
+                "tipoVehiculo": "",
+                "numeroTransporte": "",
+                "numeroPlaca": self.l10n_ve_vehicle_plate[:20],
             }
         return data
 
@@ -1014,7 +1009,6 @@ class StockPicking(models.Model):
         self.ensure_one()
         origin = self._l10n_ve_dispatch_origin_partner()
         dest = self._l10n_ve_dispatch_delivery_address_partner()
-        vehicle = self.l10n_ve_fleet_vehicle_id
         issue_date = self._tfhka_get_issue_date()
         carrier = getattr(self, "carrier_id", False)
         return {
@@ -1027,7 +1021,7 @@ class StockPicking(models.Model):
             "fechaSalida": issue_date,
             "lugarEntrega": self._l10n_ve_dispatch_address_inline(dest)[:255],
             "lugarRecepcion": self._l10n_ve_dispatch_address_inline(origin)[:255],
-            "placa": (vehicle.license_plate if vehicle else "")[:20],
+            "placa": (self.l10n_ve_vehicle_plate or "")[:20],
         }
 
     def _tfhka_build_dispatch_documento_electronico_payload(self):

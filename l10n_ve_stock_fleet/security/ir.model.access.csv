@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_ve_stock_fleet_vehicle_read,access.l10n.ve.stock.fleet.vehicle.read,fleet.model_fleet_vehicle,stock.group_stock_user,1,0,0,0
+access_l10n_ve_stock_fleet_vehicle_model_read,access.l10n.ve.stock.fleet.vehicle.model.read,fleet.model_fleet_vehicle_model,stock.group_stock_user,1,0,0,0
+access_l10n_ve_stock_fleet_vehicle_model_brand_read,access.l10n.ve.stock.fleet.vehicle.model.brand.read,fleet.model_fleet_vehicle_model_brand,stock.group_stock_user,1,0,0,0
