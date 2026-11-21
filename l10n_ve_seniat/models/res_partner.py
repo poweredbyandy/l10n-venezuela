@@ -10,6 +10,26 @@ _logger = logging.getLogger(__name__)
 VE_CODE = "VE"
 VE_VAT_FIRST_LETTERS = frozenset("VEJCPG")
 
+# RIF "kind" prefixes recognized by the SENIAT: letter + 6 to 10 digits.
+L10N_VE_RIF_KIND_RE = re.compile(r"^([VEJCPG])([0-9]{6,10})$", re.IGNORECASE)
+
+L10N_VE_PERSON_NATURE_SELECTION = [
+    ("natural", "Persona Natural"),
+    ("legal", "Persona Jurídica"),
+]
+
+L10N_VE_PERSON_TYPE_SELECTION = [
+    ("pn_resident", "PN Residente"),
+    ("pn_non_resident", "PN No Residente"),
+    ("pj_domiciled", "PJ Domiciliada"),
+    ("pj_non_domiciled", "PJ No Domiciliada"),
+]
+
+L10N_VE_TAX_RESIDENCE_SELECTION = [
+    ("resident", "Residente / Domiciliado"),
+    ("non_resident", "No residente / No domiciliado"),
+]
+
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
@@ -157,15 +177,72 @@ class ResPartner(models.Model):
             if not country or country.code != VE_CODE:
                 vals["taxpayer_type"] = False
         batches = self._l10n_ve_write_vat_prefix_batches(vals)
-        if batches is not None:
-            res = True
-            for recs, v in batches:
-                self._l10n_ve_check_fiscal_lock_on_write(recs, v)
-                res &= super(ResPartner, recs).write(v)
-            return res
+        if batches is None:
+            batches = [(self, vals)]
+        final_batches = []
+        for recs, batch_vals in batches:
+            final_batches.extend(self._l10n_ve_tax_residence_batches(recs, batch_vals))
+        if len(final_batches) == 1:
+            recs, batch_vals = final_batches[0]
+            self._l10n_ve_check_fiscal_lock_on_write(recs, batch_vals)
+            return super(ResPartner, recs).write(batch_vals)
 
-        self._l10n_ve_check_fiscal_lock_on_write(self, vals)
-        return super().write(vals)
+        res = True
+        for recs, batch_vals in final_batches:
+            self._l10n_ve_check_fiscal_lock_on_write(recs, batch_vals)
+            res &= super(ResPartner, recs).write(batch_vals)
+        return res
+
+    def _l10n_ve_tax_residence_batches(self, recs, vals):
+        """Split a write batch by the tax residence derived from RIF/country.
+
+        The user's manual choice is respected: the residence is only
+        recalculated when `vat`/`country_id` change without an explicit
+        `l10n_ve_tax_residence` in vals (the web client sends it together
+        when the user touched it on the form).
+        """
+        if (
+            self.env.context.get("skip_l10n_ve_tax_residence_auto")
+            or "l10n_ve_tax_residence" in vals
+            or ("vat" not in vals and "country_id" not in vals)
+            or not recs
+        ):
+            return [(recs, vals)]
+
+        # RIF kinds E/P drive the residence uniformly for the whole batch.
+        uniform = False
+        if "vat" in vals:
+            kind = self._l10n_ve_rif_kind_from_vat(vals.get("vat"))
+            if kind == "E":
+                uniform = "resident"
+            elif kind == "P":
+                uniform = "non_resident"
+
+        groups = {}
+        unchanged = self.browse()
+        for partner in recs:
+            if uniform:
+                derived = uniform
+            else:
+                vat = vals["vat"] if "vat" in vals else partner.vat
+                if "country_id" in vals:
+                    country = (
+                        self.env["res.country"].browse(vals["country_id"])
+                        if vals.get("country_id")
+                        else self.env["res.country"].browse()
+                    )
+                else:
+                    country = partner.country_id
+                derived = self._l10n_ve_derive_tax_residence_from(vat, country)
+            if partner.l10n_ve_tax_residence == derived:
+                unchanged |= partner
+                continue
+            groups.setdefault(derived, self.browse())
+            groups[derived] |= partner
+        out = [(unchanged, dict(vals))] if unchanged else []
+        for derived, group in groups.items():
+            out.append((group, {**vals, "l10n_ve_tax_residence": derived}))
+        return out
 
     def _prepare_create_values(self, vals_list):
         vals_list = super()._prepare_create_values(vals_list)
@@ -179,6 +256,15 @@ class ResPartner(models.Model):
             if country.code != VE_CODE or vals.get("vat") in (False, None):
                 continue
             vals["vat"] = self._l10n_ve_normalize_vat_leading_prefix(vals["vat"])
+        if self.env.context.get("skip_l10n_ve_tax_residence_auto"):
+            return vals_list
+        for vals in vals_list:
+            if "l10n_ve_tax_residence" in vals:
+                continue
+            country = self._l10n_ve_country_from_vals(vals)
+            vals["l10n_ve_tax_residence"] = self._l10n_ve_derive_tax_residence_from(
+                vals.get("vat"), country
+            )
         return vals_list
 
     def _l10n_ve_country_from_vals(self, vals):
@@ -242,6 +328,147 @@ class ResPartner(models.Model):
         ],
     )
 
+    # ``l10n_ve_person_nature`` (natural/legal) is derived from the RIF and is
+    # deliberately NOT editable: when the RIF lies, the RIF must be fixed.
+    # ``l10n_ve_tax_residence`` is the single user choice the RIF cannot
+    # answer (resident vs domiciled is a label switch on the same axis).
+    # ``l10n_ve_person_type`` is the read-only combination of both, and the
+    # ISLR exceptions live apart in ``l10n_ve_islr_category``
+    # (l10n_ve_withholding). See docs/adr/0001 and
+    # l10n_ve_withholding/readme/DEPRECATED.md for the legacy mapping.
+    l10n_ve_person_nature = fields.Selection(
+        L10N_VE_PERSON_NATURE_SELECTION,
+        string="Person Nature",
+        compute="_compute_l10n_ve_person_nature",
+        store=True,
+        precompute=True,
+        tracking=False,
+    )
+    l10n_ve_tax_residence = fields.Selection(
+        L10N_VE_TAX_RESIDENCE_SELECTION,
+        string="Tax Residence",
+        tracking=False,
+        help=(
+            "Residencia (personas naturales) o domicilio (personas "
+            "jurídicas) del contacto frente a impuestos venezolanos."
+        ),
+    )
+    l10n_ve_person_type = fields.Selection(
+        L10N_VE_PERSON_TYPE_SELECTION,
+        string="Person Type",
+        compute="_compute_l10n_ve_person_type",
+        store=True,
+        precompute=True,
+        tracking=False,
+    )
+    l10n_ve_tax_residence_name = fields.Char(
+        string="Residence",
+        compute="_compute_l10n_ve_tax_residence_name",
+    )
+
+    @api.model
+    def _l10n_ve_rif_kind_from_vat(self, vat):
+        """Return the RIF kind letter (V/E/J/C/P/G) of a VAT-like string.
+
+        Only a full letter+digits match counts as a RIF kind, so foreign
+        identifiers ("GB123456789") never fake a kind.
+        """
+        cleaned = re.sub(r"[^A-Za-z0-9]", "", vat or "").upper()
+        if not cleaned:
+            return False
+        match = L10N_VE_RIF_KIND_RE.match(cleaned)
+        return match.group(1).upper() if match else False
+
+    def _l10n_ve_derive_person_nature(self):
+        self.ensure_one()
+        kind = self._l10n_ve_rif_kind_from_vat(self.vat)
+        if kind in ("V", "E", "P"):
+            return "natural"
+        if kind in ("J", "G", "C"):
+            return "legal"
+        return "legal" if self.is_company else "natural"
+
+    def _l10n_ve_fallback_country(self):
+        country = self.env.company.country_id
+        return country if country and country.code == VE_CODE else self.env[
+            "res.country"
+        ]
+
+    def _l10n_ve_derive_tax_residence_from(self, vat, country):
+        """Derive the default tax residence from a VAT and a country.
+
+        Art. 2 Ley ISLR / Providencia administrativa: residentes y
+        domiciliados tributan de forma distinta a no residentes y no
+        domiciliados. El pasaporte (P) no implica residencia, pero se toma
+        como default "no residente" editable; el extranjero con cédula (E)
+        se trata como residente.
+        """
+        kind = self._l10n_ve_rif_kind_from_vat(vat)
+        if kind == "E":
+            return "resident"
+        if kind == "P":
+            return "non_resident"
+        effective_country = country or self._l10n_ve_fallback_country()
+        if effective_country and effective_country.code == VE_CODE:
+            return "resident"
+        return "non_resident"
+
+    def _l10n_ve_derive_tax_residence(self):
+        self.ensure_one()
+        return self._l10n_ve_derive_tax_residence_from(
+            self.vat, self.country_id or self._l10n_ve_fallback_country()
+        )
+
+    @api.depends("vat", "is_company")
+    def _compute_l10n_ve_person_nature(self):
+        for partner in self:
+            partner.l10n_ve_person_nature = partner._l10n_ve_derive_person_nature()
+
+    @api.depends("l10n_ve_person_nature", "l10n_ve_tax_residence")
+    def _compute_l10n_ve_person_type(self):
+        for partner in self:
+            # A missing stored residence (e.g. mid-upgrade rows) falls back
+            # to the derived default so the type is never garbage.
+            residence = (
+                partner.l10n_ve_tax_residence
+                or partner._l10n_ve_derive_tax_residence()
+            )
+            if partner.l10n_ve_person_nature == "legal":
+                partner.l10n_ve_person_type = (
+                    "pj_domiciled"
+                    if residence == "resident"
+                    else "pj_non_domiciled"
+                )
+            else:
+                partner.l10n_ve_person_type = (
+                    "pn_resident"
+                    if residence == "resident"
+                    else "pn_non_resident"
+                )
+
+    @api.depends("l10n_ve_person_nature", "l10n_ve_tax_residence")
+    def _compute_l10n_ve_tax_residence_name(self):
+        for partner in self:
+            residence = partner.l10n_ve_tax_residence
+            if not residence:
+                partner.l10n_ve_tax_residence_name = False
+            elif partner.l10n_ve_person_nature == "legal":
+                partner.l10n_ve_tax_residence_name = (
+                    _("Domiciliada")
+                    if residence == "resident"
+                    else _("No Domiciliada")
+                )
+            else:
+                partner.l10n_ve_tax_residence_name = (
+                    _("Residente") if residence == "resident" else _("No Residente")
+                )
+
+    def action_l10n_ve_recompute_tax_residence(self):
+        """Reset the manual residence choice back to the RIF/country default."""
+        for partner in self:
+            partner.l10n_ve_tax_residence = partner._l10n_ve_derive_tax_residence()
+        return True
+
     # TODO: prefix_vat isn't used anywhere
     prefix_vat = fields.Char(string="Prefix vat", compute="_compute_vat_prefix")
     country_id = fields.Many2one("res.country", default=_default_res_country)
@@ -271,6 +498,17 @@ class ResPartner(models.Model):
         nv = self._l10n_ve_normalize_vat_leading_prefix(self.vat)
         if nv != self.vat:
             self.vat = nv
+
+    @api.onchange("vat", "country_id")
+    def _onchange_l10n_ve_tax_residence(self):
+        """Recalculate the residence suggestion when RIF/country change.
+
+        The user can still pick the other option right after: the choice is
+        kept on save and only revisited on the next vat/country change.
+        """
+        self.l10n_ve_tax_residence = self._l10n_ve_derive_tax_residence_from(
+            self.vat, self.country_id
+        )
 
     @api.model
     def default_get(self, fields_list):

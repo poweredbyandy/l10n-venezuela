@@ -371,11 +371,11 @@ ul.auto-toc {
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Beta" src="https://img.shields.io/badge/maturity-Beta-yellow.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/OCA/l10n-venezuela/tree/18.0/l10n_ve_edi_tfhka"><img alt="OCA/l10n-venezuela" src="https://img.shields.io/badge/github-OCA%2Fl10n--venezuela-lightgray.png?logo=github" /></a> <a class="reference external image-reference" href="https://translation.odoo-community.org/projects/l10n-venezuela-18-0/l10n-venezuela-18-0-l10n_ve_edi_tfhka"><img alt="Translate me on Weblate" src="https://img.shields.io/badge/weblate-Translate%20me-F47D42.png" /></a> <a class="reference external image-reference" href="https://runboat.odoo-community.org/builds?repo=OCA/l10n-venezuela&amp;target_branch=18.0"><img alt="Try me on Runboat" src="https://img.shields.io/badge/runboat-Try%20me-875A7B.png" /></a></p>
 <p>Connector for The Factory HKA digital invoicing in Venezuela. It sends
-customer invoices, credit and debit notes, dispatch guides and
-withholding vouchers through the TFHKA API, stores the provider response
-and serves the official digital PDF. It also queries the numbering
-ranges available in TFHKA and assigns a new range when none is
-available.</p>
+customer invoices, credit and debit notes and withholding vouchers
+through the TFHKA API, stores the provider response and serves the
+official digital PDF. It also queries the numbering ranges available in
+TFHKA and assigns a new range when none is available.</p>
+<p>Dispatch guides are sent by <tt class="docutils literal">l10n_ve_edi_stock_tfhka</tt>.</p>
 <p>The payload follows the TFHKA API technical reference v2.2
 (<tt class="docutils literal">static/description/tfhka_api_reference.pdf</tt>), including IGTF debit
 notes (transaction type 98) and buyers not domiciled in Venezuela.</p>
@@ -389,16 +389,15 @@ notes (transaction type 98) and buyers not domiciled in Venezuela.</p>
 <li><a class="reference internal" href="#customer-invoices" id="toc-entry-5">Customer invoices</a></li>
 <li><a class="reference internal" href="#igtf-debit-notes" id="toc-entry-6">IGTF debit notes</a></li>
 <li><a class="reference internal" href="#customers-outside-venezuela" id="toc-entry-7">Customers outside Venezuela</a></li>
-<li><a class="reference internal" href="#dispatch-guides" id="toc-entry-8">Dispatch guides</a></li>
-<li><a class="reference internal" href="#withholding-vouchers" id="toc-entry-9">Withholding vouchers</a></li>
+<li><a class="reference internal" href="#withholding-vouchers" id="toc-entry-8">Withholding vouchers</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#known-issues-roadmap" id="toc-entry-10">Known issues / Roadmap</a></li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-11">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-12">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-13">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-14">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-15">Maintainers</a></li>
+<li><a class="reference internal" href="#known-issues-roadmap" id="toc-entry-9">Known issues / Roadmap</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-10">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-11">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-12">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-13">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-14">Maintainers</a></li>
 </ul>
 </li>
 </ul>
@@ -413,9 +412,12 @@ portal display of the digital document.</p>
 <div class="section" id="configuration">
 <h1><a class="toc-backref" href="#toc-entry-2">Configuration</a></h1>
 <ol class="arabic simple">
-<li>Install <tt class="docutils literal">l10n_ve_edi_tfhka</tt> after <tt class="docutils literal">l10n_ve_edi</tt>.</li>
-<li>In <strong>Settings</strong>, set the TFHKA environment, API URL, username and
-password. Test the connection before emitting live documents.</li>
+<li>Install <tt class="docutils literal">l10n_ve_edi_tfhka</tt> after <tt class="docutils literal">l10n_ve_edi</tt>. To send dispatch
+guides, also install <tt class="docutils literal">l10n_ve_edi_stock_tfhka</tt>.</li>
+<li>In <strong>Settings</strong>, choose Pruebas or Producción and fill the URL,
+username and password of each environment. The connection test uses
+the selected environment. A neutralized database stays on Pruebas and
+drops the production credentials.</li>
 <li>On each sales or withholding journal used for digital emission,
 choose provider <strong>The Factory HKA</strong> and set serie, branch and
 environment digit so they match the numbering range in the TFHKA
@@ -466,23 +468,13 @@ IGTF taxable base in USD and in bolivars.</li>
 </div>
 <div class="section" id="customers-outside-venezuela">
 <h2><a class="toc-backref" href="#toc-entry-7">Customers outside Venezuela</a></h2>
-<p>Invoices and dispatch guides for a contact whose country is not
-Venezuela send the foreign identification type set on the contact and
-the tax ID without the country prefix. Sending is blocked until both are
-set.</p>
-</div>
-<div class="section" id="dispatch-guides">
-<h2><a class="toc-backref" href="#toc-entry-8">Dispatch guides</a></h2>
-<ol class="arabic simple">
-<li>Validate an outgoing picking that requires a SENIAT dispatch guide on
-a TFHKA sales journal.</li>
-<li>Send the guide from the EDI tab.</li>
-<li>Print is blocked until the EDI state is sent. The portal can show the
-official TFHKA PDF.</li>
-</ol>
+<p>Invoices for a contact whose country is not Venezuela send the foreign
+identification type set on the contact and the tax ID without the
+country prefix. Sending is blocked until both are set. Dispatch guides
+for those contacts are handled by <tt class="docutils literal">l10n_ve_edi_stock_tfhka</tt>.</p>
 </div>
 <div class="section" id="withholding-vouchers">
-<h2><a class="toc-backref" href="#toc-entry-9">Withholding vouchers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-8">Withholding vouchers</a></h2>
 <ol class="arabic simple">
 <li>Emit an IVA or ISLR supplier withholding.</li>
 <li>Send it from the EDI tab after the voucher has a number.</li>
@@ -491,7 +483,7 @@ official TFHKA PDF.</li>
 </div>
 </div>
 <div class="section" id="known-issues-roadmap">
-<h1><a class="toc-backref" href="#toc-entry-10">Known issues / Roadmap</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-9">Known issues / Roadmap</a></h1>
 <ul class="simple">
 <li>Other taxes (OTI, <tt class="docutils literal">otrosImpuestosSubtotal</tt> with <tt class="docutils literal">codigoOTI</tt>,
 <tt class="docutils literal">porcentajeOTI</tt>, <tt class="docutils literal">baseImponibleOTI</tt> and <tt class="docutils literal">montoOTI</tt>) are not
@@ -500,7 +492,7 @@ municipal tax cannot be recorded on top of VAT.</li>
 </ul>
 </div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-11">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-10">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/OCA/l10n-venezuela/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -508,21 +500,21 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-12">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-11">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-13">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-12">Authors</a></h2>
 <ul class="simple">
 <li>andyengit</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-14">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-13">Contributors</a></h2>
 <ul class="simple">
 <li>andyengit</li>
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-15">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-14">Maintainers</a></h2>
 <p>This module is maintained by the OCA.</p>
 <a class="reference external image-reference" href="https://odoo-community.org">
 <img alt="Odoo Community Association" src="https://odoo-community.org/logo.png" />

@@ -578,7 +578,7 @@ class AccountPaymentRegister(models.TransientModel):
             if not all(self.retention_line_ids.mapped("payment_concept_id")):
                 raise UserError(_("Select a payment concept"))
             if any(
-                not line.move_id._l10n_ve_withholding_partner().type_person_id
+                not line.move_id._l10n_ve_withholding_partner().l10n_ve_person_type
                 for line in self.retention_line_ids
             ):
                 raise UserError(_("Select a type person"))

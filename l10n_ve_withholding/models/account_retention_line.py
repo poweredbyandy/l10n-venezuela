@@ -200,26 +200,76 @@ class AccountRetentionLine(models.Model):
         return self.retention_id.partner_id
 
     def _l10n_ve_get_payment_concept_line(self):
+        """Concept line matching the partner classification.
+
+        Primary match: (person type, ISLR category). The special category
+        falls back to `standard` when the concept has no line for it.
+        Legacy fallback (with warning): unmigrated concept lines keep
+        matching through the frozen ``type_person_id``.
+        """
         self.ensure_one()
-        type_person = self._l10n_ve_get_type_person_partner().type_person_id
-        if not self.payment_concept_id or not type_person:
+        partner = self._l10n_ve_get_type_person_partner()
+        person_type = partner.l10n_ve_person_type
+        if not self.payment_concept_id or not person_type:
             return self.env["payment.concept.line"]
-        return self.payment_concept_id.line_payment_concept_ids.filtered(
-            lambda line: line.type_person_id == type_person
-        )[:1]
+        lines = self.payment_concept_id.line_payment_concept_ids
+        category = partner.l10n_ve_islr_category or "standard"
+        matched = lines.filtered(
+            lambda line: line.l10n_ve_person_type == person_type
+            and (line.l10n_ve_islr_category or "standard") == category
+        )
+        if not matched and category != "standard":
+            matched = lines.filtered(
+                lambda line: line.l10n_ve_person_type == person_type
+                and (line.l10n_ve_islr_category or "standard") == "standard"
+            )
+        if matched:
+            return matched[:1]
+
+        legacy = lines.filtered(
+            lambda line: line.type_person_id == partner.type_person_id
+        )
+        if legacy:
+            _logger.warning(
+                "l10n_ve_withholding: línea de concepto sin clasificar nueva "
+                "(concepto %s, líneas %s) matcheada por type_person_id "
+                "deprecado — ver readme/DEPRECATED.md",
+                self.payment_concept_id.display_name,
+                legacy.ids,
+            )
+            return legacy[:1]
+        return self.env["payment.concept.line"]
 
     @api.depends(
         "payment_concept_id",
         "payment_concept_id.line_payment_concept_ids",
         "payment_concept_id.line_payment_concept_ids.code",
-        "payment_concept_id.line_payment_concept_ids.type_person_id",
+        "payment_concept_id.line_payment_concept_ids.l10n_ve_person_type",
+        "payment_concept_id.line_payment_concept_ids.l10n_ve_islr_category",
         "move_id",
-        "move_id.partner_id.type_person_id",
-        "move_id.l10n_ve_third_party_partner_id.type_person_id",
-        "retention_id.partner_id.type_person_id",
+        "move_id.partner_id.l10n_ve_person_type",
+        "move_id.partner_id.l10n_ve_islr_category",
+        "move_id.l10n_ve_third_party_partner_id.l10n_ve_person_type",
+        "move_id.l10n_ve_third_party_partner_id.l10n_ve_islr_category",
+        "retention_id.partner_id.l10n_ve_person_type",
+        "retention_id.partner_id.l10n_ve_islr_category",
+        "retention_id.state",
     )
     def _compute_code(self):
+        # Emitted/cancelled retentions are declared history: their code is
+        # frozen and must not follow later classification changes
+        # (docs/adr/0002). Only draft lines stay live.
         for record in self:
+            if record.retention_id and record.retention_id.state in (
+                "emitted",
+                "cancel",
+            ):
+                record.code = (
+                    record.code
+                    or record._l10n_ve_get_payment_concept_line().code
+                    or False
+                )
+                continue
             record.code = record._l10n_ve_get_payment_concept_line().code or False
 
     @api.onchange("payment_concept_id")
@@ -234,35 +284,25 @@ class AccountRetentionLine(models.Model):
             and (not line.retention_id or line.retention_id.type_retention == "islr")
         )
         for record in lines_from_islr_retention:
-            # Payment concept of the line
-            payment_concept = record.sudo().payment_concept_id.line_payment_concept_ids
-            for line in payment_concept:
-                if not record.move_id:
-                    continue
-                # if not record.move_id.partner_id.type_person_id:
-                #     raise UserError(_("The partner does not have a type of person"))
+            if not record.move_id:
+                continue
+            line = record.sudo()._l10n_ve_get_payment_concept_line()
+            if not line:
+                continue
+            # Set the related fields from the matched concept line.
+            record.invoice_total = abs(record.move_id.amount_total_signed)
+            record.related_pay_from = line.pay_from
+            record.related_percentage_tax_base = line.percentage_tax_base
+            record.related_percentage_fees = line.tariff_id.percentage
+            record.related_amount_subtract_fees = line.tariff_id.amount_subtract
 
-                partner = record.move_id._l10n_ve_withholding_partner()
-                if partner.type_person_id.id == line.type_person_id.id:
-                    # compare the type_person_id of the partner with the
-                    # type_person_id of the payment concept and set the related
-                    # fields.
-                    record.invoice_total = abs(record.move_id.amount_total_signed)
-                    record.related_pay_from = line.pay_from
-                    record.related_percentage_tax_base = line.percentage_tax_base
-                    record.related_percentage_fees = line.tariff_id.percentage
-                    record.related_amount_subtract_fees = line.tariff_id.amount_subtract
-
-                    if (
-                        not record.retention_id
-                        or record.retention_id.type == "in_invoice"
-                    ):
-                        # We don't want this fields to be computed when the
-                        # retention is created from a customer invoice since
-                        # they are filled by the user.
-                        record.invoice_amount = (
-                            record.move_id._l10n_ve_get_positive_tax_base_amount()
-                        )
+            if not record.retention_id or record.retention_id.type == "in_invoice":
+                # We don't want this fields to be computed when the
+                # retention is created from a customer invoice since
+                # they are filled by the user.
+                record.invoice_amount = (
+                    record.move_id._l10n_ve_get_positive_tax_base_amount()
+                )
 
     @api.onchange(
         "invoice_amount",
@@ -283,11 +323,20 @@ class AccountRetentionLine(models.Model):
         "payment_concept_id",
         "economic_activity_id",
         "move_id",
+        "retention_id.state",
         "retention_id.type",
         "retention_id.type_retention",
     )
     def _compute_retention_amount(self):
         for record in self:
+            # Frozen history (docs/adr/0002): emitted/cancelled retentions
+            # keep the stored amount; only draft lines recalculate.
+            if record.retention_id and record.retention_id.state in (
+                "emitted",
+                "cancel",
+            ):
+                record.retention_amount = record.retention_amount or 0.0
+                continue
             retention = record.retention_id
             type_retention = retention.type_retention if retention else False
             retention_type = retention.type if retention else False

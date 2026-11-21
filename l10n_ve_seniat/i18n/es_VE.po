@@ -2978,3 +2978,32 @@ msgstr ""
 #~ "This action will cancel the document. Are you sure you want to proceed?"
 #~ msgstr ""
 #~ "Esta acción cancelará el documento. ¿Está seguro de que desea continuar?"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__l10n_ve_person_nature
+msgid "Person Nature"
+msgstr "Naturaleza"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__l10n_ve_tax_residence
+msgid "Tax Residence"
+msgstr "Residencia Fiscal"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__l10n_ve_person_type
+msgid "Person Type"
+msgstr "Tipo de Persona"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,field_description:l10n_ve_seniat.field_res_partner__l10n_ve_tax_residence_name
+msgid "Residence"
+msgstr "Residencia"
+
+#. module: l10n_ve_seniat
+#: model:ir.model.fields,help:l10n_ve_seniat.field_res_partner__l10n_ve_tax_residence
+msgid ""
+"Residencia (personas naturales) o domicilio (personas jurídicas) del "
+"contacto frente a impuestos venezolanos."
+msgstr ""
+"Residencia (personas naturales) o domicilio (personas jurídicas) del "
+"contacto frente a impuestos venezolanos."

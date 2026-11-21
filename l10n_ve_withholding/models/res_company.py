@@ -45,6 +45,19 @@ class ResCompany(models.Model):
     type_person_id = fields.Many2one(
         "type.person",
         related="partner_id.type_person_id",
+        readonly=True,
+        help=(
+            "DEPRECATED: frozen legacy column kept as backup. Replaced by "
+            "l10n_ve_person_type + l10n_ve_islr_category."
+        ),
+    )
+    l10n_ve_person_type = fields.Selection(
+        related="partner_id.l10n_ve_person_type",
+        string="Person Type",
+    )
+    l10n_ve_islr_category = fields.Selection(
+        related="partner_id.l10n_ve_islr_category",
+        string="ISLR Category",
         readonly=False,
     )
 

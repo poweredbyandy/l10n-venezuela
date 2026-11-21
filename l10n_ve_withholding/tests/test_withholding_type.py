@@ -10,22 +10,20 @@ class TestWithholdingType(AccountTestInvoicingCommon):
         super().setUpClass()
         cls.withholding_type_model = cls.env["account.withholding.type"]
 
-    def test_default_withholding_type_is_first_by_sequence(self):
-        first = self.withholding_type_model.search(
-            [("state", "=", True)], order="sequence, id", limit=1
-        )
-        self.assertTrue(first)
-        self.assertEqual(
-            self.withholding_type_model._get_default_withholding_type_id(),
-            first.id,
-        )
-
-    def test_partner_create_gets_default_withholding_type(self):
-        first = self.withholding_type_model.search(
-            [("state", "=", True)], order="sequence, id", limit=1
-        )
-        self.assertTrue(first)
+    def test_partner_create_has_no_default_withholding_type(self):
+        """No todos los contribuyentes están sujetos a retención: el tipo de
+        retención no se asigna por defecto al crear el contacto."""
         partner = self.env["res.partner"].create({"name": "Proveedor prueba retención"})
+        self.assertFalse(partner.withholding_type_id)
+
+    def test_explicit_withholding_type_is_kept_on_create(self):
+        first = self.withholding_type_model.search(
+            [("state", "=", True)], order="sequence, id", limit=1
+        )
+        self.assertTrue(first)
+        partner = self.env["res.partner"].create(
+            {"name": "Proveedor con tipo", "withholding_type_id": first.id}
+        )
         self.assertEqual(partner.withholding_type_id, first)
 
     def test_partner_without_withholding_type_has_no_fallback(self):

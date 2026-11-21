@@ -28,7 +28,8 @@
                         <page name="line_payment_concept" string="Payment concept line">
                             <field name="line_payment_concept_ids">
                                 <list delete="true" editable="top">
-                                    <field name="type_person_id" />
+                                    <field name="l10n_ve_person_type" />
+                                    <field name="l10n_ve_islr_category" />
                                     <field name="code" />
                                     <field name="percentage_tax_base" />
                                     <field name="tariff_id" />
@@ -74,7 +75,8 @@
             <list string="Payment Concept Lines" delete="false">
                 <field name="payment_concept_id" />
                 <field name="code" />
-                <field name="type_person_id" />
+                <field name="l10n_ve_person_type" />
+                <field name="l10n_ve_islr_category" />
                 <field name="pay_from" />
                 <field name="percentage_tax_base" />
                 <field name="tariff_id" />
@@ -94,7 +96,8 @@
                         <group>
                             <field name="payment_concept_id" />
                             <field name="code" />
-                            <field name="type_person_id" />
+                            <field name="l10n_ve_person_type" />
+                            <field name="l10n_ve_islr_category" />
                         </group>
                         <group>
                             <field name="pay_from" />
@@ -119,7 +122,7 @@
             <search string="Payment Concept Line">
                 <field name="code" />
                 <field name="payment_concept_id" />
-                <field name="type_person_id" />
+                <field name="l10n_ve_person_type" />
                 <field name="tariff_id" />
                 <filter name="by_concept" domain="[]" string="All" />
                 <separator />
@@ -131,8 +134,13 @@
                     />
                     <filter
                         name="group_by_type_person"
-                        context="{'group_by': 'type_person_id'}"
+                        context="{'group_by': 'l10n_ve_person_type'}"
                         string="Type Person"
+                    />
+                    <filter
+                        name="group_by_islr_category"
+                        context="{'group_by': 'l10n_ve_islr_category'}"
+                        string="ISLR Category"
                     />
                     <filter
                         name="group_by_tariff"
@@ -156,6 +164,6 @@
             name="view_id"
             ref="view_payment_concept_line_list_l10n_ve_withholding"
         />
-        <field name="context">{"group_by":"type_person_id"}</field>
+        <field name="context">{"group_by":"l10n_ve_person_type"}</field>
     </record>
 </odoo>

@@ -629,18 +629,9 @@ class AccountRetention(models.Model):
         self.ensure_one()
         code = line.code
         if not code and line.payment_concept_id:
-            concept_lines = line.payment_concept_id.line_payment_concept_ids
-            partner = (
-                line.move_id._l10n_ve_withholding_partner() if line.move_id else None
-            )
-            if partner and partner.type_person_id:
-                matched = concept_lines.filtered(
-                    lambda cl: cl.type_person_id.id == partner.type_person_id.id
-                )
-                if matched:
-                    code = matched[0].code
-            if not code and concept_lines:
-                code = concept_lines[0].code
+            # Central matcher (person type + ISLR category, with the
+            # legacy type_person fallback inside).
+            code = line.sudo()._l10n_ve_get_payment_concept_line().code
         formatted = self._tfhka_format_codigo_concepto(code)
         if not formatted:
             raise UserError(

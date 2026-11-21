@@ -2,6 +2,8 @@ import logging
 
 from odoo import api, fields, models
 
+from .type_person import TYPE_PERSON_MAP
+
 _logger = logging.getLogger(__name__)
 
 
@@ -417,7 +419,43 @@ class PaymentConcept(models.Model):
 
         self.create_concept_line(id_concept, name_concept, new_concept_lines)
 
+    def _l10n_ve_fill_person_type_vals(self, new_concept_lines):
+        """Fill the new classification columns on seeded concept lines.
+
+        The seed dicts still carry the legacy ``type_person_id``; this
+        translates them through TYPE_PERSON_MAP so freshly seeded matrices
+        are directly searchable by (person type, ISLR category). The legacy
+        column keeps being written here only so old versions can read the
+        same rows during a rollback.
+        """
+        ir_model_data = self.env["ir.model.data"]
+        for line in new_concept_lines:
+            if "l10n_ve_person_type" in line:
+                continue
+            type_person_id = line.get("type_person_id")
+            if not type_person_id:
+                continue
+            xml = ir_model_data.search(
+                [
+                    ("module", "=", "l10n_ve_withholding"),
+                    ("model", "=", "type.person"),
+                    ("res_id", "=", type_person_id),
+                ],
+                limit=1,
+            )
+            if not xml:
+                continue
+            person_type, category = TYPE_PERSON_MAP.get(
+                f"{xml.module}.{xml.name}", (False, False)
+            )
+            if not person_type:
+                continue
+            line["l10n_ve_person_type"] = person_type
+            line["l10n_ve_islr_category"] = category
+        return new_concept_lines
+
     def create_concept_line(self, id_concept, name_concept, new_concept_lines):
+        new_concept_lines = self._l10n_ve_fill_person_type_vals(new_concept_lines)
         concept = self.env.ref(id_concept, raise_if_not_found=False)
 
         if not concept:

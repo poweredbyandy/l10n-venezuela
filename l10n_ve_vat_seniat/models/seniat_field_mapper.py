@@ -107,62 +107,33 @@ def withholding_type_from_percent(env, pct):
     return row
 
 
-TYPE_PERSON_XML_RULES = (
-    (
-        ("persona natural", "no residente"),
-        "l10n_ve_withholding.type_person_two_l10n_ve_withholding",
-    ),
-    (
-        ("persona natural", "residente"),
-        "l10n_ve_withholding.type_person_l10n_ve_withholding",
-    ),
-    (
-        ("persona juridica", "no domicili"),
-        "l10n_ve_withholding.type_person_four_l10n_ve_withholding",
-    ),
-    (
-        ("persona juridica", "domicili"),
-        "l10n_ve_withholding.type_person_three_l10n_ve_withholding",
-    ),
-    (
-        ("juridica", "domicili"),
-        "l10n_ve_withholding.type_person_three_l10n_ve_withholding",
-    ),
-    (
-        ("juridica", "no domicili"),
-        "l10n_ve_withholding.type_person_four_l10n_ve_withholding",
-    ),
-    (
-        ("instituciones financieras",),
-        "l10n_ve_withholding.type_person_five_l10n_ve_withholding",
-    ),
+# Rules mapping the portal's "tipo de persona" text to the new axes:
+# tax residence (shared axis: residente/domiciliada) and the ISLR category
+# for the exceptions that are not derivable from RIF/country. The old
+# type_person_id mapping was removed with the column deprecation
+# (l10n_ve_withholding/readme/DEPRECATED.md).
+PERSON_TYPE_TEXT_RULES = (
+    (("instituciones financieras",), {"l10n_ve_islr_category": "financial_institution", "l10n_ve_tax_residence": "non_resident"}),
+    (("emisora de radio", "domicili"), {"l10n_ve_islr_category": "radio_broadcaster", "l10n_ve_tax_residence": "resident"}),
+    (("radio", "domicili"), {"l10n_ve_islr_category": "radio_broadcaster", "l10n_ve_tax_residence": "resident"}),
+    (("otras personas juridicas",), {"l10n_ve_islr_category": "other", "l10n_ve_tax_residence": "non_resident"}),
+    (("no residente",), {"l10n_ve_tax_residence": "non_resident"}),
+    (("no domicili",), {"l10n_ve_tax_residence": "non_resident"}),
+    (("residente",), {"l10n_ve_tax_residence": "resident"}),
+    (("domicili",), {"l10n_ve_tax_residence": "resident"}),
 )
 
 
-def match_type_person_record(env, seniat_text):
+def person_type_vals_from_seniat_text(seniat_text):
     if not seniat_text:
-        return env["type.person"]
+        return {}
     folded = _fold_lower(seniat_text)
-    for keywords, xml_id in TYPE_PERSON_XML_RULES:
+    vals = {}
+    for keywords, rule_vals in PERSON_TYPE_TEXT_RULES:
         if all(k in folded for k in keywords):
-            try:
-                return env.ref(xml_id)
-            except ValueError:
-                _logger.debug("l10n_ve_vat_seniat xml_id no encontrado %s", xml_id)
-                continue
-    Person = env["type.person"].sudo()
-    for rec in Person.search([("state", "=", True)], order="sequence, id"):
-        if _fold_lower(rec.name) in folded or folded in _fold_lower(rec.name):
-            return rec
-    tokens = [t for t in re.split(r"\W+", folded) if len(t) > 3]
-    for tok in tokens:
-        hit = Person.search(
-            [("state", "=", True), ("name", "ilike", tok)],
-            limit=1,
-        )
-        if len(hit) == 1:
-            return hit
-    return env["type.person"]
+            vals.update(rule_vals)
+            break
+    return vals
 
 
 def partner_vals_from_seniat_parsed(env, parsed):
@@ -193,9 +164,7 @@ def partner_vals_from_seniat_parsed(env, parsed):
 
     persona_txt = parsed.get("seniat_tipo_persona_label") or ""
     if persona_txt:
-        tp = match_type_person_record(env, persona_txt)
-        if tp and tp.id:
-            vals["type_person_id"] = tp.id
+        vals.update(person_type_vals_from_seniat_text(persona_txt))
 
     if vals:
         _logger.info(

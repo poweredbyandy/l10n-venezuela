@@ -121,7 +121,11 @@
                                         title="Open affected invoice"
                                         invisible="not move_id"
                                     />
-                                    <field name="code" optional="hide" />
+                                    <field
+                                        name="code"
+                                        optional="hide"
+                                        readonly="parent.state in ['emitted', 'cancel']"
+                                    />
                                     <field
                                         name="company_id"
                                         optional="hide"
@@ -174,7 +178,7 @@
                                         force_save="1"
                                         widget="monetary"
                                         options="{'currency_field': 'company_currency_id'}"
-                                        readonly="parent.type == 'in_invoice'"
+                                        readonly="parent.type == 'in_invoice' or parent.state in ['emitted', 'cancel']"
                                     />
                                 </list>
                             </field>

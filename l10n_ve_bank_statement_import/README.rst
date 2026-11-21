@@ -28,12 +28,12 @@ Venezuela Bank Statement Import
 
 |badge1| |badge2| |badge3| |badge4| |badge5|
 
-Importación de estados de cuenta bancarios para bancos de Venezuela
-y del historial de transacciones de Binance.
+Importación de estados de cuenta bancarios para bancos de Venezuela y
+del historial de transacciones de Binance.
 
 Extiende ``account_statement_import_sheet_file`` con mapeos para bancos
-locales y Binance, lectura de HTML y comprobantes BDVenlínea, omisión
-de filas de saldo inicial/final y captura de saldos desde celdas concretas.
+locales y Binance, lectura de HTML y comprobantes BDVenlínea, omisión de
+filas de saldo inicial/final y captura de saldos desde celdas concretas.
 
 **Table of contents**
 
@@ -46,9 +46,9 @@ Usage
 1. Instale el módulo ``l10n_ve_bank_statement_import``.
 2. Vaya a **Contabilidad → Configuración → Mapeos de importación**.
 3. Seleccione el mapeo del banco (Mercantil, Bancaribe, BFC, Banesco,
-   BDV, BNC, Binance u otro incluido) o cree uno con las columnas de su archivo.
-   El TXT de movimientos del BNC (separado por tabulaciones) usa fecha y
-   hora para ordenar los movimientos del mismo día.
+   BDV, BNC, Binance u otro incluido) o cree uno con las columnas de su
+   archivo. El TXT de movimientos del BNC (separado por tabulaciones)
+   usa fecha y hora para ordenar los movimientos del mismo día.
 4. Si el extracto no tiene cabecera, indique las filas iniciales a
    omitir.
 5. Si el archivo incluye saldo inicial o final, indique fila y columna

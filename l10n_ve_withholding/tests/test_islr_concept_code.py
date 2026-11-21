@@ -12,10 +12,6 @@ class TestIslrConceptCode(L10nVeSeniatCommon):
         cls.concept = cls.env.ref(
             "l10n_ve_withholding.payment_concept_three_l10n_ve_withholding"
         )
-        cls.type_pn = cls.env.ref("l10n_ve_withholding.type_person_l10n_ve_withholding")
-        cls.type_pj = cls.env.ref(
-            "l10n_ve_withholding.type_person_three_l10n_ve_withholding"
-        )
         cls.tax_16 = cls.company_data["default_tax_purchase"]
 
     def _create_bill(self, partner):
@@ -63,9 +59,9 @@ class TestIslrConceptCode(L10nVeSeniatCommon):
                 "vat": "J123456789",
                 "is_company": True,
                 "supplier_rank": 1,
-                "type_person_id": self.type_pj.id,
             }
         )
+        self.assertEqual(partner.l10n_ve_person_type, "pj_domiciled")
         line = self._create_line(partner)
         self.assertEqual(line.code, "55")
 
@@ -76,8 +72,8 @@ class TestIslrConceptCode(L10nVeSeniatCommon):
                 "country_id": self.env.ref("base.ve").id,
                 "vat": "V181357351",
                 "supplier_rank": 1,
-                "type_person_id": self.type_pn.id,
             }
         )
+        self.assertEqual(partner.l10n_ve_person_type, "pn_resident")
         line = self._create_line(partner)
         self.assertEqual(line.code, "53")

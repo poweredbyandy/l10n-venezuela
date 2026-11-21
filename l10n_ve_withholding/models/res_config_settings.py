@@ -31,6 +31,19 @@ class ResConfigSettings(models.TransientModel):
     type_person_id = fields.Many2one(
         "type.person",
         related="company_id.type_person_id",
+        readonly=True,
+        help=(
+            "DEPRECATED: frozen legacy column kept as backup. Replaced by "
+            "l10n_ve_person_type + l10n_ve_islr_category."
+        ),
+    )
+    l10n_ve_person_type = fields.Selection(
+        related="company_id.partner_id.l10n_ve_person_type",
+        string="Person Type",
+    )
+    l10n_ve_islr_category = fields.Selection(
+        related="company_id.partner_id.l10n_ve_islr_category",
+        string="ISLR Category",
         readonly=False,
     )
     hide_patent_columns_extra = fields.Boolean(

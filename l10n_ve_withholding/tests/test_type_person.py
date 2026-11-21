@@ -20,10 +20,11 @@ class TestTypePerson(AccountTestInvoicingCommon):
             first.id,
         )
 
-    def test_partner_create_gets_default_type_person(self):
-        first = self.type_person_model.search(
-            [("state", "=", True)], order="sequence, id", limit=1
-        )
-        self.assertTrue(first)
+    def test_partner_create_gets_no_default_type_person(self):
+        """The deprecated column is frozen: no default is injected anymore.
+
+        The classification now lives in l10n_ve_person_type, computed from
+        the RIF (see l10n_ve_seniat/tests/test_l10n_ve_person_type.py).
+        """
         partner = self.env["res.partner"].create({"name": "Contacto prueba"})
-        self.assertEqual(partner.type_person_id, first)
+        self.assertFalse(partner.type_person_id)

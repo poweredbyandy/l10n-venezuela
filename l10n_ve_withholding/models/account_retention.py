@@ -1107,7 +1107,7 @@ class AccountRetention(models.Model):
         """
         self.ensure_one()
         without_type = self.retention_line_ids.mapped("move_id").filtered(
-            lambda m: not m._l10n_ve_withholding_partner().type_person_id
+            lambda m: not m._l10n_ve_withholding_partner().l10n_ve_person_type
         )
         if without_type:
             raise UserError(_("Select a type person"))

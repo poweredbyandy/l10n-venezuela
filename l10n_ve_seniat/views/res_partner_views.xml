@@ -9,6 +9,15 @@
             <xpath expr="//field[@name='vat']" position="after">
                 <field name="taxpayer_type" invisible="country_code != 'VE'" />
             </xpath>
+            <xpath expr="//field[@name='taxpayer_type']" position="after">
+                <!-- Only editable fields on the form (product decision):
+                     the computed classification (nature, person type, fine
+                     label) is visible on the list view and reports. -->
+                <field
+                    name="l10n_ve_tax_residence"
+                    invisible="country_code != 'VE'"
+                />
+            </xpath>
             <xpath expr="//field[@name='vat']" position="attributes">
                 <attribute name="invisible">country_code == 'VE'</attribute>
             </xpath>
@@ -28,6 +37,57 @@
                 position="inside"
             >
                 <field name="supplier_rank" string="Rango de proveedor" />
+            </xpath>
+        </field>
+    </record>
+    <!--
+        base_vat (dependency via l10n_ve_base_vat, priority 15) moves the original
+        vat into its own VIES container and adds a dedicated label for it. The
+        main view above hides the moved field for VE, but not that label, which
+        made the RIF show up twice on Venezuelan partners. Hide the label and
+        pull taxpayer_type back into the group (base_vat's move swallows
+        everything added "after vat" into its div, where fields stack without
+        automatic labels). Priority 25 > 21 ensures this runs after base_vat
+        and after l10n_ve_withholding's vat move view, so taxpayer_type lands
+        first in the row order.
+    -->
+    <record id="view_partner_form_vies" model="ir.ui.view">
+        <field name="name">res.partner.taxpayer.vies.invisible</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='vat']" position="attributes">
+                <attribute name="invisible">country_code == 'VE'</attribute>
+            </xpath>
+            <!-- base_vat's move of the original vat swallows everything added
+                 "after vat" into its VIES div, where fields stack without
+                 automatic labels. Pull our field back into the group so it
+                 gets its label and the label/field grid layout. -->
+            <xpath expr="//div[@name='vat_vies_container']" position="after">
+                <xpath
+                    expr="//div[@name='vat_vies_container']/field[@name='taxpayer_type']"
+                    position="move"
+                />
+                <xpath
+                    expr="//div[@name='vat_vies_container']/field[@name='l10n_ve_tax_residence']"
+                    position="move"
+                />
+            </xpath>
+        </field>
+    </record>
+    <!--
+        The computed classification is not shown on the form (only editable
+        fields are, per product decision): the person type stays reachable
+        as an optional column of the contacts list.
+    -->
+    <record id="view_partner_tree_l10n_ve_seniat" model="ir.ui.view">
+        <field name="name">res.partner.list.l10n.ve.seniat</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="l10n_ve_person_type" optional="hide" readonly="1" />
             </xpath>
         </field>
     </record>

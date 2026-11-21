@@ -11,8 +11,6 @@ from .seniat_rif_client import query_rif
 _logger = logging.getLogger(__name__)
 
 VE_CODE = "VE"
-_XML_PJ_DOMICILIADA = "l10n_ve_withholding.type_person_three_l10n_ve_withholding"
-_XML_PN_RESIDENTE = "l10n_ve_withholding.type_person_l10n_ve_withholding"
 
 
 class ResPartner(models.Model):
@@ -27,57 +25,11 @@ class ResPartner(models.Model):
 
     @api.model
     def _prepare_create_values(self, vals_list):
-        vals_list = super()._prepare_create_values(vals_list)
-        for vals in vals_list:
-            cid = vals.get("country_id")
-            if not cid:
-                continue
-            country = self.env["res.country"].browse(cid)
-            if country.code != VE_CODE:
-                continue
-            vat = vals.get("vat")
-            if not vat:
-                continue
-            tid = self._l10n_ve_vat_seniat_default_type_person_id_for_vat(vat)
-            if tid:
-                vals["type_person_id"] = tid
-        return vals_list
-
-    def write(self, vals):
-        res = super().write(vals)
-        if "vat" not in vals or "type_person_id" in vals:
-            return res
-        for partner in self:
-            if partner.type_person_id:
-                continue
-            if partner.country_id.code != VE_CODE or not partner.vat:
-                continue
-            tid = partner._l10n_ve_vat_seniat_default_type_person_id_for_vat(
-                partner.vat
-            )
-            if tid:
-                super(ResPartner, partner).write({"type_person_id": tid})
-        return res
-
-    @api.model
-    def _l10n_ve_vat_seniat_default_type_person_id_for_vat(self, vat):
-        v = (vat or "").strip().upper().replace("-", "").replace(" ", "")
-        if v.startswith("VE"):
-            v = v[2:]
-        if not v:
-            return False
-        first = v[0].upper()
-        xml_id = False
-        if first == "J":
-            xml_id = _XML_PJ_DOMICILIADA
-        elif first == "V":
-            xml_id = _XML_PN_RESIDENTE
-        if not xml_id:
-            return False
-        try:
-            return self.env.ref(xml_id).id
-        except ValueError:
-            return False
+        # The RIF-driven classification (person nature, tax residence,
+        # person type) is derived by l10n_ve_seniat for every create; the
+        # legacy type_person_id shortcut that used to live here was
+        # removed with the column deprecation (readme/DEPRECATED.md).
+        return super()._prepare_create_values(vals_list)
 
     def _l10n_ve_vat_seniat_rif_from_vat(self):
         self.ensure_one()

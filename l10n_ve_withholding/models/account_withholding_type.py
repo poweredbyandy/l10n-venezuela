@@ -28,24 +28,6 @@ class TypeWithholding(models.Model):
     sequence = fields.Integer(default=10)
     state = fields.Boolean(default=True, string="Active", store=True)
 
-    @api.model
-    def _l10n_ve_table_exists(self):
-        self.env.cr.execute(
-            "SELECT EXISTS (SELECT FROM information_schema.tables "
-            "WHERE table_name = %s)",
-            [self._table],
-        )
-        return bool(self.env.cr.fetchone()[0])
-
-    @api.model
-    def _get_default_withholding_type_id(self):
-        if not self._l10n_ve_table_exists():
-            return False
-        withholding_type = self.search(
-            [("state", "=", True)], order="sequence, id", limit=1
-        )
-        return withholding_type.id
-
     @api.onchange("name")
     def upper_name(self):
         return self.case_upper(self.name, "name")

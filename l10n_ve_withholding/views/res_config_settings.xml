@@ -13,10 +13,18 @@
                 <div class="row mt16">
                     <label
                         string="Tipo de Persona"
-                        for="type_person_id"
+                        for="l10n_ve_person_type"
                         class="col-lg-6 o_light_label"
                     />
-                    <field name="type_person_id" class="col-lg-6" />
+                    <field name="l10n_ve_person_type" class="col-lg-6" />
+                </div>
+                <div class="row mt16">
+                    <label
+                        string="Categoría ISLR"
+                        for="l10n_ve_islr_category"
+                        class="col-lg-6 o_light_label"
+                    />
+                    <field name="l10n_ve_islr_category" class="col-lg-6" />
                 </div>
                 <div class="row mt16">
                     <label

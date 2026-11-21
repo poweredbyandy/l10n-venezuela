@@ -16,7 +16,8 @@
                             <field
                                 name="hide_issue_date_of_municipal_withholding_receipt"
                             />
-                            <field name="type_person_id" string="Type Person" />
+                            <field name="l10n_ve_person_type" string="Type Person" />
+                            <field name="l10n_ve_islr_category" string="ISLR Category" />
                             <field name="condition_withholding_id" />
                         </group>
                         <group>
@@ -38,7 +39,8 @@
         <field name="inherit_id" ref="l10n_ve_seniat.res_company_kanban_view" />
         <field name="arch" type="xml">
             <field name="taxpayer_type" position="before">
-                <field name="type_person_id" />
+                <field name="l10n_ve_person_type" />
+                <field name="l10n_ve_islr_category" />
                 <field name="condition_withholding_id" />
             </field>
             <xpath
@@ -46,10 +48,16 @@
                 position="inside"
             >
                 <span
-                    t-if="record.type_person_id.raw_value"
+                    t-if="record.l10n_ve_person_type.raw_value"
                     class="badge rounded-pill o_seniat_fiscal_badge"
                 >
-                    <field name="type_person_id" />
+                    <field name="l10n_ve_person_type" />
+                </span>
+                <span
+                    t-if="record.l10n_ve_islr_category.raw_value and record.l10n_ve_islr_category.raw_value != 'standard'"
+                    class="badge rounded-pill o_seniat_fiscal_badge"
+                >
+                    <field name="l10n_ve_islr_category" />
                 </span>
                 <span
                     t-if="record.condition_withholding_id.raw_value"
@@ -67,7 +75,8 @@
         <field name="inherit_id" ref="l10n_ve_seniat.res_company_form_view_seniat" />
         <field name="arch" type="xml">
             <field position="after" name="taxpayer_type">
-                <field name="type_person_id" string="Type Person" />
+                <field name="l10n_ve_person_type" string="Type Person" />
+                <field name="l10n_ve_islr_category" string="ISLR Category" />
                 <field name="condition_withholding_id" />
             </field>
         </field>

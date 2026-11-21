@@ -161,6 +161,7 @@
                                         name="retention_amount"
                                         widget="monetary"
                                         options="{'currency_field': 'company_currency_id'}"
+                                        readonly="parent.state in ['emitted', 'cancel']"
                                     />
                                 </list>
                             </field>

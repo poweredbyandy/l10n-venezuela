@@ -3,6 +3,10 @@
         <field name="name">res.partner.l10n.ve.payment.extension</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form" />
+        <!-- Priority 17 > l10n_ve_seniat's base view (16, which adds
+             taxpayer_type): same-priority ordering follows view ids, which
+             change when migrations recreate views — never rely on it. -->
+        <field name="priority" eval="17" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after">
                 <field name="economic_activity_id" invisible="country_code != 'VE'" />
@@ -10,13 +14,41 @@
             <xpath expr="//field[@name='taxpayer_type']" position="after">
                 <field name="customer_rank" invisible="1" />
                 <field name="supplier_rank" invisible="1" />
+                <!-- person_type is not displayed (only editable fields are,
+                     per product decision) but must be in the view for the
+                     category's invisible expression. -->
+                <field name="l10n_ve_person_type" invisible="1" />
                 <field
-                    name="type_person_id"
-                    domain="[('state','=',True)]"
-                    invisible="country_code != 'VE'"
-                    required="country_code == 'VE' and (supplier_rank &gt; 0 or customer_rank &gt; 0)"
+                    name="l10n_ve_islr_category"
+                    invisible="country_code != 'VE' or l10n_ve_person_type not in ('pj_domiciled', 'pj_non_domiciled')"
                 />
                 <field name="withholding_type_id" invisible="country_code != 'VE'" />
+            </xpath>
+        </field>
+    </record>
+    <!--
+        base_vat (dependency of l10n_ve_seniat, priority 15) moves the original
+        vat into its VIES div, so the fields added above end up inside that div:
+        stacked, without automatic labels. Move them back into the group after
+        the div so they render as proper label/field rows. Priority 21 < 25
+        ensures this runs before l10n_ve_seniat's view_partner_form_vies, so
+        taxpayer_type lands first in the row order.
+    -->
+    <record id="res_partner_l10n_ve_withholding_vat_move" model="ir.ui.view">
+        <field name="name">res.partner.l10n.ve.withholding.vat.move</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="priority">21</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='vat_vies_container']" position="after">
+                <xpath
+                    expr="//div[@name='vat_vies_container']/field[@name='l10n_ve_islr_category']"
+                    position="move"
+                />
+                <xpath
+                    expr="//div[@name='vat_vies_container']/field[@name='withholding_type_id']"
+                    position="move"
+                />
             </xpath>
         </field>
     </record>

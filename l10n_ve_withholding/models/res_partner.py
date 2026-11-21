@@ -11,9 +11,10 @@ class ResPartner(models.Model):
         string="Withholding Type",
         domain=[("state", "=", True)],
         tracking=True,
-        default=lambda self: self.env[
-            "account.withholding.type"
-        ]._get_default_withholding_type_id(),
+        help=(
+            "Sin valor por defecto: no todos los contribuyentes están "
+            "sujetos a retención."
+        ),
     )
 
     iva_account = fields.Many2one("account.account", string="IVA Account")
@@ -24,9 +25,67 @@ class ResPartner(models.Model):
         "type.person",
         "Type Person",
         store=True,
-        tracking=True,
-        default=lambda self: self.env["type.person"]._get_default_type_person_id(),
+        readonly=True,
+        tracking=False,
+        help=(
+            "DEPRECATED (see readme/DEPRECATED.md): frozen legacy column "
+            "kept as a database backup. Replaced by l10n_ve_person_type + "
+            "l10n_ve_islr_category; nothing writes it anymore."
+        ),
     )
+
+    l10n_ve_islr_category = fields.Selection(
+        [
+            ("standard", "Estándar"),
+            ("radio_broadcaster", "Emisora de Radio Domiciliada"),
+            (
+                "financial_institution",
+                "Institución Financiera No Domiciliada",
+            ),
+            ("other", "Otra PJ No Domiciliada"),
+        ],
+        string="ISLR Category",
+        compute="_compute_l10n_ve_islr_category",
+        store=True,
+        readonly=False,
+        precompute=True,
+        tracking=False,
+        help=(
+            "Excepción del tarifario ISLR que no se deriva del RIF ni del "
+            "país. Solo aplica a personas jurídicas; se resetea a "
+            "'Estándar' cuando el tipo de persona no la admite."
+        ),
+    )
+
+    @api.model
+    def _l10n_ve_normalize_islr_category(self, person_type, category):
+        """Reset ISLR categories not valid for the given person type."""
+        category = category or "standard"
+        if person_type == "pj_domiciled":
+            if category not in ("standard", "radio_broadcaster"):
+                return "standard"
+        elif person_type == "pj_non_domiciled":
+            if category not in ("standard", "financial_institution", "other"):
+                return "standard"
+        else:
+            # Natural persons have no ISLR exceptions in the tariff.
+            return "standard"
+        return category
+
+    @api.depends("l10n_ve_person_type")
+    def _compute_l10n_ve_islr_category(self):
+        for partner in self:
+            partner.l10n_ve_islr_category = (
+                self._l10n_ve_normalize_islr_category(
+                    partner.l10n_ve_person_type, partner.l10n_ve_islr_category
+                )
+            )
+
+    @api.onchange("l10n_ve_person_type", "l10n_ve_islr_category")
+    def _onchange_l10n_ve_islr_category(self):
+        self.l10n_ve_islr_category = self._l10n_ve_normalize_islr_category(
+            self.l10n_ve_person_type, self.l10n_ve_islr_category
+        )
 
     def _l10n_ve_get_withholding_type(self):
         self.ensure_one()
@@ -76,29 +135,28 @@ class ResPartner(models.Model):
             .ids
         )
 
-    @api.model
-    def _l10n_ve_islr_supplier_partner_domain(self):
-        type_person_ids = self._l10n_ve_get_islr_applicable_type_person_ids()
-        return [
-            ("parent_id", "=", False),
-            ("supplier_rank", ">", 0),
-            ("type_person_id", "in", type_person_ids or [0]),
-        ]
-
-    @api.model
-    def _prepare_create_values(self, vals_list):
-        vals_list = super()._prepare_create_values(vals_list)
-        default_type_person_id = self.env["type.person"]._get_default_type_person_id()
-        default_withholding_type_id = self.env[
-            "account.withholding.type"
-        ]._get_default_withholding_type_id()
-        for vals in vals_list:
-            if default_type_person_id and "type_person_id" not in vals:
-                vals["type_person_id"] = default_type_person_id
-            if default_withholding_type_id and "withholding_type_id" not in vals:
-                vals["withholding_type_id"] = default_withholding_type_id
-        return vals_list
-
     economic_activity_id = fields.Many2one(
         "economic.activity", "Default Economic Activity", store=True, tracking=True
     )
+
+    @api.model
+    def _l10n_ve_islr_supplier_partner_domain(self):
+        """Domain of suppliers the ISLR retention flow can classify.
+
+        Primary rule: the partner's person type has at least one active
+        concept line (the category always falls back to `standard`, see
+        ``_l10n_ve_get_payment_concept_line``). Legacy fallback: concept
+        lines not migrated yet (custom ``type.person`` rows) are matched
+        through the frozen ``type_person_id``.
+        """
+        lines = (
+            self.env["payment.concept.line"]
+            .sudo()
+            .search([("payment_concept_id.status", "=", True)])
+        )
+        person_types = [value for value in lines.mapped("l10n_ve_person_type") if value]
+        base_domain = [("parent_id", "=", False), ("supplier_rank", ">", 0)]
+        if person_types:
+            return base_domain + [("l10n_ve_person_type", "in", person_types)]
+        type_person_ids = self._l10n_ve_get_islr_applicable_type_person_ids()
+        return base_domain + [("type_person_id", "in", type_person_ids or [0])]

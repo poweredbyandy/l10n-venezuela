@@ -17,8 +17,47 @@ class PaymentConceptLine(models.Model):
         "type.person",
         string="Type person",
         store=True,
-        required=True,
+        required=False,
+        readonly=True,
         domain=[("state", "=", True)],
+        help=(
+            "DEPRECATED (see readme/DEPRECATED.md): frozen legacy column "
+            "kept as a database backup. Replaced by l10n_ve_person_type + "
+            "l10n_ve_islr_category; nothing writes it anymore."
+        ),
+    )
+    l10n_ve_person_type = fields.Selection(
+        [
+            ("pn_resident", "PN Residente"),
+            ("pn_non_resident", "PN No Residente"),
+            ("pj_domiciled", "PJ Domiciliada"),
+            ("pj_non_domiciled", "PJ No Domiciliada"),
+        ],
+        string="Person Type",
+        index=True,
+        help=(
+            "Tipo de persona al que aplica esta línea del tarifario "
+            "(clave primaria del matching ISLR junto con la categoría)."
+        ),
+    )
+    l10n_ve_islr_category = fields.Selection(
+        [
+            ("standard", "Estándar"),
+            ("radio_broadcaster", "Emisora de Radio Domiciliada"),
+            (
+                "financial_institution",
+                "Institución Financiera No Domiciliada",
+            ),
+            ("other", "Otra PJ No Domiciliada"),
+        ],
+        string="ISLR Category",
+        default="standard",
+        index=True,
+        help=(
+            "Categoría ISLR a la que aplica esta línea. Las líneas "
+            "especiales solo se usan cuando el contacto tiene esa misma "
+            "categoría; el resto cae a la línea 'Estándar' del tipo."
+        ),
     )
     payment_concept_id = fields.Many2one(
         "payment.concept",

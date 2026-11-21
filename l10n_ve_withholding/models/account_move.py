@@ -423,7 +423,7 @@ class AccountMoveRetention(models.Model):
                 )
             )
         withholding_partner = self._l10n_ve_withholding_partner()
-        if not withholding_partner.type_person_id:
+        if not withholding_partner.l10n_ve_person_type:
             raise UserError(_("The partner must have a type of person"))
         if sum_invoice_amount <= 0:
             raise UserError(_("The amount of the retention must be greater than zero."))
