@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="l10n_ve_rif_widget.RifField">
+        <t t-if="props.readonly">
+            <span t-esc="displayValue" />
+        </t>
+        <t t-else="">
+            <div
+                class="o_l10n_ve_rif d-flex align-items-center gap-1 w-100"
+                t-on-focusout="onWidgetFocusout"
+            >
+                <input
+                    class="o_input o_l10n_ve_rif_kind text-center"
+                    maxlength="1"
+                    autocomplete="off"
+                    t-att-id="props.id"
+                    placeholder="V"
+                    t-on-input="onKindInput"
+                    t-on-change="onKindChange"
+                    t-on-focusin="onKindFocus"
+                    t-on-keydown="onKindKeydown"
+                    t-ref="kindInput"
+                />
+                <span class="o_l10n_ve_rif_dash text-muted">-</span>
+                <input
+                    class="o_input o_l10n_ve_rif_number flex-grow-1"
+                    autocomplete="off"
+                    t-att-placeholder="props.placeholder"
+                    t-on-focusin="onDigitsFocus"
+                    t-on-input="onDigitsInput"
+                    t-on-keydown="onDigitsKeydown"
+                    t-ref="input"
+                />
+                <div class="o_l10n_ve_rif_dropdown" t-if="kindOpen.value">
+                    <t t-foreach="kindOptions" t-as="kind" t-key="kind">
+                        <button
+                            type="button"
+                            class="o_l10n_ve_rif_option d-block w-100 border-0 text-start"
+                            t-att-class="{ 'o_l10n_ve_rif_option_active': kindOpen.value &amp;&amp; kindIndex.value === kind_index }"
+                            t-on-mousedown.prevent="() => selectKind(kind)"
+                        >
+                            <t t-esc="kind" />
+                        </button>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </t>
+
+</templates>

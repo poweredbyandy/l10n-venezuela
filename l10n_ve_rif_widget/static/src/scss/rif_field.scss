@@ -1,0 +1,50 @@
+.o_l10n_ve_rif {
+    position: relative;
+}
+
+.o_l10n_ve_rif_kind {
+    flex: 0 0 auto;
+    width: 2rem;
+    max-width: 2rem;
+    padding: 0 0.15rem;
+}
+
+.o_l10n_ve_rif_dash {
+    flex: 0 0 auto;
+    user-select: none;
+}
+
+.o_l10n_ve_rif_number {
+    flex: 1 1 auto;
+    min-width: 5rem;
+}
+
+.o_l10n_ve_rif_dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    min-width: 6rem;
+    padding: 0.25rem 0;
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 0.25rem;
+    box-shadow: $box-shadow;
+
+    .o_l10n_ve_rif_option {
+        padding: 0.25rem 0.75rem;
+        background: white;
+        font-weight: 500;
+        cursor: pointer;
+
+        &:hover {
+            background: $gray-100;
+        }
+
+        &.o_l10n_ve_rif_option_active,
+        &.o_l10n_ve_rif_option_active:hover {
+            background: $o-brand-primary;
+            color: white;
+        }
+    }
+}

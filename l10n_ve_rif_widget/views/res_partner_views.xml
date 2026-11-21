@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        Wire the RIF widget on the partner form title field (the only vat shown
+        for Venezuelan partners, see l10n_ve_seniat.view_partner_form_vies).
+        Priority 30 > 25 so this applies after the seniat/withholding views.
+    -->
+    <record id="view_partner_form_rif_widget" model="ir.ui.view">
+        <field name="name">res.partner.form.l10n.ve.rif.widget</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//h1[field[@name='vat']]/field[@name='vat']" position="attributes">
+                <attribute name="widget">l10n_ve_rif</attribute>
+                <attribute name="placeholder">12345678</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
