@@ -14,16 +14,25 @@ _logger = logging.getLogger(__name__)
 BACKUP_TABLE = "l10n_ve_retention_line_bak_18_0_1_8_0"
 
 # Module-owned partner-form views whose stored (old) archs reference the
-# deprecated type_person_id. The old code moved that field out of the
-# base_vat VIES container with sibling "move" views; when the new archs
-# (which no longer add it) are validated against each other's old stored
-# archs, the upgrade fails with "no puede ubicarse en la vista principal".
-# Deleting both the views and their ir_model_data lets the module recreate
-# them cleanly from the new XML right after.
+# deprecated type_person_id. When the new archs (which no longer add it)
+# are validated against each other's old stored archs, the upgrade fails
+# with "no puede ubicarse en la vista principal".
+#
+# Strategy: PATCH, don't delete. Stripping the references from the stored
+# archs (self-closing <field>/<xpath> elements, on every translation) is
+# enough for the XML reload to validate and rewrite the arch afterwards.
+# Deleting the views breaks with a foreign key violation when another
+# module's view (e.g. a customer customization such as
+# jr_partner_registration) inherits them — and deleting customer views
+# would silently destroy their customizations.
 _LEGACY_PARTNER_VIEW_MODULES = ("l10n_ve_withholding", "l10n_ve_seniat")
+# Self-closing elements referencing the field, e.g.
+# <field name="type_person_id" .../>
+# <xpath expr="//div[...]/field[@name='type_person_id']" position="move"/>
+_LEGACY_ELEMENT_RE = r"<(field|xpath)[^>]*type_person_id[^>]*/>"
 
 
-def _drop_legacy_partner_views(cr):
+def _neutralize_legacy_partner_views(cr):
     cr.execute(
         """
         SELECT DISTINCT v.id
@@ -38,17 +47,59 @@ def _drop_legacy_partner_views(cr):
     )
     ids = [row[0] for row in cr.fetchall()]
     if not ids:
-        return 0
+        return (0, 0, [])
+
     cr.execute(
-        "DELETE FROM ir_ui_view_custom WHERE ref_id = ANY(%s)",
+        """
+        UPDATE ir_ui_view v
+           SET arch_db = (
+                SELECT COALESCE(jsonb_object_agg(t.key,
+                           to_jsonb(regexp_replace(t.value, %s, '', 'g'))),
+                               '{}'::jsonb)
+                  FROM jsonb_each_text(v.arch_db) t
+               )
+         WHERE v.id = ANY(%s)
+        """,
+        [_LEGACY_ELEMENT_RE, ids],
+    )
+    patched = cr.rowcount
+
+    # Whatever could not be patched (non self-closing references) and has
+    # no children: safe to delete. With children, keep it and warn — the
+    # customer customized that view and the XML reload will surface the
+    # remaining conflict explicitly.
+    cr.execute(
+        """
+        SELECT v.id
+          FROM ir_ui_view v
+         WHERE v.id = ANY(%s)
+           AND v.arch_db::text LIKE '%%type_person_id%%'
+           AND NOT EXISTS (SELECT 1 FROM ir_ui_view c WHERE c.inherit_id = v.id)
+        """,
         [ids],
     )
+    deletable = [row[0] for row in cr.fetchall()]
     cr.execute(
-        "DELETE FROM ir_model_data WHERE model = 'ir.ui.view' AND res_id = ANY(%s)",
+        """
+        SELECT v.id
+          FROM ir_ui_view v
+         WHERE v.id = ANY(%s)
+           AND v.arch_db::text LIKE '%%type_person_id%%'
+        """,
         [ids],
     )
-    cr.execute("DELETE FROM ir_ui_view WHERE id = ANY(%s)", [ids])
-    return len(ids)
+    still_referencing = [row[0] for row in cr.fetchall()]
+    for row_id in deletable:
+        cr.execute(
+            "DELETE FROM ir_ui_view_custom WHERE ref_id = %s", [row_id]
+        )
+        cr.execute(
+            "DELETE FROM ir_model_data "
+            "WHERE model = 'ir.ui.view' AND res_id = %s",
+            [row_id],
+        )
+        cr.execute("DELETE FROM ir_ui_view WHERE id = %s", [row_id])
+    return (patched, len(deletable), still_referencing)
 
 
 def _table_exists(cr, table):
@@ -64,7 +115,26 @@ def migrate(cr, version):
     if not _table_exists(cr, "account_retention_line"):
         return
 
-    dropped_views = _drop_legacy_partner_views(cr)
+    patched_views, dropped_views, still_referencing = (
+        _neutralize_legacy_partner_views(cr)
+    )
+    if patched_views or dropped_views:
+        _logger.info(
+            "l10n_ve_withholding pre-migrate: %s vistas legadas del "
+            "formulario parcheadas (sin type_person_id) y %s eliminadas; "
+            "vistas sin resolver=%s",
+            patched_views,
+            dropped_views,
+            still_referencing,
+        )
+        if still_referencing:
+            _logger.warning(
+                "l10n_ve_withholding pre-migrate: las vistas %s siguen "
+                "referenciando type_person_id (elementos no "
+                "self-closing y/o con vistas hijas del cliente). El reload "
+                "del XML dará el detalle si algo no valida.",
+                still_referencing,
+            )
 
     if _table_exists(cr, BACKUP_TABLE):
         _logger.info(
@@ -94,11 +164,4 @@ def migrate(cr, version):
             "retención en %s",
             snapshot,
             BACKUP_TABLE,
-        )
-
-    if dropped_views:
-        _logger.info(
-            "l10n_ve_withholding pre-migrate: eliminadas %s vistas legadas "
-            "del formulario de contacto (se recrean desde el XML nuevo)",
-            dropped_views,
         )
