@@ -126,7 +126,7 @@
                 <field name="tariff_id" />
                 <filter name="by_concept" domain="[]" string="All" />
                 <separator />
-                <group string="Group By">
+                
                     <filter
                         name="group_by_concept"
                         context="{'group_by': 'payment_concept_id'}"
@@ -147,7 +147,7 @@
                         context="{'group_by': 'tariff_id'}"
                         string="Tariff"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

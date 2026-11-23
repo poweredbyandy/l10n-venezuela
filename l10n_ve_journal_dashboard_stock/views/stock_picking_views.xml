@@ -87,7 +87,7 @@
                 />
                 <filter name="date_done" string="Fecha de entrega" date="date_done" />
                 <separator />
-                <group string="Agrupar por">
+                
                     <filter
                         string="Usuario"
                         name="groupby_user"
@@ -113,7 +113,7 @@
                         name="groupby_picking_type"
                         context="{'group_by': 'picking_type_id'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

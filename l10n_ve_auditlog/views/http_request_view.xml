@@ -41,7 +41,7 @@
                 <field name="name" />
                 <field name="user_id" />
                 <field name="http_session_id" />
-                <group string="Group By...">
+                
                     <filter
                         name="group_by_root_url"
                         string="Root URL"
@@ -72,7 +72,7 @@
                         domain="[]"
                         context="{'group_by':'http_session_id'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

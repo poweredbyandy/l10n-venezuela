@@ -45,7 +45,7 @@
                     name="inactive"
                     domain="[('active', '=', False)]"
                 />
-                <group string="Group By">
+                
                     <filter
                         string="Country"
                         name="country_id"
@@ -58,7 +58,7 @@
                         domain="[]"
                         context="{'group_by':'root_report_id'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

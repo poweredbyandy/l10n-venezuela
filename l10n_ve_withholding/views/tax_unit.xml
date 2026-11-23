@@ -45,13 +45,13 @@
                     string="Inactive"
                 />
                 <separator />
-                <group string="Group By">
+                
                     <filter
                         name="group_by_status"
                         context="{'group_by': 'status'}"
                         string="Status"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

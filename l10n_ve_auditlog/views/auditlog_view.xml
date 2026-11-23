@@ -107,14 +107,14 @@
                     string="Subscribed"
                 />
                 <field name="model_id" />
-                <group string="Group By...">
+                
                     <filter
                         name="group_by_state"
                         string="State"
                         domain="[]"
                         context="{'group_by':'state'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>
@@ -235,7 +235,7 @@
                 <field name="model_id" />
                 <field name="res_id" />
                 <field name="user_id" />
-                <group string="Group By...">
+                
                     <filter
                         name="group_by_user_id"
                         string="User"
@@ -272,7 +272,7 @@
                         domain="[]"
                         context="{'group_by':'http_request_id'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>
@@ -321,7 +321,7 @@
                 <field name="model_id" />
                 <field name="res_id" />
                 <field name="user_id" />
-                <group string="Group By...">
+                
                     <filter
                         name="group_by_user_id"
                         string="User"
@@ -364,7 +364,7 @@
                         domain="[]"
                         context="{'group_by':'http_request_id'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

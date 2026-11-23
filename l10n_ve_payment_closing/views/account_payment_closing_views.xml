@@ -225,7 +225,7 @@
                     name="deposit_date"
                     date="deposit_date"
                 />
-                <group string="Group By">
+                
                     <filter
                         string="Journal"
                         name="group_journal"
@@ -241,7 +241,7 @@
                         name="group_state"
                         context="{'group_by': 'state'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

@@ -128,7 +128,7 @@
                     name="today"
                     domain="[('event_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"
                 />
-                <group string="Agrupar por">
+                
                     <filter
                         string="Tipo de evento"
                         name="group_event_type"
@@ -154,7 +154,7 @@
                         name="group_machine"
                         context="{'group_by': 'machine_id'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

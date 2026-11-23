@@ -220,7 +220,7 @@
                     string="Fecha Contable"
                     filter_domain="[('date_accounting','ilike',self)]"
                 />
-                <group string="Group By">
+                
                     <filter
                         name="group_state"
                         string="State"
@@ -239,7 +239,7 @@
                         domain="[]"
                         context="{'group_by':'date_accounting'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

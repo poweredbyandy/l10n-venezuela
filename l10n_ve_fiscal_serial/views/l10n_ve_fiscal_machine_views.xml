@@ -250,7 +250,7 @@
                     name="inactive"
                     domain="[('active', '=', False)]"
                 />
-                <group string="Agrupar por">
+                
                     <filter
                         string="Compañía"
                         name="group_company"
@@ -261,7 +261,7 @@
                         name="group_printer_type"
                         context="{'group_by': 'printer_type'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

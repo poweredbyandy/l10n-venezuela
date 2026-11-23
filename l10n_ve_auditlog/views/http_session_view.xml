@@ -40,7 +40,7 @@
                 <field name="ip_address" />
                 <field name="name" />
                 <field name="create_date" />
-                <group string="Group By...">
+                
                     <filter
                         name="group_by_user_id"
                         string="User"
@@ -59,7 +59,7 @@
                         domain="[]"
                         context="{'group_by':'ip_address'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

@@ -29,13 +29,13 @@
                     string="Archivados"
                     domain="[('active', '=', False)]"
                 />
-                <group string="Agrupar por">
+                
                     <filter
                         name="group_model"
                         string="Modelo"
                         context="{'group_by': 'model_id'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>
