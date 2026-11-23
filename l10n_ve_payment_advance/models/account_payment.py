@@ -14,7 +14,7 @@ class AccountPayment(models.Model):
     _inherit = "account.payment"
 
     destination_account_id = fields.Many2one(
-        domain="[('account_type', 'in', %s), ('deprecated', '=', False)]"  # noqa: UP031
+        domain="[('account_type', 'in', %s)]"  # noqa: UP031
         % (_DESTINATION_ACCOUNT_TYPES,)
     )
     payment_has_invoice_lines = fields.Boolean(

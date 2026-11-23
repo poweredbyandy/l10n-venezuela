@@ -508,7 +508,6 @@ class AccountTaxReportHandler(models.AbstractModel):
                     *self.env["account.tax.repartition.line"]._check_company_domain(
                         company
                     ),
-                    ("account_id.deprecated", "=", False),
                     ("repartition_type", "=", "tax"),
                     ("document_type", "=", "invoice"),
                     ("tax_id.type_tax_use", "=", "purchase"),
@@ -520,7 +519,6 @@ class AccountTaxReportHandler(models.AbstractModel):
                     *self.env["account.tax.repartition.line"]._check_company_domain(
                         company
                     ),
-                    ("account_id.deprecated", "=", False),
                     ("repartition_type", "=", "tax"),
                     ("document_type", "=", "invoice"),
                     ("tax_id.type_tax_use", "=", "sale"),

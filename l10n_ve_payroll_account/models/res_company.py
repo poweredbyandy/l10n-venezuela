@@ -10,6 +10,6 @@ class ResCompany(models.Model):
         "account.account",
         string="Loan Receivable Account",
         check_company=True,
-        domain="[('account_type', '=', 'asset_receivable'), ('deprecated', '=', False)]",
+        domain="[('account_type', '=', 'asset_receivable')]",
         help="Default debit account for employee loan disbursements (SENIAT 1106002).",
     )

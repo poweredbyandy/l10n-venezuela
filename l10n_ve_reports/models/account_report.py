@@ -10072,7 +10072,6 @@ class AccountReport(models.Model):
         )  # {duplicate_account_code: {line_with_that_code_multiple_times,}}
         common_account_domain = [
             *self.env["account.account"]._check_company_domain(self.env.company),
-            ("deprecated", "=", False),
         ]
 
         # tag_ids already linked to an account - avoid several search_count to know if
