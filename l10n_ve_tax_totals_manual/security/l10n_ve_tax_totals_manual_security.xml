@@ -10,7 +10,7 @@
             name="comment"
         >Permite corregir los montos del bloque de totales en facturas en borrador, en la moneda del documento y en la de la compañía.</field>
         <field
-            name="users"
+            name="user_ids"
             eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"
         />
     </record>
