@@ -1356,7 +1356,7 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         invoice = self._create_usd_invoice(date_invoice, (1000.0,), post=False)
         self.env.user.write(
             {
-                "groups_id": [
+                "group_ids": [
                     Command.link(
                         self.env.ref("l10n_ve_loyalty.group_l10n_ve_global_discount").id
                     )
@@ -1399,7 +1399,7 @@ class TestAccountMoveRefundCurrency(L10nVeSeniatCommon):
         ]
         self.env.user.write(
             {
-                "groups_id": [
+                "group_ids": [
                     Command.link(
                         self.env.ref("l10n_ve_loyalty.group_l10n_ve_global_discount").id
                     )

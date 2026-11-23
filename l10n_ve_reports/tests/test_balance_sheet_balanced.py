@@ -374,7 +374,7 @@ class TestBalanceSheetBalanced(TestAccountReportsCommon):
             login="accountman",
             password="accountman",
             email="accountman@test.com",
-            groups_id=cls.get_default_groups().ids,
+            group_ids=cls.get_default_groups().ids,
             company_ids=[
                 Command.link(company.id) for company in cls.existing_companies
             ],

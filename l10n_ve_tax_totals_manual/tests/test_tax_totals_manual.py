@@ -24,7 +24,7 @@ class TestTaxTotalsManual(AccountTestInvoicingCommon):
         )
         cls.env.user.write(
             {
-                "groups_id": [
+                "group_ids": [
                     Command.link(
                         cls.env.ref(
                             "l10n_ve_tax_totals_manual.group_l10n_ve_tax_totals_manual"
@@ -139,7 +139,7 @@ class TestTaxTotalsManual(AccountTestInvoicingCommon):
                 "name": "Billing user",
                 "login": "billing_tax_totals_edit",
                 "email": "billing_tax_totals_edit@example.com",
-                "groups_id": [
+                "group_ids": [
                     Command.set(
                         [
                             self.env.ref("base.group_user").id,
@@ -160,7 +160,7 @@ class TestTaxTotalsManual(AccountTestInvoicingCommon):
         self.assertAlmostEqual(invoice.amount_total, amount, places=2)
         user.write(
             {
-                "groups_id": [
+                "group_ids": [
                     Command.link(
                         self.env.ref(
                             "l10n_ve_tax_totals_manual.group_l10n_ve_tax_totals_manual"
@@ -198,7 +198,7 @@ class TestTaxTotalsManualDiscount(L10nVeLoyaltyCommon):
         cls.env.company.account_discount_expense_allocation_id = discount_account
         cls.env.user.write(
             {
-                "groups_id": [
+                "group_ids": [
                     Command.link(
                         cls.env.ref(
                             "l10n_ve_tax_totals_manual.group_l10n_ve_tax_totals_manual"

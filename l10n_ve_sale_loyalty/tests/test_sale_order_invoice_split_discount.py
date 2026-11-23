@@ -25,7 +25,7 @@ class TestSaleOrderGlobalDiscount(L10nVeSeniatCommon):
             raise_if_not_found=False,
         )
         if discount_group:
-            cls.env.user.groups_id = [(4, discount_group.id)]
+            cls.env.user.group_ids = [(4, discount_group.id)]
 
     def _create_ve_product(self, name, price):
         tmpl = self.env["product.template"].create(

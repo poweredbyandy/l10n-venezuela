@@ -83,7 +83,7 @@ def pre_init_hook(env):
     partner = env.ref(_xmlid(_PARTNER_XMLID))
     _SNAPSHOTS[env.cr.dbname] = {
         "active": user.active,
-        "groups": user.groups_id.ids,
+        "groups": user.group_ids.ids,
         "partner": partner.read(_PARTNER_FIELDS)[0],
     }
 
@@ -96,7 +96,7 @@ def post_init_hook(env):
     user.write(
         {
             "active": snapshot["active"],
-            "groups_id": [Command.set(snapshot["groups"])],
+            "group_ids": [Command.set(snapshot["groups"])],
         }
     )
     partner_values = {field: snapshot["partner"][field] for field in _PARTNER_FIELDS}

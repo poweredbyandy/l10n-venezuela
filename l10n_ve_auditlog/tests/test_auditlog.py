@@ -691,7 +691,7 @@ class AuditLogRuleTestForUserModel(AuditLogRuleCommon):
     def test_01_AuditlogFull_field_group_write_log(self):
         """Change group and check successfully created log"""
         self.user.with_context(tracking_disable=True).write(
-            {"groups_id": [(4, self.group.id)]}
+            {"group_ids": [(4, self.group.id)]}
         )
         # Checking log is created for testpartner1
         write_log_record = self.auditlog_log.search(

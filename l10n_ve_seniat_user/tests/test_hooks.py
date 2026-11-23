@@ -70,9 +70,9 @@ class TestHooks(TransactionCase):
 
     def test_existing_user_keeps_its_configuration(self):
         extra_group = self.env.ref("base.group_no_one")
-        self.user.write({"groups_id": [(4, extra_group.id)], "active": True})
+        self.user.write({"group_ids": [(4, extra_group.id)], "active": True})
         self.partner.email = "auditor@example.com"
-        groups = self.user.groups_id
+        groups = self.user.group_ids
         self._set_xmlid_module("l10n_ve_seniat")
         self._install()
         self.assertEqual(
@@ -84,7 +84,7 @@ class TestHooks(TransactionCase):
         )
         self.assertEqual(self.env.ref("l10n_ve_seniat_user.user_seniat"), self.user)
         self.assertTrue(self.user.active)
-        self.assertEqual(self.user.groups_id, groups)
+        self.assertEqual(self.user.group_ids, groups)
         self.assertEqual(self.partner.email, "auditor@example.com")
 
     def test_archived_user_stays_archived(self):

@@ -16,7 +16,7 @@ class TestAccountMoveFiscalDiscount(L10nVeSeniatCommon):
             raise_if_not_found=False,
         )
         if discount_group:
-            cls.env.user.groups_id = [Command.link(discount_group.id)]
+            cls.env.user.group_ids = [Command.link(discount_group.id)]
         cls.partner_ve = cls.env["res.partner"].create(
             {
                 "name": "Partner fiscal discount",

@@ -1162,7 +1162,7 @@ class TestAccountMoveGlobalDiscountJournalLines(L10nVeLoyaltyCommon):
             {
                 "name": "Invoice user without discount",
                 "login": "l10n_ve_invoice_no_discount",
-                "groups_id": [
+                "group_ids": [
                     Command.set(
                         [
                             self.env.ref("base.group_user").id,

@@ -9,7 +9,7 @@ class L10nVeLoyaltyCommon(L10nVeSeniatCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.user.groups_id = [
+        cls.env.user.group_ids = [
             Command.link(
                 cls.env.ref("l10n_ve_loyalty.group_l10n_ve_global_discount").id
             )
@@ -19,4 +19,4 @@ class L10nVeLoyaltyCommon(L10nVeSeniatCommon):
             raise_if_not_found=False,
         )
         if sale_price_group:
-            cls.env.user.write({"groups_id": [(4, sale_price_group.id)]})
+            cls.env.user.write({"group_ids": [(4, sale_price_group.id)]})

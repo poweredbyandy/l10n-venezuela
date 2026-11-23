@@ -30,7 +30,7 @@ class TestAccountCurrency(AccountTestInvoicingCommon):
             raise_if_not_found=False,
         )
         if sale_price_group:
-            cls.env.user.write({"groups_id": [(4, sale_price_group.id)]})
+            cls.env.user.write({"group_ids": [(4, sale_price_group.id)]})
 
     def _create_invoice(self, move_type="out_invoice", invoice_date="2024-01-10"):
         return self.init_invoice(

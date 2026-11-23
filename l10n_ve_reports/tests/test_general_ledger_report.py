@@ -810,7 +810,7 @@ class TestGeneralLedgerReport(TestAccountReportsCommon, odoo.tests.HttpCase):
         journal items are sharing the
         same currency.
         """
-        self.env.user.groups_id |= self.env.ref("base.group_multi_currency")
+        self.env.user.group_ids |= self.env.ref("base.group_multi_currency")
 
         foreign_curr_account = self.env["account.account"].create(
             {
