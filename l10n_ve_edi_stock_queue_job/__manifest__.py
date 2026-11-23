@@ -1,7 +1,7 @@
 {
     "name": "Venezuela EDI Dispatch Guides Queue Job",
     "summary": "Enqueue Venezuelan dispatch guide EDI sends with queue_job",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "category": "Accounting/Localizations",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],

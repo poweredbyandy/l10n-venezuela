@@ -1,6 +1,6 @@
 {
     "name": "Venezuela — Motor de reportes ESC/P (impresoras matriz)",
-    "version": "18.0.1.1.0",
+    "version": "19.0.1.1.0",
     "category": "Technical",
     "summary": (
         "Reportes ESC/P por bandas para Epson matriz: diseño, "

@@ -1,7 +1,7 @@
 {
     "name": "Venezuela Stock Fleet",
     "summary": "Use the company fleet on Venezuelan dispatch guides",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "category": "Inventory/Localizations",
     "countries": ["ve"],
     "author": "andyengit, Odoo Community Association (OCA)",

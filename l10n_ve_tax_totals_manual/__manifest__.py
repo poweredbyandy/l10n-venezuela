@@ -4,7 +4,7 @@
     "summary": "Edit invoice tax totals in document and company currency",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
-    "version": "18.0.1.1.0",
+    "version": "19.0.1.1.0",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Accounting/Localizations",

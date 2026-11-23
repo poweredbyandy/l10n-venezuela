@@ -3,7 +3,7 @@
     "summary": "Localización venezolana para el Punto de Venta.",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
-    "version": "18.0.1.3.8",
+    "version": "19.0.1.3.8",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainer": "andyengit",
     "category": "Point of Sale/Localizations",

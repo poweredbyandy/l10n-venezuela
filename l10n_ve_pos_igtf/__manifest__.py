@@ -4,7 +4,7 @@
         "Calcula el IGTF en el POS según monedas configuradas "
         "en l10n_ve_igtf y la moneda del método de pago."
     ),
-    "version": "18.0.1.1.5",
+    "version": "19.0.1.1.5",
     "category": "Point of Sale/Localizations",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainer": "andyengit",

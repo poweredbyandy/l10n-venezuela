@@ -5,7 +5,7 @@
     "category": "Inventory/Inventory",
     "author": "andyengit, Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/l10n-venezuela",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "maintainers": ["andyengit"],
     "depends": [
         "l10n_ve_reports",

@@ -1,7 +1,7 @@
 {
     "name": "Venezuela EDI Dispatch Guides",
     "summary": "Digital invoicing flow for Venezuelan dispatch guides",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "category": "Accounting/Localizations",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],

@@ -4,7 +4,7 @@
 {
     "name": "Currency Rate Index",
     "summary": "Direct exchange rates against a configurable index currency",
-    "version": "18.0.1.4.1",
+    "version": "19.0.1.4.1",
     "category": "Accounting/Accounting",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],

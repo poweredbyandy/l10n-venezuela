@@ -4,7 +4,7 @@
     "summary": "RIF/CI input widget: kind selector (V/E/J/C/P/G) with automatic dash formatting",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Accounting/Localizations",

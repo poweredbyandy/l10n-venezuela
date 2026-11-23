@@ -4,7 +4,7 @@
 {
     "name": "Venezuela Localization Integration Tests",
     "summary": "Installs all l10n_ve_* addons together and checks cross-module flows",
-    "version": "18.0.1.1.0",
+    "version": "19.0.1.1.0",
     "category": "Hidden",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],

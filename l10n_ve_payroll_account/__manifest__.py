@@ -2,7 +2,7 @@
 {
     "name": "Venezuela - Payroll Accounting",
     "summary": "Map Venezuelan payroll rules to SENIAT accounts and provisions",
-    "version": "18.0.1.5.1",
+    "version": "19.0.1.5.1",
     "category": "Payroll",
     "website": "https://github.com/OCA/l10n-venezuela",
     "author": "andyengit, Odoo Community Association (OCA)",

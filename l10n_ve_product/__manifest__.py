@@ -4,7 +4,7 @@
     "summary": "One sales and one purchase tax per Venezuelan company on products",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
-    "version": "18.0.1.0.1",
+    "version": "19.0.1.0.1",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "category": "Accounting/Localizations",

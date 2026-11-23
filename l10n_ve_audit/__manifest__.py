@@ -2,7 +2,7 @@
 {
     "name": "Venezuela SENIAT - Auditoria",
     "summary": "Compatibility bridge for l10n_ve_auditlog",
-    "version": "18.0.1.5.0",
+    "version": "19.0.1.5.0",
     "author": "Anderson Armeya, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],
     "website": "https://github.com/OCA/l10n-venezuela",

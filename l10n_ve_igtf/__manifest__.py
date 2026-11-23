@@ -1,6 +1,6 @@
 {
     "name": "Venezuela IGTF",
-    "version": "18.0.1.1.3",
+    "version": "19.0.1.1.3",
     "website": "https://github.com/OCA/l10n-venezuela",
     "countries": ["ve"],
     "author": "andyengit, Odoo Community Association (OCA)",

@@ -2,7 +2,7 @@
 {
     "name": "Venezuela - Payroll Reports",
     "summary": "FAOV, ISLR laboral, INCES, MINTRA, IVSS and XLSX declarations",
-    "version": "18.0.1.1.0",
+    "version": "19.0.1.1.0",
     "category": "Payroll",
     "website": "https://github.com/OCA/l10n-venezuela",
     "author": "andyengit, Odoo Community Association (OCA)",

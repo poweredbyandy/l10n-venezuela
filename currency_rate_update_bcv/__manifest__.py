@@ -5,7 +5,7 @@
 {
     "name": "Currency Rate Provider BCV",
     "summary": "Currency rate provider for BCV (Banco Central de Venezuela)",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "development_status": "Beta",
     "category": "Financial Management/Configuration",
     "countries": ["ve"],
