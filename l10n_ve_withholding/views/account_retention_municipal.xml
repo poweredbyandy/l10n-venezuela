@@ -220,7 +220,7 @@
                     string="Fecha Contable"
                     filter_domain="[('date_accounting','ilike',self)]"
                 />
-                <group expand="0" string="Group By">
+                <group string="Group By">
                     <filter
                         name="group_state"
                         string="State"

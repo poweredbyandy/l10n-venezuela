@@ -225,7 +225,7 @@
                     name="deposit_date"
                     date="deposit_date"
                 />
-                <group expand="0" string="Group By">
+                <group string="Group By">
                     <filter
                         string="Journal"
                         name="group_journal"

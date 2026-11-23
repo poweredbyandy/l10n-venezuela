@@ -57,7 +57,7 @@
                     string="Today"
                     domain="[('access_date', '>=', (context_today()).strftime('%Y-%m-%d'))]"
                 />
-                <group string="Group By" expand="0">
+                <group string="Group By">
                     <filter
                         name="group_source"
                         string="Source"

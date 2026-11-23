@@ -87,7 +87,7 @@
                     string="Today"
                     domain="[('logged_at', '>=', (context_today()).strftime('%Y-%m-%d'))]"
                 />
-                <group expand="0" string="Group By">
+                <group string="Group By">
                     <filter
                         name="group_by_table"
                         string="Table"

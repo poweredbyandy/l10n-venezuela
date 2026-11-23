@@ -250,7 +250,7 @@
                     name="inactive"
                     domain="[('active', '=', False)]"
                 />
-                <group expand="0" string="Agrupar por">
+                <group string="Agrupar por">
                     <filter
                         string="Compañía"
                         name="group_company"

@@ -87,7 +87,7 @@
                 />
                 <filter name="date_done" string="Fecha de entrega" date="date_done" />
                 <separator />
-                <group expand="0" string="Agrupar por">
+                <group string="Agrupar por">
                     <filter
                         string="Usuario"
                         name="groupby_user"

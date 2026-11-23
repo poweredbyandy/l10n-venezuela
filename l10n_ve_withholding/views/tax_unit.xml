@@ -45,7 +45,7 @@
                     string="Inactive"
                 />
                 <separator />
-                <group expand="0" string="Group By">
+                <group string="Group By">
                     <filter
                         name="group_by_status"
                         context="{'group_by': 'status'}"

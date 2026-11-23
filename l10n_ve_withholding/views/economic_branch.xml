@@ -37,7 +37,7 @@
                     name="status"
                     domain="[('status', '=', 'active')]"
                 />
-                <group expand="1" string="Group by">
+                <group string="Group by">
                     <filter
                         string="Status"
                         name='status'
