@@ -156,7 +156,7 @@
             </xpath>
 
             <xpath
-                expr="//field[@name='tax_lock_date_message']/parent::div"
+                expr="//sheet/*[1]"
                 position="after"
             >
                 <field name="l10n_ve_missing_iva_withholding_type" invisible="1" />

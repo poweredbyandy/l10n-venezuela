@@ -157,7 +157,7 @@
             </xpath>
 
             <xpath
-                expr="//field[@name='tax_lock_date_message']/parent::div"
+                expr="//sheet/*[1]"
                 position="after"
             >
                 <!-- Art. 22-24 PA SNAT/2011/0071: NC por ND adicional sin revertir. -->
