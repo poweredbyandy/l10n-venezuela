@@ -136,6 +136,25 @@ test("rif widget: typing a kind letter advances to the digits input", async () =
     expect(digitsInput()).toHaveValue("28493778");
 });
 
+test("rif widget: clicking an option with the mouse selects it", async () => {
+    await mountView({ type: "form", resModel: "res.partner", resId: 3, arch: FORM_ARCH });
+
+    kindInput().focus();
+    await animationFrame();
+
+    const option = [...document.querySelectorAll(".o_l10n_ve_rif_option")].find(
+        (el) => el.textContent.trim() === "P"
+    );
+    option.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    await animationFrame();
+
+    expect(kindInput()).toHaveValue("P", { message: "clicking an option sets the kind" });
+    expect(".o_l10n_ve_rif_dropdown").toHaveCount(0, { message: "dropdown is closed" });
+    expect(document.activeElement).toBe(digitsInput(), {
+        message: "focus continues in the digits input",
+    });
+});
+
 test("rif widget: kind and digits are saved without the dash", async () => {
     expect.assertions(1);
     await mountView({ type: "form", resModel: "res.partner", resId: 3, arch: FORM_ARCH });

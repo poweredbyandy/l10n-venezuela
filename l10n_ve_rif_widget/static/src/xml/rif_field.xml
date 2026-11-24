@@ -38,7 +38,7 @@
                             type="button"
                             class="o_l10n_ve_rif_option d-block w-100 border-0 text-start"
                             t-att-class="{ 'o_l10n_ve_rif_option_active': kindOpen.value &amp;&amp; kindIndex.value === kind_index }"
-                            t-on-mousedown.prevent="() => selectKind(kind)"
+                            t-on-mousedown.prevent="() => this.selectKind(kind)"
                         >
                             <t t-esc="kind" />
                         </button>
