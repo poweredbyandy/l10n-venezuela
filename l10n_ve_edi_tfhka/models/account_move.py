@@ -831,19 +831,6 @@ class AccountMove(models.Model):
             line.price_total or 0.0,
         )
 
-    def _tfhka_sum_company_line_amounts(self):
-        self.ensure_one()
-        cur = self.company_id.currency_id
-        subtotal = tax = total = 0.0
-        for line in self._tfhka_get_line_items():
-            _unit, line_subtotal, line_total = self._tfhka_line_document_amounts(line)
-            line_subtotal = cur.round(line_subtotal)
-            line_total = cur.round(line_total)
-            subtotal = cur.round(subtotal + line_subtotal)
-            total = cur.round(total + line_total)
-            tax = cur.round(tax + cur.round(line_total - line_subtotal))
-        return subtotal, tax, total
-
     def _tfhka_get_line_price_breakdown(self, line):
         """Return the line amounts declared to TFHKA.
 
@@ -1318,20 +1305,6 @@ class AccountMove(models.Model):
 
         inv_iva_out = inv_tax
         comp_iva_out = comp_tax
-
-        line_sub, line_tax, _line_total = self._tfhka_sum_company_line_amounts()
-        if comp_buckets and (
-            not cur_comp.is_zero(cur_comp.round(line_sub - comp_sub))
-            or not cur_comp.is_zero(cur_comp.round(line_tax - comp_iva_out))
-        ):
-            comp_buckets = self._tfhka_reconcile_buckets_to_targets(
-                dict(comp_buckets), line_sub, line_tax, cur_comp
-            )
-            comp_gravado, comp_exento = self._tfhka_gravado_exento_from_buckets(
-                comp_buckets, cur_comp, subtotal_target=line_sub
-            )
-            comp_sub = line_sub
-            comp_iva_out = line_tax
 
         inv_total_con_iva = cur_inv.round(inv_sub + inv_iva_out)
         comp_total_con_iva = cur_comp.round(comp_sub + comp_iva_out)
@@ -2228,16 +2201,43 @@ class AccountMove(models.Model):
     def _tfhka_build_info_adicional_item(self, line):
         return []
 
-    def _tfhka_build_item_detail(self, index, line, tax_code, tax_rate, line_iva):
+    def _tfhka_apply_currency_delta(self, amounts, target, currency):
+        """Spread a rounding gap, one currency unit at a time, from the first line."""
+        adjusted = [currency.round(amount) for amount in amounts]
+        if not adjusted:
+            return adjusted
+        delta = currency.round(target - sum(adjusted))
+        if currency.is_zero(delta):
+            return adjusted
+        step = currency.rounding or 0.01
+        direction = 1.0 if currency.compare_amounts(delta, 0.0) > 0 else -1.0
+        remaining = currency.round(abs(delta))
+        index = 0
+        skipped = 0
+        while currency.compare_amounts(remaining, 0.0) > 0 and skipped < len(adjusted):
+            position = index % len(adjusted)
+            candidate = currency.round(adjusted[position] + direction * step)
+            if currency.compare_amounts(candidate, 0.0) < 0:
+                index += 1
+                skipped += 1
+                continue
+            adjusted[position] = candidate
+            remaining = currency.round(remaining - step)
+            index += 1
+            skipped = 0
+        return adjusted
+
+    def _tfhka_build_item_detail(
+        self, index, line, tax_code, tax_rate, line_iva, breakdown
+    ):
         product = line.product_id
         plu = self._tfhka_get_product_plu(product)
         qty = line.quantity
-        _unit, _subtotal, line_total = self._tfhka_line_document_amounts(line)
-        breakdown = self._tfhka_get_line_price_breakdown(line)
+        currency = self.company_id.currency_id
         pu = breakdown["unit_price"]
         brutto = breakdown["before_discount"]
         discount_monto = breakdown["discount"]
-        pu_con_desc = pu * (1 - (line.discount or 0) / 100.0) if line.discount else pu
+        item_total = currency.round(breakdown["subtotal"] + line_iva)
         return {
             "numeroLinea": str(index),
             "codigoCIIU": "",
@@ -2249,9 +2249,7 @@ class AccountMove(models.Model):
             "cantidad": self._l10n_ve_edi_format_decimal(qty),
             "unidadMedida": (line.product_uom_id.name or "UND")[:3],
             "precioUnitario": self._l10n_ve_edi_format_decimal(pu),
-            "precioUnitarioDescuento": self._l10n_ve_edi_format_decimal(pu_con_desc)
-            if line.discount
-            else None,
+            "precioUnitarioDescuento": None,
             "montoBonificacion": None,
             "descripcionBonificacion": None,
             "descuentoMonto": self._l10n_ve_edi_format_decimal(discount_monto),
@@ -2261,26 +2259,56 @@ class AccountMove(models.Model):
             "codigoImpuesto": tax_code,
             "tasaIVA": self._tfhka_format_tasa_iva(tax_rate),
             "valorIVA": self._l10n_ve_edi_format_decimal(line_iva),
-            "valorTotalItem": self._l10n_ve_edi_format_decimal(
-                self.company_id.currency_id.round(line_total)
-            ),
+            "valorTotalItem": self._l10n_ve_edi_format_decimal(item_total),
             "infoAdicionalItem": self._tfhka_build_info_adicional_item(line),
             "listaItemOTI": None,
         }
 
     def _tfhka_build_detalles_items(self):
+        """Build item lines that add up to the company totals on the invoice.
+
+        ``precioUnitarioDescuento`` is left empty. TFHKA recomputes the line
+        from that two-decimal price and drops the cents already applied by
+        global rounding. The commercial discount stays in ``descuentoMonto``.
+        """
+        self.ensure_one()
         details = []
         line_items = self._tfhka_get_line_items()
         if not line_items:
             raise UserError(
                 _("No se encontraron lineas facturables para generar DetallesItems.")
             )
+        currency = self.company_id.currency_id
+        company_totals = self._tfhka_get_totals_for_payload()["comp"]
+        breakdowns = [
+            self._tfhka_get_line_price_breakdown(line) for line in line_items
+        ]
+        subtotals = self._tfhka_apply_currency_delta(
+            [item["subtotal"] for item in breakdowns],
+            company_totals["subtotal"],
+            currency,
+        )
+        taxes = self._tfhka_apply_currency_delta(
+            [self._tfhka_get_line_iva_value(line) for line in line_items],
+            company_totals["total_iva"],
+            currency,
+        )
         for index, line in enumerate(line_items, start=1):
-            tax_rate = self._tfhka_get_line_tax_rate(line)
-            tax_code = self._tfhka_get_line_tax_code(line)
-            line_iva = self._tfhka_get_line_iva_value(line)
+            position = index - 1
+            breakdown = dict(breakdowns[position])
+            breakdown["subtotal"] = subtotals[position]
+            breakdown["discount"] = currency.round(
+                breakdown["before_discount"] - breakdown["subtotal"]
+            )
             details.append(
-                self._tfhka_build_item_detail(index, line, tax_code, tax_rate, line_iva)
+                self._tfhka_build_item_detail(
+                    index,
+                    line,
+                    self._tfhka_get_line_tax_code(line),
+                    self._tfhka_get_line_tax_rate(line),
+                    taxes[position],
+                    breakdown,
+                )
             )
         return details
 
