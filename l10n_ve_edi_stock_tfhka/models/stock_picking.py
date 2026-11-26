@@ -587,9 +587,9 @@ class StockPicking(models.Model):
             "tipoIdentificacion": buyer_prefix,
             "numeroIdentificacion": buyer_number,
             "razonSocial": (buyer.name or "")[:100],
-            "direccion": (
-                buyer.street or self._l10n_ve_dispatch_address_inline(buyer) or "N/A"
-            )[:255],
+            "direccion": self.env[
+                "l10n_ve.edi.tfhka.document.mixin"
+            ]._tfhka_get_partner_address(buyer),
             "pais": (buyer.country_id.code or "VE")[:2],
             "telefono": phone_list or None,
             "notificar": "Si" if (buyer.email or phone) else "No",

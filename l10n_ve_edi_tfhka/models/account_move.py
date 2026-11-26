@@ -1501,7 +1501,9 @@ class AccountMove(models.Model):
             "tipoIdentificacion": buyer_prefix,
             "numeroIdentificacion": buyer_number,
             "razonSocial": (buyer.name or "")[:100],
-            "direccion": (buyer.street or buyer.contact_address_inline or "N/A")[:255],
+            "direccion": self.env[
+                "l10n_ve.edi.tfhka.document.mixin"
+            ]._tfhka_get_partner_address(buyer),
             "pais": (buyer.country_id.code or "VE")[:2],
             "telefono": phone_list,
             "notificar": notificar,

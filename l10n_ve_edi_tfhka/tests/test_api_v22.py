@@ -304,6 +304,41 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
             places=6,
         )
 
+    def test_comprador_declares_the_full_address(self):
+        """``direccion`` must be the complete Odoo address, not only street."""
+        venezuela = self.env.ref("base.ve")
+        state = (
+            self.env["res.country.state"]
+            .search([("code", "=", "LR"), ("country_id", "=", venezuela.id)], limit=1)
+        )
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Direcciones Test",
+                "vat": "V11223344",
+                "street": "AV LOS LEONES CON CALLE TEREPAIMA",
+                "street2": "EDIF TORRE BEL PISO 17",
+                "zip": "3001",
+                "city": "Barquisimeto",
+                "state_id": state.id if state else False,
+                "country_id": venezuela.id,
+            }
+        )
+        invoice = self._new_move(partner, self.revenue_account)
+        comprador = invoice._tfhka_build_comprador()
+        address = comprador["direccion"]
+        for fragment in (
+            "AV LOS LEONES CON CALLE TEREPAIMA",
+            "EDIF TORRE BEL PISO 17",
+            "Barquisimeto",
+            "3001",
+        ):
+            self.assertIn(fragment, address)
+        if state:
+            self.assertIn(state.code, address)
+        self.assertNotIn("Venezuela", address)
+        self.assertNotIn("Direcciones Test", address)
+        self.assertLessEqual(len(address), 255)
+
     def test_resend_throttle_code_is_an_error(self):
         client = self.env["l10n_ve_edi_tfhka.api.service"]
         response = {

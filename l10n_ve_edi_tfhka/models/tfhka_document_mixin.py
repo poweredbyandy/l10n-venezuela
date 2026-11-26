@@ -62,6 +62,38 @@ class L10nVeEdiTfhkaDocumentMixin(models.AbstractModel):
         return id_type, number[:19]
 
     @api.model
+    def _tfhka_get_partner_address(self, partner):
+        """Full one-line Odoo address used by TFHKA ``direccion``.
+
+        TFHKA expects the complete domicile, so use the partner's formatted
+        address (street, street2 and city/state/zip) without the name already
+        declared in ``razonSocial`` and without the country, which travels in
+        ``pais``.
+        """
+        if not partner:
+            return "N/A"
+        lines = [
+            line.strip()
+            for line in (partner._display_address() or "").splitlines()
+            if line.strip()
+        ]
+        name = (partner.display_name or "").strip()
+        if lines and lines[0] == name:
+            lines = lines[1:]
+        country = (
+            partner.country_id.name
+            or self.env.company.partner_id.country_id.name
+            or ""
+        ).strip()
+        if lines and country:
+            last = lines[-1].rstrip(" ,;.")
+            if last.casefold() == country.casefold():
+                lines = lines[:-1]
+        address = ", ".join(lines)
+        address = re.sub(r"(,\s*){2,}", ", ", address).strip(" ,")
+        return (address or partner.street or "N/A")[:255]
+
+    @api.model
     def _tfhka_check_foreign_buyer_identification(self, partner):
         id_type, number = self._tfhka_get_foreign_buyer_identification(partner)
         if not id_type or not number:

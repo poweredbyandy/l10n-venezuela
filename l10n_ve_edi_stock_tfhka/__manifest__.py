@@ -1,7 +1,7 @@
 {
     "name": "Venezuela TFHKA EDI Dispatch Guides",
     "summary": "The Factory HKA connector for Venezuelan dispatch guides",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Accounting/Localizations",
     "author": "andyengit, Odoo Community Association (OCA)",
     "maintainers": ["andyengit"],

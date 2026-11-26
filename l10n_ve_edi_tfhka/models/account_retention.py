@@ -436,9 +436,9 @@ class AccountRetention(models.Model):
             "tipoIdentificacion": prefix,
             "numeroIdentificacion": number,
             "razonSocial": (partner.name or "")[:255],
-            "direccion": (partner.street or partner.contact_address_inline or "N/A")[
-                :255
-            ],
+            "direccion": self.env[
+                "l10n_ve.edi.tfhka.document.mixin"
+            ]._tfhka_get_partner_address(partner),
             "pais": (partner.country_id.code or "VE")[:2],
             "telefono": phone_list or None,
             "correo": email_list or None,
