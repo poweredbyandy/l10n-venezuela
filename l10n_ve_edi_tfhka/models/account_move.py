@@ -760,7 +760,7 @@ class AccountMove(models.Model):
 
     def _tfhka_get_line_iva_value(self, line):
         _unit, subtotal, total = self._tfhka_line_document_amounts(line)
-        return self.company_id.currency_id.round(total - subtotal)
+        return self.currency_id.round(total - subtotal)
 
     def _tfhka_tax_group_to_codigo(self, tax_group_dict):
         self.ensure_one()
@@ -809,22 +809,14 @@ class AccountMove(models.Model):
         return (code or "")[:60]
 
     def _tfhka_line_document_amounts(self, line):
-        """Company-currency amounts shown by account_currency on the invoice.
+        """Amounts declared for ``detallesItems`` in the document currency.
 
-        ``detallesItems`` and ``totales`` are bolivares. Invoice-currency
-        amounts stay in ``totalesOtraMoneda``.
+        ``identificacionDocumento.moneda`` is the invoice currency and TFHKA
+        prints the line columns with that label, so the items must carry the
+        document amounts. ``totales`` keeps the bolivars and the document
+        currency goes to ``totalesOtraMoneda``.
         """
         self.ensure_one()
-        company_currency = self.company_id.currency_id
-        if (
-            self.currency_id != company_currency
-            and "price_subtotal_currency" in line._fields
-        ):
-            return (
-                line.price_unit_company_currency or 0.0,
-                line.price_subtotal_currency or 0.0,
-                line.price_total_currency or 0.0,
-            )
         return (
             line.price_unit or 0.0,
             line.price_subtotal or 0.0,
@@ -836,10 +828,10 @@ class AccountMove(models.Model):
 
         TFHKA only accepts two decimals in ``precioUnitario`` and recomputes
         ``precioAntesDescuento`` and ``precioItem`` from it, so the rounding
-        difference against the company-currency subtotal is declared as discount.
+        difference against the line subtotal is declared as discount.
         """
         self.ensure_one()
-        cur = self.company_id.currency_id
+        cur = self.currency_id
         quantity = line.quantity
         unit_amount, subtotal_amount, _total_amount = self._tfhka_line_document_amounts(
             line
@@ -1956,27 +1948,61 @@ class AccountMove(models.Model):
             )
         return impuestos_subtotal
 
+    def _tfhka_line_company_amounts(self, line):
+        """Company-currency amounts shown by ``account_currency`` on the line."""
+        self.ensure_one()
+        comp_cur = self.company_id.currency_id
+        return (
+            comp_cur.round(line.price_unit_company_currency or 0.0),
+            comp_cur.round(line.price_subtotal_currency or 0.0),
+            comp_cur.round(line.price_total_currency or 0.0),
+        )
+
+    def _tfhka_company_rate_ratio(self):
+        """Bolivar per document-currency unit implied by the invoice lines.
+
+        ``account_currency`` stores the bolivar amounts per line, and Odoo can
+        round them independently of ``l10n_ve_inverse_rate``. TFHKA uses
+        ``tipoCambio`` to cross-check both total blocks, so the declared rate
+        must be the effective one instead of the stored one.
+        """
+        self.ensure_one()
+        comp_cur = self.company_id.currency_id
+        inv_cur = self.currency_id
+        if inv_cur == comp_cur:
+            return 1.0
+        base_inv = 0.0
+        base_comp = 0.0
+        for line in self._tfhka_get_line_items():
+            _unit_comp, subtotal_comp, _total_comp = (
+                self._tfhka_line_company_amounts(line)
+            )
+            base_inv = inv_cur.round(
+                base_inv + inv_cur.round(line.price_subtotal or 0.0)
+            )
+            base_comp = comp_cur.round(base_comp + subtotal_comp)
+        if not base_inv:
+            return getattr(self, "l10n_ve_inverse_rate", 0.0) or 1.0
+        return base_comp / base_inv
+
     def _tfhka_descuentos_a_bolivares(self, payload):
         self.ensure_one()
         comp_cur = self.company_id.currency_id
         inv_cur = self.currency_id
-        date = self.invoice_date or self.date or fields.Date.context_today(self)
         td = payload["total_descuento"]
-        sa = payload["subtotal_antes_descuento"]
         if inv_cur == comp_cur:
-            return td, sa
-        td_comp = comp_cur.round(inv_cur._convert(td, comp_cur, self.company_id, date))
+            return td, payload["subtotal_antes_descuento"]
+        td_comp = comp_cur.round(td * self._tfhka_company_rate_ratio())
         sa_comp = comp_cur.round(payload["comp"]["subtotal"] + td_comp)
         return td_comp, sa_comp
 
     def _tfhka_convert_inv_totals_to_company(self, inv):
         self.ensure_one()
         comp = self.company_id.currency_id
-        inv_cur = self.currency_id
-        date = self.invoice_date or self.date or fields.Date.context_today(self)
+        ratio = self._tfhka_company_rate_ratio()
 
         def cnv(x):
-            return comp.round(inv_cur._convert(x, comp, self.company_id, date))
+            return comp.round(x * ratio)
 
         buckets = {}
         for key, vals in (inv.get("buckets") or {}).items():
@@ -2001,19 +2027,19 @@ class AccountMove(models.Model):
         return None
 
     def _tfhka_build_totales(self, payload=None):
-        """Build TFHKA header ``totales`` in company currency (e.g. VES).
+        """Build TFHKA header ``totales`` in company currency.
 
-        Numeric fields follow ``move.tax_totals`` via ``payload['comp']`` from
-        :meth:`_tfhka_get_totals_for_payload` (gravado/exento/subtotal/IVA/total).
+        The printed document shows this block as bolivars, so it carries the
+        company-currency amounts exactly as ``move.tax_totals`` stores them.
         """
         self.ensure_one()
         if payload is None:
             payload = self._tfhka_get_totals_for_payload()
         bs = payload["comp"]
         td_bs, sa_bs = self._tfhka_descuentos_a_bolivares(payload)
+        comp_cur = self.company_id.currency_id
         igtf = self._tfhka_get_igtf_totals()
         retention = self._tfhka_get_reconciled_retention_totals()
-        comp_cur = self.company_id.currency_id
         has_igtf = not comp_cur.is_zero(igtf["comp"])
         gravado = bs["gravado"]
         exento = bs["exento"]
@@ -2033,8 +2059,8 @@ class AccountMove(models.Model):
             monto_total_oti_key = None
             monto_total_ivayoti_key = None
             _logger.info(
-                "TFHKA totales VES (IGTF) move_id=%s grav=%s exc=%s sub=%s iva=%s "
-                "montoTotalConIVA=%s igtf_row_base=%s igtf_row_tax=%s",
+                "TFHKA totales compania (IGTF) move_id=%s grav=%s exc=%s sub=%s "
+                "iva=%s montoTotalConIVA=%s igtf_row_base=%s igtf_row_tax=%s",
                 self.id,
                 gravado,
                 exento,
@@ -2095,11 +2121,23 @@ class AccountMove(models.Model):
         )
         return float(result)
 
-    def _tfhka_build_totales_otra_moneda(self, payload=None):
-        """Build TFHKA ``totalesOtraMoneda`` when the invoice currency is not VES.
+    def _tfhka_effective_exchange_rate(self):
+        """Bolivar rate that reconciles both total blocks for TFHKA.
 
-        Amounts follow ``move.tax_totals`` via ``payload['inv']`` from
-        :meth:`_tfhka_get_totals_for_payload`.
+        Uses the per-line bolivar amounts kept by ``account_currency`` so the
+        declared ``tipoCambio`` matches the amounts sent in each block.
+        """
+        self.ensure_one()
+        return self._tfhka_company_rate_ratio() or (
+            getattr(self, "l10n_ve_inverse_rate", 0.0) or 0.0
+        )
+
+    def _tfhka_build_totales_otra_moneda(self, payload=None):
+        """Build TFHKA ``totalesOtraMoneda`` in the invoice currency.
+
+        The printed document shows ``totales`` as bolivars and this node as the
+        document currency, both with the amounts stored on the invoice. TFHKA
+        cross-checks them through ``tipoCambio``.
         """
         self.ensure_one()
         if self.currency_id == self.company_id.currency_id:
@@ -2116,64 +2154,48 @@ class AccountMove(models.Model):
         if payload is None:
             payload = self._tfhka_get_totals_for_payload()
         inv = payload["inv"]
-        td_inv = payload["total_descuento"]
-        sa_inv = payload["subtotal_antes_descuento"]
         igtf = self._tfhka_get_igtf_totals()
         retention = self._tfhka_get_reconciled_retention_totals()
         inv_cur = self.currency_id
-        comp_cur = self.company_id.currency_id
-        has_igtf = not comp_cur.is_zero(igtf["comp"])
+        has_igtf = not inv_cur.is_zero(igtf["inv"])
         gravado = inv["gravado"]
         exento = inv["exento"]
         subtotal = inv["subtotal"]
         total_iva = inv["total_iva"]
         monto_total_con_iva_inv = inv["monto_total_con_iva"]
         total_apagar = inv["total_apagar"]
-        (
-            igtf_base_inv,
-            _igtf_base_comp,
-            igtf_tax_inv,
-            _igtf_tax_comp,
-        ) = self._tfhka_get_igtf_bases_for_impuestos_row()
+        igtf_base_inv, _igtf_base_comp, igtf_tax_inv, _igtf_tax_comp = (
+            self._tfhka_get_igtf_bases_for_impuestos_row()
+        )
         if has_igtf:
             imp_rows_inv = self._tfhka_build_impuestos_subtotal_list(
                 inv["buckets"], igtf_base_inv, igtf_tax_inv, zero_currency=inv_cur
             )
             total_igtf_key = None
             total_igtf_ves_key = None
-            monto_total_oti_key = None
-            monto_total_ivayoti_key = None
-            _logger.info(
-                "TFHKA totales otra moneda (IGTF) move_id=%s grav=%s exc=%s "
-                "sub=%s iva=%s "
-                "montoTotalConIVA=%s igtf_row_base=%s igtf_row_tax=%s",
-                self.id,
-                gravado,
-                exento,
-                subtotal,
-                total_iva,
-                monto_total_con_iva_inv,
-                igtf_base_inv,
-                igtf_tax_inv,
-            )
         else:
             imp_rows_inv = self._tfhka_build_impuestos_subtotal_from_buckets(
                 inv["buckets"]
             )
             total_igtf_key = self._l10n_ve_edi_format_decimal(igtf["inv"])
             total_igtf_ves_key = self._l10n_ve_edi_format_decimal(igtf["comp"])
-            monto_total_oti_key = None
-            monto_total_ivayoti_key = None
-        inv_code = (self.currency_id.name or "USD")[:3]
+        monto_total_oti_key = None
+        monto_total_ivayoti_key = None
+        inv_code = (inv_cur.name or "USD")[:3]
+        tipo_cambio = self._tfhka_effective_exchange_rate() or rate
 
         data = {
             "moneda": inv_code,
-            "tipoCambio": self._tfhka_format_tipo_cambio(rate),
+            "tipoCambio": self._tfhka_format_tipo_cambio(tipo_cambio),
             "montoGravadoTotal": self._l10n_ve_edi_format_decimal(gravado),
             "montoExentoTotal": self._l10n_ve_edi_format_decimal(exento),
             "montoPercibidoTotal": self._l10n_ve_edi_format_decimal(retention["inv"]),
-            "subtotalAntesDescuento": self._l10n_ve_edi_format_decimal(sa_inv),
-            "totalDescuento": self._l10n_ve_edi_format_decimal(td_inv),
+            "subtotalAntesDescuento": self._l10n_ve_edi_format_decimal(
+                payload["subtotal_antes_descuento"]
+            ),
+            "totalDescuento": self._l10n_ve_edi_format_decimal(
+                payload["total_descuento"]
+            ),
             "totalRecargos": None,
             "subtotal": self._l10n_ve_edi_format_decimal(subtotal),
             "totalIVA": self._l10n_ve_edi_format_decimal(total_iva),
@@ -2233,7 +2255,7 @@ class AccountMove(models.Model):
         product = line.product_id
         plu = self._tfhka_get_product_plu(product)
         qty = line.quantity
-        currency = self.company_id.currency_id
+        currency = self.currency_id
         pu = breakdown["unit_price"]
         brutto = breakdown["before_discount"]
         discount_monto = breakdown["discount"]
@@ -2265,7 +2287,7 @@ class AccountMove(models.Model):
         }
 
     def _tfhka_build_detalles_items(self):
-        """Build item lines that add up to the company totals on the invoice.
+        """Build item lines that add up to the document-currency totals.
 
         ``precioUnitarioDescuento`` is left empty. TFHKA recomputes the line
         from that two-decimal price and drops the cents already applied by
@@ -2278,19 +2300,19 @@ class AccountMove(models.Model):
             raise UserError(
                 _("No se encontraron lineas facturables para generar DetallesItems.")
             )
-        currency = self.company_id.currency_id
-        company_totals = self._tfhka_get_totals_for_payload()["comp"]
+        currency = self.currency_id
+        document_totals = self._tfhka_get_totals_for_payload()["inv"]
         breakdowns = [
             self._tfhka_get_line_price_breakdown(line) for line in line_items
         ]
         subtotals = self._tfhka_apply_currency_delta(
             [item["subtotal"] for item in breakdowns],
-            company_totals["subtotal"],
+            document_totals["subtotal"],
             currency,
         )
         taxes = self._tfhka_apply_currency_delta(
             [self._tfhka_get_line_iva_value(line) for line in line_items],
-            company_totals["total_iva"],
+            document_totals["total_iva"],
             currency,
         )
         for index, line in enumerate(line_items, start=1):

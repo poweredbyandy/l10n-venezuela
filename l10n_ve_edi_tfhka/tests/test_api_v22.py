@@ -176,31 +176,133 @@ class TestTfhkaApiV22(TestL10nVeIgtfCommon):
         icp = self.env["ir.config_parameter"].sudo()
         icp.set_param("l10n_ve_edi_tfhka.product_code", "default_code")
         detail = invoice._tfhka_build_item_detail(
-            1, invoice.invoice_line_ids, "E", 0.0, 0.0
+            1,
+            invoice.invoice_line_ids,
+            "E",
+            0.0,
+            0.0,
+            invoice._tfhka_get_line_price_breakdown(invoice.invoice_line_ids),
         )
         self.assertEqual(detail["codigoPLU"], "REF-TFHKA")
         icp.set_param("l10n_ve_edi_tfhka.product_code", "barcode")
         detail = invoice._tfhka_build_item_detail(
-            1, invoice.invoice_line_ids, "E", 0.0, 0.0
+            1,
+            invoice.invoice_line_ids,
+            "E",
+            0.0,
+            0.0,
+            invoice._tfhka_get_line_price_breakdown(invoice.invoice_line_ids),
         )
         self.assertEqual(detail["codigoPLU"], "7591234567890")
 
-        company = invoice.company_id.currency_id
+        currency = invoice.currency_id
         line = invoice.invoice_line_ids
-        _unit, company_subtotal, company_total = invoice._tfhka_line_document_amounts(
-            line
+        _unit, doc_subtotal, doc_total = invoice._tfhka_line_document_amounts(line)
+        self.assertAlmostEqual(
+            float(detail["precioItem"]), currency.round(doc_subtotal)
         )
         self.assertAlmostEqual(
-            float(detail["precioItem"]), company.round(company_subtotal)
-        )
-        self.assertAlmostEqual(
-            float(detail["valorTotalItem"]), company.round(company_total)
+            float(detail["valorTotalItem"]), currency.round(doc_total)
         )
         totals = invoice._tfhka_get_totals_for_payload()
         self.assertAlmostEqual(
-            totals["comp"]["subtotal"], company.round(company_subtotal)
+            totals["inv"]["subtotal"], currency.round(doc_subtotal)
         )
         self.assertAlmostEqual(totals["inv"]["subtotal"], invoice.amount_untaxed)
+
+    def _tfhka_usd_invoice(self, price, quantity=3.0, discount=0.2, lines=1):
+        tax = self.company_data["default_tax_sale"]
+        vals = {
+            "move_type": "out_invoice",
+            "company_id": self.company.id,
+            "journal_id": self.tfhka_journal.id,
+            "partner_id": self.partner.id,
+            "currency_id": self.usd.id,
+            "invoice_date": self.test_date,
+            "date": self.test_date,
+            "invoice_line_ids": [
+                Command.create(
+                    {
+                        "name": f"Linea {index}",
+                        "quantity": quantity,
+                        "price_unit": price,
+                        "discount": discount,
+                        "account_id": self.revenue_account.id,
+                        "tax_ids": [Command.set(tax.ids)],
+                    }
+                )
+                for index in range(1, lines + 1)
+            ],
+        }
+        return self.env["account.move"].with_company(self.company).create(vals)
+
+    def test_totals_use_system_amounts_per_currency(self):
+        """Bs come from ``totales``, the document currency from the invoice."""
+        invoice = self._tfhka_usd_invoice(48.2559632467655, lines=8)
+        payload = invoice._tfhka_build_documento_electronico_payload()
+        doc = payload["documentoElectronico"]
+        encabezado = doc["encabezado"]
+        totales = encabezado["totales"]
+        otra = encabezado["totalesOtraMoneda"]
+        items = doc["detallesItems"]
+
+        def amount(value):
+            return float(str(value).replace(",", "."))
+
+        self.assertEqual(
+            encabezado["identificacionDocumento"]["moneda"],
+            invoice.currency_id.name,
+        )
+        self.assertEqual(otra["moneda"], invoice.currency_id.name)
+        self.assertAlmostEqual(
+            amount(totales["subtotal"]), invoice.amount_untaxed_signed, delta=0.01
+        )
+        self.assertAlmostEqual(
+            amount(totales["totalIVA"]), invoice.amount_tax_signed, delta=0.01
+        )
+        self.assertAlmostEqual(
+            amount(totales["totalAPagar"]), invoice.amount_total_signed, delta=0.01
+        )
+        self.assertAlmostEqual(
+            amount(otra["subtotal"]), invoice.amount_untaxed, delta=0.01
+        )
+        self.assertAlmostEqual(
+            amount(otra["totalIVA"]), invoice.amount_tax, delta=0.01
+        )
+        self.assertAlmostEqual(
+            amount(otra["totalAPagar"]), invoice.amount_total, delta=0.01
+        )
+        item_base = sum(amount(item["precioItem"]) for item in items)
+        item_iva = sum(amount(item["valorIVA"]) for item in items)
+        self.assertAlmostEqual(item_base, amount(otra["subtotal"]), places=2)
+        self.assertAlmostEqual(item_iva, amount(otra["totalIVA"]), places=2)
+        rate = amount(otra["tipoCambio"])
+        self.assertGreater(rate, 0.0)
+        self.assertAlmostEqual(
+            amount(totales["subtotal"]), amount(otra["subtotal"]) * rate, delta=0.01
+        )
+        self.assertAlmostEqual(
+            amount(totales["totalAPagar"]),
+            amount(otra["totalAPagar"]) * rate,
+            delta=0.01,
+        )
+
+    def test_company_rate_ratio_uses_account_currency_lines(self):
+        """``tipoCambio`` must be the ratio of the line bolivar amounts."""
+        invoice = self._tfhka_usd_invoice(48.2559632467655, lines=8)
+        comp_cur = invoice.company_id.currency_id
+        inv_cur = invoice.currency_id
+        base_comp = comp_cur.round(
+            sum(line.price_subtotal_currency for line in invoice.invoice_line_ids)
+        )
+        base_inv = inv_cur.round(
+            sum(line.price_subtotal for line in invoice.invoice_line_ids)
+        )
+        self.assertAlmostEqual(
+            invoice._tfhka_company_rate_ratio(),
+            base_comp / base_inv,
+            places=6,
+        )
 
     def test_resend_throttle_code_is_an_error(self):
         client = self.env["l10n_ve_edi_tfhka.api.service"]
