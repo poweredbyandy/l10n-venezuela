@@ -171,8 +171,11 @@ class StockPicking(models.Model):
         "move_ids.invoice_line_ids.move_id",
     )
     def _compute_invoice_ids(self):
+        # Read the accounting link as superuser: a warehouse user without
+        # invoice access must still be able to open the picking form. The
+        # invoice stat button itself is hidden by groups in the view.
         for picking in self:
-            amls = picking.move_ids.invoice_line_ids
+            amls = picking.sudo().move_ids.invoice_line_ids
             picking.invoice_ids = amls.move_id
 
     def _search_invoice_ids(self, operator, value):
@@ -223,9 +226,12 @@ class StockPicking(models.Model):
             date = picking.scheduled_date or fields.Date.context_today(picking)
             moves = picking.move_ids.filtered("product_id")
             if picking.sale_id:
-                total_cur = picking.sale_id.currency_id
+                # sudo: the order amounts pull tax totals and global discounts,
+                # models a warehouse user is not granted on.
+                sale = picking.sudo().sale_id
+                total_cur = sale.currency_id
                 picking.l10n_ve_dispatch_display_currency_id = total_cur
-                picking.l10n_ve_dispatch_display_total = picking.sale_id.amount_total
+                picking.l10n_ve_dispatch_display_total = sale.amount_total
                 subtotal_sum = 0.0
                 for move in moves:
                     cur = move.l10n_ve_dispatch_currency_id
@@ -424,7 +430,8 @@ class StockPicking(models.Model):
     def _l10n_ve_dispatch_guide_total_display(self):
         self.ensure_one()
         if self.sale_id:
-            return self.sale_id.amount_total, self.sale_id.currency_id
+            sale = self.sudo().sale_id
+            return sale.amount_total, sale.currency_id
         return (
             self.l10n_ve_dispatch_amount_total,
             self.l10n_ve_dispatch_currency_id or self.company_id.currency_id,
@@ -434,9 +441,12 @@ class StockPicking(models.Model):
         """Return the sale order global discount amount in order currency.
 
         Uses tax totals (SENIAT discounts or product discount lines).
+
+        Read as superuser: the discount rows and tax totals belong to models
+        the warehouse user printing the guide has no access to.
         """
         self.ensure_one()
-        order = self.sale_id
+        order = self.sudo().sale_id
         if not order:
             return 0.0
         tax_totals = order.tax_totals or {}
@@ -460,7 +470,7 @@ class StockPicking(models.Model):
     def _l10n_ve_dispatch_guide_discount_amount(self, picking_subtotal=None):
         """Allocate sale global discount proportionally to this picking subtotal."""
         self.ensure_one()
-        order = self.sale_id
+        order = self.sudo().sale_id
         if not order:
             return 0.0
         so_discount = self._l10n_ve_dispatch_guide_sale_discount_amount()
@@ -482,13 +492,15 @@ class StockPicking(models.Model):
         """Return (amount, currency, detail lines) for the dispatch guide report."""
         self.ensure_one()
         currency = self.l10n_ve_dispatch_display_currency_id or (
-            self.sale_id.currency_id if self.sale_id else self.company_id.currency_id
+            self.sudo().sale_id.currency_id
+            if self.sale_id
+            else self.company_id.currency_id
         )
         amount = self.l10n_ve_dispatch_display_discount
         if float_is_zero(amount, precision_rounding=currency.rounding):
             return 0.0, currency, []
         lines = []
-        order = self.sale_id
+        order = self.sudo().sale_id
         if order:
             tax_totals = order.tax_totals or {}
             so_lines = tax_totals.get("l10n_ve_global_discount_lines") or []
@@ -529,7 +541,9 @@ class StockPicking(models.Model):
             saw_product = True
             if not move.sale_line_id:
                 return False
-            sol = move.sale_line_id
+            # sudo: qty_invoiced_posted walks account.move.line, which a
+            # warehouse user may not be allowed to read.
+            sol = move.sudo().sale_line_id
             per_soline_qty[sol] += move.product_uom._compute_quantity(
                 qty_uom,
                 sol.product_uom,

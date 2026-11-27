@@ -284,3 +284,61 @@ class TestL10nVeStockDispatchGuide(L10nVeStockCommon):
         picking.move_ids.picked = True
         picking._action_done()
         self.assertFalse((picking.l10n_ve_control_number or "").strip())
+
+    def test_picking_openable_without_invoice_access(self):
+        """A warehouse user without invoice access can open the picking.
+
+        The invoice link is computed from account.move.line, and the dispatch
+        guide prices come from the order's tax totals: both must not break the
+        picking form for users without accounting rights. The stat button is
+        hidden from them instead of raising.
+        """
+        picking = self._create_ve_sale_and_validate_delivery()
+        invoice = picking.sale_id._create_invoices()
+        invoice.action_post()
+        self.assertIn(invoice, picking.invoice_ids)
+
+        form_id = self.env.ref("stock.view_picking_form").id
+        groups = [
+            self.env.ref("base.group_user"),
+            self.env.ref("stock.group_stock_user"),
+        ]
+        warehouse_user = self.env["res.users"].create(
+            {
+                "name": "Warehouse only test",
+                "login": "wh_only_test",
+                "groups_id": [Command.set([g.id for g in groups])],
+            }
+        )
+        invoice_groups = groups + [self.env.ref("account.group_account_invoice")]
+        invoice_user = self.env["res.users"].create(
+            {
+                "name": "Warehouse invoicing test",
+                "login": "wh_inv_test",
+                "groups_id": [Command.set([g.id for g in invoice_groups])],
+            }
+        )
+
+        for field in (
+            "invoice_ids",
+            "invoice_count",
+            "l10n_ve_control_number_placeholder",
+            "l10n_ve_show_control_number_ui",
+            "l10n_ve_dispatch_display_total",
+            "l10n_ve_dispatch_display_subtotal",
+            "l10n_ve_dispatch_display_discount",
+        ):
+            self.assertEqual(
+                len(picking.with_user(warehouse_user).read([field])),
+                1,
+                f"Reading {field} as warehouse user should not raise",
+            )
+        self.assertEqual(picking.with_user(warehouse_user).invoice_count, 1)
+
+        wh_arch = picking.with_user(warehouse_user).get_view(form_id)["arch"]
+        self.assertNotIn("action_view_invoice", wh_arch)
+        self.assertNotIn('name="invoice_ids"', wh_arch)
+
+        inv_arch = picking.with_user(invoice_user).get_view(form_id)["arch"]
+        self.assertIn("action_view_invoice", inv_arch)
+        self.assertIn('name="invoice_ids"', inv_arch)

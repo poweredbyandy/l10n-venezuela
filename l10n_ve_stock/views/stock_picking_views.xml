@@ -144,4 +144,21 @@
             </xpath>
         </field>
     </record>
+
+    <!-- The OCA link module shows the invoice stat button on every picking form
+         and reads `invoice_ids` to know when. Users without invoice access must
+         only see the picking itself, so hide both the field and the button. -->
+    <record id="view_picking_form_invoice_link_groups" model="ir.ui.view">
+        <field name="name">stock.picking.form.invoice.link.groups.l10n.ve</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock_picking_invoice_link.view_picking_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_ids']" position="attributes">
+                <attribute name="groups">account.group_account_invoice</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_view_invoice']" position="attributes">
+                <attribute name="groups">account.group_account_invoice</attribute>
+            </xpath>
+        </field>
+    </record>
 </odoo>
